@@ -10,6 +10,15 @@ export default defineConfig({
 		starlight({
 			title: "Data Engineering Interview Questions",
 			description: "Master data engineering through comprehensive interview questions and explanations",
+			head: [
+				{
+					tag: "meta",
+					attrs: {
+						name: "robots",
+						content: "noindex, nofollow",
+					},
+				},
+			],
 			social: [
 				{ label: "GitHub", href: "https://github.com", icon: "github" },
 			],
