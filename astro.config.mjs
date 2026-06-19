@@ -6,6 +6,7 @@ import cloudflare from "@astrojs/cloudflare";
 // https://astro.build/config
 export default defineConfig({
 	site: "https://example.com",
+	output: "static",
 	integrations: [
 		starlight({
 			title: "Data Engineering Interview Questions",
@@ -56,7 +57,4 @@ export default defineConfig({
 			],
 		}),
 	],
-	adapter: cloudflare({
-		mode: "directory",
-	}),
 });

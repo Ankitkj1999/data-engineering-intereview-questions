@@ -12,7 +12,6 @@
 		"publish": true
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "^13.7.0",
 		"@astrojs/starlight": "^0.40.0",
 		"astro": "^6.4.8",
 		"typescript": "5.9.3"
@@ -27,11 +26,8 @@
 	"scripts": {
 		"astro": "astro",
 		"build": "astro build",
-		"cf-typegen": "wrangler types",
-		"check": "astro build && tsc && wrangler deploy --dry-run",
-		"deploy": "wrangler deploy",
 		"dev": "astro dev",
-		"preview": "astro build && wrangler dev"
+		"deploy": "npm run build"
 	},
 	"type": "module"
 }
