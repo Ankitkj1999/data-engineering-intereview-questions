@@ -12,6 +12,7 @@
 		"publish": true
 	},
 	"dependencies": {
+		"@astrojs/cloudflare": "^13.7.0",
 		"@astrojs/starlight": "^0.40.0",
 		"astro": "^6.4.8",
 		"typescript": "5.9.3"
@@ -27,7 +28,7 @@
 		"astro": "astro",
 		"build": "astro build",
 		"dev": "astro dev",
-		"deploy": "npm run build"
+		"deploy": "npm run build && wrangler deploy"
 	},
 	"type": "module"
 }
