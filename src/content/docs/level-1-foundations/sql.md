@@ -1,5 +1,5 @@
 ---
-title: Sql
+title: SQL
 description: Interview questions covering sql
 ---
 
@@ -473,180 +473,553 @@ description: Interview questions covering sql
 [Table of Contents](#SQL)
 
 ## Write sql query to get the second highest salary among all employees?
-Given Employee Table with two columns
-ID, Salary 10, 2000
-11, 5000
-12, 3000
+Given an `Employee` table with the following structure and data:
+
+| ID | Salary |
+| --- | --- |
+| 10 | 2000 |
+| 11 | 5000 |
+| 12 | 3000 |
+
+---
 
 [Table of Contents](#SQL)
 
-## There are multiple ways to get the second highest salary among all employees.
-Option 1: Use Subquery
-SELECT MAX(Salary) FROM Employee WHERE Salary NOT IN (SELECT MAX(Salary) FROM Employee );
-In this approach, we are getting the maximum salary in a subquery and then excluding this from the rest of the resultset.
-Option 2: Use Not equals
-select MAX(Salary) from Employee WHERE Salary <> (select MAX(Salary) from Employee )
-This is same as option 1 but we are using <> instead of NOT IN.
+#### There are multiple ways to find the second highest salary among all employees.
+
+##### Option 1: Use a Subquery with `NOT IN`
+
+This approach finds the maximum salary first, excludes it from the dataset, and then finds the new maximum salary from the remaining records.
+
+```sql
+SELECT MAX(Salary) AS SecondHighestSalary 
+FROM Employee 
+WHERE Salary NOT IN (
+    SELECT MAX(Salary) 
+    FROM Employee
+);
+
+```
+
+##### Option 2: Use the Not Equal Operator (`<>`)
+
+This works identically to Option 1, but uses the `<>` (not equal to) operator instead of `NOT IN`. This is highly efficient when you only need to exclude a single top value.
+
+```sql
+SELECT MAX(Salary) AS SecondHighestSalary 
+FROM Employee 
+WHERE Salary <> (
+    SELECT MAX(Salary) 
+    FROM Employee
+);
+
+```
+
+##### Option 3: Use `LIMIT` and `OFFSET` (Best for Row Ordering)
+
+Another common approach is to sort the salaries in descending order and skip the first row. Using `DISTINCT` ensures that duplicate highest salaries don't break the logic.
+
+```sql
+SELECT DISTINCT Salary AS SecondHighestSalary 
+FROM Employee 
+ORDER BY Salary DESC 
+LIMIT 1 OFFSET 1;
+
+```
+
+*(Note: In some SQL dialects like SQL Server, you would use `OFFSET 1 ROWS FETCH NEXT 1 ROWS ONLY` instead).*
+[Table of Contents](#SQL)
+
+## How to Retrieve Alternate Records from a Table in SQL
+
+To get alternate records (even or odd rows), we can generate a row number for each record using the `ROW_NUMBER()` window function, and then use the `MOD` function (or the `%` modulo operator) to filter them.
+
+##### To Get Even-Numbered Records
+
+This query assigns a sequential number to each row, divides that number by 2, and returns rows where the remainder is 0.
+
+```sql
+SELECT * FROM (
+    SELECT *, ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS row_num 
+    FROM Employee
+) AS Subquery
+WHERE MOD(row_num, 2) = 0;
+
+```
+
+*(Note: If your specific SQL dialect doesn't support the `MOD()` function, you can use the percentage operator instead: `WHERE row_num % 2 = 0`).*
+
+##### To Get Odd-Numbered Records
+
+This query follows the same logic, but returns rows where the remainder is 1.
+
+```sql
+SELECT * FROM (
+    SELECT *, ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS row_num 
+    FROM Employee
+) AS Subquery
+WHERE MOD(row_num, 2) = 1;
+
+```
+
 
 [Table of Contents](#SQL)
 
-## How can we retrieve alternate records from a table in oracle?
-We can use rownum and MOD function to retrieve the alternate records from a table.
-To get Even number records:
-SELECT * FROM (SELECT rownum, ID, Name FROM Employee) WHERE MOD(rownum,2)=0
-To get Odd number records: SELECT * FROM (SELECT rownum, ID, Name FROM Employee)
-WHERE MOD(rownum,2)=1
+## Find Maximum Salary by Department
+
+Given the following database schema:
+
+**Employee Table**
+
+| ID | Salary | DeptID |
+| --- | --- | --- |
+| 10 | 1000 | 2 |
+| 20 | 5000 | 3 |
+| 30 | 3000 | 2 |
+
+**Department Table**
+
+| ID | DeptName |
+| --- | --- |
+| 1 | Marketing |
+| 2 | IT |
+| 3 | Finance |
+
+---
+
+##### The Interview Tip 💡
+
+> **This is a trick question.** Always ask the interviewer: *"Do you want to include departments that have no employees?"*
+> * If **Yes**, you must use a `LEFT OUTER JOIN` so empty departments still appear (with a `NULL` salary).
+> * If **No**, a standard `INNER JOIN` is sufficient.
+> 
+> 
+
+##### The Solution (Handles Empty Departments)
+
+```sql
+SELECT 
+    d.DeptName, 
+    MAX(e.Salary) AS MaxSalary
+FROM Department d
+LEFT OUTER JOIN Employee e 
+    ON d.ID = e.DeptID
+GROUP BY d.DeptName;
+
+```
 
 [Table of Contents](#SQL)
 
-## Write sql query to find max salary and department name from each department.
-Given Employee table with three columns
-ID, Salary, DeptID
-10, 1000, 2
-20, 5000, 3
-30, 3000, 2
+## Find Records in Table A That Are Not in Table B (Without `NOT IN`)
 
-Department table with two columns: ID, DeptName
-1, Marketing
-2, IT
-3, Finance
+Given two tables with a single column:
 
-This is a trick question. There can be some department without any employee. So we have to ask interviewer if they expect the name of such Department also in result.
-If yes then we have to join Department table with Employee table by using foreign key DeptID. We have to use LEFT OUTER JOIN to print all the departments.
-Query would be like as follows:
-SELECT d.DeptName, MAX(e.Salary) FROM Department d LEFT OUTER JOIN Employee e ON e.DeptId = d.ID GROUP BY DeptName
+**Table_A** (10, 20, 30)
+
+**Table_B** (15, 30, 45)
+
+##### Option 1: Use Set Operators (`EXCEPT` / `MINUS`)
+
+This returns all distinct rows from the first query that do not appear in the second query.
+
+* **Standard SQL / SQL Server / PostgreSQL / MySQL:**
+```sql
+SELECT * FROM Table_A
+EXCEPT
+SELECT * FROM Table_B;
+
+```
+
+
+* **Oracle:**
+```sql
+SELECT * FROM Table_A
+MINUS
+SELECT * FROM Table_B;
+
+```
+
+
+
+##### Option 2: Use `LEFT JOIN` (Most Universal)
+
+This joins both tables and filters for rows where no match was found in `Table_B`. This works across all SQL databases.
+
+```sql
+SELECT Table_A.* FROM Table_A 
+LEFT JOIN Table_B ON Table_A.ID = Table_B.ID
+WHERE Table_B.ID IS NULL;
+
+```
 
 [Table of Contents](#SQL)
 
-## Write sql query to find records in table a that are not in table b without using not in operator.
-Consider two tables
-Table_A
-
-10
-20
-30
-
-Table_B
-15
-30
-45
-We can use MINUS operator in this case for Oracle and EXCEPT for SQL Server.
-Query will be as follows:
-SELECT * FROM Table_A MINUS SELECT * FROM Table_B
-
-[Table of Contents](#SQL)
 
 ## What is the result of following query?
+
+```sql
 SELECT CASE WHEN null = null THEN "True" ELSE "False" END AS Result;
-Answer: In SQL null can not be compared with itself. There fore null = null is not true. We can compare null with a non-null value to check whether a value is not null.
-Therefore the result of above query is False.
-The correct way to check for null is to use IS NULL clause.
-Following query will give result True. SELECT CASE WHEN null IS NULL THEN "True" ELSE "False" END AS Result;
+
+```
+
+**Output:** `False`
+
+---
+
+##### Why?
+
+In SQL, `NULL` represents an **unknown** value. Because an unknown value cannot be compared to another unknown value, the expression `null = null` does not evaluate to `True`—it evaluates to `NULL` (unknown).
+
+Since the `WHEN` clause did not get a `True` result, the `CASE` statement falls back to the `ELSE` block, returning **"False"**.
+
+---
+
+##### The Correct Approach
+
+To check if a value is null, you must use the `IS NULL` operator instead of the equals (`=`) sign.
+
+```sql
+-- This query returns "True"
+SELECT CASE WHEN null IS NULL THEN "True" ELSE "False" END AS Result;
+
+```
 
 [Table of Contents](#SQL)
 
-## Write sql query to find employees that have same name and email.
-Employee table:
-ID	NAME	EMAIL
-10	John	jbaldwin
-20	George	gadams
-30	John	jsmith
 
-This is a simple question with one trick. The trick here is to use Group by on two columns Name and Email.
-Query would be as follows: SELECT name, email, COUNT(*) FROM Employee GROUP BY name, email HAVING COUNT(*) > 1
+## Find Employees with Duplicate Names and Emails
 
-[Table of Contents](#SQL)
+Given an `Employee` table with the columns `ID`, `NAME`, and `EMAIL`:
 
-## Write sql query to find max salary from each department.
-Given Employee table with three columns
-ID, Salary, DeptID 10, 1000, 2
-20, 5000, 3
-30, 3000, 2
+##### Solution: Group By Multiple Columns
 
-We can first use group by DeptID on Employee table and then get the Max salary from each Dept group.
-SELECT	DeptID, MAX(salary) FROM Employee GROUP BY DeptID
+To find duplicates across multiple fields, group the data by both `NAME` and `EMAIL`, and use the `HAVING` clause to filter for groups that appear more than once.
 
-[Table of Contents](#SQL)
+```sql
+SELECT name, email, COUNT(*) AS duplicate_count
+FROM Employee
+GROUP BY name, email
+HAVING COUNT(*) > 1;
 
-## Write sql query to get the nth highest salary among all employees.
-Given Employee Table with two columns
-ID, Salary 10, 2000
-11, 5000
-12, 3000
+```
 
-Option 1: Use Subquery We can use following sub query approach for this:
-SELECT * FROM Employee emp1 WHERE (N-1) = ( SELECT COUNT(DISTINCT(emp2.salary)) FROM Employee emp2 WHERE emp2.salary > emp1.salary)
-Option 2: Using Rownum in Oracle
-SELECT * FROM (SELECT emp.*,row_number() OVER (ORDER BY salary DESC) rnum FROM Employee emp) WHERE rnum = n;
+##### Key Takeaway
+
+> **The Trick:** By grouping on both columns simultaneously (`GROUP BY name, email`), SQL combines only the rows where *both* pieces of information match exactly. The `HAVING COUNT(*) > 1` then isolates the duplicates.
 
 [Table of Contents](#SQL)
 
-## How can you find 10 employees with odd number as employee id?
-In Oracle we can use Top to limit the number of records. We can also use Rownum < 11 to get the only 10 or less number of records.To find the Odd number Employee ID, we can use % function.
-Sample Query with TOP:
-SELECT TOP 10 ID FROM Employee WHERE ID % 2 = 1;
-Sample Query with ROWNUM:
-SELECT ID FROM Employee WHERE ID % 2 = 1 AND ROWNUM < 11;
+## Find Maximum Salary from Each Department
+
+Given an `Employee` table with the following data:
+
+| ID | Salary | DeptID |
+| --- | --- | --- |
+| 10 | 1000 | 2 |
+| 20 | 5000 | 3 |
+| 30 | 3000 | 2 |
+
+---
+
+##### Solution: Use `GROUP BY` and `MAX()`
+
+To find the highest salary in each department, group the data by `DeptID` and use the `MAX()` aggregate function on the `Salary` column.
+
+```sql
+SELECT DeptID, MAX(Salary) AS MaxSalary 
+FROM Employee 
+GROUP BY DeptID;
+
+```
+
+##### Resulting Output
+
+| DeptID | MaxSalary |
+| --- | --- |
+| 2 | 3000 |
+| 3 | 5000 |
 
 [Table of Contents](#SQL)
 
-## Write sql query to get the names of employees whose date of birth is between 01/01/1990 to 31/12/2000.
-This SQL query appears a bit tricky. We can use BETWEEN clause to get all the employees whose date of birth lies between two given dates.
-Query will be as follows:
-SELECT EmpName FROM Employees WHERE birth_date BETWEEN "01/01/1990" AND "31/12/2000"
-Remember BETWEEN is always inclusive of both the dates.
+## Find the nth Highest Salary
+
+Given an `Employee` table with columns `ID` and `Salary`:
+
+##### Option 1: Correlated Subquery (Standard SQL)
+
+This approach counts how many unique salaries are higher than the current row's salary. When that count equals $N-1$, you have found the $n^{\text{th}}$ highest salary.
+
+```sql
+SELECT * FROM Employee emp1 
+WHERE (N - 1) = (
+    SELECT COUNT(DISTINCT emp2.Salary) 
+    FROM Employee emp2 
+    WHERE emp2.Salary > emp1.Salary
+);
+
+```
+
+##### Option 2: `ROW_NUMBER()` Window Function (Recommended)
+
+This method ranks the salaries in descending order and assigns a row number, then filters for the specific rank ($N$). Works across most modern databases (Oracle, SQL Server, PostgreSQL, MySQL).
+
+```sql
+SELECT * FROM (
+    SELECT *, ROW_NUMBER() OVER (ORDER BY Salary DESC) AS rnum 
+    FROM Employee
+) AS Subquery 
+WHERE rnum = N;
+
+```
+
+*(Tip: Replace `ROW_NUMBER()` with `DENSE_RANK()` if you want to properly handle duplicate identical salaries).*
+
+##### Option 3: `LIMIT` and `OFFSET` (MySQL / PostgreSQL / SQLite)
+
+The shortest and most efficient syntax if your specific database supports it.
+
+```sql
+SELECT DISTINCT Salary 
+FROM Employee 
+ORDER BY Salary DESC 
+LIMIT 1 OFFSET (N - 1);
+
+```
 
 [Table of Contents](#SQL)
 
-## Write sql query to get the quarter from date.
-Answer: We can use to_char function with "Q" option for quarter to get quarter from a date.
-Use TO_CHAR with option "Q" for Quarter
-SELECT TO_CHAR(TO_DATE("3/31/2016", "MM/DD/YYYY"), "Q") AS quarter FROM DUAL
+## Find 10 Employees with Odd Employee IDs
+
+To find 10 employees with an odd ID, filter the rows using a modulo operation (`ID % 2` or `MOD`) and limit the result set to 10 rows.
+
+##### Standard SQL / Modern Oracle (Version 12c+)
+
+Uses standard ANSI SQL syntax, which works across modern Oracle, PostgreSQL, and MySQL databases.
+
+```sql
+SELECT ID 
+FROM Employee 
+WHERE ID % 2 = 1 
+FETCH FIRST 10 ROWS ONLY;
+
+```
+
+##### SQL Server Approach
+
+Uses the `TOP` clause to restrict the result set.
+
+```sql
+SELECT TOP 10 ID 
+FROM Employee 
+WHERE ID % 2 = 1;
+
+```
 
 [Table of Contents](#SQL)
 
-## Write query to find employees with duplicate email.
-Employee table:
-ID	NAME	EMAIL
-10	John	jsmith
-20	George	gadams
-30	Jane	jsmith
-We can use Group by clause on the column in which we want to find duplicate values.
-Query would be as follows:
-SELECT name, COUNT(email) FROM Employee GROUP BY email HAVING ( COUNT(email) > 1 )
+## Find Employees Born Between Two Dates
+
+To retrieve records within a specific date range, use the `BETWEEN` operator. Note that `BETWEEN` is **inclusive**, meaning it includes both the start and end dates.
+
+```sql
+SELECT EmpName 
+FROM Employees 
+WHERE birth_date BETWEEN '1990-01-01' AND '2000-12-31';
+
+```
+
+##### Alternative: Using Comparison Operators
+
+If you prefer not to use `BETWEEN`, you can achieve the exact same result using `>=` and `<=`:
+
+```sql
+SELECT EmpName 
+FROM Employees 
+WHERE birth_date >= '1990-01-01' 
+  AND birth_date <= '2000-12-31';
+
+```
 
 [Table of Contents](#SQL)
 
-## Write a query to find all employee whose name contains the word "rich", regardless of case.
-E.g. Rich, RICH, rich.
-We can use UPPER function for comparing the both sides with uppercase.
-SELECT * FROM Employees WHERE UPPER(emp_name) like "%RICH%"
+## Get the Quarter From a Date
+
+##### Option 1: Standard SQL (Recommended)
+
+The most widely supported, database-agnostic way to extract a quarter from a date.
+
+```sql
+SELECT EXTRACT(QUARTER FROM DATE '2016-03-31') AS quarter;
+
+```
+
+##### Option 2: Oracle SQL (`TO_CHAR`)
+
+If you are specifically using Oracle, you can pass the format model `"Q"` to the `TO_CHAR` function.
+
+```sql
+SELECT TO_CHAR(TO_DATE('03/31/2016', 'MM/DD/YYYY'), 'Q') AS quarter 
+FROM DUAL;
+
+```
+
+> **Result:** Both queries will return `1` (representing the first quarter of the year).
 
 [Table of Contents](#SQL)
 
-## Is it safe to use rowid to locate a record in oracle sql queries?
-ROWID is the physical location of a row. We can do very fast lookup based on ROWID. In a transaction where we first search a few rows and then update them one by one, we can use ROWID. But ROWID of a record can change over time. If we rebuild a table a record can get a new ROWID. If a record is deleted, its ROWID can be given to another record. So it is not recommended to store and use ROWID in long term. It should be used in same transactions.
+## Find Employees with Duplicate Emails
+
+Given the `Employee` table:
+
+| ID | NAME | EMAIL |
+| --- | --- | --- |
+| 10 | John | jsmith |
+| 20 | George | gadams |
+| 30 | Jane | jsmith |
+
+##### Solution
+
+To find duplicate values, use the `GROUP BY` clause on the target column and filter the groups using `HAVING COUNT(*) > 1`.
+
+```sql
+SELECT EMAIL, COUNT(EMAIL) AS occurrence_count
+FROM Employee
+GROUP BY EMAIL
+HAVING COUNT(EMAIL) > 1;
+
+```
+
+> **Note:** When using `GROUP BY`, you can only select columns that are either part of the group or used within an aggregate function (like `COUNT`). Replacing `NAME` with `EMAIL` in the `SELECT` clause ensures the query is valid standard SQL.
 
 [Table of Contents](#SQL)
 
-## What is a pseudo-column?
-A Pseudocolumn is like a table column, but it is not stored in the same table. We can select from a Pseudocolumn, but we can not insert, update or delete on a Pseudocolumn. A Pseudocolumn is like a function with no arguments. Two most popular Pseudocolumns in Oracle are ROWID and ROWNUM. NEXTVAL and CURRVAL are also pseudo columns.
+## Find Employees with Name Containing "Rich" (Case-Insensitive)
+
+To search for a substring regardless of case, you can convert the column data to a single case (upper or lower) before comparing it.
+
+##### Solution
+
+```sql
+SELECT * FROM Employees 
+WHERE UPPER(emp_name) LIKE '%RICH%';
+
+```
+
+##### Alternative (Using LOWER)
+
+```sql
+SELECT * FROM Employees 
+WHERE LOWER(emp_name) LIKE '%rich%';
+
+```
+
+> **Note:** Standard SQL uses single quotes (`'`) for string literals like `'%RICH%'`. Double quotes (`"`) can cause errors in many SQL dialects.
 
 [Table of Contents](#SQL)
 
-## What are the reasons for denormalizing the data?
-We de-normalize data when we need better performance. Sometimes there are many joins in a query due to highly normalized data. In that case, for faster data retrieval it becomes essential to de-normalize data.
+## Is it safe to use ROWID to locate a record in Oracle?
+
+**Short Answer:** No, it is not safe for long-term use. It should only be used within the **same transaction**.
+
+##### Why it is useful (Short-term)
+
+* **Speed:** `ROWID` represents the exact physical location of a row on the disk, making it the fastest possible way to look up a record.
+* **Use Case:** It is ideal for a single transaction where you fetch a few rows, hold their `ROWID`s, and immediately update them one by one.
+
+##### Why it is unsafe (Long-term)
+
+`ROWID`s are not permanent. They can change or be reassigned in the following scenarios:
+
+* **Table Rebuilds:** Rebuilding or moving a table changes the physical location of the rows, altering their `ROWID`s.
+* **Row Movement:** Operations like shrinking a table or updating a partitioned key can change a row's `ROWID`.
+* **Deletions:** If a row is deleted, its old `ROWID` can be reused and assigned to a completely new record.
+
+> ⚠️ **Rule of Thumb:** Never store a `ROWID` in a table or use it for future queries. For long-term data retrieval, always use the table's **Primary Key**.
+[Table of Contents](#SQL)
+
+## What is a Pseudo-column?
+
+A **pseudo-column** behaves like a regular table column but is **not actually stored** in the table. You can select data from it, but you cannot insert, update, or delete its values. Think of it as a built-in function that takes no arguments.
+
+##### Key Characteristics
+
+* **Read-Only:** Available only for `SELECT` operations.
+* **Dynamic:** Values are generated by the database engine on the fly.
+* **Not Saved:** Does not take up storage space within your table structure.
+
+##### Common Examples (Oracle)
+
+| Pseudo-column | Purpose |
+| --- | --- |
+| **`ROWNUM`** | Returns a number indicating the order in which a row was selected. |
+| **`ROWID`** | Returns the unique, exact binary address of a row in the database. |
+| **`NEXTVAL`** | Generates and returns the next sequential value from a Sequence object. |
+| **`CURRVAL`** | Returns the current (most recently fetched) value of a Sequence. |
 
 [Table of Contents](#SQL)
 
-## What is the feature in sql for writing if and else statements?
-In SQL, we can use CASE statements to write If/Else statements. We can also use DECODE function in Oracle SQL for writing simple If/Else logic.
+## What are the reasons for denormalizing data?
+
+The primary reason to denormalize data is to **improve read performance and speed up query execution**.
+
+In a highly normalized database, data is split across multiple tables to reduce redundancy. However, retrieving this data often requires complex and costly `JOIN` operations. Denormalization strategically introduces redundancy by combining data into fewer tables, resulting in:
+
+* **Faster Data Retrieval:** Fewer tables mean fewer `JOIN` operations, significantly reducing query execution time.
+* **Simplified Queries:** Queries become easier to write and maintain since the data is consolidated.
+* **Optimized Reporting:** It drastically speeds up heavy read operations, data warehousing, and analytical reporting workloads.
+
+> **Trade-off Note:** While denormalization improves read performance, it increases storage requirements and makes data write operations (`INSERT`, `UPDATE`, `DELETE`) slower and more complex to manage.
 
 [Table of Contents](#SQL)
 
-## What is the difference between delete and truncate in sql?
-Main differences between DELETE and TRUNCATE commands are:
-DML vs. DDL: DELETE is a Data Manipulation Language (DML) command. TRUNCATE is a Data Definition Language (DDL) command.
+## What is the feature in SQL for writing If/Else statements?
+
+In SQL, you can implement conditional `IF/ELSE` logic using the **`CASE`** statement. This is the standard approach across almost all database systems.
+
+##### Standard SQL: `CASE` Statement
+
+```sql
+SELECT ID, Name,
+    CASE 
+        WHEN Salary >= 5000 THEN 'High'
+        WHEN Salary >= 3000 THEN 'Medium'
+        ELSE 'Low'
+    END AS Salary_Class
+FROM Employee;
+
+```
+
+##### Oracle Specific: `DECODE` Function
+
+For simple, direct equality checks, Oracle provides a shorthand function called `DECODE`.
+
+```sql
+-- Syntax: DECODE(expression, search, result, [, search, result]... [, default])
+SELECT ID, Name, 
+    DECODE(Department_ID, 10, 'Accounting', 20, 'Research', 'Other') AS Dept_Name
+FROM Employee;
+
+```
+
+[Table of Contents](#SQL)
+
+## Difference Between DELETE and TRUNCATE in SQL
+
+| Feature | DELETE | TRUNCATE |
+| --- | --- | --- |
+| **Command Type** | **DML** (Data Manipulation Language) | **DDL** (Data Definition Language) |
+| **Filtering** | Can use a `WHERE` clause to delete **specific rows**. | Cannot use a `WHERE` clause; deletes **all rows**. |
+| **Speed** | **Slower** (logs every deleted row individually). | **Faster** (deallocates the data pages directly). |
+| **Rollback** | Can be rolled back if used inside a transaction. | Cannot be rolled back in most databases (permanent). |
+| **Identity/Auto-Increment** | Does **not** reset row identity counters. | **Resets** the identity/auto-increment counter to its seed. |
+| **Triggers** | Fires any associated delete triggers. | Does **not** fire triggers. |
+
+---
+
+##### In Short:
+
+* Use **`DELETE`** when you want to remove specific rows or might need to undo the operation.
+* Use **`TRUNCATE`** when you want to completely empty a table quickly and reset it.
 
 Number of Rows: We can use DELETE command to remove one or more rows from a table. TRUNCATE command will remove all the rows from a table.
 WHERE clause: DELETE command provides support for WHERE clause that can be used to filter the data that we want to delete. TRUNCATE command can only delete all the rows. There is no WHERE clause in TRUNCATE command.
@@ -654,113 +1027,253 @@ Commit: After DELETE command we have to issue COMMIT or ROLLBACK command to conf
 
 [Table of Contents](#SQL)
 
-## What is the difference between ddl and dml commands in sql?
-Main differences between Data Definition Language (DDL) and Data Manipulation Language (DML) commands are:
-+ DDL vs. DML: DDL statements are used for creating and defining the Database structure. DML statements are used for managing data within Database. Sample Statements: DDL statements are CREATE, ALTER, DROP, TRUNCATE, RENAME etc. DML statements are SELECT, INSERT, DELETE, UPDATE, MERGE, CALL etc.
-+ Number of Rows: DDL statements work on whole table. CREATE will a create a new table. DROP will remove the whole table. TRUNCATE will delete all records in a table. DML statements can work on one or more rows. INSERT can insert one or more rows. DELETE can remove one or more rows.
-+ WHERE clause: DDL statements do not have a WHERE clause to filter the data. Most of DML statements support filtering the data by WHERE clause.
-+ Commit: Changes done by a DDL statement can not be rolled back. So there is no need to issue a COMMIT or ROLLBACK command after DDL statement. We need to run COMMIT or ROLLBACK to confirm our changed after running a DML statement.
-+ Transaction: Since each DDL statement is permanent, we can not run multiple DDL statements in a group like Transaction. DML statements can be run in a Transaction. Then we can COMMIT or ROLLBACK this group as a transaction. E.g. We can insert data in two tables and commit it together in a transaction.
-+ Triggers: After DDL statements no triggers are fired. But after DML statements relevant triggers can be fired.
+## What is the difference between DDL and DML commands in SQL?
+
+The core difference lies in their purpose: **DDL (Data Definition Language)** defines the structure of the database, while **DML (Data Manipulation Language)** manages the data inside that structure.
+
+##### Quick Comparison
+
+| Feature | DDL (Data Definition Language) | DML (Data Manipulation Language) |
+| --- | --- | --- |
+| **Purpose** | Creates and modifies the **database structure** (schema). | Manages and manipulates **data** within the tables. |
+| **Commands** | `CREATE`, `ALTER`, `DROP`, `TRUNCATE`, `RENAME` | `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `MERGE` |
+| **Scope** | Works on the **entire table** or object. | Works on **specific rows** or sets of rows. |
+| **`WHERE` Clause** | Not supported (cannot filter structural changes). | Supported (used to filter which rows to modify). |
+| **Rollback** | **Auto-committed**; changes are permanent and cannot be rolled back. | **Can be rolled back** unless a `COMMIT` is explicitly issued. |
+| **Transactions** | Cannot be grouped into a transaction. | Can be grouped together into a single transaction. |
+| **Triggers** | Does not fire database triggers. | Can fire relevant triggers (e.g., `BEFORE INSERT`). |
 
 [Table of Contents](#SQL)
 
-## Why do we use escape characters in sql queries?
-In SQL, there are certain special characters and words that are reserved for special purpose. E.g. & is a reserved character. When we want to use these special characters in the context of our data, we have to use Escape characters to pass the message to database to interpret these as non Special / non Reserved characters.
+## Why do we use escape characters in SQL?
+
+SQL uses certain special characters (like `%`, `_`, or `\'`) for structural syntax and wildcard matching.
+
+When you want to treat these special characters as **literal text** within your data rather than command modifiers, you must use an **escape character**. This tells the database engine to ignore the character's special meaning and treat it as standard text.
+
+##### Example Scenario
+
+If you want to search for a product name that contains an actual percentage sign (`"10% Discount"`), a standard `LIKE '%_%'` query will fail because `%` is a wildcard.
+
+By defining an escape character (like `\`), you tell SQL to treat the following character literally:
+
+```sql
+SELECT * FROM Products 
+WHERE ProductCode LIKE '10\%' ESCAPE '\';
+
+```
+
 
 [Table of Contents](#SQL)
 
-## What is the difference between primary key and unique key in sql?
-Main differences between Primary key and Unique key in SQL are:
-+ Number: There can be only one Primary key in a table. There can be more than one Unique key in a table.
-+ Null value: In some DBMS Primary key cannot be NULL. E.g. MySQL adds NOT NULL to Primary key. A Unique key can have null values.
-+ Unique Identifier: Primary Key is a unique identifier of a record in database table. Unique key can be null and we may not be able to identify a record in a unique way by a unique key
-+ Changes: It is not recommended to change a Primary key. A Unique key can be changed much easily.
-+ Usage: Primary Key is used to identify a row in a table. A Unique key is used to prevent duplicate non-null values in a column.
+## Primary Key vs. Unique Key in SQL
+
+The main differences between a **Primary Key (PK)** and a **Unique Key (UK)** are:
+
+| Feature | Primary Key | Unique Key |
+| --- | --- | --- |
+| **Quantity** | Only **one** per table. | Can have **multiple** per table. |
+| **Null Values** | **Never allows `NULL**` values. | **Allows `NULL**` values (usually one or more depending on the DB). |
+| **Purpose** | Uniquely identifies a **complete row/record**. | Prevents duplicate values in **specific columns**. |
+| **Modifications** | Highly discouraged and difficult to change. | Can be changed or dropped much more easily. |
+
+---
+
+##### Key Takeaway
+
+> Use a **Primary Key** to connect tables and identify unique rows. Use a **Unique Key** when you just want to ensure that a specific column (like `Email` or `SSN`) doesn't have duplicate entries, while still allowing the value to be optional (`NULL`).
 
 [Table of Contents](#SQL)
 
-## What is the difference between inner join and outer join in sql?
-Let say we have two tables X and Y.
-The result of an INNER JOIN of X and Y is X intersect. It is the INNER overlapping intersection part of a Venn diagram. The result of an OUTER JOIN of X and Y is X union Y. It is the OUTER parts of a Venn diagram. E.g. Consider following two tables, with just one column x and y:
+## Difference Between INNER JOIN and OUTER JOIN
 
-x | y
-- -|- -
-  10 | 30
-  20 | 40
-  30 | 50
-  40 | 60
-  In above tables (10,20) are unique to table X, (30,40) are common, and (50,60) are unique to table Y.
-  INNER JOIN An INNER JOIN by using following query will give the intersection of the two tables X and Y. The intersection is the common data between these tables.
-  select * from X INNER JOIN Y on X.x =Y.y;
-  x | y
-  --+--
-  30 | 30
-  40 | 40
+The main difference lies in how they handle unmatched rows between tables:
 
-OUTER JOIN
-A full OUTER JOIN by using following query will us the union of X and Y. It will have all the rows in X and all the rows in Y. If some row in X has not corresponding value in Y, then Y side will be null, and vice versa.
-select * from X FULL OUTER JOIN Y on X.x = Y.y;
+* **INNER JOIN:** Returns only the rows that have **matching values in both tables** (Intersection).
+* **OUTER JOIN:** Returns matched rows as well as **unmatched rows from one or both tables** (Union), filling missing matches with `NULL`.
 
-x| y
------ + -----
-10 | null
-20 | null
+---
 
-30 |	30
-40 |	40
-null |	60
-null |	50
+##### Example Data
 
-[Table of Contents](#SQL)
+Imagine two tables, **X** and **Y**, each with a single column:
 
-## What is the difference between left outer join and right outer join?
-Let say we have two tables X and Y.
-The result of an LEFT OUTER JOIN of X and Y is all rows of X and common rows between X and Y.
-The result of an RIGHT OUTER JOIN of X and Y is all rows of Y and common rows between X and Y.
-E.g.
-Consider following two tables, with just one column x and y:
+| Table X (x) | Table Y (y) |
+| --- | --- |
+| 10 *(Unique to X)* | 30 *(Common)* |
+| 20 *(Unique to X)* | 40 *(Common)* |
+| **30** *(Common)* | 50 *(Unique to Y)* |
+| **40** *(Common)* | 60 *(Unique to Y)* |
 
-x| y
-- - -|- - 10 | 30
-    20 | 40
-    30 | 50
-    40 | 60
+---
 
-In above tables (10,20) are unique to table X, (30,40) are common, and (50,60) are unique to table Y.
-LEFT OUTER JOIN
-A left OUTER JOIN by using following query will give us all rows in X and common rows in X and Y.
-select * from X LEFT OUTER JOIN Y on X.x = Y.y;
-x| y
--- -+-----
-10 | null
-20 | null
-30 |30
-40 |40
-RIGHT OUTER JOIN
-A right OUTER JOIN by using following query will give all rows in Y and common rows in X and Y.
-select * from X RIGHT OUTER JOIN Y on X.x = Y.y;
-x| y
------ +----
-30	|	30
-40	|	40
-null	|	50
-null	|	60
+##### 1. INNER JOIN
+
+Returns only the common data between both tables.
+
+```sql
+SELECT * FROM X 
+INNER JOIN Y ON X.x = Y.y;
+
+```
+
+**Result:**
+
+| x | y |
+| --- | --- |
+| 30 | 30 |
+| 40 | 40 |
+
+---
+
+##### 2. FULL OUTER JOIN
+
+Returns all rows from both tables, matching them where possible and using `NULL` where there is no match.
+
+```sql
+SELECT * FROM X 
+FULL OUTER JOIN Y ON X.x = Y.y;
+
+```
+
+**Result:**
+
+| x | y |
+| --- | --- |
+| 10 | `NULL` |
+| 20 | `NULL` |
+| 30 | 30 |
+| 40 | 40 |
+| `NULL` | 50 |
+| `NULL` | 60 |
 
 [Table of Contents](#SQL)
 
-## What is the datatype of rowid?
-ROWID Pseudocolumn in Oracle is of ROWID datatype. It is a string that represents the address of a row in the database.
+## SQL Joins: LEFT OUTER JOIN vs. RIGHT OUTER JOIN
+
+The main difference lies in **which table's unmatched rows are preserved** in the final result.
+
+---
+
+##### Key Difference
+
+* **LEFT OUTER JOIN:** Returns **all** rows from the left table (X), and the matched rows from the right table (Y). Unmatched rows from Y will show as `NULL`.
+* **RIGHT OUTER JOIN:** Returns **all** rows from the right table (Y), and the matched rows from the left table (X). Unmatched rows from X will show as `NULL`.
+
+---
+
+##### Example Setup
+
+Given two tables, **X** and **Y**, each with a single column:
+
+| Table X (x) | Table Y (y) |
+| --- | --- |
+| 10 *(Unique to X)* | 30 *(Common)* |
+| 20 *(Unique to X)* | 40 *(Common)* |
+| 30 *(Common)* | 50 *(Unique to Y)* |
+| 40 *(Common)* | 60 *(Unique to Y)* |
+
+---
+
+##### 1. LEFT OUTER JOIN
+
+```sql
+SELECT * FROM X LEFT OUTER JOIN Y ON X.x = Y.y;
+
+```
+
+**Result:** (Keeps all rows from X)
+
+| x | y |
+| --- | --- |
+| 10 | `NULL` |
+| 20 | `NULL` |
+| 30 | 30 |
+| 40 | 40 |
+
+##### 2. RIGHT OUTER JOIN
+
+```sql
+SELECT * FROM X RIGHT OUTER JOIN Y ON X.x = Y.y;
+
+```
+
+**Result:** (Keeps all rows from Y)
+
+| x | y |
+| --- | --- |
+| 30 | 30 |
+| 40 | 40 |
+| `NULL` | 50 |
+| `NULL` | 60 |
 
 [Table of Contents](#SQL)
 
-## What is the difference between where clause and having clause?
-We use where clause to filter elements based on some criteria on individual records of a table.
-E.g. We can select only employees with first name as John.
-SELECT ID, Name FROM Employee WHERE name = "John"
-We use having clause to filter the groups based on the values of aggregate functions.
-E.g. We can group by department and only select departments that have more than 10 employees.
-SELECT deptId, count(1) FROM Employee GROUP BY deptId HAVING count(*) > 10.
+## How does SQL uniquely identify a row physically vs. logically?
+
+##### Question
+
+What is the difference between a **Logical Identifier** and a **Physical Identifier** in a database table, and why should you avoid using physical identifiers in application queries?
+
+##### Answer
+
+* **Logical Identifier (Primary Key):** A user-defined column (or columns) like `ID` (an integer or UUID) that uniquely identifies a row based on business logic. It remains permanent even if the data moves to a different server or disk.
+* **Physical Identifier (Internal Row ID):** A hidden, system-generated identifier that represents the exact physical address of the row on the storage disk.
+
+###### Database Comparison
+
+While ANSI SQL relies on Primary Keys, individual databases use different internal types to track physical locations:
+
+| Database | System Column | Data Type / Format |
+| --- | --- | --- |
+| **Oracle** | `ROWID` | `ROWID` (Base64 String) |
+| **PostgreSQL** | `ctid` | `tid` (Tuple ID Tuple) |
+| **SQLite** | `rowid` | `INTEGER` |
+
+##### Why you should only use Logical Identifiers (Primary Keys)
+
+You should **never** hardcode physical identifiers like `ROWID` or `ctid` in your application logic because they are temporary. If a database table is rebuilt, optimized, vacuumed, or migrated to a new server, the physical location of the data changes, which will completely break your queries.
+
+[Table of Contents](#SQL)
+
+## Difference Between `WHERE` and `HAVING` Clauses
+
+The core difference is that **`WHERE` filters individual rows**, while **`HAVING` filters aggregated groups**.
+
+##### Quick Comparison
+
+| Feature | `WHERE` Clause | `HAVING` Clause |
+| --- | --- | --- |
+| **Applies to** | Individual rows / records | Groups of rows (created by `GROUP BY`) |
+| **Execution Order** | Runs **before** rows are grouped | Runs **after** rows are grouped |
+| **Aggregate Functions** | **Cannot** use aggregates (e.g., `SUM`, `COUNT`) | **Can** use aggregate functions |
+
+---
+
+##### Examples
+
+##### 1. Using `WHERE` (Row Filtering)
+
+Filters individual employees *before* any grouping happens. Only rows matching the condition are looked at.
+
+```sql
+SELECT ID, Name 
+FROM Employee 
+WHERE Name = 'John';
+
+```
+
+##### 2. Using `HAVING` (Group Filtering)
+
+Groups the rows by department first, counts them, and *then* filters out departments with 10 or fewer employees.
+
+```sql
+SELECT DeptId, COUNT(1) 
+FROM Employee 
+GROUP BY DeptId 
+HAVING COUNT(*) > 10;
+
+```
 
 [Table of Contents](#SQL)
 
