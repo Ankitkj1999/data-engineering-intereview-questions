@@ -15,6 +15,7 @@
 		"@astrojs/cloudflare": "^13.7.0",
 		"@astrojs/starlight": "^0.40.0",
 		"astro": "^6.4.8",
+		"lucode-starlight": "^0.1.6",
 		"typescript": "5.9.3"
 	},
 	"devDependencies": {

@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import lucode from "lucode-starlight";
 import cloudflare from "@astrojs/cloudflare";
 
 // https://astro.build/config
@@ -53,6 +54,15 @@ export default defineConfig({
 						{ autogenerate: { directory: "level-4-advanced" } },
 					],
 				},
+			],
+			plugins: [
+				lucode({
+					navLinks: [
+						{ label: "Docs", link: "/getting-started/" },
+						{ label: "GitHub", link: "https://github.com", attrs: { target: "_blank", rel: "noreferrer" } },
+					],
+					footerText: "Built with [Lucode Starlight](https://github.com/lucas-labs/lucode-starlight-theme) & [Astro](https://astro.build)",
+				}),
 			],
 		}),
 	],

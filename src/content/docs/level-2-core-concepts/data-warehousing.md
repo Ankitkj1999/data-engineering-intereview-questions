@@ -1,6 +1,6 @@
 ---
-title: Dwha
-description: Interview questions covering dwha
+title: Data Warehousing
+description: Interview questions covering Data Warehousing
 ---
 
 
