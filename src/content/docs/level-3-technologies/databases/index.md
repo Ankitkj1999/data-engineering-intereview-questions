@@ -1,15 +1,18 @@
 ---
 title: Databases
-description: Data storage systems and databases
+description: NoSQL and operational databases (MongoDB, Cassandra, HBase, DynamoDB, BigTable)
 ---
 
 # Databases
 
-Various database technologies serve different use cases in the data engineering ecosystem.
+This section covers operational databases and NoSQL stores used in data engineering.
 
-## Database Types Covered
+## Database Technologies
 
-- **Analytical Databases**: BigQuery, Redshift, Greenplum, Impala
-- **NoSQL**: MongoDB, Cassandra, HBase
-- **Key-Value**: DynamoDB
-- **Columnar**: BigTable
+- **MongoDB**: Document-based NoSQL database
+- **Cassandra**: Distributed wide-column database
+- **HBase**: Column-oriented storage built on Hadoop
+- **DynamoDB**: AWS managed NoSQL service
+- **BigTable**: Google's distributed column store
+
+These databases are optimized for transactional workloads, real-time applications, and operational systems.

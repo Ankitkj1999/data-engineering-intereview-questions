@@ -1277,133 +1277,501 @@ HAVING COUNT(*) > 10;
 
 [Table of Contents](#SQL)
 
-## How will you calculate the number of days between two dates in mysql?
-We can use DATEDIFF function for this purpose. The query to get the number of days between two dates in MySQL is as follows:
-SELECT DATEDIFF("2016-12- 31", "2015-01-01");
+## How to Calculate the Number of Days Between Two Dates in SQL
+
+Because date functions vary across different SQL databases, here is how to calculate the difference in days using standard SQL dialects:
+
+##### 1. Standard / MySQL / SQL Server
+
+Use the `DATEDIFF()` function.
+
+**MySQL Syntax:** `DATEDIFF(end_date, start_date)`
+
+```sql
+SELECT DATEDIFF('2016-12-31', '2015-01-01') AS DaysDifference;
+
+```
+
+**SQL Server (T-SQL) Syntax:** `DATEDIFF(day, start_date, end_date)`
+
+```sql
+SELECT DATEDIFF(day, '2015-01-01', '2016-12-31') AS DaysDifference;
+
+```
+
+##### 2. PostgreSQL / Oracle
+
+In these databases, you can directly subtract the start date from the end date.
+
+```sql
+SELECT '2016-12-31'::date - '2015-01-01'::date AS DaysDifference;
+
+```
+
+---
+
+> ⚠️ **Note on Order:** In MySQL, the larger date goes *first* to get a positive number. In SQL Server and PostgreSQL, the larger date goes *second* to get a positive number.
 
 [Table of Contents](#SQL)
 
-## What are the different types of triggers in mysql?
-MySQL	supports	six	types	of triggers. These are as follows:
-+ Before Insert: This trigger runs before inserting a new row in a table.
-+ After Insert: This triggerruns after inserting a new row in a table.
-+ Before Update: This trigger runs before updating an existing row in a table.
-+ After Update: This trigger runs after updating an existing row in a table.
-+ Before Delete: This trigger runs before deleting an existing row in a table.
-+ After Delete: This trigger runs after deleting an existing row in a table.
+## Types of Triggers in SQL
+
+In standard SQL, triggers are database object events categorized by **when** they execute (Timing) and **what** event fires them (Action).
+
+##### The 6 Core Trigger Combinations
+
+| Timing | Event | Description |
+| --- | --- | --- |
+| **BEFORE** | `INSERT` | Runs before a new row is added (useful for validation/defaults). |
+| **AFTER** | `INSERT` | Runs after a new row is added (useful for logging/auditing). |
+| **BEFORE** | `UPDATE` | Runs before an existing row is modified. |
+| **AFTER** | `UPDATE` | Runs after an existing row is modified. |
+| **BEFORE** | `DELETE` | Runs before a row is removed. |
+| **AFTER** | `DELETE` | Runs after a row is removed. |
+
+---
+
+##### Key Concept: Row vs. Statement Triggers
+
+Most SQL databases support two granularities for the triggers above:
+
+* **`FOR EACH ROW` (Row-level):** Fires individually for *every single row* affected by the query.
+* **`FOR EACH STATEMENT` (Statement-level):** Fires exactly *once per query*, regardless of how many rows are modified.
 
 [Table of Contents](#SQL)
 
-## What are the differences between heap table and temporary table in mysql?
-+ Duration: Heap tables are stored in memory. Therefore a Heap table remains in existence even if the session is disconnected. When we restart Database, Heap tables get cleaned up.
-+ Temporary tables are valid only during a session. Once the session is disconnected, temporary table is cleaned up.
-+ Privilege: We need special privilege to create a Temporary table. Heap tables are just another form of storage in MySQL.
-+ Sharing: Temporary tables are not shared between clients. Each connection will have a unique temporary table. But Heap tables can be shared between clients.
+
+## Heap Table vs. Temporary Table
+
+| Feature | Heap Table (Standard Table) | Temporary Table |
+| --- | --- | --- |
+| **Definition** | A permanent table where data is stored on disk in an unordered structure (no clustered index). | A short-lived table used to store intermediate results during a session or transaction. |
+| **Lifespan** | **Permanent.** It exists until it is explicitly dropped by a user, surviving database restarts. | **Temporary.** It is automatically dropped when the user session ends or the transaction closes. |
+| **Visibility / Sharing** | **Global.** The table structure and data are visible and shared among all database users. | **Private.** It is isolated and visible *only* to the specific client connection that created it. |
+| **Privileges** | Requires standard table creation privileges (`CREATE TABLE`). | Often requires specific temporary table privileges (`CREATE TEMPORARY TABLES`). |
+
+---
+
+##### Summary Checklist
+
+* Use a **Heap Table** when you need permanent data storage but don't require strict index ordering for insertions.
+* Use a **Temporary Table** when you need to store complex, intermediate query results that no other user needs to see.
 
 [Table of Contents](#SQL)
 
-## What is a heap table in mysql?
-In MySQL there are tables that are present in memory. These are called Heap tables. During table creation we specify TYPE as HEAP for HEAP tables.
-Heap tables provide very fast access to data. We can not store BLOB or TEXT datatype in a HEAP table. These tables also do not support AUTO_INCREMENT. Once we restart the Database, data in HEAP tables is lost.
+## What is a Heap Table (In-Memory Table)?
+
+A **Heap Table** (known as the **`MEMORY` storage engine** in MySQL) is a specialized table whose data is stored entirely in RAM rather than on a physical disk.
+
+```sql
+-- Modern MySQL Syntax
+CREATE TABLE Temp_Logs (
+    id INT NOT NULL,
+    log_data VARCHAR(255)
+) ENGINE=MEMORY;
+
+```
+
+##### Key Characteristics
+
+* **Extreme Speed:** Because data lives in RAM, read and write operations are incredibly fast.
+* **Volatility:** The table structure remains if the database restarts, but **all data inside the table is permanently lost**.
+* **Storage Limitations:** You cannot use large data types like `BLOB` or `TEXT`.
+* **No Table Locks:** Modern implementations often support indexing (HASH or BTREE) for quick lookups but lack advanced transactional features.
+
+##### Database Comparison
+
+While MySQL calls this the `MEMORY` engine, other standard SQL databases have their own implementations of the same "In-Memory" concept:
+
+| Database | Feature Name | Data Persistence? |
+| --- | --- | --- |
+| **MySQL** | `ENGINE=MEMORY` | Data is lost on restart |
+| **SQL Server** | In-Memory OLTP (`MEMORY_OPTIMIZED=ON`) | Optional (Can persist data to disk) |
+| **PostgreSQL** | Unlogged Tables / RAM Disk | Data is lost on crash/restart |
 
 [Table of Contents](#SQL)
 
-## What is the difference between blob and text data type in mysql?
-BLOB is a Binary large Object. We can store a large amount of binary data in a BLOB data type column.
-TEXT is non-binary, character based string data type. We can store text data in TEXT column. We have to define a character set with a TEXT column.
-TEXT can be easily converted into plain text.
-BLOB has four types: TINYBLOB, BLOB, MEDIUMBLOB and LONGBLOB.
-Where as, TEXT has its own four types: TINYTEXT,TEXT, MEDIUMTEXT, LONGTEXT.
+Here is a clean, concise, and generalized comparison tailored to standard (ANSI) SQL, using MySQL's implementation as the primary example.
+
+---
+
+## Difference Between BLOB and TEXT Data Types
+
+The fundamental difference lies in how they handle data: **BLOB** is for binary data (bytes), while **TEXT** is for character data (strings).
+
+| Feature | BLOB (Binary Large Object) | TEXT (Character Large Object / CLOB) |
+| --- | --- | --- |
+| **Data Type** | **Binary** (Stream of bytes) | **Non-Binary** (Stream of characters) |
+| **Content** | Images, audio, PDFs, compiled code, encrypted data. | Plain text, HTML, JSON, CSV data. |
+| **Character Set** | None (treated as raw bytes). | Requires a Character Set and Collation (e.g., `utf8mb4`). |
+| **Sorting/Comparing** | Based on the numeric values of the bytes. | Based on the text collation rules (case-insensitive by default). |
+
+---
+
+##### Sizes and Variations (MySQL & Standard SQL)
+
+Both types automatically scale depending on the size of the data you need to store:
+
+* **BLOB Family:** `TINYBLOB` $\rightarrow$ `BLOB` $\rightarrow$ `MEDIUMBLOB` $\rightarrow$ `LONGBLOB`
+* **TEXT Family:** `TINYTEXT` $\rightarrow$ `TEXT` $\rightarrow$ `MEDIUMTEXT` $\rightarrow$ `LONGTEXT`
+
+> 💡 **ANSI SQL Note:** In standard ANSI SQL, the `BLOB` type keeps the same name, but the `TEXT` type is formally referred to as **`CLOB` (Character Large Object)**.
 
 [Table of Contents](#SQL)
 
-## What will happen when auto increme on an integer column reaches max value in mysql?
-Once a column reaches the MAX_VALUE,		the AUTO_INCREMENT	stops working. It gives following error in log:
-ERROR: 1467 (HY000): Failed to read	auto-increment	value	from storage engine
+## What happens when an auto-increment column reaches its maximum value?
+
+When an auto-increment integer column reaches the maximum value allowed by its data type, the database **stops generating new numbers** and throws an error for any subsequent `INSERT` operations.
+
+##### Database Behaviors
+
+| Database | Specific Behavior / Error |
+| --- | --- |
+| **MySQL** | Fails with: `ERROR 1467 (HY000): Failed to read auto-increment value from storage engine` |
+| **PostgreSQL** | Fails with: `ERROR: nextval: reached maximum value of sequence` |
+| **SQL Server** | Fails with: `Arithmetic overflow error converting IDENTITY to data type...` |
+
+##### Integer Limits Reference
+
+| Data Type | Bytes | Maximum Signed Value | Maximum Unsigned Value |
+| --- | --- | --- | --- |
+| `SMALLINT` | 2 | 32,767 | 65,535 |
+| `INT` / `INTEGER` | 4 | **2.14 Billion** ($2,147,483,647$) | **4.29 Billion** ($4,294,967,295$) |
+| `BIGINT` | 8 | **9.22 Quintillion** | **18.44 Quintillion** |
+
+---
+
+> 💡 **Best Practice:** For primary key columns in large tables that grow indefinitely (like logs, transactions, or user actions), always use **`BIGINT`** instead of `INT` to prevent running out of IDs.
 
 [Table of Contents](#SQL)
 
-## What are the advantages of mysql as compared with oracle db?
-Some of the main advantages of MySQL over Oracle DB are as follows:
-+ Cost: MySQL is an Open Source and free RDBMS software. Oracle is usually a paid option for RDBMS.
-+ Space: MySQL uses around 1 MB to run whereas Oracle may need as high as 128 MB to run the database server.
-+ Flexibility: MySQL can be used to run a small website as well as very large scale systems. Oracle is generally used in medium to large scale systems.
-+ Management: In MySQL, database administration is much easier due to self- management features like- automatic space expansion,
-+ auto-restart and dynamic configuration changes. In Oracle dedicated DBA has to work on managing the Database.
-+ Portable: MySQL is easily portable to different hardware and operating system. Migrating Oracle from one platform to another is a tougher task.
+## Difference Between CHAR and VARCHAR
+
+The core difference between `CHAR` and `VARCHAR` is **fixed length** versus **variable length** storage.
+
+| Feature | `CHAR(N)` | `VARCHAR(N)` |
+| --- | --- | --- |
+| **Type** | Fixed-length string. | Variable-length string. |
+| **Storage Behavior** | Always uses `N` characters. Pads short strings with spaces. | Uses only the actual string length + 1 or 2 bytes of prefix length metadata. |
+| **Max Length** | Up to 255 characters. | Up to 65,535 bytes (shared across the entire row). |
+| **Memory Allocation** | **Static:** Space is pre-allocated regardless of data size. | **Dynamic:** Space adjusts to the size of the inserted text. |
+| **Performance** | Slightly faster for frequently updated, fixed-size data (e.g., Status Codes, MD5 Hashes). | Highly efficient for text of unpredictable lengths, saving significant disk/memory space. |
+
+---
+
+##### Quick Example
+
+If you define a column as `CHAR(10)` and `VARCHAR(10)`, and insert the word `"SQL"` (3 characters):
+
+* **`CHAR(10)`** stores `"SQL       "` (Uses all 10 bytes of space).
+* **`VARCHAR(10)`** stores `"SQL"` + 1 length byte (Uses only 4 bytes of space).
 
 [Table of Contents](#SQL)
 
-## What are the disadvantages of mysql?
-Some main disadvantages of MySQL are as follows:
-Dependent on Additional S/W: MySQL has less number of features in standard out-of-box version. So we have to add additional software to get more features. It gets difficult to find, decide and use the additional software with MySQL. SQL Compliance: MySQL is not full SQL compliant. Due to this developers find it difficult to cope with the syntax of SQL in MySQL. Transaction handling: Some users complain that DB transactions are not handled properly in MySQL.
+## How to Get the Current Date and Time in SQL
+
+##### 1. Current Date Only (No Time)
+
+* **Standard SQL (ANSI):** `CURRENT_DATE`
+* **MySQL:** `CURRENT_DATE()` or `CURDATE()`
+
+```sql
+SELECT CURRENT_DATE;
+
+```
+
+##### 2. Current Date and Time (Timestamp)
+
+* **Standard SQL (ANSI):** `CURRENT_TIMESTAMP`
+* **MySQL:** `NOW()` or `CURRENT_TIMESTAMP()`
+
+```sql
+SELECT CURRENT_TIMESTAMP;
+
+```
+
+---
+
+> 💡 **Tip:** While MySQL accepts parentheses (e.g., `NOW()`), standard ANSI SQL functions like `CURRENT_DATE` and `CURRENT_TIMESTAMP` are treated as system variables and do not require parentheses. Using the ANSI versions ensures your code works across MySQL, PostgreSQL, SQL Server, and Oracle.
 
 [Table of Contents](#SQL)
 
-## What is the difference between char and varchar datatype in mysql?
-Some main differences between CHAR and VARCHAR datatypes in MySQL are as follows:
-+ Size: In CHAR type column, length is fixed. In a VARCHAR	type	column length can vary.
-+ Storage: There are different mechanisms to store and retrieve CHAR and VARCHAR data types in MySQL.
-+ Maximum Size: A CHAR data type can hold maximum 255 characters. A VARCHAR datatype can store up to 4000 characters.
-+ Speed: CHAR datatype is 50% faster than VARCHAR datatype in MySQL.
-+ Memory Allocation: A CHAR datatype column uses static memory allocation. Since the length of data stored in a VARCHAR can vary, this datatype uses dynamic memory allocation.
+## Unix Timestamp vs. Database Timestamp
+
+##### The Core Concept (ANSI SQL)
+
+At their core, both systems track time based on the **Unix Epoch** (the number of seconds that have elapsed since **January 1, 1970, at 00:00:00 UTC**).
+
+##### The Key Differences
+
+| Feature | Unix Timestamp | MySQL / Standard SQL `TIMESTAMP` |
+| --- | --- | --- |
+| **Storage Format** | A raw **integer** (e.g., `1718974468`). | A structured, internal format. |
+| **Human Readability** | No. It is just a number of seconds. | **Yes**. Displayed as `YYYY-MM-DD HH:MM:SS`. |
+| **Time Zone Awareness** | Always UTC. | Automatically converts data from the current session time zone to UTC for storage, and back to the session time zone for retrieval. |
+| **Range/Limits** | Traditional 32-bit integers cap out on **January 19, 2038** (The Year 2038 problem). | Modern SQL databases (including MySQL 8.0+) support fractional seconds and 64-bit storage, extending the range far past 2038. |
+
+---
+
+##### In Short
+
+* **Unix Timestamp:** The raw, background mathematical value (seconds elapsed).
+* **SQL `TIMESTAMP`:** The database wrapper that stores that time accurately across time zones and displays it in a human-readable format.
 
 [Table of Contents](#SQL)
 
-## What is the use of i am a dummy flag in mysql?
-In MySQL, there is falg "ia_am_a_dummy" that can be used to save beginner developers from erroneous query like "DELETE FROM table_name". If we run this query it will delete all the data from table names table_name. With     "i_am_a_dummy      flag", MySQL will not permit running such a query. It will prompt user to create a query with WHERE clause so that only specific data is deleted. We can achieve similar functionality with "safe_updates" option in MySQL. This flag also works on UPDATE statement to restrict updates on a table without WHERE clause.
+Here is the clean, concise, and generalized version for standard ANSI SQL.
+
+---
+
+## How do you limit a query to display a specific number of rows?
+
+To restrict the number of rows returned by a query, modern **ANSI SQL** uses the `FETCH FIRST` and `OFFSET` clauses.
+
+##### 1. Display Only the Top 10 Rows
+
+This query limits the result set to the first 10 rows.
+
+**Standard SQL:**
+
+```sql
+SELECT * FROM table_name 
+FETCH FIRST 10 ROWS ONLY;
+
+```
+
+**MySQL Equivalent:**
+
+```sql
+SELECT * FROM table_name 
+LIMIT 10;
+
+```
+
+##### 2. Skip Rows and Return a Subset (Pagination)
+
+To skip the first 3 rows and return the next 6 rows (starting from the 4th row):
+
+**Standard SQL:**
+
+```sql
+SELECT * FROM table_name 
+OFFSET 3 ROWS 
+FETCH NEXT 6 ROWS ONLY;
+
+```
+
+**MySQL Equivalent:**
+
+```sql
+SELECT * FROM table_name 
+LIMIT 3, 6; -- Syntax: LIMIT offset, row_count
+
+```
+
+---
+
+> ⚠️ **Important:** Always use an `ORDER BY` clause when limiting rows. Without it, the database returns rows in a random order, making your results unpredictable.
+[Table of Contents](#SQL)
+
+## Automatic Initialization and Updating for Timestamps
+
+##### 1. Automatic Initialization (On Insert)
+
+Sets the column to the current date and time when a new row is created, if no value is explicitly provided.
+
+* **Standard SQL / MySQL Syntax:**
+
+```sql
+CREATE TABLE Employees (
+    ID INT PRIMARY KEY,
+    Created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+```
+
+##### 2. Automatic Updating (On Update)
+
+Automatically updates the column to the current date and time whenever *any* other column in that row is modified.
+
+* **MySQL Specific Syntax:**
+
+```sql
+CREATE TABLE Employees (
+    ID INT PRIMARY KEY,
+    Updated_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+```
+
+* **Standard ANSI SQL Equivalent:** Other databases (like PostgreSQL or Oracle) do not support `ON UPDATE CURRENT_TIMESTAMP` directly in the table definition. Instead, standard SQL uses a row trigger to achieve this:
+
+```sql
+CREATE TRIGGER update_timestamp
+BEFORE UPDATE ON Employees
+FOR EACH ROW
+SET NEW.Updated_At = CURRENT_TIMESTAMP;
+
+```
+
+---
+
+##### Key Takeaway
+
+> To prevent a timestamp from automatically changing on an update, simply omit the `ON UPDATE` clause (or the update trigger) and only use `DEFAULT CURRENT_TIMESTAMP`.
 
 [Table of Contents](#SQL)
 
-## How can we get current date and time in mysql?
-We can use following query in MySQL to get the current date:
-SELECT CURRENT_DATE();
-We can use following query in MySQL to get the current time as well as date:
-SELECT NOW();
+## How to Get the List of All Indexes on a Table
+
+##### Standard SQL (ANSI/ISO) Approach
+
+Standard SQL uses the system-defined `INFORMATION_SCHEMA` views. This approach works across most major database systems (PostgreSQL, MySQL, SQL Server).
+
+```sql
+SELECT index_name, column_name, seq_in_index 
+FROM INFORMATION_SCHEMA.STATISTICS 
+WHERE table_name = 'your_table_name';
+
+```
+
+##### Database-Specific Shortcuts
+
+Many databases offer quick, shorthand commands to achieve the same result:
+
+* **MySQL / MariaDB:**
+```sql
+SHOW INDEX FROM your_table_name;
+
+```
+
+
+* **PostgreSQL:**
+```sql
+\d your_table_name
+
+```
+
+
+* **Oracle:**
+```sql
+SELECT index_name FROM all_indexes WHERE table_name = 'YOUR_TABLE_NAME';
+
+```
+
+
+
+---
+
+> 💡 **Quick Fact:** Most modern relational databases (including MySQL and SQL Server) limit a composite (multi-column) index to a maximum of **16 columns**.
 
 [Table of Contents](#SQL)
 
-## What is the difference between timestamp in unix and mysql?
-In Unix as well as in MySQL, timestamp is stored as a 32-bit integer.
-A timestamp is the number of seconds from the Unix Epoch on January 1st, 1970 at UTC.
-In MySQL we can represent the timestamp in a readable format.
-Timestamp format in MySQL is YYYY-MM-DD HH:MM:SS
+## What is a `SAVEPOINT` in SQL?
+
+A **`SAVEPOINT`** is a command used to create a temporary checkpoint within a database transaction. It allows you to roll back a portion of a transaction instead of rolling back the entire thing.
+
+##### Syntax & Example
+
+```sql
+START TRANSACTION;
+
+INSERT INTO Employee (ID, Name) VALUES (1, 'Alice');
+-- Create a checkpoint
+SAVEPOINT checkpoint_1; 
+
+INSERT INTO Employee (ID, Name) VALUES (2, 'Bob'); -- Oops, mistake!
+
+-- Rollback only the mistake, keeping Alice's insert intact
+ROLLBACK TO checkpoint_1; 
+
+COMMIT; -- Finalizes Alice's insert, Bob's insert is ignored
+
+```
+
+##### Key Commands
+
+* **`SAVEPOINT name;`** – Creates a checkpoint.
+* **`ROLLBACK TO name;`** – Reverts the transaction back to that specific checkpoint.
+* **`RELEASE SAVEPOINT name;`** – Deletes a checkpoint (it can no longer be rolled back to).
+
+##### Why Use It?
+
+It provides **nested transaction control**, allowing you to handle errors gracefully in complex scripts or stored procedures without losing all preceding successful operations.
 
 [Table of Contents](#SQL)
 
-## How will you limit a mysql query to display only top 10 rows?
-We can use LIMIT clause in MySQL to limit a query to a range of rows.
-Following query will give top 10 rows from the table with table_name:
-SELECT * FROM <table_name> LIMIT 0,10;
-Following query will give 6 rows starting from the 4th row in table with table_name:
-SELECT * FROM <table_name> LIMIT 3,6;
+## Difference Between `ROLLBACK TO SAVEPOINT` and `RELEASE SAVEPOINT`
 
+Both commands manage **Savepoints** (temporary markers within a transaction), but they perform completely opposite actions:
+
+| Command | Action | Effect on Data | What Happens to the Savepoint? |
+| --- | --- | --- | --- |
+| **`ROLLBACK TO SAVEPOINT`** | **Undoes** changes. | Reverts all data modifications made *after* the savepoint was created. | **Keeps** the savepoint active so you can roll back to it again if needed. |
+| **`RELEASE SAVEPOINT`** | **Deletes** the marker. | Does *not* undo or commit any data. It simply removes the savepoint from memory. | **Destroys** the savepoint. It can no longer be used. |
+
+---
+
+##### Code Examples
+
+```sql
+START TRANSACTION;
+
+INSERT INTO Employee (ID, Name) VALUES (1, 'Alice');
+SAVEPOINT sp1; -- Create Marker
+
+INSERT INTO Employee (ID, Name) VALUES (2, 'Bob');
+
+-- OPTION A: Undo Bob's insertion, keep Alice's insertion
+ROLLBACK TO SAVEPOINT sp1; 
+
+-- OPTION B: Keep Bob's insertion, but delete the marker 'sp1' to free up resources
+RELEASE SAVEPOINT sp1; 
+
+COMMIT;
+
+```
+
+> ⚠️ **Important Requirement:** For either command to work, the named savepoint must have already been created using `SAVEPOINT savepoint_name;`. If the savepoint does not exist, the database will throw an error.
 [Table of Contents](#SQL)
 
-## What is automatic initialization and updating for timestamp in a mysql table?
-In MySQL, there is a TIMESTAMP datatype that provides features like automatic initialization and updating to current time and date. If a column is auto-initialized, then it will be set to current timestamp on inserting a new row with no value for the column. If a column is auto-updated, then its value will be updated to current timestamp when the value of any other column in the same row is updated. We can mark a column as DEFAULT to prevent this auto- initialize and auto-update behavior.
+## How do you search for a string in a SQL column?
 
-[Table of Contents](#SQL)
+There are two primary ways to search for text within a column in standard (ANSI) SQL: the simple `LIKE` operator and the advanced `REGEXP` (Regular Expression) operator.
 
-## How can we get the list of all the indexes on a table?
-We can use following command to get the list of all the indexes on a table in MySQL:
-SHOW INDEX FROM table_name; At maximum we can use 16 columns in a multi-column index of table.
+##### 1. The Standard Way: `LIKE` Operator
 
-[Table of Contents](#SQL)
+Used for simple pattern matching using wildcards:
 
-## What is savepoint in mysql?
-SAVEPOINT is a statement in SQL. We can use SAVEPOINT <savepoint_name> statement to create a point of time in a Database transaction with a name. Later we can use this savepoint to rollback the transaction upto that point of time.
+* `%` matches zero or more characters.
+* `_` matches a single character.
 
-[Table of Contents](#SQL)
+```sql
+-- Finds any employee whose name contains 'john'
+SELECT * FROM Employee 
+WHERE Name LIKE '%john%';
 
-## What is the difference between rollback to savepoint and release savepoint?
-We use ROLLBACK TO SAVEPOINT statement to undo the effect of a transaction upto the SAVEPOINT mentioned in ROLLBACK statement.
-RELEASE SAVEPOINT is simply used to delete the SAVEPOINT with a name from a transaction. There is commit or rollback for SAVEPOINT in RELEASE statement.In both the cases we should have first created a SAVEPOINT. Else we will get the error while doing ROLLBACK or RELEASE of a SAVEPOINT.
+```
 
-[Table of Contents](#SQL)
+##### 2. The Advanced Way: `REGEXP` Operator
 
-## How will you search for a string in mysql column?
-We can use REGEXP operator to search for a String in MySQL column. It is regular expression search on columns with text type value. We can define different types of regular expressions and search them in a text with the REGEXP expression that can match our crietria.
+Used for complex, pattern-based searching. While `REGEXP` is standard in modern databases (like MySQL and Oracle), some databases like PostgreSQL use `~` instead.
+
+```sql
+-- Finds names starting with 'A', 'B', or 'C'
+SELECT * FROM Employee 
+WHERE Name REGEXP '^[A-C]';
+
+```
+
+---
+
+##### Quick Comparison
+
+| Method | Best For | Performance |
+| --- | --- | --- |
+| **`LIKE`** | Simple word/phrase matching. | **Faster** (Can utilize standard indexes if searching from the start of a string, e.g., `'john%'`). |
+| **`REGEXP`** | Complex patterns (e.g., finding emails, phone numbers, or specific letter combinations). | **Slower** (Requires full table scans as it cannot easily utilize standard B-Tree indexes). |
 
 [Table of Contents](#SQL)
 
