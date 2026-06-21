@@ -582,6 +582,5 @@ Analyze deadlock graphs, identify resource contention, optimize transaction orde
 
 ## Advanced Data Analysis in SQL
 
-**100. Explain how to use SQL for predictive analysis and machine learning purposes.**
+**100. Explain how to use SQL for predictive analysis and machine learning purposes?
 
-Window functions for trends, statistical aggregates, feature generation, integration with ML tools (BigQuery ML, MADlib).
