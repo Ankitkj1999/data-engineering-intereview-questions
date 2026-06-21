@@ -30,14 +30,22 @@ description: [Detailed description 150-160 characters that describes the page co
 ```
 
 ### Title Guidelines
-- **Format**: `Main Topic | Context/Level` 
+- **Format**: Keep it SHORT and clear for sidebar/browser tabs
+- **In Markdown H1**: Use the longer, more descriptive version for page display
 - **Examples**:
-  - `SQL Theory Questions | Fundamental Concepts & Answers`
-  - `SQL Basics | Essential SQL Syntax & Commands for Beginners`
-  - `Python Theory | Core Concepts for Data Engineering`
-- **Length**: 50-60 characters ideal
+  - Title (frontmatter): `SQL Basics`
+  - H1 (markdown): `SQL Basics: Essential Syntax & Commands`
+  - Title (frontmatter): `Python Theory`
+  - H1 (markdown): `Python Theory: Core Concepts for Data Engineering`
+- **Length**: 20-35 characters ideal (so sidebar displays well)
 - **Keywords**: Include primary keyword naturally
 - **Avoid**: Generic titles like "Questions" or "Guide"
+
+**Why this matters:**
+- Frontmatter title appears in sidebar navigation → keep SHORT
+- H1 in markdown provides richer context on the page itself
+- Avoids duplicate H1s (SEO issue)
+- Better user experience in navigation
 
 ### Description Guidelines
 - **Length**: 150-160 characters (sweet spot for search results)
@@ -54,14 +62,19 @@ description: [Detailed description 150-160 characters that describes the page co
 
 ### H1 (Main Title)
 - **Use once per page** - Active (not commented out)
-- **Format**: `# [Main Topic]`
-- **Include**: Subtitle on next line with context
-- **Example**:
+- **Format**: `# [Main Topic]: [Descriptive Subtitle]`
+- **Purpose**: Provide richer context than the frontmatter title
+- **Include**: Subtitle with additional keywords/context
+- **Examples**:
   ```markdown
-  # SQL Theory Questions: Fundamentals & Concepts
+  # SQL Basics: Essential Syntax & Commands
   
-  **Learn core SQL concepts essential for database management and data engineering interviews.**
+  # Python Theory: Core Concepts for Data Engineering
+  
+  # Data Warehouses: Analytics & OLAP Architecture
   ```
+
+**Important:** Keep frontmatter `title` SHORT (for sidebar), use H1 for fuller description (for page)
 
 ### H2 (Section Headers)
 - **Use for main topics**: `## [Topic Name]`

@@ -1,5 +1,5 @@
 ---
-title: SQL Theory Questions | Fundamental Concepts & Answers
+title: SQL Theory
 description: Master SQL theory including databases, normalization, joins, indexes, and optimization. Comprehensive guide with concise answers to 100+ fundamental SQL concepts.
 ---
 

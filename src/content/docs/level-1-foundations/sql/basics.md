@@ -1,9 +1,9 @@
 ---
-title: SQL Basics | Essential SQL Syntax & Commands for Beginners
+title: SQL Basics
 description: Master SQL fundamentals with practical examples. Learn SELECT, WHERE, JOINs, aggregation, and data modification. Complete beginner's guide to SQL syntax and database querying.
 ---
 
-# SQL Basics: Essential Syntax & Commands
+## SQL Basics: Essential Syntax & Commands
 
 **Start your SQL journey with fundamental commands and syntax. Perfect for beginners learning database querying and data manipulation.**
 
