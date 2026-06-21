@@ -1,19 +1,59 @@
 ---
-title: SQL Theory Questions
-description: Fundamental SQL theory and concepts with concise answers
+title: SQL Theory Questions | Fundamental Concepts & Answers
+description: Master SQL theory including databases, normalization, joins, indexes, and optimization. Comprehensive guide with concise answers to 100+ fundamental SQL concepts.
 ---
 
-<!-- # SQL Theory Questions -->
+# SQL Theory Questions: Fundamentals & Concepts
+
+**Learn core SQL concepts essential for database management and data engineering interviews.**
+
+## Table of Contents
+- [SQL Fundamentals](#sql-fundamentals)
+- [SQL Data Types and Operators](#sql-data-types-and-operators)
+- [SQL Advanced Queries](#sql-advanced-queries)
+- [Database Design & Architecture](#database-design--architecture)
+- [SQL Optimization and Performance](#sql-optimization-and-performance)
+- [SQL Security](#sql-security)
+- [SQL Functions and Expressions](#sql-functions-and-expressions)
+- [Transaction Control and Locking](#transaction-control-and-locking)
+- [SQL and Modern Data Ecosystems](#sql-and-modern-data-ecosystems)
+- [SQL Best Practices](#sql-best-practices-and-standards)
+- [Analytical SQL Questions](#analytical-sql-questions)
+- [Data Manipulation and ETL](#data-manipulation-and-etl)
+- [Domain-Specific SQL Scenarios](#domain-specific-sql-scenarios)
+- [Troubleshooting and Debugging](#troubleshooting-and-debugging)
+- [Advanced Data Analysis](#advanced-data-analysis-in-sql)
 
 ## SQL Fundamentals
 
 **1. What is SQL and what is it used for?**
 
-SQL (Structured Query Language) is a standard language for managing relational databases. Used to create, read, update, delete data (CRUD), and manage database schemas.
+**SQL (Structured Query Language)** is the standard programming language for managing relational databases. It enables data professionals and developers to create, read, update, and delete data (CRUD operations), manage database schemas, and perform complex data analysis. SQL is fundamental to modern data engineering, business intelligence, and web application development.
+
+**Use cases:** 
+- Data querying and retrieval
+- Database administration
+- Data analysis and reporting
+- ETL (Extract, Transform, Load) processes
+- Business intelligence and analytics
 
 **2. Describe the difference between SQL and NoSQL databases.**
-- **SQL:** Relational, structured schema, ACID compliance, uses tables with rows/columns
-- **NoSQL:** Non-relational, flexible schema, eventual consistency, includes document, key-value, column-family, and graph models
+
+Understanding the distinction between SQL and NoSQL is crucial for selecting appropriate database technologies for different applications.
+
+**SQL Databases:**
+- Structured schema with tables, rows, and columns
+- ACID compliance (Atomicity, Consistency, Isolation, Durability)
+- Relational model with foreign keys
+- Vertical scalability
+- Best for: Transactional systems, complex queries, data integrity
+
+**NoSQL Databases:**
+- Flexible, dynamic schema
+- Eventual consistency
+- Types: Document (MongoDB), Key-Value (Redis), Column-Family (Cassandra), Graph (Neo4j)
+- Horizontal scalability
+- Best for: High-volume data, unstructured content, rapid scaling
 
 **3. What are the different types of SQL commands?**
 - **DDL:** Data Definition (CREATE, ALTER, DROP)
@@ -30,11 +70,17 @@ Retrieves data from one or more tables. Core syntax: `SELECT columns FROM table 
 - **HAVING:** Filters groups after aggregation (works on GROUP BY results)
 
 **6. Define what a JOIN is in SQL and list its types.**
-JOINs combine rows from two or more tables based on related columns.
-- **INNER JOIN:** Matching rows only
-- **LEFT/RIGHT JOIN:** All rows from one table + matching from other
-- **FULL OUTER JOIN:** All rows from both tables
-- **CROSS JOIN:** Cartesian product (all combinations)
+
+**SQL JOINs** are fundamental operations for combining data from multiple tables based on related columns. Mastering JOIN syntax is essential for data engineers and analysts working with relational databases.
+
+**JOIN Types:**
+- **INNER JOIN:** Returns only rows with matches in both tables. Most commonly used.
+- **LEFT (OUTER) JOIN:** Returns all rows from the left table plus matching rows from the right table. Unmatched right rows show NULL.
+- **RIGHT (OUTER) JOIN:** Returns all rows from the right table plus matching rows from the left table.
+- **FULL OUTER JOIN:** Returns all rows from both tables. Unmatched columns show NULL.
+- **CROSS JOIN:** Produces Cartesian product (every row from left table combined with every row from right table).
+
+**Use cases:** Combining employee and department data, linking transaction records with customer profiles, merging fact and dimension tables in data warehouses.
 
 **7. What is a primary key in a database?**
 
@@ -52,10 +98,31 @@ A column referencing a primary key in another table. Enforces referential integr
 
 **10. What is normalization? Explain with examples.**
 
-Organizing data to reduce redundancy:
-- **1NF:** Atomic values (no repeating groups)
-- **2NF:** Full functional dependency on primary key
-- **3NF:** No transitive dependencies
+**Database normalization** is a systematic process of organizing data to eliminate redundancy and improve data integrity. It's a crucial concept for database design and is frequently tested in data engineering interviews.
+
+**Normal Forms:**
+
+**1NF (First Normal Form):**
+- All attribute values must be atomic (indivisible)
+- No repeating groups or arrays
+- Example: Store phone numbers in separate rows instead of comma-separated in one cell
+
+**2NF (Second Normal Form):**
+- Must be in 1NF
+- No partial dependencies on composite primary keys
+- Example: In employee-project table, employee salary shouldn't depend on just employee_id
+
+**3NF (Third Normal Form):**
+- Must be in 2NF
+- No transitive dependencies
+- Example: Don't store department location in employee table; reference it instead
+
+**Benefits of Normalization:**
+- Reduces data redundancy
+- Improves data consistency
+- Minimizes update anomalies
+- Enables efficient querying
+- Saves storage space
 
 **11. Describe the concept of denormalization and when you would use it.**
 
