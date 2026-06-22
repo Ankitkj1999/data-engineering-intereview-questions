@@ -1,0 +1,156 @@
+{
+  "sidebar": [
+    {
+      "label": "Getting Started",
+      "collapsed": false,
+      "items": [
+        { "label": "Welcome", "link": "/getting-started/" }
+      ]
+    },
+    {
+      "label": "Foundations",
+      "collapsed": false,
+      "items": [
+        {
+          "label": "SQL",
+          "collapsed": false,
+          "items": [
+            { "label": "Basics", "link": "/level-1-foundations/sql/basics/" },
+            { "label": "Theory", "link": "/level-1-foundations/sql/theory/" },
+            { "label": "Practice", "link": "/level-1-foundations/sql/practice/" }
+          ]
+        },
+        {
+          "label": "Python",
+          "collapsed": false,
+          "items": [
+            { "label": "Basics", "link": "/level-1-foundations/python/basics/" },
+            { "label": "Theory", "link": "/level-1-foundations/python/theory/" },
+            { "label": "Practice", "link": "/level-1-foundations/python/practice/" }
+          ]
+        },
+        {
+          "label": "Data Structures",
+          "collapsed": false,
+          "items": [
+            { "label": "Overview", "link": "/level-1-foundations/data-structure/" },
+            { "label": "Practice", "link": "/level-1-foundations/data-structure/practice/" }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Core Concepts",
+      "collapsed": false,
+      "items": [
+        { "label": "Data Modeling", "link": "/level-2-core-concepts/data-modeling/" },
+        { "label": "Data Warehousing", "link": "/level-2-core-concepts/data-warehousing/" },
+        { "label": "Data Quality", "link": "/level-2-core-concepts/data-quality/" },
+        { "label": "Data Governance", "link": "/level-2-core-concepts/data-governance/" }
+      ]
+    },
+    {
+      "label": "Data Warehouses",
+      "collapsed": false,
+      "items": [
+        { "label": "Snowflake", "link": "/level-3-technologies/data-warehouses/snowflake/" },
+        { "label": "Databricks", "link": "/level-3-technologies/data-warehouses/databricks/" },
+        { "label": "BigQuery", "link": "/level-3-technologies/data-warehouses/bigquery/" },
+        { "label": "Redshift", "link": "/level-3-technologies/data-warehouses/redshift/" }
+      ]
+    },
+    {
+      "label": "Databases",
+      "collapsed": false,
+      "items": [
+        { "label": "MongoDB", "link": "/level-3-technologies/databases/mongodb/" },
+        { "label": "Cassandra", "link": "/level-3-technologies/databases/cassandra/" },
+        { "label": "DynamoDB", "link": "/level-3-technologies/databases/dynamodb/" },
+        { "label": "BigTable", "link": "/level-3-technologies/databases/bigtable/" }
+      ]
+    },
+    {
+      "label": "Technologies",
+      "collapsed": true,
+      "items": [
+        {
+          "label": "Batch Processing",
+          "collapsed": true,
+          "items": [
+            { "label": "Spark", "link": "/level-3-technologies/batch-processing/spark/" },
+            { "label": "Hadoop", "link": "/level-3-technologies/batch-processing/hadoop/" },
+            { "label": "Hive", "link": "/level-3-technologies/batch-processing/hive/" }
+          ]
+        },
+        {
+          "label": "Streaming",
+          "collapsed": true,
+          "items": [
+            { "label": "Kafka", "link": "/level-3-technologies/streaming/kafka/" },
+            { "label": "Flink", "link": "/level-3-technologies/streaming/flink/" }
+          ]
+        },
+        {
+          "label": "Orchestration",
+          "collapsed": true,
+          "items": [
+            { "label": "Airflow", "link": "/level-3-technologies/orchestration/airflow/" },
+            { "label": "Kubernetes", "link": "/level-3-technologies/orchestration/kubernetes/" }
+          ]
+        },
+        {
+          "label": "Formats",
+          "collapsed": true,
+          "items": [
+            { "label": "Parquet", "link": "/level-3-technologies/formats/parquet/" },
+            { "label": "Avro", "link": "/level-3-technologies/formats/avro/" },
+            { "label": "Delta", "link": "/level-3-technologies/formats/delta/" }
+          ]
+        },
+        {
+          "label": "Ingestion",
+          "collapsed": true,
+          "items": [
+            { "label": "CDC", "link": "/level-3-technologies/ingestion/cdc/" },
+            { "label": "Flume", "link": "/level-3-technologies/ingestion/flume/" },
+            { "label": "NiFi", "link": "/level-3-technologies/ingestion/nifi/" }
+          ]
+        },
+        {
+          "label": "Transformation",
+          "collapsed": true,
+          "items": [
+            { "label": "dbt", "link": "/level-3-technologies/transformation/dbt/" }
+          ]
+        },
+        {
+          "label": "Cloud",
+          "collapsed": true,
+          "items": [
+            { "label": "AWS", "link": "/level-3-technologies/cloud/aws/" },
+            { "label": "Azure", "link": "/level-3-technologies/cloud/azure/" },
+            { "label": "GCP", "link": "/level-3-technologies/cloud/gcp/" }
+          ]
+        },
+        {
+          "label": "BI Tools",
+          "collapsed": true,
+          "items": [
+            { "label": "Tableau", "link": "/level-3-technologies/bi/tableau/" },
+            { "label": "Looker", "link": "/level-3-technologies/bi/looker/" },
+            { "label": "Superset", "link": "/level-3-technologies/bi/superset/" }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Advanced",
+      "collapsed": false,
+      "items": [
+        { "label": "System Design", "link": "/level-4-advanced/system-design/" },
+        { "label": "Cost Optimization", "link": "/level-4-advanced/cost-optimization/" },
+        { "label": "Observability", "link": "/level-4-advanced/observability/" }
+      ]
+    }
+  ]
+}

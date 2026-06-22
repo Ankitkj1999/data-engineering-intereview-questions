@@ -1,6 +1,5 @@
 {
 	"name": "data-engineering-intereview-questions",
-	"type": "javascript",
 	"compatibility_date": "2025-10-08",
 	"compatibility_flags": ["nodejs_compat"],
 	"kv_namespaces": [
