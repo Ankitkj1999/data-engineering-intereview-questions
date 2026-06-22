@@ -1,9 +1,9 @@
 ---
-title: SQL Theory
-description: Master SQL theory including databases, normalization, joins, indexes, and optimization. Comprehensive guide with concise answers to 100+ fundamental SQL concepts.
+title: SQL Theory | Core Concepts
+description: Master SQL fundamentals for data engineering. Learn SELECT, WHERE, JOINs, indexing, normalization, and performance optimization. Essential interview guide.
 ---
 
-# SQL Theory Questions: Fundamentals & Concepts
+# SQL Theory: Core Concepts for Data Engineering
 
 **Learn core SQL concepts essential for database management and data engineering interviews.**
 
@@ -14,46 +14,19 @@ description: Master SQL theory including databases, normalization, joins, indexe
 - [Database Design & Architecture](#database-design--architecture)
 - [SQL Optimization and Performance](#sql-optimization-and-performance)
 - [SQL Security](#sql-security)
-- [SQL Functions and Expressions](#sql-functions-and-expressions)
 - [Transaction Control and Locking](#transaction-control-and-locking)
 - [SQL and Modern Data Ecosystems](#sql-and-modern-data-ecosystems)
-- [SQL Best Practices](#sql-best-practices-and-standards)
-- [Analytical SQL Questions](#analytical-sql-questions)
-- [Data Manipulation and ETL](#data-manipulation-and-etl)
-- [Domain-Specific SQL Scenarios](#domain-specific-sql-scenarios)
-- [Troubleshooting and Debugging](#troubleshooting-and-debugging)
-- [Advanced Data Analysis](#advanced-data-analysis-in-sql)
+
+---
 
 ## SQL Fundamentals
 
 **1. What is SQL and what is it used for?**
-
-**SQL (Structured Query Language)** is the standard programming language for managing relational databases. It enables data professionals and developers to create, read, update, and delete data (CRUD operations), manage database schemas, and perform complex data analysis. SQL is fundamental to modern data engineering, business intelligence, and web application development.
-
-**Use cases:** 
-- Data querying and retrieval
-- Database administration
-- Data analysis and reporting
-- ETL (Extract, Transform, Load) processes
-- Business intelligence and analytics
+SQL (Structured Query Language) is the standard programming language for managing relational databases. It enables data professionals to create, read, update, and delete data (CRUD), manage schemas, and perform data analysis.
 
 **2. Describe the difference between SQL and NoSQL databases.**
-
-Understanding the distinction between SQL and NoSQL is crucial for selecting appropriate database technologies for different applications.
-
-**SQL Databases:**
-- Structured schema with tables, rows, and columns
-- ACID compliance (Atomicity, Consistency, Isolation, Durability)
-- Relational model with foreign keys
-- Vertical scalability
-- Best for: Transactional systems, complex queries, data integrity
-
-**NoSQL Databases:**
-- Flexible, dynamic schema
-- Eventual consistency
-- Types: Document (MongoDB), Key-Value (Redis), Column-Family (Cassandra), Graph (Neo4j)
-- Horizontal scalability
-- Best for: High-volume data, unstructured content, rapid scaling
+- **SQL:** Relational, structured schema, ACID compliance, tables with rows/columns
+- **NoSQL:** Non-relational, flexible schema, eventual consistency, document/key-value/graph models
 
 **3. What are the different types of SQL commands?**
 - **DDL:** Data Definition (CREATE, ALTER, DROP)
@@ -62,525 +35,370 @@ Understanding the distinction between SQL and NoSQL is crucial for selecting app
 - **TCL:** Transaction Control (COMMIT, ROLLBACK, SAVEPOINT)
 
 **4. Explain the purpose of the SELECT statement.**
-
-Retrieves data from one or more tables. Core syntax: `SELECT columns FROM table WHERE conditions ORDER BY columns;`
+Retrieves data from tables. Syntax: `SELECT columns FROM table WHERE conditions ORDER BY columns;`
 
 **5. What is the difference between WHERE and HAVING clauses?**
-- **WHERE:** Filters rows before aggregation (works on individual rows)
-- **HAVING:** Filters groups after aggregation (works on GROUP BY results)
+- **WHERE:** Filters rows before GROUP BY
+- **HAVING:** Filters groups after aggregation
 
 **6. Define what a JOIN is in SQL and list its types.**
-
-**SQL JOINs** are fundamental operations for combining data from multiple tables based on related columns. Mastering JOIN syntax is essential for data engineers and analysts working with relational databases.
-
-**JOIN Types:**
-- **INNER JOIN:** Returns only rows with matches in both tables. Most commonly used.
-- **LEFT (OUTER) JOIN:** Returns all rows from the left table plus matching rows from the right table. Unmatched right rows show NULL.
-- **RIGHT (OUTER) JOIN:** Returns all rows from the right table plus matching rows from the left table.
-- **FULL OUTER JOIN:** Returns all rows from both tables. Unmatched columns show NULL.
-- **CROSS JOIN:** Produces Cartesian product (every row from left table combined with every row from right table).
-
-**Use cases:** Combining employee and department data, linking transaction records with customer profiles, merging fact and dimension tables in data warehouses.
+JOINs combine rows based on related columns.
+- **INNER JOIN:** Matching rows only
+- **LEFT/RIGHT JOIN:** All rows from one + matching from other
+- **FULL OUTER JOIN:** All rows from both tables
+- **CROSS JOIN:** Cartesian product
 
 **7. What is a primary key in a database?**
-
-A unique identifier for each table row. Cannot be NULL and must be unique. Enforces entity integrity.
+Unique identifier for each row. Cannot be NULL, must be unique. Enforces entity integrity.
 
 **8. Explain what a foreign key is and how it is used.**
-
-A column referencing a primary key in another table. Enforces referential integrity and creates table relationships.
+Column referencing a primary key. Enforces referential integrity and creates relationships.
 
 **9. How can you prevent SQL injections?**
-- Use parameterized/prepared statements
-- Input validation and sanitization
-- Least privilege principle for DB users
-- Stored procedures (with caution)
+Parameterized queries, input validation, least privilege, stored procedures (cautiously).
 
 **10. What is normalization? Explain with examples.**
-
-**Database normalization** is a systematic process of organizing data to eliminate redundancy and improve data integrity. It's a crucial concept for database design and is frequently tested in data engineering interviews.
-
-**Normal Forms:**
-
-**1NF (First Normal Form):**
-- All attribute values must be atomic (indivisible)
-- No repeating groups or arrays
-- Example: Store phone numbers in separate rows instead of comma-separated in one cell
-
-**2NF (Second Normal Form):**
-- Must be in 1NF
-- No partial dependencies on composite primary keys
-- Example: In employee-project table, employee salary shouldn't depend on just employee_id
-
-**3NF (Third Normal Form):**
-- Must be in 2NF
-- No transitive dependencies
-- Example: Don't store department location in employee table; reference it instead
-
-**Benefits of Normalization:**
-- Reduces data redundancy
-- Improves data consistency
-- Minimizes update anomalies
-- Enables efficient querying
-- Saves storage space
+Organizing data to reduce redundancy: 1NF (atomic), 2NF (full dependency), 3NF (no transitive).
 
 **11. Describe the concept of denormalization and when you would use it.**
-
-Adding redundant data to improve read performance. Used in data warehouses and read-heavy applications where query speed outweighs storage overhead.
+Adding redundant data to improve read performance. Used in data warehouses and read-heavy apps.
 
 **12. What are indexes and how can they improve query performance?**
-
-Database structures (typically B-trees) that speed up data retrieval. They create pointers to data locations, enabling faster lookups at the cost of slower writes.
+B-tree structures for fast lookups. Faster WHERE/JOIN/ORDER BY, slower INSERT/UPDATE/DELETE.
 
 **13. Explain the purpose of the GROUP BY clause.**
-
-Groups rows sharing the same values into summary rows, often used with aggregate functions (COUNT, SUM, AVG) to produce summary reports.
+Groups rows into summary rows, used with aggregate functions.
 
 **14. What is a subquery, and when would you use one?**
-
-A query nested inside another query (in SELECT, WHERE, or FROM clause). Used when complex logic requires filtering based on results from another query.
+Nested query in SELECT/WHERE/FROM. Used for complex filtering based on another query.
 
 **15. Describe the functions of the ORDER BY clause.**
-
-Sorts result set in ascending (ASC, default) or descending (DESC) order by one or more columns.
+Sorts result set in ascending (ASC) or descending (DESC) order.
 
 **16. What are aggregate functions in SQL?**
-
-Functions computing values from multiple rows:
-- **COUNT(), SUM(), AVG()**
-- **MIN(), MAX(), GROUP_CONCAT()**
+Functions computing values from multiple rows: COUNT, SUM, AVG, MIN, MAX.
 
 **17. Explain the differences between INNER JOIN, LEFT JOIN, RIGHT JOIN, and FULL JOIN.**
-
-- **INNER:** Only matching rows from both tables
-- **LEFT:** All left table rows + matching right rows (NULL if no match)
-- **RIGHT:** All right table rows + matching left rows (NULL if no match)
-- **FULL:** All rows from both tables (NULL where no match)
+- **INNER:** Only matching rows
+- **LEFT:** All left rows + matching right (NULL if no match)
+- **RIGHT:** All right rows + matching left (NULL if no match)
+- **FULL:** All rows from both tables
 
 **18. How do you insert a new row into a database table?**
-
-```sql
-INSERT INTO table (col1, col2) VALUES (val1, val2);
-```
+`INSERT INTO table (col1, col2) VALUES (val1, val2);`
 
 **19. Explain how to update records in a database table.**
-
-```sql
-UPDATE table SET col1 = val1 WHERE condition;
-```
+`UPDATE table SET col1 = val1 WHERE condition;`
 
 **20. What is a SQL View and what are its advantages?**
+Virtual table based on SELECT query. Simplifies queries, security, reusable logic.
 
-A virtual table based on a SELECT query. Advantages: simplified complex queries, security (restrict column access), reusable logic, acts as abstraction layer.
-
+---
 
 ## SQL Data Types and Operators
 
 **21. List the different data types available in SQL.**
-
-- **Numeric:** INT, BIGINT, DECIMAL, FLOAT
-- **String:** CHAR, VARCHAR, TEXT
-- **Date/Time:** DATE, TIMESTAMP, DATETIME
-- **Boolean:** BOOLEAN
-- **Binary:** BLOB, BYTEA
+Numeric (INT, DECIMAL), String (CHAR, VARCHAR, TEXT), Date/Time (DATE, TIMESTAMP).
 
 **22. What are the differences between CHAR, VARCHAR, and TEXT data types?**
-
-- **CHAR(n):** Fixed length, padded with spaces
-- **VARCHAR(n):** Variable length, max n characters
-- **TEXT:** Variable length, typically larger max size than VARCHAR
+- **CHAR:** Fixed length
+- **VARCHAR:** Variable length
+- **TEXT:** Large variable length
 
 **23. How do you use the BETWEEN operator in SQL?**
-
-Filters values within a range (inclusive):
-```sql
-SELECT * FROM table WHERE column BETWEEN 10 AND 20;
-```
+`SELECT * FROM table WHERE column BETWEEN 10 AND 20;`
 
 **24. Describe the use of the IN operator.**
-
-Matches any value in a list:
-```sql
-SELECT * FROM table WHERE column IN (val1, val2, val3);
-```
+`SELECT * FROM table WHERE column IN (val1, val2, val3);`
 
 **25. Explain the use of wildcard characters in SQL.**
-
-`%` matches any sequence of characters (LIKE), `_` matches any single character. Used with LIKE for pattern matching.
+`%` matches any sequence, `_` matches single character. Used with LIKE.
 
 **26. What is the purpose of the LIKE operator?**
-Pattern matching with wildcards:
-```sql
-SELECT * FROM users WHERE name LIKE 'J%'; -- Names starting with J
-```
+Pattern matching: `SELECT * FROM users WHERE name LIKE 'J%';`
 
 **27. How do you handle NULL values in SQL?**
-
-Use `IS NULL` / `IS NOT NULL` (not `= NULL`). Functions: `COALESCE()`, `ISNULL()`, `NVL()`. NULL represents unknown/missing data.
+Use `IS NULL` / `IS NOT NULL`. Functions: COALESCE, ISNULL.
 
 **28. What does the COALESCE function do?**
-
-Returns first non-NULL value from arguments:
-```sql
-SELECT COALESCE(phone, email, 'N/A') FROM users;
-```
+Returns first non-NULL value: `SELECT COALESCE(phone, email, 'N/A');`
 
 **29. What is the difference between UNION and UNION ALL?**
-
-- **UNION:** Combines results, removes duplicates
-- **UNION ALL:** Combines all results, keeps duplicates (faster)
+- **UNION:** Combines, removes duplicates
+- **UNION ALL:** Combines all, keeps duplicates (faster)
 
 **30. Describe the use of arithmetic operators in SQL queries.**
+Standard operators (+, -, *, /) in SELECT and WHERE clauses.
 
-Standard operators: `+`, `-`, `*`, `/`, `%`. Used in SELECT and WHERE clauses:
-```sql
-SELECT price * quantity AS total FROM orders;
-```
+---
 
 ## SQL Advanced Queries
 
 **31. Explain how to use the CASE statement in SQL.**
-
-Conditional logic in queries:
-```sql
-SELECT name, CASE WHEN age < 18 THEN 'Minor' ELSE 'Adult' END FROM users;
-```
+`SELECT CASE WHEN age < 18 THEN 'Minor' ELSE 'Adult' END FROM users;`
 
 **32. How would you perform a self JOIN?**
-
-Joining a table to itself, typically with alias:
-```sql
-SELECT e1.name, e2.name FROM employees e1 JOIN employees e2 ON e1.manager_id = e2.id;
-```
+`SELECT e1.name, e2.name FROM employees e1 JOIN employees e2 ON e1.manager_id = e2.id;`
 
 **33. What is a cross JOIN and when would you use it?**
-
-Produces Cartesian product (all combinations). Used for generating test data or combining independent dimensions.
+Cartesian product. Used for generating test data or combining dimensions.
 
 **34. How to implement pagination in SQL queries?**
-
-- **MySQL/PostgreSQL:** `LIMIT 10 OFFSET 20` or `LIMIT 20, 10`
-- **SQL Server:** `OFFSET 10 ROWS FETCH NEXT 20 ROWS ONLY`
-- **Oracle:** `FETCH FIRST 10 ROWS ONLY`
+MySQL/PostgreSQL: `LIMIT 10 OFFSET 20`. SQL Server: `OFFSET 10 ROWS FETCH NEXT 20 ROWS ONLY`.
 
 **35. Explain the concept of Common Table Expressions (CTEs) and recursive CTEs.**
-
-CTE (`WITH` clause) creates temporary named result set. Recursive CTEs reference themselves, useful for hierarchies:
-```sql
-WITH RECURSIVE cte AS (SELECT ... UNION SELECT ... FROM cte)
-```
+CTEs (`WITH` clause) create temporary named result sets. Recursive CTEs handle hierarchies.
 
 **36. What are window functions and how are they used?**
-
-Functions computing values over sliding windows without grouping rows:
-- **ROW_NUMBER(), RANK(), LAG(), LEAD()**
-- **SUM() OVER (PARTITION BY ... ORDER BY ...)**
+Compute values over windows: ROW_NUMBER(), RANK(), LAG(), LEAD().
 
 **37. How can you concatenate column values in SQL?**
-
-- **Standard SQL:** `||` or `CONCAT(col1, col2)`
-- **SQL Server:** `+` or `CONCAT()`
-- **MySQL:** `CONCAT()` or `CONCAT_WS()`
+Standard SQL: `||` or CONCAT(). SQL Server: `+`. MySQL: CONCAT().
 
 **38. What is the PIVOT operation and how would you apply it?**
+Transforms rows to columns. SQL Server: PIVOT keyword. Others: CASE aggregation.
 
-Transforms rows to columns. Syntax varies by DB:
-- **SQL Server:** `PIVOT` keyword
-- **MySQL/PostgreSQL:** Conditional aggregation with `CASE`
-
-**39. Explain the process of combining a query that uses a GROUP BY with one that uses ORDER BY.**
-
-Both can be used in same query; ORDER BY comes after GROUP BY:
-```sql
-SELECT dept, COUNT(*) FROM employees GROUP BY dept ORDER BY COUNT(*) DESC;
-```
+**39. Explain combining GROUP BY with ORDER BY.**
+ORDER BY comes after GROUP BY to sort aggregated results.
 
 **40. How would you find duplicate records in a table?**
+`SELECT col, COUNT(*) FROM table GROUP BY col HAVING COUNT(*) > 1;`
 
-```sql
-SELECT col, COUNT(*) FROM table GROUP BY col HAVING COUNT(*) > 1;
-```
+---
 
 ## Database Design & Architecture
 
 **41. What is the Entity-Relationship Model?**
-
-Conceptual modeling approach using entities (tables), attributes (columns), and relationships (foreign keys) to represent data requirements.
+Conceptual model using entities (tables), attributes (columns), relationships.
 
 **42. Explain the different types of database schema.**
-
 - **Logical:** Structure without DBMS specifics
-- **Physical:** Implementation-specific with storage details
+- **Physical:** Implementation details
 - **Conceptual:** High-level business view
 
 **43. What are Stored Procedures and how are they beneficial?**
-
-Precompiled database code blocks. Benefits: reduced network traffic, security (hide table structure), execution plan caching.
+Precompiled code blocks. Benefits: reduced traffic, security, plan caching.
 
 **44. What is a trigger in SQL and when should it be used?**
-
-Automatic code execution on DML events (INSERT, UPDATE, DELETE). Used for audit trails, data validation, denormalization updates.
+Automatic code on DML events. Used for audit trails, validation.
 
 **45. Describe the concept of ACID in databases.**
-
-- **Atomicity:** All or nothing transactions
-- **Consistency:** Valid state transitions
-- **Isolation:** Concurrent transaction separation
-- **Durability:** Committed changes persist
+Atomicity, Consistency, Isolation, Durability - ensuring reliable transactions.
 
 **46. What is database sharding?**
-
-Horizontal partitioning across multiple database instances. Each shard holds subset of data, improving scalability and performance.
+Horizontal partitioning across database instances for scalability.
 
 **47. How do database indexes work and what types are there?**
-
-B-tree structures for fast lookups. Types: B-tree, Hash, Bitmap, GiST, GIN (PostgreSQL); clustered/non-clustered (SQL Server).
+B-tree structures. Types: B-tree, Hash, Bitmap, GiST, GIN.
 
 **48. Describe the process of data warehousing.**
-
-Centralized repository for analytical queries. Involves: ETL processes, dimensional modeling (star/snowflake schemas), OLAP cubes.
+ETL processes, dimensional modeling (star/snowflake), OLAP cubes.
 
 **49. Explain the difference between OLTP and OLAP systems.**
-
-- **OLTP:** Transactional, frequent writes, normalized, operational
-- **OLAP:** Analytical, read-heavy, denormalized, historical analysis
+- **OLTP:** Transactional, frequent writes, operational
+- **OLAP:** Analytical, read-heavy, historical analysis
 
 **50. What are materialized views and how do they differ from standard views?**
+Precomputed stored results. Unlike virtual views, improve read performance.
 
-Precomputed query results stored as physical tables. Unlike views (virtual), they improve read performance but require refresh maintenance.
+---
 
 ## SQL Optimization and Performance
 
 **51. How do you identify and optimize slow-running queries?**
-
-Use `EXPLAIN`/`EXPLAIN ANALYZE`, check execution plans, add indexes on filtered/sorted columns, avoid SELECT *, optimize JOINs.
+Use EXPLAIN, add indexes, avoid SELECT *, optimize JOINs.
 
 **52. What is query execution plan in SQL?**
-
-Database's step-by-step strategy for executing a query. Shows table scans, index usage, join algorithms, and estimated costs.
+Database strategy showing scans, joins, indexes, costs.
 
 **53. Explain how to use EXPLAIN or EXPLAIN ANALYZE.**
-
-- **EXPLAIN:** Shows execution plan without running query
-- **EXPLAIN ANALYZE:** Executes query and shows actual vs. estimated costs
+EXPLAIN: plan only. EXPLAIN ANALYZE: executes and shows actual costs.
 
 **54. How can indexing affect performance both positively and negatively?**
-
-- **Positive:** Faster SELECT queries with WHERE/JOIN/ORDER BY
-- **Negative:** Slower INSERT/UPDATE/DELETE due to index maintenance
+- **Positive:** Faster SELECT
+- **Negative:** Slower INSERT/UPDATE/DELETE
 
 **55. Describe how to measure the performance of SQL queries.**
-
-Query execution time, rows examined vs. returned, index usage, buffer hit ratio, using profiling tools and EXPLAIN output.
+Execution time, rows examined, index usage, EXPLAIN output.
 
 **56. How would you rewrite a query to improve its performance?**
-
-Avoid subqueries (use JOINs), minimize wildcard selects, add appropriate indexes, use EXISTS instead of IN for large datasets.
+Use JOINs over subqueries, minimize SELECT *, add indexes.
 
 **57. What are partitioned tables and how can they optimize performance?**
+Tables split by date/range/hash. Queries scan only relevant partitions.
 
-Tables split into smaller pieces (by date, range, hash). Queries scan only relevant partitions, improving performance and maintenance.
+---
 
 ## SQL Security
 
 **58. How do you implement database encryption in SQL?**
-
-- **TDE:** Transparent Data Encryption (at rest)
-- **Column encryption:** Application-level or DB functions
-- **SSL/TLS:** For data in transit
+TDE (at rest), column encryption, SSL/TLS (in transit).
 
 **59. What are roles and how do they manage database access?**
-
-Named collections of privileges. Users inherit role permissions, simplifying access control and compliance management.
+Named privilege collections. Users inherit permissions for access control.
 
 **60. Explain the concept of row-level security.**
+Restricts row access based on user context. Dynamic filtering.
 
-Restricts row access based on user context. Policies filter data dynamically without separate views per user.
-
-**61. Describe how to create and use user-defined functions (UDFs).**
-
-Custom functions in SQL or procedural language. Used to encapsulate reusable logic and extend database capabilities.
+---
 
 ## SQL Functions and Expressions
 
-**62. Describe scalar-valued and table-valued functions.**
+**61. Describe scalar-valued and table-valued functions.**
+- **Scalar:** Returns single value
+- **Table-valued:** Returns table (FROM clause)
 
-- **Scalar:** Returns single value (can be used in expressions)
-- **Table-valued:** Returns table (used in FROM clause)
+**62. How would you define a stored procedure with input and output parameters?**
+`CREATE PROCEDURE proc(@input INT, @output INT OUTPUT) AS ...`
 
-**63. How would you define a stored procedure with input and output parameters?**
+**63. What is the difference between a function and a stored procedure?**
+Functions return values, can be in queries, no DML on same table. Procedures have OUT params, full DML.
 
-```sql
-CREATE PROCEDURE proc(@input INT, @output INT OUTPUT) AS ...
-```
+**64. How do you use the CAST and CONVERT functions?**
+Convert types: `CAST(col AS INT)` or `CONVERT(INT, col)`.
 
-**64. What is the difference between a function and a stored procedure?**
-
-- **Functions:** Return value, can be used in queries, no DML on same table
-- **Procedures:** No return value, can have OUT params, full DML support
-
-**65. How do you use the CAST and CONVERT functions?**
-
-Convert data types: `CAST(col AS INT)` or `CONVERT(INT, col)`. CONVERT includes formatting options for dates/strings.
+---
 
 ## Transaction Control and Locking
 
-**66. What is a database transaction?**
+**65. What is a database transaction?**
+Atomic unit ensuring ACID properties. Commits fully or rolls back.
 
-Atomic unit of work ensuring ACID properties. Either fully commits or fully rolls back.
+**66. Explain the concept of locking and its types in SQL databases.**
+Prevents conflicting access. Types: row-level, page-level, table-level.
 
-**67. Explain the concept of locking and its types in SQL databases.**
+**67. What are the properties of transactions?**
+ACID: Atomicity, Consistency, Isolation, Durability.
 
-Prevents concurrent conflicting access. Types: row-level, page-level, table-level locks.
+**68. How do you manage transaction isolation levels?**
+`SET TRANSACTION ISOLATION LEVEL`. Levels: READ UNCOMMITTED to SERIALIZABLE.
 
-**68. What are the properties of transactions?**
+**69. What does it mean to commit or roll back a transaction?**
+- **COMMIT:** Permanently saves changes
+- **ROLLBACK:** Undoes all changes
 
-ACID: Atomicity, Consistency, Isolation, Durability - ensuring reliable processing.
-
-**69. How do you manage transaction isolation levels?**
-
-Set with `SET TRANSACTION ISOLATION LEVEL`. Levels: READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, SERIALIZABLE.
-
-**70. What does it mean to commit or roll back a transaction?**
-
-- **COMMIT:** Permanently saves all changes
-- **ROLLBACK:** Undoes all changes since transaction start
+---
 
 ## SQL and Modern Data Ecosystems
 
-**71. How can SQL be integrated with big data technologies?**
+**70. How can SQL be integrated with big data technologies?**
+SQL-on-Hadoop (Hive, Spark SQL), external tables, JDBC/ODBC connectors.
 
-SQL-on-Hadoop (Hive, Spark SQL, Presto), external table integrations (Hive Metastore), JDBC/ODBC connectors.
+**71. Discuss the interoperability of SQL with cloud-based data stores.**
+Cloud databases (RDS, BigQuery, Snowflake) offer SQL interfaces.
 
-**72. Discuss the interoperability of SQL with cloud-based data stores.**
+**72. What is Data Lake and how can SQL interact with it?**
+Centralized raw data repository. SQL engines (Presto, Athena) query directly.
 
-Cloud databases offer SQL interfaces (Amazon RDS, Google BigQuery, Snowflake). APIs and connectors enable hybrid architectures.
+**73. Explain the interaction between SQL and NoSQL within the same application.**
+Polyglot persistence: SQL for transactions, NoSQL for scale.
 
-**73. What is Data Lake and how can SQL interact with it?**
+**74. How does SQL work within a microservices architecture?**
+Each service owns its database. Shared data via APIs/events.
 
-Centralized data repository storing raw data in various formats. SQL engines (Presto, Athena, BigQuery) query data lakes directly.
-
-**74. Explain the interaction between SQL and NoSQL within the same application.**
-
-Polyglot persistence: SQL for transactions/relational data, NoSQL for scale/hierarchy. Applications connect to both as needed.
-
-**75. How does SQL work within a microservices architecture?**
-
-Each service owns its database. Shared data via APIs/events. Sagas pattern for distributed transactions.
+---
 
 ## SQL Best Practices and Standards
 
-**76. What are some common SQL coding practices you follow?**
+**75. What are some common SQL coding practices you follow?**
+Consistent naming, proper indexing, avoid SELECT *, parameterized queries.
 
-Consistent naming conventions, proper indexing, avoid SELECT *, use parameterized queries, comment complex logic.
+**76. How can you ensure the portability of SQL scripts across systems?**
+Use ANSI SQL, avoid vendor functions, abstract with views.
 
-**77. How can you ensure the portability of SQL scripts across different database systems?**
+**77. What methods do you use for version controlling SQL scripts?**
+Git, migration tools (Flyway, Liquibase), database-as-code.
 
-Use ANSI SQL standards, avoid vendor-specific functions, abstract with views where needed.
+**78. What are the benefits of using stored procedures instead of embedded SQL?**
+Reduced round trips, plan caching, centralized logic, security.
 
-**78. What methods do you use for version controlling SQL scripts?**
+**79. How do you document SQL code effectively?**
+Inline comments, ER diagrams, data dictionaries.
 
-Git repositories, migration tools (Flyway, Liquibase), stored procedures/scripts as code.
-
-**79. What are the benefits of using stored procedures instead of embedding SQL queries in code?**
-
-Reduced network round trips, execution plan caching, centralized business logic, enhanced security.
-
-**80. How do you document SQL code effectively?**
-
-Inline comments for complex logic, ER diagrams, data dictionaries, schema documentation tools.
+---
 
 ## Analytical SQL Questions
 
-**81. How would you find the Nth highest salary from a table?**
+**80. How would you find the Nth highest salary from a table?**
+`SELECT DISTINCT salary FROM employees ORDER BY salary DESC LIMIT 1 OFFSET N-1;`
 
-```sql
-SELECT DISTINCT salary FROM employees ORDER BY salary DESC LIMIT 1 OFFSET N-1;
-```
+**81. How do you count occurrences of a specific value in a column?**
+`SELECT COUNT(*) FROM table WHERE column = 'value';`
 
-**82. How do you count the number of occurrences of a specific value in a column?**
+**82. How can you calculate running totals in SQL?**
+Window function: `SUM(col) OVER (ORDER BY col)`.
 
-```sql
-SELECT COUNT(*) FROM table WHERE column = 'value';
-```
+**83. Explain how to reverse the contents of a column without reverse function.**
+Application-level processing, stored procedures with loops.
 
-**83. How can you calculate running totals in SQL?**
+**84. What approach do you use for creating a calendar table?**
+Generate date range with flags for time-based analysis.
 
-Window function: `SUM(col) OVER (ORDER BY col)`. For groups: `SUM(col) OVER (PARTITION BY group_col ORDER BY col)`.
-
-**84. Explain how to reverse the contents of a column without using a reverse function.**
-
-Recursion or loops in stored procedure. Application-level processing often simpler.
-
-**85. What approach do you use for creating a calendar table, and what are its uses?**
-
-Generate date range table with day/month/quarter/year flags. Used for time-based analysis without date functions.
+---
 
 ## Data Manipulation and ETL
 
-**86. What is the process of Extract, Transform, Load (ETL)?**
+**85. What is the process of Extract, Transform, Load (ETL)?**
+Extract → Transform → Load to target. Foundation of data warehousing.
 
-Extract from sources → Transform/clean/validate → Load to target. Foundation of data warehousing.
+**86. How do you import/export data from/to a flat file using SQL?**
+PostgreSQL: COPY. MySQL: LOAD DATA INFILE. SQL Server: BULK INSERT.
 
-**87. How do you import/export data from/to a flat file using SQL?**
+**87. Explain the steps for a basic ETL process.**
+Extract → Clean → Validate → Load to staging → Load to warehouse → Index.
 
-- **PostgreSQL:** `COPY` command
-- **MySQL:** `LOAD DATA INFILE`, `mysqldump`
-- **SQL Server:** `BULK INSERT`, `bcp`
+**88. How do you cleanse and format data using SQL queries?**
+TRIM whitespace, UPPER/LOWER, REPLACE patterns, REGEX.
 
-**88. Explain the steps for a basic ETL process in a data warehousing environment.**
+**89. What tools do you use for automating data import/export?**
+Apache Airflow, dbt, Talend, Informatica, cron scripts.
 
-Extract source data → Clean/transform → Validate → Load to staging → Load to warehouse → Index/analyze.
-
-**89. How do you cleanse and format data using SQL queries?**
-
-TRIM for whitespace, UPPER/LOWER for case, REPLACE for patterns, REGEXP for complex validation.
-
-**90. What tools do you use for automating data import/export routines?**
-
-Apache Airflow, dbt, Talend, Informatica, custom scripts with cron scheduling.
+---
 
 ## Domain-Specific SQL Scenarios
 
-**91. How would you model a many-to-many relationship in SQL?**
+**90. How would you model a many-to-many relationship in SQL?**
+Junction table with foreign keys linking entities.
 
-Junction/bridge table with foreign keys to both entities. Example: `user_roles` table linking `users` and `roles`.
+**91. Describe how to manage hierarchical data in SQL.**
+Adjacency list (parent_id), nested sets, recursive CTEs.
 
-**92. Describe how to manage hierarchical data in SQL.**
+**92. How would you approach writing SQL queries for reporting?**
+Dimensional models, GROUP BY aggregates, optimize reads.
 
-Adjacency list (parent_id), nested sets, or recursive CTEs for path enumeration.
+**93. Explain how to handle temporal data and time zones in SQL.**
+Store in UTC, TIMESTAMP WITH TIME ZONE, AT TIME ZONE conversion.
 
-**93. How would you approach writing SQL queries for a reporting application?**
+**94. How do you use SQL in financial applications for risk analysis?**
+Time-series queries, window functions, risk metrics.
 
-Use dimensional models, pre-aggregate with GROUP BY, optimize for read performance, consider materialized views.
-
-**94. Explain how to handle temporal data and time zones in SQL.**
-
-Store in UTC, use TIMESTAMP WITH TIME ZONE, convert with AT TIME ZONE, track history with temporal tables.
-
-**95. How do you use SQL in financial applications for risk and portfolio analysis?**
-
-Time-series queries, window functions for rolling calculations, risk metrics via aggregates, cohort analysis.
+---
 
 ## Troubleshooting and Debugging
 
-**96. What steps do you take to troubleshoot a failed SQL query?**
+**95. What steps do you take to troubleshoot a failed SQL query?**
+Check syntax, verify names, validate types, test simpler queries.
 
-Check syntax/errors, verify table/column names, validate data types, test with simpler queries, review constraints.
+**96. How can you recover data from a corrupt SQL database?**
+Restore from backups, transaction logs, DBCC CHECKDB.
 
-**97. How can you recover data from a corrupt SQL database?**
+**97. What methods do you employ to ensure data integrity?**
+Primary/foreign keys, CHECK constraints, unique indexes, triggers.
 
-Restore from backups, use transaction log backups, DBCC CHECKDB (SQL Server), pg_checksums (PostgreSQL).
+**98. How do you decipher and resolve deadlocks in SQL?**
+Analyze deadlock graphs, identify contention, optimize transaction ordering.
 
-**98. What methods do you employ to ensure data integrity?**
+---
 
-Primary/foreign keys, CHECK constraints, unique indexes, triggers for complex validation, transactions.
+## Troubleshooting and Debugging
 
-**99. How do you decipher and resolve deadlocks in SQL?**
+**99. How do you decipher and resolve deadlocks in SQL?
 
 Analyze deadlock graphs, identify resource contention, optimize transaction ordering, reduce transaction scope.
 
+---
+
 ## Advanced Data Analysis in SQL
 
-**100. Explain how to use SQL for predictive analysis and machine learning purposes?
-
+**100. Explain how to use SQL for predictive analysis and machine learning.**
+Window functions for trends, statistical aggregates, BigQuery ML, MADlib.
