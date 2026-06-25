@@ -1,12 +1,6 @@
 {
   "sidebar": [
-    {
-      "label": "Getting Started",
-      "collapsed": false,
-      "items": [
-        { "label": "Welcome", "link": "/getting-started/" }
-      ]
-    },
+
     {
       "label": "Foundations",
       "collapsed": false,
