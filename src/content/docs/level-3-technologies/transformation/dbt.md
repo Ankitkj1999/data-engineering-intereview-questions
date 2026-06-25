@@ -1,10 +1,10 @@
 ---
-title: Dbt
-description: Interview questions covering dbt
+title: DBT
+description: Interview questions covering DBT
 ---
 
-#
-# dbt
+
+# DBT
 + [What is dbt?](#What-is-dbt)
 + [How is dbt different from Airflow?](#How-is-dbt-different-from-Airflow)
 + [What is a dbt model?](#What-is-a-dbt-model)
