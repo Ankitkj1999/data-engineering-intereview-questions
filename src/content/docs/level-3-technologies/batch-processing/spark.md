@@ -3,8 +3,7 @@ title: Spark
 description: Interview questions covering spark
 ---
 
-
-# Apache Spark
+## Apache Spark: Unified Computing Engine
 + [What are the main features of Apache Spark?](#What-are-the-main-features-of-Apache-Spark)
 + [What is a Resilient Distribution Dataset in Apache Spark?](#What-is-a-Resilient-Distribution-Dataset-in-Apache-Spark)
 + [What is a Transformation in Apache Spark?](#What-is-a-Transformation-in-Apache-Spark)

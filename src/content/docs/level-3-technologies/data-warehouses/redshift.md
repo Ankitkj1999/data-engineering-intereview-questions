@@ -3,7 +3,7 @@ title: Redshift
 description: Interview questions covering redshift
 ---
 
-# Redshift
+## Amazon Redshift: Data Warehouse Service
 + [What is the purpose of the Redshift REINDEX command](What-is-the-purpose-of-the-Redshift-REINDEX-command)
 + [Can you perform updates and deletes on tables in Amazon Redshift](Can-you-perform-updates-and-deletes-on-tables-in-Amazon-Redshift)
 + [How can you take backups of Amazon Redshift clusters](How-can-you-take-backups-of-Amazon-Redshift-clusters)

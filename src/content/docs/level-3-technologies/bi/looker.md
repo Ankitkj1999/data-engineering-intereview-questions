@@ -3,7 +3,7 @@ title: Looker
 description: Interview questions covering looker
 ---
 
-# Looker
+## Looker: Business Intelligence & Exploration
 + [How does Looker handle data integration](How-does-Looker-handle-data-integration)
 + [How does Looker handle data lineage and impact analysis](How-does-Looker-handle-data-lineage-and-impact-analysis)
 + [What is the purpose of Looker's content validation feature](What-is-the-purpose-of-Looker's-content-validation-feature)

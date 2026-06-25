@@ -3,7 +3,7 @@ title: SQL
 description: SQL theory and interview questions for data engineering
 ---
 
-# SQL
+## SQL: Query Language Essentials
 
 This section covers SQL fundamentals, theory, and practical interview questions essential for data engineering.
 

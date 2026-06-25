@@ -3,7 +3,7 @@ title: Batch Processing
 description: Technologies for large-scale batch data processing
 ---
 
-# Batch Processing
+## Batch Processing: Large-Scale Data Processing
 
 Batch processing technologies handle large-scale data processing jobs, typically processing data in large chunks across distributed systems.
 

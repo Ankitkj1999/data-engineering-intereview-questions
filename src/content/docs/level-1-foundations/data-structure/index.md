@@ -3,7 +3,7 @@ title: Data Structures
 description: Fundamental data structures and concepts
 ---
 
-# Data Structures
+## Data Structures: Foundation of Computer Science
 
 This section covers fundamental data structures that form the foundation of computer science and are essential for data engineering.
 

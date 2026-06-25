@@ -3,8 +3,7 @@ title: Kubernetes
 description: Interview questions covering kubernetes
 ---
 
-
-# Kubernetes
+## Kubernetes: Container Orchestration Platform
 + [How to do maintenance activity on the K8 node?](#How-to-do-maintenance-activity-on-the-K8-node)
 + [How do we control the resource usage of POD?](#How-do-we-control-the-resource-usage-of-POD)
 + [What are the various K8's services running on nodes and describe the role of each service?](#What-are-the-various-K8's-services-running-on-nodes-and-describe-the-role-of-each-service)

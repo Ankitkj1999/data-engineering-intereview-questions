@@ -3,7 +3,7 @@ title: Azure
 description: Interview questions covering azure
 ---
 
-# Azure
+## Azure: Microsoft Cloud Platform Services
 + [What are the three Main Components of Windows Azure Platform?](#What-are-the-three-Main-Components-of-Windows-Azure-Platform)
 + [What are the Service Model in Cloud Computing?](#What-are-the-Service-Model-in-Cloud-Computing)
 + [How many Types of Deployment Models are used in Cloud?](#How-many-Types-of-Deployment-Models-are-used-in-Cloud)

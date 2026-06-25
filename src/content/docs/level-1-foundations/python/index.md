@@ -3,7 +3,7 @@ title: Python
 description: Python fundamentals and interview questions for data engineering
 ---
 
-# Python
+## Python: Fundamentals & Interview Questions
 
 This section covers Python fundamentals, theory, and practical interview questions essential for data engineering.
 

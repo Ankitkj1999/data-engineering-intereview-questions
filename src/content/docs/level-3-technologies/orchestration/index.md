@@ -3,7 +3,7 @@ title: Orchestration
 description: Workflow and infrastructure orchestration
 ---
 
-# Orchestration
+## Orchestration: Workflow & Infrastructure Management
 
 Orchestration tools manage complex workflows and infrastructure across data pipelines.
 

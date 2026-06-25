@@ -3,7 +3,7 @@ title: Level 2 - Core Concepts
 description: Core concepts in data engineering including modeling, warehousing, quality, and governance
 ---
 
-# Level 2 - Core Concepts
+## Level 2 - Core Concepts: Data Engineering Discipline
 
 This section covers the core concepts and disciplines that define modern data engineering. These topics are essential for building reliable, scalable data systems.
 

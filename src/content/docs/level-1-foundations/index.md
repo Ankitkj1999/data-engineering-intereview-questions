@@ -3,7 +3,7 @@ title: Level 1 - Foundations
 description: Fundamental concepts and data structures for data engineering
 ---
 
-# Level 1 - Foundations
+## Level 1 - Foundations: Essential Building Blocks
 
 This section covers the fundamental building blocks and data structures essential for data engineering. You'll learn core concepts that form the foundation for more advanced topics.
 

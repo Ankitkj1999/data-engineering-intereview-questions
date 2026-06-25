@@ -3,8 +3,7 @@ title: Data Governance
 description: Interview questions covering data governance
 ---
 
-#
-# Data Governance
+## Data Governance: Ownership, Access & Compliance
 + [What is data governance and why does it matter?](#What-is-data-governance-and-why-does-it-matter)
 + [What is the difference between governance and security?](#What-is-the-difference-between-governance-and-security)
 + [What are common roles in data governance (owner/steward/custodian)?](#What-are-common-roles-in-data-governance-(owner/steward/custodian))

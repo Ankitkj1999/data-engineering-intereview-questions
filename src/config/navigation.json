@@ -111,7 +111,7 @@
       "label": "Transformation",
       "collapsed": false,
       "items": [
-        { "label": "dbt", "link": "/level-3-technologies/transformation/dbt/" }
+        { "label": "DBT", "link": "/level-3-technologies/transformation/dbt/" }
       ]
     },
     {

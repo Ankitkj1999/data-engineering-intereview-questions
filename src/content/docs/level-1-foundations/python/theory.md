@@ -3,7 +3,7 @@ title: Python Theory | Core Concepts
 description: Master Python fundamentals for data engineering. Learn data types, OOP, generators, concurrency, decorators, and best practices. Essential Python interview guide.
 ---
 
-# Python Theory: Core Concepts for Data Engineering
+## Python Theory: Core Concepts for Data Engineering
 
 **Essential Python concepts for data engineering interviews, covering fundamentals to advanced topics with practical examples.**
 

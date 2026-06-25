@@ -61,31 +61,58 @@ description: [Detailed description 150-160 characters that describes the page co
 ## Content Structure
 
 ### H1 (Main Title)
-- **Use once per page** - Active (not commented out)
-- **Format**: `# [Main Topic]: [Descriptive Subtitle]`
-- **Purpose**: Provide richer context than the frontmatter title
+**DO NOT include an explicit H1 in markdown.** Starlight automatically renders the frontmatter `title` as the page's H1. Adding a markdown H1 creates a duplicate title on the rendered page (bad for UX and SEO).
+
+**Correct approach:**
+- Frontmatter `title`: SHORT (20-35 chars, for sidebar and auto-rendered H1)
+- First markdown heading: **Start with H2** using descriptive subtitle format
+- Format H2 as: `## [Main Topic]: [Descriptive Subtitle]`
+
+**Examples** (frontmatter → markdown):
+```yaml
+# ✅ CORRECT
+---
+title: SQL Basics
+---
+## SQL Basics: Essential Syntax & Commands
+```
+
+```yaml
+# ❌ WRONG - Creates duplicate H1
+---
+title: SQL Basics
+---
+# SQL Basics: Essential Syntax & Commands
+## SQL Basics: Essential Syntax & Commands
+```
+
+**Why this matters:**
+- Starlight theme automatically renders frontmatter title as H1
+- Adding a markdown H1 creates duplicate titles on the page
+- Hurts user experience (redundant heading)
+- Hurts SEO (duplicate H1 is a markup error)
+- Reference: SQL Basics page does this correctly (no markdown H1)
+
+### H2 (First Markdown Heading - After H1 is Auto-Rendered)
+- **Use as the first markdown heading** (since frontmatter title renders as H1)
+- **Format**: `## [Main Topic]: [Descriptive Subtitle]`
+- **Purpose**: Provide richer context and SEO keywords on the page itself
 - **Include**: Subtitle with additional keywords/context
 - **Examples**:
   ```markdown
-  # SQL Basics: Essential Syntax & Commands
+  ## SQL Basics: Essential Syntax & Commands
   
-  # Python Theory: Core Concepts for Data Engineering
+  ## Python Theory: Core Concepts for Data Engineering
   
-  # Data Warehouses: Analytics & OLAP Architecture
+  ## Data Warehouses: Analytics & OLAP Architecture
   ```
 
-**Important:** Keep frontmatter `title` SHORT (for sidebar), use H1 for fuller description (for page)
+**Key difference from frontmatter title:**
+- Frontmatter `title`: SHORT (20-35 chars, appears in sidebar navigation)
+- H2 heading: LONGER (descriptive, includes keywords, appears on page below auto-rendered title)
 
-### H2 (Section Headers)
-- **Use for main topics**: `## [Topic Name]`
-- **Include**: Descriptive and SEO-friendly
-- **Examples**:
-  - `## SQL Fundamentals`
-  - `## Data Warehouses vs Databases`
-  - `## Aggregation Functions`
-
-### H3 (Subsections)
-- **Use for subtopics**: `### [Specific Item]`
+### H3 (Section Subsections)
+- **Use for subsections under H2**: `### [Specific Item]`
 - **Examples**:
   - `### INNER JOIN`
   - `### COUNT Function`
@@ -406,7 +433,8 @@ Essential context about why this matters.
 Before publishing a new page, verify:
 
 ### Content Quality
-- [ ] H1 title is active (not commented out)
+- [ ] NO explicit H1 in markdown (frontmatter title renders as H1 automatically)
+- [ ] First markdown heading is H2 (not H1)
 - [ ] Table of contents present (if 5+ sections)
 - [ ] Minimum 300 words per section
 - [ ] All code examples have comments
@@ -494,8 +522,18 @@ SELECT * FROM table
 
 ## Common Mistakes to Avoid
 
+❌ **Explicit H1 in markdown**: Creates duplicate title rendering
+```markdown
+# Title
+## Title (repeated)
+```
+✅ **Correct**: Remove markdown H1, let frontmatter render as H1
+```markdown
+## Title: Descriptive Subtitle
+```
+
 ❌ **Commented H1**: `<!-- # Title -->`  
-✅ **Active H1**: `# Title`
+✅ **Correct**: Don't include H1 in markdown at all
 
 ❌ **Generic description**: `SQL questions and answers`  
 ✅ **Keyword-rich description**: `Master SQL fundamentals with practical examples. Learn SELECT, WHERE, JOINs, and aggregation functions.`
@@ -507,7 +545,10 @@ SELECT * FROM table
 ✅ **Well-commented code**: Inline comments explaining purpose and syntax
 
 ❌ **Poor structure**: Random headings, no hierarchy  
-✅ **Logical structure**: Clear H1 → H2 → H3 hierarchy
+✅ **Logical structure**: Clear frontmatter title → H2 → H3 hierarchy
+
+❌ **No internal links**: Isolated pages  
+✅ **Connected content**: 2-3 internal links per page to related topics
 
 ---
 

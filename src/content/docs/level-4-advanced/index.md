@@ -3,7 +3,7 @@ title: Level 4 - Advanced Topics
 description: Advanced data engineering topics including system design, cost optimization, and observability
 ---
 
-# Level 4 - Advanced Topics
+## Level 4 - Advanced Topics: Production Systems at Scale
 
 This section covers advanced topics for experienced data engineers building production systems at scale.
 

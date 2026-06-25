@@ -3,8 +3,7 @@ title: Data Quality
 description: Interview questions covering data quality
 ---
 
-#
-# Data Quality
+## Data Quality: Accuracy, Completeness & Trust
 + [What does data quality mean in data engineering?](#What-does-data-quality-mean-in-data-engineering)
 + [What are common dimensions of data quality?](#What-are-common-dimensions-of-data-quality)
 + [What is data freshness and how do you measure it?](#What-is-data-freshness-and-how-do-you-measure-it)

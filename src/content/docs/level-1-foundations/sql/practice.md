@@ -3,7 +3,7 @@ title: SQL Practice | Query Challenges
 description: Practice SQL queries with real interview questions. Solve problems involving JOINs, aggregations, ranking, and data analysis. Essential coding practice.
 ---
 
-# SQL Practice: Query Challenges for Interviews
+## SQL Practice: Query Challenges for Interviews
 
 **Hands-on SQL query problems with solutions to prepare for data engineering interviews.**
 

@@ -3,7 +3,7 @@ title: Python Basics
 description: Master Python fundamentals with practical examples. Learn variables, data types, control flow, functions, and data structures. Complete beginner's guide to Python syntax and programming.
 ---
 
-# Python Basics: Essential Syntax & Fundamentals
+## Python Basics: Essential Syntax & Fundamentals
 
 **Start your Python journey with fundamental concepts and syntax. Perfect for beginners learning programming and preparing for data engineering interviews.**
 

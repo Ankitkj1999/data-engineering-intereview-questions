@@ -3,7 +3,7 @@ title: Streaming
 description: Real-time data streaming technologies
 ---
 
-# Streaming
+## Streaming: Real-Time Data Processing
 
 Streaming technologies enable real-time or near real-time data ingestion and processing.
 

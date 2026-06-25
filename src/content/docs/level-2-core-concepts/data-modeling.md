@@ -3,8 +3,7 @@ title: Data Modeling
 description: Interview questions covering data modeling
 ---
 
-#
-# Data Modeling
+## Data Modeling: Schema Design for Analytics
 + [What is data modeling in analytics and why does it matter?](#What-is-data-modeling-in-analytics-and-why-does-it-matter)
 + [What is grain and why is it the first question to answer?](#What-is-grain-and-why-is-it-the-first-question-to-answer)
 + [What is the difference between fact and dimension tables?](#What-is-the-difference-between-fact-and-dimension-tables)

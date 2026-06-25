@@ -3,7 +3,7 @@ title: Cloud Platforms
 description: Cloud data platforms and services
 ---
 
-# Cloud Platforms
+## Cloud Platforms: Managed Data Services
 
 Cloud platforms provide managed data warehouse and analytics services at scale.
 

@@ -3,7 +3,7 @@ title: SQL Theory | Core Concepts
 description: Master SQL fundamentals for data engineering. Learn SELECT, WHERE, JOINs, indexing, normalization, and performance optimization. Essential interview guide.
 ---
 
-# SQL Theory: Core Concepts for Data Engineering
+## SQL Theory: Core Concepts for Data Engineering
 
 **Learn core SQL concepts essential for database management and data engineering interviews.**
 

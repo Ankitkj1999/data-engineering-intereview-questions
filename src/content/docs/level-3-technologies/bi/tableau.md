@@ -3,8 +3,7 @@ title: Tableau
 description: Interview questions covering tableau
 ---
 
-
-# Tableau
+## Tableau: Enterprise BI & Visualization
 + [What is data visualization in Tableau?](#What-is-data-visualization-in-Tableau)
 + [What is the difference between various BI tools and Tableau?](#What-is-the-difference-between-various-BI-tools-and-Tableau)
 + [What are different Tableau products?](#What-are-different-Tableau-products)

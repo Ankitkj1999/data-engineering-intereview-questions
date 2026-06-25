@@ -3,7 +3,7 @@ title: Data Ingestion
 description: Data ingestion and extraction technologies
 ---
 
-# Data Ingestion
+## Data Ingestion: Source-to-Platform Movement
 
 Ingestion technologies enable moving data from sources into data platforms.
 

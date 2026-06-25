@@ -3,7 +3,7 @@ title: Business Intelligence
 description: BI and visualization platforms
 ---
 
-# Business Intelligence
+## Business Intelligence: Analytics & Visualization Platforms
 
 BI tools enable analytics and visualization for end users and stakeholders.
 

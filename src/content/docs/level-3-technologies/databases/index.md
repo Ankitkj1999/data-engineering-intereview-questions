@@ -3,7 +3,7 @@ title: Databases
 description: NoSQL and operational databases (MongoDB, Cassandra, HBase, DynamoDB, BigTable)
 ---
 
-# Databases
+## Databases: Operational & NoSQL Stores
 
 This section covers operational databases and NoSQL stores used in data engineering.
 

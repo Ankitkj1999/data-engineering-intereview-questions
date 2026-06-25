@@ -3,7 +3,7 @@ title: Level 3 - Technologies
 description: Modern data engineering technologies across batch, streaming, cloud, and BI platforms
 ---
 
-# Level 3 - Technologies
+## Level 3 - Technologies: Tools & Platforms
 
 This section covers the specific technologies and tools used in modern data engineering. It's organized by function area to help you understand the landscape of data engineering tools.
 

@@ -3,7 +3,7 @@ title: Superset
 description: Interview questions covering superset
 ---
 
-# Superset
+## Superset: Open-Source BI & Visualization
 + [Can you create custom SQL functions or macros in Superset](Can-you-create-custom-SQL-functions-or-macros-in-Superset)
 + [What databases does Superset support](What-databases-does-Superset-support)
 + [What are the different visualization types available in Superset](What-are-the-different-visualization-types-available-in-Superset)

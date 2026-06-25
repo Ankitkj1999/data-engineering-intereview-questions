@@ -3,8 +3,7 @@ title: Kafka
 description: Interview questions covering kafka
 ---
 
-
-# Apache Kafka
+## Apache Kafka: Distributed Event Streaming
 + [What is Apache Kafka?](#What-is-Apache-Kafka)
 + [What is the traditional method of transferring messages?](#What-is-the-traditional-method-of-transfering-messages)
 + [What are the benefits of Apache Kafka over the traditional technique?](#What-is-the-benefits-of-Apache-Kafka-over-the-traditional-technique)

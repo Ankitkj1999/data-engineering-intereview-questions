@@ -3,7 +3,7 @@ title: Data Engineering Interview Questions
 description: Master data engineering through comprehensive interview questions, real-world scenarios, and best practices
 ---
 
-# Data Engineering Interview Questions
+## Data Engineering Interview Questions: Complete Interview Guide
 
 **Your Complete Guide to Acing Data Engineering Interviews**
 

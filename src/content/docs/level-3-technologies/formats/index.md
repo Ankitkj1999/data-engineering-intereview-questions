@@ -3,7 +3,7 @@ title: Data Formats
 description: Efficient data storage and serialization formats
 ---
 
-# Data Formats
+## Data Formats: Storage & Serialization
 
 Modern data formats enable efficient storage, compression, and schema evolution.
 

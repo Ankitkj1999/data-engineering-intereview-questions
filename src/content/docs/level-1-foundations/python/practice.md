@@ -1,10 +1,11 @@
 ---
-title: Python
+title: Python for Data Engineering
 description: Interview questions covering python
 ---
 
-#
-# Python for Data Engineering
+## Python for Data Engineering: Interview Questions
+
+**Practice Python concepts with real-world scenarios for data engineering interviews.**
 + [Why is Python widely used in data engineering?](#Why-is-Python-widely-used-in-data-engineering)
 + [How do iterators and generators help with large data processing?](#How-do-iterators-and-generators-help-with-large-data-processing)
 + [What is the difference between threads, multiprocessing, and async IO in Python?](#What-is-the-difference-between-threads-multiprocessing-and-async-IO-in-Python)

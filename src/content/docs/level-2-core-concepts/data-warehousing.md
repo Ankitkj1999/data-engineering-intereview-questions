@@ -3,9 +3,7 @@ title: Data Warehousing
 description: Interview questions covering Data Warehousing
 ---
 
-
-
-# Data Warehousing Architecture
+## Data Warehousing: Architecture & Design
 + [What is the Main Difference between View and Materialized View?](#what-is-the-main-difference-between-view-and-materialized-view)
 + [What is Junk Dimension?](#what-is-junk-dimension)
 + [What is Data Warehouse architecture?](#what-is-data-warehouse-architecture)
