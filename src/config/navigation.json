@@ -3,34 +3,15 @@
 
     {
       "label": "Foundations",
-      "collapsed": false,
       "items": [
-        {
-          "label": "SQL",
-          "collapsed": false,
-          "items": [
-            { "label": "Basics", "link": "/level-1-foundations/sql/basics/" },
-            { "label": "Theory", "link": "/level-1-foundations/sql/theory/" },
-            { "label": "Practice", "link": "/level-1-foundations/sql/practice/" }
-          ]
-        },
-        {
-          "label": "Python",
-          "collapsed": false,
-          "items": [
-            { "label": "Basics", "link": "/level-1-foundations/python/basics/" },
-            { "label": "Theory", "link": "/level-1-foundations/python/theory/" },
-            { "label": "Practice", "link": "/level-1-foundations/python/practice/" }
-          ]
-        },
-        {
-          "label": "Data Structures",
-          "collapsed": false,
-          "items": [
-            { "label": "Overview", "link": "/level-1-foundations/data-structure/" },
-            { "label": "Practice", "link": "/level-1-foundations/data-structure/practice/" }
-          ]
-        }
+        { "label": "SQL Basics", "link": "/level-1-foundations/sql/basics/" },
+        { "label": "SQL Theory", "link": "/level-1-foundations/sql/theory/" },
+        { "label": "SQL Practice", "link": "/level-1-foundations/sql/practice/" },
+        { "label": "Python Basics", "link": "/level-1-foundations/python/basics/" },
+        { "label": "Python Theory", "link": "/level-1-foundations/python/theory/" },
+        { "label": "Python Practice", "link": "/level-1-foundations/python/practice/" },
+        { "label": "Data Structures", "link": "/level-1-foundations/data-structure/" },
+        { "label": "Data Structures Practice", "link": "/level-1-foundations/data-structure/practice/" }
       ]
     },
     {

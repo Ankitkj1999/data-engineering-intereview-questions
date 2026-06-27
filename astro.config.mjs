@@ -22,15 +22,11 @@ export default defineConfig({
 				},
 			],
 			social: [
-				{ label: "GitHub", href: "https://github.com", icon: "github" },
+				{ label: "GitHub", href: "https://github.com/Ankitkj1999/data-engineering-intereview-questions", icon: "github" },
 			],
 			sidebar: navigationConfig.sidebar,
 			plugins: [
 				lucode({
-					navLinks: [
-						{ label: "Docs", link: "/getting-started/" },
-						{ label: "GitHub", link: "https://github.com", attrs: { target: "_blank", rel: "noreferrer" } },
-					],
 					footerText: "Built with [Lucode Starlight](https://github.com/lucas-labs/lucode-starlight-theme) & [Astro](https://astro.build)",
 				}),
 			],
