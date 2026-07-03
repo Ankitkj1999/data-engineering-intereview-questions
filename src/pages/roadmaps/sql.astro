@@ -1,0 +1,302 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "SQL Roadmap",
+    description: "",
+  
+  }}
+>
+  <div id="rm-root">
+    <div class="rm-header">
+      <div class="rm-header-left">
+        <span class="rm-badge">Roadmap</span>
+        <h1 class="rm-title">SQL</h1>
+        <p class="rm-subtitle">Step-by-step guide to mastering SQL for data engineering</p>
+      </div>
+      <div class="rm-header-right">
+        <div class="rm-legend">
+          <span class="rm-legend-item" data-status="pending"><span class="rm-dot"></span>Pending</span>
+          <span class="rm-legend-item" data-status="inprogress"><span class="rm-dot"></span>In Progress</span>
+          <span class="rm-legend-item" data-status="done"><span class="rm-dot"></span>Done</span>
+        </div>
+        <div class="rm-progress-summary">
+          <span class="rm-prog-label">Progress</span>
+          <div class="rm-prog-bar-wrap"><div class="rm-prog-bar" id="rm-prog-bar"></div></div>
+          <span class="rm-prog-pct" id="rm-prog-pct">0%</span>
+        </div>
+      </div>
+    </div>
+    <div class="rm-flow" id="rm-flow"></div>
+    <div class="rm-drawer" id="rm-drawer">
+      <div class="rm-backdrop" id="rm-backdrop"></div>
+      <div class="rm-panel">
+        <div class="rm-panel-header">
+          <div>
+            <span id="rm-panel-badge" class="rm-panel-badge"></span>
+            <h2 id="rm-panel-title" class="rm-panel-title"></h2>
+          </div>
+          <button id="rm-panel-close" class="rm-panel-close" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+            </svg>
+          </button>
+        </div>
+        <div class="rm-panel-status-row">
+          <span class="rm-panel-status-label">Status</span>
+          <div class="rm-panel-status-btns">
+            <button class="rm-sbtn" data-s="pending">Pending</button>
+            <button class="rm-sbtn" data-s="inprogress">In Progress</button>
+            <button class="rm-sbtn" data-s="done">Done</button>
+          </div>
+        </div>
+        <div class="rm-panel-body" id="rm-panel-body"></div>
+      </div>
+    </div>
+  </div>
+</StarlightPage>
+
+<style is:global>
+  @import "/src/styles/roadmap.css";
+</style>
+
+<script>
+const ROADMAP = [
+  { id:"learn-basics", label:"Learn the Basics", desc:"Core concepts of relational databases and the SQL language — where every journey starts.", subs:[
+    { id:"what-are-rdb",   label:"What are Relational Databases?",  desc:"Tables, rows, columns, and the relational model introduced by Edgar Codd." },
+    { id:"rdbms-limits",   label:"RDBMS Benefits & Limitations",    desc:"ACID properties, scalability trade-offs, and when to choose a relational DB." },
+    { id:"sql-keywords",   label:"SQL Keywords",                    desc:"Reserved words: SELECT, FROM, WHERE, JOIN, GROUP BY, ORDER BY, HAVING, etc." },
+    { id:"sql-vs-nosql",   label:"SQL vs NoSQL Databases",          desc:"When to use relational vs document, key-value, column, or graph databases." },
+    { id:"data-types",     label:"Data Types",                      desc:"INT, VARCHAR, TEXT, DATE, TIMESTAMP, BOOLEAN, DECIMAL, and vendor-specific types." },
+    { id:"operators",      label:"Operators",                       desc:"Arithmetic, comparison, logical (AND/OR/NOT), BETWEEN, IN, LIKE, IS NULL." },
+  ]},
+  { id:"basic-syntax", label:"Basic SQL Syntax", desc:"The fundamental SELECT statement and its clauses — how to read data from tables.", subs:[
+    { id:"select",         label:"SELECT",                          desc:"Retrieving columns, using aliases, DISTINCT, and selecting all with *." },
+    { id:"from",           label:"FROM",                            desc:"Specifying source tables, table aliases, and schema-qualified names." },
+    { id:"where",          label:"WHERE",                           desc:"Filtering rows with conditions — combining predicates with AND/OR." },
+    { id:"order-by",       label:"ORDER BY",                        desc:"Sorting results ASC/DESC, sorting by multiple columns and expressions." },
+    { id:"group-by",       label:"GROUP BY",                        desc:"Grouping rows that have the same values in specified columns." },
+    { id:"having",         label:"HAVING",                          desc:"Filtering grouped results — the WHERE clause for aggregated data." },
+    { id:"joins-basic",    label:"JOINs",                           desc:"Combining rows from two or more tables based on related columns." },
+  ]},
+  { id:"ddl", label:"Data Definition Language (DDL)", desc:"Commands that define and modify the database schema — structure, not data.", subs:[
+    { id:"create-table",   label:"CREATE TABLE",                    desc:"Defining columns, data types, constraints, and default values." },
+    { id:"alter-table",    label:"ALTER TABLE",                     desc:"Adding, dropping, and modifying columns; renaming tables." },
+    { id:"drop-table",     label:"DROP TABLE",                      desc:"Permanently removing a table and all its data from the database." },
+    { id:"truncate-table", label:"TRUNCATE TABLE",                  desc:"Removing all rows quickly without logging individual row deletions." },
+  ]},
+  { id:"dml", label:"Data Manipulation Language (DML)", desc:"Commands for inserting, updating, and deleting data in tables.", subs:[
+    { id:"insert",         label:"INSERT",                          desc:"Adding new rows — single row, multi-row, and INSERT … SELECT patterns." },
+    { id:"update",         label:"UPDATE",                          desc:"Modifying existing rows — always use WHERE to avoid full-table updates." },
+    { id:"delete",         label:"DELETE",                          desc:"Removing rows — differences between DELETE, TRUNCATE, and DROP." },
+  ]},
+  { id:"aggregate", label:"Aggregate Queries", desc:"Computing summary statistics across groups of rows.", subs:[
+    { id:"count",          label:"COUNT",                           desc:"COUNT(*) vs COUNT(col) — handling NULLs in aggregation." },
+    { id:"sum",            label:"SUM",                             desc:"Summing numeric columns, using with COALESCE for NULL safety." },
+    { id:"avg",            label:"AVG",                             desc:"Arithmetic mean — note that AVG ignores NULLs automatically." },
+    { id:"min",            label:"MIN",                             desc:"Finding the smallest value in a column or expression." },
+    { id:"max",            label:"MAX",                             desc:"Finding the largest value in a column or expression." },
+  ]},
+  { id:"constraints", label:"Data Constraints", desc:"Rules enforced by the database engine to maintain data integrity.", subs:[
+    { id:"primary-key",    label:"Primary Key",                     desc:"Uniquely identifies each row — auto-increment, composite keys." },
+    { id:"foreign-key",    label:"Foreign Key",                     desc:"Referential integrity — CASCADE, SET NULL, RESTRICT actions." },
+    { id:"unique",         label:"UNIQUE",                          desc:"Ensures no duplicate values in a column or column combination." },
+    { id:"not-null",       label:"NOT NULL",                        desc:"Prevents NULL values from being stored in a column." },
+    { id:"check",          label:"CHECK",                           desc:"Validates column values against a boolean expression." },
+  ]},
+  { id:"joins", label:"JOIN Queries", desc:"Combining data from multiple tables using different join strategies.", subs:[
+    { id:"inner-join",     label:"INNER JOIN",                      desc:"Returns rows where there is a match in both tables." },
+    { id:"left-join",      label:"LEFT JOIN",                       desc:"All rows from the left table, matched rows from the right (NULL if no match)." },
+    { id:"right-join",     label:"RIGHT JOIN",                      desc:"All rows from the right table, matched rows from the left." },
+    { id:"full-outer",     label:"FULL OUTER JOIN",                 desc:"All rows from both tables — NULLs where there is no match on either side." },
+    { id:"self-join",      label:"Self Join",                       desc:"Joining a table to itself — useful for hierarchical or comparison queries." },
+    { id:"cross-join",     label:"Cross Join",                      desc:"Cartesian product of two tables — every row paired with every other row." },
+  ]},
+  { id:"subqueries", label:"Subqueries", desc:"Queries nested inside other queries — scalar, correlated, and derived tables.", subs:[
+    { id:"nested-sub",     label:"Nested Subqueries",               desc:"Subqueries in WHERE, HAVING, or SELECT clauses — IN, EXISTS, ANY, ALL." },
+    { id:"correlated-sub", label:"Correlated Subqueries",           desc:"Subqueries that reference columns from the outer query — evaluated per row." },
+    { id:"scalar-sub",     label:"Scalar Subquery",                 desc:"Returns a single value — used in SELECT list or WHERE conditions." },
+  ]},
+  { id:"adv-functions", label:"Advanced Functions", desc:"Built-in functions for string manipulation, math, dates, and conditional logic.", subs:[
+    { id:"string-fns",     label:"String Functions",                desc:"CONCAT, LENGTH, SUBSTRING, REPLACE, UPPER, LOWER, TRIM, LIKE." },
+    { id:"math-fns",       label:"Math Functions",                  desc:"FLOOR, CEILING, ROUND, ABS, MOD — rounding and numeric operations." },
+    { id:"date-fns",       label:"Date & Time Functions",           desc:"DATE, TIME, TIMESTAMP, DATEPART, DATEADD — date arithmetic and formatting." },
+    { id:"case",           label:"CASE",                            desc:"Conditional logic inside SQL — simple CASE vs searched CASE." },
+    { id:"coalesce",       label:"COALESCE / NULLIF",               desc:"COALESCE returns the first non-NULL value; NULLIF returns NULL when two values are equal." },
+  ]},
+  { id:"views", label:"Views", desc:"Virtual tables based on saved queries — simplifying complex queries and access control.", subs:[
+    { id:"creating-views", label:"Creating Views",                  desc:"CREATE VIEW — wrapping complex joins and logic into a reusable object." },
+    { id:"modifying-views",label:"Modifying Views",                 desc:"CREATE OR REPLACE VIEW and ALTER VIEW depending on the database." },
+    { id:"dropping-views", label:"Dropping Views",                  desc:"DROP VIEW — removing views without affecting the underlying tables." },
+  ]},
+  { id:"indexes", label:"Indexes", desc:"Data structures that speed up queries at the cost of write overhead and storage.", subs:[
+    { id:"managing-idx",   label:"Managing Indexes",                desc:"CREATE INDEX, DROP INDEX, partial indexes, and covering indexes." },
+    { id:"query-opt-idx",  label:"Query Optimization with Indexes", desc:"How the query planner uses indexes — EXPLAIN / ANALYZE output." },
+  ]},
+  { id:"transactions", label:"Transactions", desc:"Grouping SQL statements into atomic units of work that succeed or fail together.", subs:[
+    { id:"begin",          label:"BEGIN",                           desc:"Starting a transaction — implicit vs explicit transaction management." },
+    { id:"commit",         label:"COMMIT",                          desc:"Permanently saving all changes made in the current transaction." },
+    { id:"rollback",       label:"ROLLBACK",                        desc:"Undoing all changes since the last COMMIT or SAVEPOINT." },
+    { id:"savepoint",      label:"SAVEPOINT",                       desc:"Creating a partial rollback point within a transaction." },
+    { id:"acid",           label:"ACID",                            desc:"Atomicity, Consistency, Isolation, Durability — the four transaction guarantees." },
+    { id:"isolation",      label:"Transaction Isolation Levels",    desc:"READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, SERIALIZABLE." },
+  ]},
+  { id:"security", label:"Data Integrity & Security", desc:"Protecting data correctness and controlling who can access what.", subs:[
+    { id:"integrity",      label:"Data Integrity Constraints",      desc:"Entity, referential, and domain integrity — enforced at the DB level." },
+    { id:"grant-revoke",   label:"GRANT and REVOKE",                desc:"Managing user privileges — SELECT, INSERT, UPDATE, DELETE, EXECUTE." },
+    { id:"security-best",  label:"DB Security Best Practices",      desc:"Least privilege, parameterised queries, auditing, encryption at rest." },
+  ]},
+  { id:"stored-procs", label:"Stored Procedures & Functions", desc:"Reusable server-side logic stored in the database.", subs:[
+    { id:"scalar-fn",      label:"Scalar Functions",                desc:"Return a single value — used in SELECT lists and WHERE clauses." },
+    { id:"table-fn",       label:"Table-valued Functions",          desc:"Return a result set — inline and multi-statement variants." },
+    { id:"row-fn",         label:"Row & Column Functions",          desc:"Functions that operate per-row — window function foundations." },
+  ]},
+  { id:"perf-opt", label:"Performance Optimization", desc:"Techniques to make SQL queries run faster at scale.", subs:[
+    { id:"query-analysis", label:"Query Analysis Techniques",       desc:"EXPLAIN / EXPLAIN ANALYZE — reading query plans, identifying bottlenecks." },
+    { id:"using-indexes",  label:"Using Indexes Effectively",       desc:"Index selectivity, covering indexes, avoiding index scans on low-cardinality columns." },
+    { id:"opt-joins",      label:"Optimizing Joins",                desc:"Join order, hash joins vs nested loop vs merge join." },
+    { id:"reduce-subs",    label:"Reducing Subqueries",             desc:"Rewriting correlated subqueries as joins or CTEs for better performance." },
+    { id:"selective-proj", label:"Selective Projection",            desc:"Selecting only needed columns — avoiding SELECT * in production queries." },
+  ]},
+  { id:"advanced-sql", label:"Advanced SQL", desc:"Power features for complex analytical and programmatic SQL work.", subs:[
+    { id:"window-fns",     label:"Window Functions",                desc:"OVER(), PARTITION BY, ROWS/RANGE — running totals, moving averages." },
+    { id:"rank",           label:"RANK / DENSE_RANK / ROW_NUMBER",  desc:"Ranking rows within partitions — differences and use cases." },
+    { id:"lead-lag",       label:"LEAD / LAG",                      desc:"Accessing values from the next or previous row within a partition." },
+    { id:"cte",            label:"Common Table Expressions (CTEs)", desc:"WITH clause — making complex queries readable and enabling recursion." },
+    { id:"recursive",      label:"Recursive Queries",               desc:"Recursive CTEs for hierarchical data — org charts, bill of materials." },
+    { id:"pivot",          label:"Pivot / Unpivot Operations",       desc:"Transforming rows to columns and back — PIVOT, UNPIVOT, conditional aggregation." },
+    { id:"dynamic-sql",    label:"Dynamic SQL",                     desc:"Building and executing SQL strings at runtime — sp_executesql, EXECUTE." },
+  ]},
+];
+
+const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
+const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;
+const ICON_DONE       = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="5.5 8.5 7 10 10.5 6"/></svg>`;
+const ICON_ARROW      = `<svg width="20" height="28" viewBox="0 0 20 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="10" y1="0" x2="10" y2="20"/><polyline points="5 15 10 22 15 15"/></svg>`;
+const ICON_CHEVRON    = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 5 7 9 11 5"/></svg>`;
+function iconFor(s: string) { return s==="done"?ICON_DONE:s==="inprogress"?ICON_INPROGRESS:ICON_PENDING; }
+
+const KEY = "sql_roadmap_v1";
+function load(): Record<string,string> { try { return JSON.parse(localStorage.getItem(KEY)||"{}"); } catch { return {}; } }
+function save(s: Record<string,string>) { localStorage.setItem(KEY, JSON.stringify(s)); }
+let state = load();
+function getS(id: string) { return state[id]||"pending"; }
+
+function allIds() {
+  const ids: string[] = [];
+  for (const t of ROADMAP) { ids.push(t.id); for (const s of t.subs) ids.push(s.id); }
+  return ids;
+}
+
+function refreshProgress() {
+  const ids = allIds();
+  const done = ids.filter(id => getS(id)==="done").length;
+  const pct = ids.length ? Math.round((done/ids.length)*100) : 0;
+  const bar = document.getElementById("rm-prog-bar");
+  const pctEl = document.getElementById("rm-prog-pct");
+  if (bar) bar.style.width = `${pct}%`;
+  if (pctEl) pctEl.textContent = `${pct}%`;
+}
+
+function buildFlow() {
+  const flow = document.getElementById("rm-flow");
+  if (!flow) return;
+  flow.innerHTML = "";
+  ROADMAP.forEach((topic, ti) => {
+    const s = getS(topic.id);
+    const topicEl = document.createElement("div");
+    topicEl.className = `rm-topic-node${s!=="pending"?` is-${s}`:""}`;
+    topicEl.dataset.id = topic.id;
+    topicEl.innerHTML = `<span class="rm-topic-icon">${iconFor(s)}</span><span class="rm-topic-label">${topic.label}</span>${topic.subs.length?`<span class="rm-count-badge">${topic.subs.length}</span>`:""}<span class="rm-chevron">${ICON_CHEVRON}</span>`;
+    topicEl.addEventListener("click", () => openPanel(topic.id, "topic"));
+    flow.appendChild(topicEl);
+    if (topic.subs.length > 0) {
+      const group = document.createElement("div");
+      group.className = "rm-sub-group";
+      for (const sub of topic.subs) {
+        const ss = getS(sub.id);
+        const subEl = document.createElement("div");
+        subEl.className = `rm-sub-node${ss!=="pending"?` is-${ss}`:""}`;
+        subEl.dataset.id = sub.id;
+        subEl.innerHTML = `<span class="rm-sub-icon">${iconFor(ss)}</span><span class="rm-sub-label">${sub.label}</span>`;
+        subEl.addEventListener("click", () => openPanel(sub.id, "subtopic", topic.id));
+        group.appendChild(subEl);
+      }
+      flow.appendChild(group);
+    }
+    if (ti < ROADMAP.length-1) {
+      const arrow = document.createElement("div");
+      arrow.className = "rm-arrow";
+      arrow.innerHTML = ICON_ARROW;
+      flow.appendChild(arrow);
+    }
+  });
+}
+
+let activeId: string|null = null, activeParent: string|null = null;
+function findItem(id: string): any {
+  for (const t of ROADMAP) { if (t.id===id) return {...t,type:"topic"}; for (const s of t.subs) { if (s.id===id) return {...s,type:"subtopic"}; } }
+  return null;
+}
+
+function openPanel(id: string, type: string, parentId?: string) {
+  activeId = id; activeParent = parentId??null;
+  const item = findItem(id); if (!item) return;
+  const badge = document.getElementById("rm-panel-badge")!;
+  const title = document.getElementById("rm-panel-title")!;
+  const body  = document.getElementById("rm-panel-body")!;
+  badge.textContent = type==="topic"?"Topic":"Subtopic";
+  badge.className   = `rm-panel-badge is-${type}`;
+  title.textContent = item.label;
+  body.innerHTML    = `<p class="rm-panel-desc">${item.desc}</p>`;
+  if (type==="topic" && item.subs?.length>0) {
+    const sublist = document.createElement("div");
+    sublist.className = "rm-panel-sublist";
+    sublist.innerHTML = `<p class="rm-panel-sublist-title">Subtopics (${item.subs.length})</p>`;
+    for (const sub of item.subs) {
+      const ss = getS(sub.id);
+      const row = document.createElement("div");
+      row.className = `rm-panel-subitem${ss!=="pending"?` is-${ss}`:""}`;
+      row.dataset.subId = sub.id;
+      row.innerHTML = `<span class="rm-panel-subitem-icon">${iconFor(ss)}</span><span class="rm-panel-subitem-label">${sub.label}</span><span class="rm-panel-subitem-tag">${ss}</span>`;
+      row.addEventListener("click", e => { e.stopPropagation(); openPanel(sub.id,"subtopic",id); });
+      sublist.appendChild(row);
+    }
+    body.appendChild(sublist);
+  }
+  syncBtns();
+  document.getElementById("rm-drawer")!.classList.add("is-open");
+  document.body.style.overflow = "hidden";
+}
+
+function closePanel() {
+  document.getElementById("rm-drawer")!.classList.remove("is-open");
+  document.body.style.overflow = "";
+  activeId = activeParent = null;
+}
+
+function syncBtns() {
+  if (!activeId) return;
+  const s = getS(activeId);
+  document.querySelectorAll<HTMLButtonElement>(".rm-sbtn").forEach(b => b.classList.toggle("is-active", b.dataset.s===s));
+}
+
+function setStatus(id: string, s: string) {
+  state[id] = s; save(state); buildFlow(); refreshProgress(); syncBtns();
+  const row = document.querySelector<HTMLElement>(`.rm-panel-subitem[data-sub-id="${id}"]`);
+  if (row) {
+    row.className = `rm-panel-subitem${s!=="pending"?` is-${s}`:""}`;
+    row.dataset.subId = id;
+    const icon = row.querySelector(".rm-panel-subitem-icon"); const tag = row.querySelector(".rm-panel-subitem-tag");
+    if (icon) icon.innerHTML = iconFor(s); if (tag) tag.textContent = s;
+  }
+}
+
+buildFlow(); refreshProgress();
+document.getElementById("rm-panel-close")?.addEventListener("click", closePanel);
+document.getElementById("rm-backdrop")?.addEventListener("click", closePanel);
+document.addEventListener("keydown", e => { if (e.key==="Escape") closePanel(); });
+document.querySelectorAll<HTMLButtonElement>(".rm-sbtn").forEach(b => b.addEventListener("click", () => { if (activeId) setStatus(activeId, b.dataset.s!); }));
+</script>

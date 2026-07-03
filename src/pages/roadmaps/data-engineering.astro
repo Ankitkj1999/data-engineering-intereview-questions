@@ -1,0 +1,369 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "Data Engineering Roadmap",
+    description: "",
+    
+  }}
+>
+  <div id="rm-root">
+    <div class="rm-header">
+      <div class="rm-header-left">
+        <span class="rm-badge">Roadmap</span>
+        <h1 class="rm-title">Data Engineering</h1>
+        <p class="rm-subtitle">Step-by-step guide to becoming a data engineer</p>
+      </div>
+      <div class="rm-header-right">
+        <div class="rm-legend">
+          <span class="rm-legend-item" data-status="pending"><span class="rm-dot"></span>Pending</span>
+          <span class="rm-legend-item" data-status="inprogress"><span class="rm-dot"></span>In Progress</span>
+          <span class="rm-legend-item" data-status="done"><span class="rm-dot"></span>Done</span>
+        </div>
+        <div class="rm-progress-summary">
+          <span class="rm-prog-label">Progress</span>
+          <div class="rm-prog-bar-wrap"><div class="rm-prog-bar" id="rm-prog-bar"></div></div>
+          <span class="rm-prog-pct" id="rm-prog-pct">0%</span>
+        </div>
+      </div>
+    </div>
+    <div class="rm-flow" id="rm-flow"></div>
+    <div class="rm-drawer" id="rm-drawer">
+      <div class="rm-backdrop" id="rm-backdrop"></div>
+      <div class="rm-panel">
+        <div class="rm-panel-header">
+          <div>
+            <span id="rm-panel-badge" class="rm-panel-badge"></span>
+            <h2 id="rm-panel-title" class="rm-panel-title"></h2>
+          </div>
+          <button id="rm-panel-close" class="rm-panel-close" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+            </svg>
+          </button>
+        </div>
+        <div class="rm-panel-status-row">
+          <span class="rm-panel-status-label">Status</span>
+          <div class="rm-panel-status-btns">
+            <button class="rm-sbtn" data-s="pending">Pending</button>
+            <button class="rm-sbtn" data-s="inprogress">In Progress</button>
+            <button class="rm-sbtn" data-s="done">Done</button>
+          </div>
+        </div>
+        <div class="rm-panel-body" id="rm-panel-body"></div>
+      </div>
+    </div>
+  </div>
+</StarlightPage>
+
+<style is:global>
+  @import "/src/styles/roadmap.css";
+</style>
+
+<script>
+const ROADMAP = [
+  { id:"intro", label:"Introduction", desc:"What data engineering is, how it differs from data science, and what skills are needed.", subs:[
+    { id:"what-is-de",      label:"What is Data Engineering?",          desc:"Designing, building, and maintaining pipelines that move and transform data at scale." },
+    { id:"de-vs-ds",        label:"Data Engineering vs Data Science",   desc:"DE builds the infrastructure; DS uses it — roles, responsibilities, and overlap." },
+    { id:"de-skills",       label:"Skills and Responsibilities",        desc:"SQL, Python, cloud platforms, pipeline design, data modeling, and system design." },
+    { id:"de-lifecycle",    label:"Data Engineering Lifecycle",         desc:"Generation → Ingestion → Transformation → Serving — the full data journey." },
+    { id:"choose-tech",     label:"Choosing the Right Technologies",    desc:"Trade-offs between managed services, open source, cost, and team skill sets." },
+  ]},
+  { id:"programming", label:"Programming Skills", desc:"Languages and algorithmic foundations every data engineer needs.", subs:[
+    { id:"python",          label:"Python",                             desc:"The go-to language for pipelines, scripting, and data processing." },
+    { id:"java-scala",      label:"Java / Scala",                       desc:"JVM languages powering Spark, Kafka, and Hadoop ecosystems." },
+    { id:"go",              label:"Go",                                  desc:"Increasingly used for high-performance data tooling and CLI utilities." },
+    { id:"dsa",             label:"Data Structures & Algorithms",       desc:"Arrays, hash maps, graphs, sorting — foundational for performance-aware engineering." },
+  ]},
+  { id:"foundations", label:"CS & DevOps Foundations", desc:"The underlying systems knowledge that makes a great data engineer.", subs:[
+    { id:"git",             label:"Git and GitHub",                     desc:"Version control, branching strategies, pull requests, and code review workflows." },
+    { id:"linux",           label:"Linux Basics",                       desc:"Shell scripting, file permissions, process management, cron jobs." },
+    { id:"networking",      label:"Networking Fundamentals",            desc:"TCP/IP, HTTP/S, DNS, VPCs, firewalls — essential for distributed systems." },
+    { id:"dist-sys",        label:"Distributed Systems Basics",         desc:"Replication, partitioning, consistency models, CAP theorem." },
+  ]},
+  { id:"data-lifecycle", label:"Data Lifecycle", desc:"How data moves through a system — from raw generation to serving consumers.", subs:[
+    { id:"data-gen",        label:"Data Generation",                    desc:"Transactional systems, events, logs, sensors, and third-party APIs." },
+    { id:"data-storage",    label:"Data Storage",                       desc:"Object storage, block storage, file systems — choosing the right tier." },
+    { id:"data-ingestion",  label:"Data Ingestion",                     desc:"Pulling data into the platform — batch, streaming, CDC, and micro-batch." },
+    { id:"data-serving",    label:"Data Serving",                       desc:"Making data available — APIs, query engines, BI tools, ML feature stores." },
+  ]},
+  { id:"sources-of-data", label:"Sources of Data", desc:"Where data originates and the considerations for collecting it reliably.", subs:[
+    { id:"databases",       label:"Databases",                          desc:"Operational OLTP databases — MySQL, PostgreSQL, Oracle, SQL Server." },
+    { id:"apis",            label:"APIs",                               desc:"REST, GraphQL, webhooks — pulling data from external services." },
+    { id:"logs",            label:"Logs",                               desc:"Application logs, access logs, audit trails — structured vs unstructured." },
+    { id:"mobile-iot",      label:"Mobile Apps & IoT",                  desc:"High-velocity, high-volume event streams from devices and applications." },
+    { id:"data-norm",       label:"Data Normalization",                 desc:"1NF through 3NF — reducing redundancy in relational data sources." },
+    { id:"data-modelling",  label:"Data Modelling Techniques",          desc:"ER diagrams, dimensional modelling, data vault, and wide table patterns." },
+  ]},
+  { id:"db-fundamentals", label:"Database Fundamentals", desc:"Core database concepts every data engineer must understand deeply.", subs:[
+    { id:"oltp-olap",       label:"OLTP vs OLAP",                       desc:"Write-optimised vs read-optimised systems — different schemas, indexes, and engines." },
+    { id:"learn-sql",       label:"Learn SQL",                          desc:"SELECT, JOINs, aggregations, window functions, CTEs — the lingua franca of data." },
+    { id:"indexing",        label:"Indexing",                           desc:"B-tree, hash, bitmap, and partial indexes — how they speed up queries." },
+    { id:"transactions-db", label:"Transactions",                       desc:"ACID guarantees, isolation levels, and locking strategies." },
+    { id:"cap",             label:"CAP Theorem",                        desc:"Consistency, Availability, Partition Tolerance — and why you can only have two." },
+    { id:"h-vs-v-scale",    label:"Horizontal vs Vertical Scaling",     desc:"Scale-up vs scale-out trade-offs for databases and compute." },
+  ]},
+  { id:"relational-dbs", label:"Relational Databases", desc:"Production-grade RDBMS platforms used in data engineering stacks.", subs:[
+    { id:"mysql",           label:"MySQL",                              desc:"Open-source RDBMS — widely used for operational workloads and data sources." },
+    { id:"postgres",        label:"PostgreSQL",                         desc:"Advanced open-source DB with rich types, JSONB, and strong analytics support." },
+    { id:"mariadb",         label:"MariaDB",                            desc:"MySQL-compatible fork with additional storage engines and features." },
+    { id:"aurora",          label:"Aurora DB",                          desc:"AWS-managed MySQL/PostgreSQL-compatible DB with high availability." },
+    { id:"oracle",          label:"Oracle",                             desc:"Enterprise RDBMS common in large financial and operational systems." },
+    { id:"mssql",           label:"MS SQL Server",                      desc:"Microsoft's enterprise DB — often the source for CDC pipelines." },
+    { id:"scd",             label:"Slowly Changing Dimensions (SCD)",   desc:"Type 1, 2, 3, and 6 — tracking historical changes in dimension tables." },
+    { id:"star-snow",       label:"Star vs Snowflake Schema",           desc:"Dimensional modelling strategies for data warehouses and OLAP cubes." },
+  ]},
+  { id:"nosql-dbs", label:"NoSQL Databases", desc:"Non-relational databases — document, column, graph, and key-value stores.", subs:[
+    { id:"mongodb",         label:"MongoDB",                            desc:"Document store — flexible JSON-like schema, widely used for semi-structured data." },
+    { id:"cassandra",       label:"Cassandra",                          desc:"Wide-column store — high write throughput, tunable consistency, multi-region." },
+    { id:"redis",           label:"Redis",                              desc:"In-memory key-value store — caching, pub/sub, session management." },
+    { id:"elasticsearch",   label:"ElasticSearch",                      desc:"Full-text search and log analytics engine built on Lucene." },
+    { id:"neo4j",           label:"Neo4j",                              desc:"Graph database — nodes, edges, Cypher query language." },
+    { id:"bigtable",        label:"BigTable / HBase",                   desc:"Google's wide-column NoSQL — HBase is the open-source equivalent on HDFS." },
+    { id:"dynamodb",        label:"DynamoDB",                           desc:"AWS serverless key-value and document DB — millisecond latency at any scale." },
+    { id:"cosmosdb",        label:"CosmosDB",                           desc:"Azure's globally distributed multi-model database service." },
+  ]},
+  { id:"data-warehouse", label:"Data Warehouse", desc:"Centralised analytical repositories optimised for read-heavy workloads.", subs:[
+    { id:"what-is-dw",      label:"What is a Data Warehouse?",          desc:"Purpose-built for analytics — column-oriented storage, MPP architecture." },
+    { id:"dw-arch",         label:"Data Warehousing Architectures",     desc:"Inmon vs Kimball, lambda vs kappa, hub-and-spoke vs data mesh." },
+    { id:"bigquery",        label:"Google BigQuery",                    desc:"Serverless, highly scalable cloud data warehouse — pay per query." },
+    { id:"snowflake",       label:"Snowflake",                          desc:"Cloud-native DW with separation of storage and compute, multi-cloud." },
+    { id:"redshift",        label:"Amazon Redshift",                    desc:"AWS columnar data warehouse — RA3 nodes, Spectrum for S3 querying." },
+    { id:"data-mart",       label:"Data Mart",                          desc:"Subject-oriented subset of a data warehouse — faster, focused analytics." },
+    { id:"data-mesh",       label:"Data Mesh",                          desc:"Decentralised, domain-oriented data ownership as a product." },
+    { id:"data-fabric",     label:"Data Fabric",                        desc:"Unified architecture connecting disparate data sources and consumers." },
+  ]},
+  { id:"data-lake", label:"Data Lake", desc:"Schema-on-read storage for raw data at any scale — structured, semi-structured, and unstructured.", subs:[
+    { id:"delta-lake",      label:"Databricks Delta Lake",              desc:"Open table format adding ACID transactions and versioning to data lakes." },
+    { id:"onehouse",        label:"Onehouse / Apache Hudi",             desc:"Upserts and incremental processing on data lakes — Hudi table format." },
+    { id:"metadata-arch",   label:"Metadata-first Architecture",        desc:"Data catalogs, schema registries, and data discovery platforms." },
+    { id:"serverless",      label:"Serverless Options",                 desc:"AWS Lake Formation, Athena, Glue — fully managed lake infrastructure." },
+  ]},
+  { id:"cloud", label:"Cloud Computing", desc:"The platforms and services that power modern data infrastructure.", subs:[
+    { id:"cloud-arch",      label:"Cloud Architectures",               desc:"Multi-cloud, hybrid cloud, landing zones, and well-architected frameworks." },
+    { id:"aws",             label:"AWS (EC2, S3, RDS)",                 desc:"Compute, object storage, and managed databases on Amazon Web Services." },
+    { id:"azure",           label:"Azure (VMs, Blob, SQL DB)",          desc:"Microsoft Azure equivalents — Virtual Machines, Blob Storage, Azure SQL." },
+    { id:"gcp",             label:"GCP (Compute, GCS, Cloud SQL)",      desc:"Google Cloud — Compute Engine, Cloud Storage, Cloud SQL, Dataflow." },
+  ]},
+  { id:"ingestion-types", label:"Types of Data Ingestion", desc:"Strategies for moving data from sources into the data platform.", subs:[
+    { id:"batch",           label:"Batch Ingestion",                    desc:"Periodic bulk loads — nightly ETL jobs, daily snapshots, scheduled exports." },
+    { id:"streaming",       label:"Streaming Ingestion",                desc:"Continuous data flow — Kafka, Kinesis, Pub/Sub for real-time pipelines." },
+    { id:"realtime",        label:"Realtime Ingestion",                 desc:"Sub-second latency ingestion — event-driven architectures and CDC." },
+    { id:"hybrid",          label:"Hybrid Ingestion",                   desc:"Combining batch and streaming — lambda architecture patterns." },
+  ]},
+  { id:"pipelines", label:"Data Pipelines", desc:"Automated workflows that extract, transform, and load data reliably.", subs:[
+    { id:"extract",         label:"Extract Data",                       desc:"Reading from source systems — full loads vs incremental extracts." },
+    { id:"transform",       label:"Transform Data",                     desc:"Cleaning, normalising, aggregating, and enriching raw data." },
+    { id:"load",            label:"Load Data",                          desc:"Writing to target systems — full replace vs upsert vs append strategies." },
+    { id:"data-factory",    label:"Data Factory (ETL tools)",           desc:"Azure Data Factory, AWS Glue, Fivetran — managed pipeline platforms." },
+    { id:"airflow",         label:"Apache Airflow",                     desc:"Open-source workflow orchestration — DAGs, operators, sensors, hooks." },
+    { id:"dbt",             label:"dbt",                                desc:"Transform data in your warehouse using SQL — tests, documentation, lineage." },
+    { id:"luigi",           label:"Luigi / Prefect",                    desc:"Alternative Python-native orchestration frameworks." },
+    { id:"job-scheduling",  label:"Job Scheduling",                     desc:"Cron, Airflow schedulers, event-driven triggers — managing pipeline runs." },
+  ]},
+  { id:"cluster-computing", label:"Cluster Computing Basics", desc:"Distributed compute concepts and tools for processing data at scale.", subs:[
+    { id:"what-cluster",    label:"What is Cluster Computing",          desc:"Coordinating multiple nodes to process data in parallel." },
+    { id:"dist-fs",         label:"Distributed File Systems",           desc:"HDFS, cloud object storage — how data is split and replicated across nodes." },
+    { id:"hdfs",            label:"HDFS",                               desc:"Hadoop Distributed File System — block storage, NameNode/DataNode architecture." },
+    { id:"yarn",            label:"Apache Hadoop YARN",                 desc:"Resource negotiator for the Hadoop ecosystem — scheduling and resource management." },
+    { id:"cluster-mgmt",    label:"Cluster Management Tools",          desc:"YARN, Kubernetes-native Spark, EMR, Dataproc." },
+  ]},
+  { id:"big-data-tools", label:"Big Data Tools", desc:"The core processing engines for large-scale data workloads.", subs:[
+    { id:"spark",           label:"Apache Spark",                       desc:"Unified analytics engine — RDDs, DataFrames, Spark SQL, Structured Streaming." },
+    { id:"mapreduce",       label:"MapReduce",                          desc:"The original batch processing paradigm — map, shuffle, reduce." },
+    { id:"dataflow",        label:"Google Dataflow",                    desc:"Managed Apache Beam service — unified batch and stream processing on GCP." },
+  ]},
+  { id:"containers", label:"Containers & Orchestration", desc:"Packaging and deploying data applications consistently across environments.", subs:[
+    { id:"docker",          label:"Docker",                             desc:"Containerising pipelines and services — Dockerfiles, images, registries." },
+    { id:"kubernetes",      label:"Kubernetes",                         desc:"Container orchestration — pods, deployments, services, Helm charts." },
+    { id:"gke-eks",         label:"GKE / AWS EKS",                      desc:"Managed Kubernetes on Google Cloud and AWS." },
+  ]},
+  { id:"cicd", label:"CI/CD", desc:"Automating testing and deployment of data pipelines and infrastructure.", subs:[
+    { id:"gh-actions",      label:"GitHub Actions",                     desc:"Automated workflows triggered by git events — test, lint, deploy pipelines." },
+    { id:"gitlab-ci",       label:"GitLab CI",                          desc:"Built-in CI/CD in GitLab — .gitlab-ci.yml, runners, environments." },
+    { id:"argocd",          label:"ArgoCD",                             desc:"GitOps continuous delivery for Kubernetes workloads." },
+  ]},
+  { id:"monitoring", label:"Monitoring", desc:"Observing the health, performance, and correctness of data systems.", subs:[
+    { id:"prometheus",      label:"Prometheus",                         desc:"Metrics collection and alerting — time-series DB, PromQL, Alertmanager." },
+    { id:"datadog",         label:"Datadog",                            desc:"Cloud monitoring platform — APM, logs, dashboards, anomaly detection." },
+    { id:"sentry",          label:"Sentry",                             desc:"Error tracking and performance monitoring for applications and pipelines." },
+    { id:"new-relic",       label:"New Relic",                          desc:"Full-stack observability platform — distributed tracing, infra monitoring." },
+  ]},
+  { id:"testing", label:"Testing", desc:"Validating that data pipelines and transformations produce correct results.", subs:[
+    { id:"unit-test",       label:"Unit Testing",                       desc:"Testing individual functions and transformations in isolation." },
+    { id:"integration-test",label:"Integration Testing",               desc:"Testing end-to-end pipeline runs against real or realistic data." },
+    { id:"e2e-test",        label:"End-to-End Testing",                 desc:"Full pipeline validation from source ingestion to final output." },
+    { id:"data-quality",    label:"Data Quality Testing",              desc:"Great Expectations, dbt tests, schema validation — assertions on data." },
+    { id:"ab-test",         label:"A/B Testing",                        desc:"Comparing pipeline versions or model outputs against a control baseline." },
+  ]},
+  { id:"messaging", label:"Messaging Systems", desc:"Decoupled, durable communication between services and pipeline components.", subs:[
+    { id:"kafka",           label:"Apache Kafka",                       desc:"Distributed event streaming — topics, partitions, consumer groups, Kafka Streams." },
+    { id:"rabbitmq",        label:"RabbitMQ",                           desc:"Message broker — queues, exchanges, AMQP protocol, dead letter queues." },
+    { id:"sqs-sns",         label:"AWS SQS / SNS",                      desc:"Managed message queue and pub/sub notification services on AWS." },
+    { id:"async-sync",      label:"Async vs Sync Communication",        desc:"Trade-offs between request/response and event-driven patterns." },
+    { id:"msgs-streams",    label:"Messages vs Streams",               desc:"Point-to-point queues vs append-only logs — Kafka vs traditional MQ." },
+  ]},
+  { id:"iac", label:"Infrastructure as Code (IaC)", desc:"Managing cloud infrastructure through code — reproducible, version-controlled environments.", subs:[
+    { id:"terraform",       label:"Terraform",                          desc:"Declarative infrastructure provisioning — providers, state, modules, workspaces." },
+    { id:"opentofu",        label:"OpenTofu",                           desc:"Open-source fork of Terraform — drop-in replacement, community-driven." },
+    { id:"aws-cdk",         label:"AWS CDK",                            desc:"Define AWS infrastructure using familiar programming languages." },
+    { id:"declarative",     label:"Declarative vs Imperative IaC",     desc:"Desired-state (Terraform) vs step-by-step (scripts) approaches." },
+  ]},
+  { id:"bi-analytics", label:"Business Intelligence & Analytics", desc:"Turning processed data into insights for business stakeholders.", subs:[
+    { id:"powerbi",         label:"Microsoft Power BI",                 desc:"Interactive dashboards and reports — DAX, Power Query, DirectQuery." },
+    { id:"tableau",         label:"Tableau",                            desc:"Visual analytics platform — drag-and-drop, calculated fields, LOD expressions." },
+    { id:"looker",          label:"Looker",                             desc:"LookML-based BI — embedded analytics, data modelling layer." },
+    { id:"streamlit",       label:"Streamlit",                          desc:"Build interactive data apps in Python — fast prototyping for internal tools." },
+    { id:"data-lineage",    label:"Data Lineage",                       desc:"Tracking data origin and transformations — OpenLineage, Marquez, Atlas." },
+    { id:"metadata-mgmt",   label:"Metadata Management",               desc:"Data catalogs, schema registries — Amundsen, DataHub, Apache Atlas." },
+  ]},
+  { id:"security", label:"Security & Compliance", desc:"Protecting data and meeting regulatory requirements.", subs:[
+    { id:"authn-authz",     label:"Authentication vs Authorization",    desc:"Who you are vs what you can do — OAuth2, RBAC, ABAC patterns." },
+    { id:"encryption",      label:"Encryption",                         desc:"Encryption at rest and in transit — TLS, KMS, column-level encryption." },
+    { id:"tokenization",    label:"Tokenization & Masking",             desc:"Replacing sensitive values with tokens — PII protection strategies." },
+    { id:"gdpr",            label:"GDPR / CCPA",                        desc:"Data privacy regulations — right to erasure, data residency, consent." },
+    { id:"data-obfuscation",label:"Data Obfuscation",                   desc:"Anonymisation, pseudonymisation, and synthetic data generation." },
+  ]},
+  { id:"reverse-etl", label:"Reverse ETL", desc:"Syncing data from the warehouse back into operational tools and SaaS platforms.", subs:[
+    { id:"etl-vs-retl",     label:"ETL vs Reverse ETL",                 desc:"Forward pipeline (source → warehouse) vs reverse (warehouse → tools)." },
+    { id:"retl-usecases",   label:"Reverse ETL Use Cases",              desc:"Syncing to CRMs, marketing tools, customer success platforms." },
+    { id:"hightouch",       label:"Hightouch / Census / Segment",       desc:"Managed reverse ETL platforms — syncing warehouse data to 150+ destinations." },
+    { id:"data-interop",    label:"Data Interoperability",              desc:"Formats, protocols, and standards that enable data exchange across systems." },
+  ]},
+  { id:"ml-mlops", label:"Machine Learning & MLOps", desc:"The data engineering layer that supports ML model training and serving.", subs:[
+    { id:"ml-basics",       label:"Machine Learning Basics",            desc:"Supervised/unsupervised learning, feature engineering, model evaluation." },
+    { id:"mlops",           label:"MLOps",                              desc:"ML pipelines, model versioning, feature stores, model monitoring in production." },
+  ]},
+];
+
+const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
+const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;
+const ICON_DONE       = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="5.5 8.5 7 10 10.5 6"/></svg>`;
+const ICON_ARROW      = `<svg width="20" height="28" viewBox="0 0 20 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="10" y1="0" x2="10" y2="20"/><polyline points="5 15 10 22 15 15"/></svg>`;
+const ICON_CHEVRON    = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 5 7 9 11 5"/></svg>`;
+function iconFor(s: string) { return s==="done"?ICON_DONE:s==="inprogress"?ICON_INPROGRESS:ICON_PENDING; }
+
+const KEY = "de_roadmap_v1";
+function load(): Record<string,string> { try { return JSON.parse(localStorage.getItem(KEY)||"{}"); } catch { return {}; } }
+function save(s: Record<string,string>) { localStorage.setItem(KEY, JSON.stringify(s)); }
+let state = load();
+function getS(id: string) { return state[id]||"pending"; }
+
+function allIds() {
+  const ids: string[] = [];
+  for (const t of ROADMAP) { ids.push(t.id); for (const s of t.subs) ids.push(s.id); }
+  return ids;
+}
+
+function refreshProgress() {
+  const ids = allIds();
+  const done = ids.filter(id => getS(id)==="done").length;
+  const pct = ids.length ? Math.round((done/ids.length)*100) : 0;
+  const bar = document.getElementById("rm-prog-bar");
+  const pctEl = document.getElementById("rm-prog-pct");
+  if (bar) bar.style.width = `${pct}%`;
+  if (pctEl) pctEl.textContent = `${pct}%`;
+}
+
+function buildFlow() {
+  const flow = document.getElementById("rm-flow");
+  if (!flow) return;
+  flow.innerHTML = "";
+  ROADMAP.forEach((topic, ti) => {
+    const s = getS(topic.id);
+    const topicEl = document.createElement("div");
+    topicEl.className = `rm-topic-node${s!=="pending"?` is-${s}`:""}`;
+    topicEl.dataset.id = topic.id;
+    topicEl.innerHTML = `<span class="rm-topic-icon">${iconFor(s)}</span><span class="rm-topic-label">${topic.label}</span>${topic.subs.length?`<span class="rm-count-badge">${topic.subs.length}</span>`:""}<span class="rm-chevron">${ICON_CHEVRON}</span>`;
+    topicEl.addEventListener("click", () => openPanel(topic.id, "topic"));
+    flow.appendChild(topicEl);
+    if (topic.subs.length > 0) {
+      const group = document.createElement("div");
+      group.className = "rm-sub-group";
+      for (const sub of topic.subs) {
+        const ss = getS(sub.id);
+        const subEl = document.createElement("div");
+        subEl.className = `rm-sub-node${ss!=="pending"?` is-${ss}`:""}`;
+        subEl.dataset.id = sub.id;
+        subEl.innerHTML = `<span class="rm-sub-icon">${iconFor(ss)}</span><span class="rm-sub-label">${sub.label}</span>`;
+        subEl.addEventListener("click", () => openPanel(sub.id, "subtopic", topic.id));
+        group.appendChild(subEl);
+      }
+      flow.appendChild(group);
+    }
+    if (ti < ROADMAP.length-1) {
+      const arrow = document.createElement("div");
+      arrow.className = "rm-arrow";
+      arrow.innerHTML = ICON_ARROW;
+      flow.appendChild(arrow);
+    }
+  });
+}
+
+let activeId: string|null = null, activeParent: string|null = null;
+function findItem(id: string): any {
+  for (const t of ROADMAP) { if (t.id===id) return {...t,type:"topic"}; for (const s of t.subs) { if (s.id===id) return {...s,type:"subtopic"}; } }
+  return null;
+}
+
+function openPanel(id: string, type: string, parentId?: string) {
+  activeId = id; activeParent = parentId??null;
+  const item = findItem(id); if (!item) return;
+  const badge = document.getElementById("rm-panel-badge")!;
+  const title = document.getElementById("rm-panel-title")!;
+  const body  = document.getElementById("rm-panel-body")!;
+  badge.textContent = type==="topic"?"Topic":"Subtopic";
+  badge.className   = `rm-panel-badge is-${type}`;
+  title.textContent = item.label;
+  body.innerHTML    = `<p class="rm-panel-desc">${item.desc}</p>`;
+  if (type==="topic" && item.subs?.length>0) {
+    const sublist = document.createElement("div");
+    sublist.className = "rm-panel-sublist";
+    sublist.innerHTML = `<p class="rm-panel-sublist-title">Subtopics (${item.subs.length})</p>`;
+    for (const sub of item.subs) {
+      const ss = getS(sub.id);
+      const row = document.createElement("div");
+      row.className = `rm-panel-subitem${ss!=="pending"?` is-${ss}`:""}`;
+      row.dataset.subId = sub.id;
+      row.innerHTML = `<span class="rm-panel-subitem-icon">${iconFor(ss)}</span><span class="rm-panel-subitem-label">${sub.label}</span><span class="rm-panel-subitem-tag">${ss}</span>`;
+      row.addEventListener("click", e => { e.stopPropagation(); openPanel(sub.id,"subtopic",id); });
+      sublist.appendChild(row);
+    }
+    body.appendChild(sublist);
+  }
+  syncBtns();
+  document.getElementById("rm-drawer")!.classList.add("is-open");
+  document.body.style.overflow = "hidden";
+}
+
+function closePanel() {
+  document.getElementById("rm-drawer")!.classList.remove("is-open");
+  document.body.style.overflow = "";
+  activeId = activeParent = null;
+}
+
+function syncBtns() {
+  if (!activeId) return;
+  const s = getS(activeId);
+  document.querySelectorAll<HTMLButtonElement>(".rm-sbtn").forEach(b => b.classList.toggle("is-active", b.dataset.s===s));
+}
+
+function setStatus(id: string, s: string) {
+  state[id] = s; save(state); buildFlow(); refreshProgress(); syncBtns();
+  const row = document.querySelector<HTMLElement>(`.rm-panel-subitem[data-sub-id="${id}"]`);
+  if (row) {
+    row.className = `rm-panel-subitem${s!=="pending"?` is-${s}`:""}`;
+    row.dataset.subId = id;
+    const icon = row.querySelector(".rm-panel-subitem-icon"); const tag = row.querySelector(".rm-panel-subitem-tag");
+    if (icon) icon.innerHTML = iconFor(s); if (tag) tag.textContent = s;
+  }
+}
+
+buildFlow(); refreshProgress();
+document.getElementById("rm-panel-close")?.addEventListener("click", closePanel);
+document.getElementById("rm-backdrop")?.addEventListener("click", closePanel);
+document.addEventListener("keydown", e => { if (e.key==="Escape") closePanel(); });
+document.querySelectorAll<HTMLButtonElement>(".rm-sbtn").forEach(b => b.addEventListener("click", () => { if (activeId) setStatus(activeId, b.dataset.s!); }));
+</script>
