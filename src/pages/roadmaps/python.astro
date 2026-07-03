@@ -1,0 +1,950 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "",
+    description: "",
+  }}
+>
+  <div id="rm-root">
+    <!-- Header -->
+    <div class="rm-header">
+      <div class="rm-header-left">
+        <span class="rm-badge">Roadmap</span>
+        <h1 class="rm-title">Python</h1>
+        <p class="rm-subtitle">Step-by-step guide to learning Python for data engineering</p>
+      </div>
+      <div class="rm-header-right">
+        <div class="rm-legend">
+          <span class="rm-legend-item" data-status="pending"><span class="rm-dot"></span>Pending</span>
+          <span class="rm-legend-item" data-status="inprogress"><span class="rm-dot"></span>In Progress</span>
+          <span class="rm-legend-item" data-status="done"><span class="rm-dot"></span>Done</span>
+        </div>
+        <div class="rm-progress-summary">
+          <span class="rm-prog-label">Progress</span>
+          <div class="rm-prog-bar-wrap"><div class="rm-prog-bar" id="rm-prog-bar"></div></div>
+          <span class="rm-prog-pct" id="rm-prog-pct">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roadmap flow — populated by JS -->
+    <div class="rm-flow" id="rm-flow"></div>
+
+    <!-- Drawer -->
+    <div class="rm-drawer" id="rm-drawer">
+      <div class="rm-backdrop" id="rm-backdrop"></div>
+      <div class="rm-panel">
+        <div class="rm-panel-header">
+          <div>
+            <span id="rm-panel-badge" class="rm-panel-badge"></span>
+            <h2 id="rm-panel-title" class="rm-panel-title"></h2>
+          </div>
+          <button id="rm-panel-close" class="rm-panel-close" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+            </svg>
+          </button>
+        </div>
+        <div class="rm-panel-status-row">
+          <span class="rm-panel-status-label">Status</span>
+          <div class="rm-panel-status-btns">
+            <button class="rm-sbtn" data-s="pending">Pending</button>
+            <button class="rm-sbtn" data-s="inprogress">In Progress</button>
+            <button class="rm-sbtn" data-s="done">Done</button>
+          </div>
+        </div>
+        <div class="rm-panel-body" id="rm-panel-body"></div>
+      </div>
+    </div>
+  </div>
+</StarlightPage>
+
+<style is:global>
+/* ── CSS custom properties (defined on root so JS-generated elements inherit) */
+#rm-root {
+  --rm-pending   : #94a3b8;
+  --rm-inprogress: #f59e0b;
+  --rm-done      : #22c55e;
+  --rm-ease      : cubic-bezier(0.4, 0, 0.2, 1);
+  --rm-radius    : 10px;
+  max-width      : 640px;
+  margin         : 0 auto;
+  padding-bottom : 4rem;
+}
+
+/* Override Starlight's max-width on the markdown wrapper for this page */
+.sl-markdown-content { max-width: 100% !important; }
+
+/* ─── Header ──────────────────────────────────────────────────── */
+.rm-header {
+  display        : flex;
+  align-items    : flex-start;
+  justify-content: space-between;
+  gap            : 1rem;
+  padding        : 1rem 0 2rem;
+  flex-wrap      : wrap;
+}
+
+.rm-badge {
+  display      : inline-block;
+  font-size    : 0.6rem;
+  font-weight  : 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color        : var(--sl-color-accent);
+  background   : color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
+  border       : 1px solid color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
+  padding      : 0.2em 0.7em;
+  border-radius: 999px;
+  margin-bottom: 0.4rem;
+}
+
+.rm-title {
+  font-size  : 2rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color      : var(--sl-color-text);
+  margin     : 0 0 0.3rem;
+}
+
+.rm-subtitle {
+  font-size  : 0.9rem;
+  color      : var(--sl-color-gray-2);
+  margin     : 0;
+  line-height: 1.5;
+}
+
+.rm-header-right {
+  display       : flex;
+  flex-direction: column;
+  align-items   : flex-end;
+  gap           : 0.6rem;
+  padding-top   : 0.25rem;
+}
+
+.rm-legend {
+  display    : flex;
+  align-items: center;
+  gap        : 0.875rem;
+  flex-wrap  : wrap;
+}
+
+.rm-legend-item {
+  display    : flex;
+  align-items: center;
+  gap        : 0.3rem;
+  font-size  : 0.72rem;
+  font-weight: 600;
+  color      : var(--sl-color-gray-2);
+  white-space: nowrap;
+}
+
+.rm-dot {
+  width        : 8px;
+  height       : 8px;
+  border-radius: 50%;
+  flex-shrink  : 0;
+  background   : var(--rm-pending);
+}
+
+[data-status="inprogress"] .rm-dot { background: var(--rm-inprogress); }
+[data-status="done"] .rm-dot       { background: var(--rm-done); }
+
+.rm-progress-summary {
+  display    : flex;
+  align-items: center;
+  gap        : 0.5rem;
+  width      : 220px;
+}
+
+.rm-prog-label {
+  font-size  : 0.68rem;
+  font-weight: 600;
+  color      : var(--sl-color-gray-3);
+  white-space: nowrap;
+}
+
+.rm-prog-bar-wrap {
+  flex         : 1;
+  height       : 5px;
+  background   : var(--sl-color-gray-5);
+  border-radius: 999px;
+  overflow     : hidden;
+}
+
+.rm-prog-bar {
+  height       : 100%;
+  width        : 0%;
+  background   : linear-gradient(90deg, var(--sl-color-accent), var(--rm-done));
+  border-radius: 999px;
+  transition   : width 0.4s var(--rm-ease);
+}
+
+.rm-prog-pct {
+  font-size  : 0.68rem;
+  font-weight: 700;
+  color      : var(--sl-color-gray-3);
+  min-width  : 2.4em;
+  text-align : right;
+}
+
+/* ─── Flow column ─────────────────────────────────────────────── */
+.rm-flow {
+  display       : flex;
+  flex-direction: column;
+  align-items   : stretch;
+  gap           : 0;
+}
+
+/* ─── Topic node ──────────────────────────────────────────────── */
+.rm-topic-node {
+  display      : flex;
+  align-items  : center;
+  gap          : 0.625rem;
+  padding      : 0.75rem 1rem;
+  border       : 2px solid var(--sl-color-gray-5);
+  border-left  : 4px solid var(--rm-pending);
+  border-radius: var(--rm-radius);
+  background   : var(--sl-color-bg);
+  cursor       : pointer;
+  user-select  : none;
+  transition   : border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+  position     : relative;
+}
+
+.rm-topic-node:hover {
+  border-color : var(--sl-color-accent);
+  box-shadow   : 0 2px 12px rgba(0,0,0,0.09);
+  transform    : translateY(-1px);
+}
+
+.rm-topic-node:active { transform: scale(0.99); }
+
+.rm-topic-node.is-inprogress { border-left-color: var(--rm-inprogress); }
+.rm-topic-node.is-done       { border-left-color: var(--rm-done); }
+
+/* ─── Topic icon ──────────────────────────────────────────────── */
+.rm-topic-icon {
+  width      : 20px;
+  height     : 20px;
+  flex-shrink: 0;
+  display    : flex;
+  align-items: center;
+  justify-content: center;
+  color      : var(--rm-pending);
+}
+
+.rm-topic-node.is-inprogress .rm-topic-icon { color: var(--rm-inprogress); }
+.rm-topic-node.is-done       .rm-topic-icon { color: var(--rm-done); }
+
+.rm-topic-icon svg {
+  width : 16px;
+  height: 16px;
+  display: block;
+}
+
+.rm-topic-label {
+  flex       : 1;
+  font-size  : 0.975rem;
+  font-weight: 700;
+  color      : var(--sl-color-text);
+  line-height: 1.3;
+}
+
+.rm-topic-node.is-done .rm-topic-label {
+  text-decoration      : line-through;
+  text-decoration-color: var(--rm-done);
+  color                : var(--sl-color-gray-3);
+}
+
+.rm-count-badge {
+  display        : inline-flex;
+  align-items    : center;
+  justify-content: center;
+  min-width      : 20px;
+  height         : 20px;
+  font-size      : 0.62rem;
+  font-weight    : 700;
+  background     : color-mix(in srgb, var(--sl-color-accent) 14%, transparent);
+  color          : var(--sl-color-accent);
+  border-radius  : 999px;
+  padding        : 0 0.3em;
+  flex-shrink    : 0;
+}
+
+.rm-chevron {
+  width      : 14px;
+  height     : 14px;
+  flex-shrink: 0;
+  color      : var(--sl-color-gray-4);
+  display    : flex;
+  align-items: center;
+}
+
+.rm-chevron svg {
+  width  : 14px;
+  height : 14px;
+  display: block;
+}
+
+/* ─── Subtopic group ──────────────────────────────────────────── */
+.rm-sub-group {
+  display        : flex;
+  flex-direction : column;
+  gap            : 3px;
+  padding        : 4px 0 4px 36px;
+  position       : relative;
+  margin-bottom  : 2px;
+}
+
+/* Vertical line on the left */
+.rm-sub-group::before {
+  content      : "";
+  position     : absolute;
+  left         : 18px;
+  top          : 0;
+  bottom       : 0;
+  width        : 2px;
+  background   : var(--sl-color-gray-6);
+  border-radius: 2px;
+}
+
+/* ─── Subtopic node ───────────────────────────────────────────── */
+.rm-sub-node {
+  display      : flex;
+  align-items  : center;
+  gap          : 0.5rem;
+  padding      : 0.5rem 0.875rem;
+  border       : 1.5px solid var(--sl-color-gray-6);
+  border-left  : 3px solid var(--rm-pending);
+  border-radius: 8px;
+  background   : var(--sl-color-bg-sidebar, var(--sl-color-gray-7, #f8fafc));
+  cursor       : pointer;
+  user-select  : none;
+  position     : relative;
+  transition   : border-color 0.15s, background 0.15s;
+}
+
+/* Horizontal connector to the left line */
+.rm-sub-node::before {
+  content   : "";
+  position  : absolute;
+  left      : -20px;
+  top       : 50%;
+  width     : 18px;
+  height    : 1.5px;
+  background: var(--sl-color-gray-5);
+  transform : translateY(-50%);
+}
+
+.rm-sub-node:hover {
+  border-color: var(--sl-color-accent);
+  background  : var(--sl-color-bg);
+}
+
+.rm-sub-node.is-inprogress { border-left-color: var(--rm-inprogress); }
+.rm-sub-node.is-done       { border-left-color: var(--rm-done); }
+
+.rm-sub-icon {
+  width      : 14px;
+  height     : 14px;
+  flex-shrink: 0;
+  display    : flex;
+  align-items: center;
+  color      : var(--rm-pending);
+}
+
+.rm-sub-node.is-inprogress .rm-sub-icon { color: var(--rm-inprogress); }
+.rm-sub-node.is-done       .rm-sub-icon { color: var(--rm-done); }
+
+.rm-sub-icon svg {
+  width  : 14px;
+  height : 14px;
+  display: block;
+}
+
+.rm-sub-label {
+  font-size  : 0.85rem;
+  font-weight: 500;
+  color      : var(--sl-color-text);
+  flex       : 1;
+  line-height: 1.3;
+}
+
+.rm-sub-node.is-done .rm-sub-label {
+  text-decoration      : line-through;
+  text-decoration-color: var(--rm-done);
+  color                : var(--sl-color-gray-3);
+}
+
+/* ─── Connector arrow between sections ───────────────────────── */
+.rm-arrow {
+  display        : flex;
+  justify-content: center;
+  padding        : 4px 0;
+  color          : var(--sl-color-gray-5);
+}
+
+.rm-arrow svg {
+  width : 20px;
+  height: 28px;
+  display: block;
+}
+</style>
+
+<style is:global>
+/* ─── Drawer ──────────────────────────────────────────────────── */
+.rm-drawer {
+  position      : fixed;
+  inset         : 0;
+  z-index       : 9999;
+  pointer-events: none;
+}
+
+.rm-drawer.is-open {
+  pointer-events: auto;
+}
+
+.rm-backdrop {
+  position  : absolute;
+  inset     : 0;
+  background: rgba(0,0,0,0.45);
+  opacity   : 0;
+  transition: opacity 0.25s ease;
+  backdrop-filter: blur(2px);
+}
+
+.rm-drawer.is-open .rm-backdrop {
+  opacity: 1;
+}
+
+.rm-panel {
+  position      : absolute;
+  top           : 0;
+  right         : 0;
+  bottom        : 0;
+  width         : min(400px, 90vw);
+  background    : var(--sl-color-bg);
+  border-left   : 1.5px solid var(--sl-color-gray-5);
+  display       : flex;
+  flex-direction: column;
+  transform     : translateX(100%);
+  transition    : transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow      : hidden;
+}
+
+.rm-drawer.is-open .rm-panel {
+  transform: translateX(0);
+}
+
+.rm-panel-header {
+  display        : flex;
+  align-items    : flex-start;
+  justify-content: space-between;
+  gap            : 0.75rem;
+  padding        : 1.25rem 1rem 0.875rem;
+  border-bottom  : 1px solid var(--sl-color-gray-6);
+  flex-shrink    : 0;
+}
+
+.rm-panel-badge {
+  display       : inline-block;
+  font-size     : 0.6rem;
+  font-weight   : 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding       : 0.2em 0.6em;
+  border-radius : 999px;
+  margin-bottom : 0.4rem;
+}
+
+.rm-panel-badge.is-topic {
+  background: color-mix(in srgb, var(--sl-color-accent) 14%, transparent);
+  color     : var(--sl-color-accent);
+}
+
+.rm-panel-badge.is-subtopic {
+  background: color-mix(in srgb, var(--sl-color-gray-3) 14%, transparent);
+  color     : var(--sl-color-gray-2);
+}
+
+.rm-panel-title {
+  font-size  : 1.15rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color      : var(--sl-color-text);
+  margin     : 0;
+}
+
+.rm-panel-close {
+  display        : flex;
+  align-items    : center;
+  justify-content: center;
+  width          : 28px;
+  height         : 28px;
+  flex-shrink    : 0;
+  border         : 1.5px solid var(--sl-color-gray-5);
+  border-radius  : 6px;
+  background     : transparent;
+  color          : var(--sl-color-gray-3);
+  cursor         : pointer;
+  margin-top     : 2px;
+}
+
+.rm-panel-close:hover {
+  background: var(--sl-color-gray-6);
+  color     : var(--sl-color-text);
+}
+
+/* Status row */
+.rm-panel-status-row {
+  display    : flex;
+  align-items: center;
+  gap        : 0.625rem;
+  padding    : 0.75rem 1rem;
+  border-bottom: 1px solid var(--sl-color-gray-6);
+  flex-shrink: 0;
+  flex-wrap  : wrap;
+}
+
+.rm-panel-status-label {
+  font-size  : 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color      : var(--sl-color-gray-3);
+  white-space: nowrap;
+}
+
+.rm-panel-status-btns {
+  display: flex;
+  gap    : 0.35rem;
+}
+
+.rm-sbtn {
+  display      : inline-flex;
+  align-items  : center;
+  height       : 26px;
+  padding      : 0 0.7rem;
+  border-radius: 6px;
+  border       : 1.5px solid var(--sl-color-gray-5);
+  background   : transparent;
+  color        : var(--sl-color-gray-3);
+  font-size    : 0.7rem;
+  font-weight  : 600;
+  cursor       : pointer;
+  font-family  : inherit;
+  transition   : all 0.15s ease;
+  white-space  : nowrap;
+}
+
+.rm-sbtn:hover { background: var(--sl-color-gray-6); color: var(--sl-color-text); }
+
+.rm-sbtn[data-s="pending"].is-active    { background: var(--sl-color-gray-5); color: var(--sl-color-text); border-color: var(--sl-color-gray-4); }
+.rm-sbtn[data-s="inprogress"].is-active { background: #f59e0b; border-color: #f59e0b; color: #fff; }
+.rm-sbtn[data-s="done"].is-active       { background: #22c55e; border-color: #22c55e; color: #fff; }
+
+/* Panel body */
+.rm-panel-body {
+  flex          : 1;
+  overflow-y    : auto;
+  padding       : 1rem;
+  display       : flex;
+  flex-direction: column;
+  gap           : 1rem;
+}
+
+.rm-panel-desc {
+  font-size  : 0.875rem;
+  line-height: 1.65;
+  color      : var(--sl-color-text);
+  margin     : 0;
+}
+
+/* Sublist in panel */
+.rm-panel-sublist {
+  border       : 1.5px solid var(--sl-color-gray-5);
+  border-radius: 8px;
+  overflow     : hidden;
+}
+
+.rm-panel-sublist-title {
+  font-size     : 0.65rem;
+  font-weight   : 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color         : var(--sl-color-gray-3);
+  padding       : 0.5rem 0.875rem;
+  margin        : 0;
+  background    : var(--sl-color-gray-7, var(--sl-color-bg-sidebar));
+  border-bottom : 1px solid var(--sl-color-gray-6);
+}
+
+.rm-panel-subitem {
+  display      : flex;
+  align-items  : center;
+  gap          : 0.5rem;
+  padding      : 0.55rem 0.875rem;
+  cursor       : pointer;
+  border-bottom: 1px solid var(--sl-color-gray-6);
+  transition   : background 0.12s;
+}
+
+.rm-panel-subitem:last-child { border-bottom: none; }
+.rm-panel-subitem:hover      { background: var(--sl-color-gray-7, var(--sl-color-bg-sidebar)); }
+
+.rm-panel-subitem-icon {
+  width      : 13px;
+  height     : 13px;
+  flex-shrink: 0;
+  display    : flex;
+  align-items: center;
+  color      : #94a3b8;
+}
+
+.rm-panel-subitem-icon svg {
+  width  : 13px;
+  height : 13px;
+  display: block;
+}
+
+.rm-panel-subitem.is-inprogress .rm-panel-subitem-icon { color: #f59e0b; }
+.rm-panel-subitem.is-done       .rm-panel-subitem-icon { color: #22c55e; }
+
+.rm-panel-subitem-label {
+  flex       : 1;
+  font-size  : 0.82rem;
+  font-weight: 500;
+  color      : var(--sl-color-text);
+}
+
+.rm-panel-subitem.is-done .rm-panel-subitem-label {
+  text-decoration: line-through;
+  color          : var(--sl-color-gray-3);
+}
+
+.rm-panel-subitem-tag {
+  font-size     : 0.6rem;
+  font-weight   : 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding       : 0.15em 0.45em;
+  border-radius : 4px;
+  background    : var(--sl-color-gray-6);
+  color         : var(--sl-color-gray-3);
+  white-space   : nowrap;
+}
+
+.rm-panel-subitem.is-inprogress .rm-panel-subitem-tag {
+  background: color-mix(in srgb, #f59e0b 18%, transparent);
+  color     : #f59e0b;
+}
+
+.rm-panel-subitem.is-done .rm-panel-subitem-tag {
+  background: color-mix(in srgb, #22c55e 18%, transparent);
+  color     : #22c55e;
+}
+
+/* ─── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .rm-header            { flex-direction: column; }
+  .rm-header-right      { align-items: flex-start; width: 100%; }
+  .rm-progress-summary  { width: 100%; }
+  .rm-panel-status-btns { flex-wrap: wrap; }
+}
+</style>
+
+<script>
+const ROADMAP = [
+  { id:"learn-basics", label:"Learn the Basics", desc:"The foundation of Python — syntax, data types, control flow, and built-in structures.", subs:[
+    { id:"basic-syntax",      label:"Basic Syntax",             desc:"Indentation rules, comments, print statements, and the Python REPL." },
+    { id:"vars-datatypes",    label:"Variables & Data Types",   desc:"int, float, str, bool, None — and dynamic typing in Python." },
+    { id:"conditionals",      label:"Conditionals",             desc:"if / elif / else, ternary expressions, and truthy/falsy values." },
+    { id:"loops",             label:"Loops",                    desc:"for loops, while loops, break, continue, and range()." },
+    { id:"type-casting",      label:"Type Casting",             desc:"Converting between types: int(), str(), float(), list(), etc." },
+    { id:"exceptions",        label:"Exceptions",               desc:"try/except/finally, raising exceptions, and custom exception classes." },
+    { id:"functions",         label:"Functions & Builtins",     desc:"Defining functions, *args, **kwargs, and useful builtins like map(), filter(), zip()." },
+    { id:"lists",             label:"Lists",                    desc:"Mutable ordered sequences — indexing, slicing, list methods." },
+    { id:"tuples",            label:"Tuples",                   desc:"Immutable sequences — packing, unpacking, named tuples." },
+    { id:"sets",              label:"Sets",                     desc:"Unordered unique collections — set operations, frozenset." },
+    { id:"dicts",             label:"Dictionaries",             desc:"Key-value stores — dict comprehensions, .get(), .items(), .update()." },
+  ]},
+  { id:"data-structures", label:"Data Structures & Algorithms", desc:"Classic CS concepts implemented in Python — essential for technical interviews.", subs:[
+    { id:"arrays-ll",         label:"Arrays and Linked Lists",  desc:"Python lists as arrays, implementing singly/doubly linked lists." },
+    { id:"hash-tables",       label:"Hash Tables",              desc:"Dictionaries under the hood — hashing and collision handling." },
+    { id:"heaps-stacks",      label:"Heaps, Stacks & Queues",   desc:"heapq module, collections.deque, and stack patterns with lists." },
+    { id:"bst",               label:"Binary Search Tree",       desc:"BST properties, insertion, search, and traversal algorithms." },
+    { id:"recursion",         label:"Recursion",                desc:"Base cases, call stacks, memoization, and tail recursion patterns." },
+    { id:"sorting",           label:"Sorting Algorithms",       desc:"Built-in sort(), Timsort, and implementing merge/quick sort." },
+  ]},
+  { id:"modules", label:"Modules", desc:"Organising code with modules, packages, and the Python import system.", subs:[
+    { id:"builtin-modules",   label:"Builtin Modules",          desc:"os, sys, math, datetime, json, pathlib, collections, itertools." },
+    { id:"custom-modules",    label:"Custom Modules",           desc:"Creating __init__.py, relative vs absolute imports, __all__." },
+  ]},
+  { id:"lambdas",          label:"Lambdas",                  desc:"Anonymous functions with lambda — usage with map(), filter(), sorted(), and functional patterns.", subs:[] },
+  { id:"decorators",       label:"Decorators",               desc:"Higher-order functions that wrap other functions — functools.wraps, class decorators, stacking decorators.", subs:[] },
+  { id:"iterators",        label:"Iterators",                desc:"__iter__ and __next__ protocols, itertools module, lazy evaluation.", subs:[] },
+  { id:"regex",            label:"Regular Expressions",      desc:"Pattern matching with the re module — compile, match, search, findall, groups.", subs:[] },
+  { id:"oop", label:"Object Oriented Programming", desc:"Python's OOP model — classes, inheritance, magic methods, and encapsulation.", subs:[
+    { id:"classes",           label:"Classes",                  desc:"__init__, instance vs class attributes, @classmethod, @staticmethod, @property." },
+    { id:"inheritance",       label:"Inheritance",              desc:"Single/multiple inheritance, super(), MRO (Method Resolution Order)." },
+    { id:"dunder",            label:"Methods & Dunder",         desc:"__str__, __repr__, __len__, __eq__, __hash__, and operator overloading." },
+  ]},
+  { id:"pkg-managers", label:"Package Managers", desc:"Tools for installing, managing, and isolating Python dependencies.", subs:[
+    { id:"pip",               label:"pip",                      desc:"The standard Python package installer — pip install, requirements.txt, pip freeze." },
+    { id:"pypi",              label:"PyPI",                     desc:"The Python Package Index — finding, publishing, and versioning packages." },
+    { id:"poetry",            label:"Poetry",                   desc:"Modern dependency management with pyproject.toml, lock files, and virtual envs." },
+    { id:"conda",             label:"Conda",                    desc:"Package and environment manager from Anaconda — great for data science." },
+    { id:"uv",                label:"uv",                       desc:"Ultra-fast Python package and project manager written in Rust." },
+    { id:"pipenv",            label:"Pipenv",                   desc:"Combines pip and virtualenv — Pipfile and Pipfile.lock." },
+    { id:"virtualenv",        label:"virtualenv",               desc:"Creating isolated Python environments." },
+    { id:"pyenv",             label:"pyenv",                    desc:"Managing multiple Python versions on the same machine." },
+    { id:"pyproject",         label:"pyproject.toml",           desc:"The modern Python project configuration standard (PEP 517/518)." },
+  ]},
+  { id:"list-comp",        label:"List Comprehensions",      desc:"Concise syntax for building lists — [expr for x in iterable if condition].", subs:[] },
+  { id:"gen-expr",         label:"Generator Expressions",    desc:"Lazy evaluation with (expr for x in iterable) — memory-efficient alternative to list comprehensions.", subs:[] },
+  { id:"paradigms",        label:"Paradigms",                desc:"Python as a multi-paradigm language — functional, procedural, and OOP patterns.", subs:[] },
+  { id:"context-mgr",     label:"Context Manager",          desc:"The with statement, __enter__/__exit__, contextlib, and resource management patterns.", subs:[] },
+  { id:"frameworks", label:"Learn a Framework", desc:"Web and async frameworks for building APIs, dashboards, and services with Python.", subs:[
+    { id:"fastapi",           label:"FastAPI",                  desc:"Modern, high-performance web API framework with automatic docs and type hints." },
+    { id:"django",            label:"Django",                   desc:"Batteries-included web framework — ORM, admin, auth, templates." },
+    { id:"flask",             label:"Flask",                    desc:"Lightweight WSGI microframework — great for small APIs and services." },
+    { id:"aiohttp",           label:"aiohttp",                  desc:"Async HTTP client/server framework built on asyncio." },
+    { id:"tornado",           label:"Tornado",                  desc:"Non-blocking network I/O and web framework." },
+    { id:"sanic",             label:"Sanic",                    desc:"Fast async web server and framework, built for speed." },
+    { id:"dash",              label:"Plotly Dash",              desc:"Build interactive analytical web apps in pure Python." },
+    { id:"pyramid",           label:"Pyramid",                  desc:"Flexible web framework — scales from simple to complex apps." },
+    { id:"gevent",            label:"gevent",                   desc:"Coroutine-based networking library using greenlets." },
+  ]},
+  { id:"concurrency", label:"Concurrency", desc:"Running tasks simultaneously in Python — threads, processes, and async.", subs:[
+    { id:"gil",               label:"GIL",                      desc:"The Global Interpreter Lock — what it is, why it exists, and its impact on threading." },
+    { id:"threading",         label:"Threading",                desc:"Thread-based parallelism with the threading module — I/O-bound tasks." },
+    { id:"multiprocessing",   label:"Multiprocessing",          desc:"Process-based parallelism — bypassing the GIL for CPU-bound tasks." },
+    { id:"asyncio",           label:"Asynchrony (asyncio)",     desc:"Cooperative multitasking with async/await, event loops, and coroutines." },
+  ]},
+  { id:"static-typing", label:"Static Typing", desc:"Adding type annotations to Python — improving code quality and IDE support.", subs:[
+    { id:"typing-mod",        label:"typing module",            desc:"List, Dict, Optional, Union, Callable, TypeVar, and Protocol." },
+    { id:"pydantic",          label:"Pydantic",                 desc:"Data validation using Python type hints — widely used in FastAPI." },
+    { id:"mypy",              label:"mypy",                     desc:"Static type checker for Python — catches type errors before runtime." },
+    { id:"pyright",           label:"pyright",                  desc:"Fast type checker from Microsoft — powers Pylance in VS Code." },
+    { id:"pyre",              label:"pyre",                     desc:"Type checker from Meta — designed for large codebases." },
+  ]},
+  { id:"code-fmt", label:"Code Formatting", desc:"Keeping Python code consistent, readable, and style-guide compliant.", subs:[
+    { id:"ruff",              label:"ruff",                     desc:"Extremely fast Python linter and formatter written in Rust — replaces flake8 + isort." },
+    { id:"black",             label:"black",                    desc:"The uncompromising code formatter — opinionated, zero-config formatting." },
+    { id:"yapf",              label:"yapf",                     desc:"Yet Another Python Formatter from Google — highly configurable." },
+    { id:"sphinx",            label:"Sphinx",                   desc:"Documentation generator — reStructuredText, autodoc, and Read the Docs." },
+  ]},
+  { id:"common-pkgs",      label:"Common Packages",          desc:"Essential Python packages for data engineering: NumPy, Pandas, requests, SQLAlchemy, and more.", subs:[] },
+  { id:"testing", label:"Testing", desc:"Writing tests to verify correctness — unit, integration, and property-based testing.", subs:[
+    { id:"pytest",            label:"pytest",                   desc:"The most popular Python testing framework — fixtures, parametrize, plugins." },
+    { id:"unittest",          label:"unittest / pyUnit",        desc:"Python's built-in testing framework based on xUnit patterns." },
+    { id:"doctest",           label:"doctest",                  desc:"Tests embedded in docstrings — simple and self-documenting." },
+    { id:"tox",               label:"tox",                      desc:"Automate testing across multiple Python versions and environments." },
+    { id:"nose",              label:"nose",                     desc:"Test runner extending unittest — largely superseded by pytest." },
+  ]},
+];
+
+// ── Icons ─────────────────────────────────────────────────────────────────────
+const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/></svg>`;
+const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;
+const ICON_DONE       = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><polyline points="5.5 8.5 7 10 10.5 6"/></svg>`;
+const ICON_ARROW      = `<svg width="20" height="28" viewBox="0 0 20 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="10" y1="0" x2="10" y2="20"/><polyline points="5 15 10 22 15 15"/></svg>`;
+const ICON_CHEVRON    = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 5 7 9 11 5"/></svg>`;
+
+function iconFor(s: string) {
+  if (s === "done") return ICON_DONE;
+  if (s === "inprogress") return ICON_INPROGRESS;
+  return ICON_PENDING;
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+const KEY = "py_roadmap_v2";
+function load(): Record<string, string> {
+  try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { return {}; }
+}
+function save(s: Record<string, string>) {
+  localStorage.setItem(KEY, JSON.stringify(s));
+}
+
+let state = load();
+function getS(id: string) { return state[id] || "pending"; }
+
+// ── Progress ──────────────────────────────────────────────────────────────────
+function allIds() {
+  const ids: string[] = [];
+  for (const t of ROADMAP) { ids.push(t.id); for (const s of t.subs) ids.push(s.id); }
+  return ids;
+}
+
+function refreshProgress() {
+  const ids = allIds();
+  const done = ids.filter(id => getS(id) === "done").length;
+  const pct  = ids.length ? Math.round((done / ids.length) * 100) : 0;
+  const bar  = document.getElementById("rm-prog-bar");
+  const pctEl = document.getElementById("rm-prog-pct");
+  if (bar)   bar.style.width = `${pct}%`;
+  if (pctEl) pctEl.textContent = `${pct}%`;
+}
+
+// ── Build flow ────────────────────────────────────────────────────────────────
+function buildFlow() {
+  const flow = document.getElementById("rm-flow");
+  if (!flow) return;
+  flow.innerHTML = "";
+
+  ROADMAP.forEach((topic, ti) => {
+    const s = getS(topic.id);
+
+    // Topic node
+    const topicEl = document.createElement("div");
+    topicEl.className = `rm-topic-node${s !== "pending" ? ` is-${s}` : ""}`;
+    topicEl.dataset.id = topic.id;
+    topicEl.innerHTML = `
+      <span class="rm-topic-icon">${iconFor(s)}</span>
+      <span class="rm-topic-label">${topic.label}</span>
+      ${topic.subs.length ? `<span class="rm-count-badge">${topic.subs.length}</span>` : ""}
+      <span class="rm-chevron">${ICON_CHEVRON}</span>
+    `;
+    topicEl.addEventListener("click", () => openPanel(topic.id, "topic"));
+    flow.appendChild(topicEl);
+
+    // Subtopics
+    if (topic.subs.length > 0) {
+      const group = document.createElement("div");
+      group.className = "rm-sub-group";
+      group.dataset.parent = topic.id;
+
+      for (const sub of topic.subs) {
+        const ss = getS(sub.id);
+        const subEl = document.createElement("div");
+        subEl.className = `rm-sub-node${ss !== "pending" ? ` is-${ss}` : ""}`;
+        subEl.dataset.id = sub.id;
+        subEl.innerHTML = `
+          <span class="rm-sub-icon">${iconFor(ss)}</span>
+          <span class="rm-sub-label">${sub.label}</span>
+        `;
+        subEl.addEventListener("click", () => openPanel(sub.id, "subtopic", topic.id));
+        group.appendChild(subEl);
+      }
+      flow.appendChild(group);
+    }
+
+    // Arrow between sections
+    if (ti < ROADMAP.length - 1) {
+      const arrow = document.createElement("div");
+      arrow.className = "rm-arrow";
+      arrow.innerHTML = ICON_ARROW;
+      flow.appendChild(arrow);
+    }
+  });
+}
+
+// ── Panel (drawer) ────────────────────────────────────────────────────────────
+let activeId: string | null = null;
+let activeParent: string | null = null;
+
+function findItem(id: string): any {
+  for (const t of ROADMAP) {
+    if (t.id === id) return { ...t, type: "topic" };
+    for (const s of t.subs) { if (s.id === id) return { ...s, type: "subtopic" }; }
+  }
+  return null;
+}
+
+function openPanel(id: string, type: string, parentId?: string) {
+  activeId     = id;
+  activeParent = parentId ?? null;
+
+  const item = findItem(id);
+  if (!item) return;
+
+  const badge = document.getElementById("rm-panel-badge")!;
+  const title = document.getElementById("rm-panel-title")!;
+  const body  = document.getElementById("rm-panel-body")!;
+
+  badge.textContent = type === "topic" ? "Topic" : "Subtopic";
+  badge.className   = `rm-panel-badge is-${type}`;
+  title.textContent = item.label;
+  body.innerHTML    = `<p class="rm-panel-desc">${item.desc}</p>`;
+
+  if (type === "topic" && item.subs?.length > 0) {
+    const sublist = document.createElement("div");
+    sublist.className = "rm-panel-sublist";
+    sublist.innerHTML = `<p class="rm-panel-sublist-title">Subtopics (${item.subs.length})</p>`;
+    for (const sub of item.subs) {
+      const ss = getS(sub.id);
+      const row = document.createElement("div");
+      row.className = `rm-panel-subitem${ss !== "pending" ? ` is-${ss}` : ""}`;
+      row.dataset.subId = sub.id;
+      row.innerHTML = `
+        <span class="rm-panel-subitem-icon">${iconFor(ss)}</span>
+        <span class="rm-panel-subitem-label">${sub.label}</span>
+        <span class="rm-panel-subitem-tag">${ss}</span>
+      `;
+      row.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openPanel(sub.id, "subtopic", id);
+      });
+      sublist.appendChild(row);
+    }
+    body.appendChild(sublist);
+  }
+
+  syncStatusBtns();
+  document.getElementById("rm-drawer")!.classList.add("is-open");
+  document.body.style.overflow = "hidden";
+}
+
+function closePanel() {
+  document.getElementById("rm-drawer")!.classList.remove("is-open");
+  document.body.style.overflow = "";
+  activeId = activeParent = null;
+}
+
+function syncStatusBtns() {
+  if (!activeId) return;
+  const s = getS(activeId);
+  document.querySelectorAll<HTMLButtonElement>(".rm-sbtn").forEach(btn => {
+    btn.classList.toggle("is-active", btn.dataset.s === s);
+  });
+}
+
+function setStatus(id: string, s: string) {
+  state[id] = s;
+  save(state);
+  buildFlow();
+  refreshProgress();
+  syncStatusBtns();
+  // Refresh subitem row if panel is showing a topic
+  if (activeParent) {
+    const row = document.querySelector<HTMLElement>(`.rm-panel-subitem[data-sub-id="${id}"]`);
+    if (row) {
+      row.className = `rm-panel-subitem${s !== "pending" ? ` is-${s}` : ""}`;
+      row.dataset.subId = id;
+      const icon = row.querySelector(".rm-panel-subitem-icon");
+      const tag  = row.querySelector(".rm-panel-subitem-tag");
+      if (icon) icon.innerHTML = iconFor(s);
+      if (tag)  tag.textContent = s;
+    }
+  }
+}
+
+// ── Wire up ───────────────────────────────────────────────────────────────────
+buildFlow();
+refreshProgress();
+
+document.getElementById("rm-panel-close")?.addEventListener("click", closePanel);
+document.getElementById("rm-backdrop")?.addEventListener("click", closePanel);
+document.addEventListener("keydown", e => { if (e.key === "Escape") closePanel(); });
+
+document.querySelectorAll<HTMLButtonElement>(".rm-sbtn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (!activeId) return;
+    setStatus(activeId, btn.dataset.s!);
+  });
+});
+</script>

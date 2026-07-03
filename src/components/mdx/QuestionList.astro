@@ -1,0 +1,281 @@
+---
+interface Props {
+  topic: string;
+  storagePrefix: string;
+}
+
+const { topic, storagePrefix } = Astro.props;
+---
+
+<section class="ql" data-prefix={storagePrefix}>
+
+  <!-- Stats bar -->
+  <div class="ql-stats">
+    <!-- Done stat -->
+    <div class="ql-stat">
+      <div class="ql-stat-icon ql-stat-icon--done" aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="2.5 8.5 6 12 13.5 4.5"/>
+        </svg>
+      </div>
+      <div class="ql-stat-body">
+        <span class="ql-stat-value">
+          <span class="ql-done-count">0</span><span class="ql-sep">/</span><span class="ql-total">0</span>
+        </span>
+        <span class="ql-stat-label">Completed</span>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="ql-divider" aria-hidden="true"></div>
+
+    <!-- Saved stat -->
+    <div class="ql-stat">
+      <div class="ql-stat-icon ql-stat-icon--saved" aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 2h10v13l-5-3-5 3V2z"/>
+        </svg>
+      </div>
+      <div class="ql-stat-body">
+        <span class="ql-stat-value ql-bookmark-count">0</span>
+        <span class="ql-stat-label">Saved</span>
+      </div>
+    </div>
+
+    <!-- Progress bar fills remaining space -->
+    <div class="ql-progress-wrap" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Section progress">
+      <div class="ql-progress-track">
+        <div class="ql-progress-fill"></div>
+      </div>
+      <span class="ql-progress-pct">0%</span>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="ql-body">
+    <slot />
+  </div>
+
+</section>
+
+<script>
+  function initList(section: HTMLElement) {
+    const cards        = section.querySelectorAll<HTMLElement>(".qc");
+    const doneEl       = section.querySelector<HTMLElement>(".ql-done-count")!;
+    const totalEl      = section.querySelector<HTMLElement>(".ql-total")!;
+    const bookmarkEl   = section.querySelector<HTMLElement>(".ql-bookmark-count")!;
+    const fill         = section.querySelector<HTMLElement>(".ql-progress-fill")!;
+    const pctEl        = section.querySelector<HTMLElement>(".ql-progress-pct")!;
+    const wrap         = section.querySelector<HTMLElement>(".ql-progress-wrap")!;
+
+    function update() {
+      let done = 0, saved = 0;
+      const total = cards.length;
+
+      cards.forEach((card) => {
+        const qid = card.dataset.questionId!;
+        try {
+          const raw = localStorage.getItem(`q_${qid}`);
+          if (raw) {
+            const st = JSON.parse(raw);
+            if (st.done)  done++;
+            if (st.saved) saved++;
+          }
+        } catch (_) {}
+      });
+
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+      doneEl.textContent     = String(done);
+      totalEl.textContent    = String(total);
+      bookmarkEl.textContent = String(saved);
+      fill.style.width       = `${pct}%`;
+      pctEl.textContent      = `${pct}%`;
+      wrap.setAttribute("aria-valuenow", String(pct));
+    }
+
+    update();
+    document.addEventListener("qc:change", update);
+  }
+
+  document.querySelectorAll<HTMLElement>(".ql").forEach(initList);
+</script>
+
+<style>
+  .ql {
+    --_done-clr : #22c55e;
+    --_save-clr : #f59e0b;
+    --_ease     : cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 2rem;
+  }
+
+  /* ── Stats bar ──────────────────────────────────────────────── */
+  .ql-stats {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0.625rem 0.875rem;
+    border: 1.5px solid var(--sl-color-gray-5);
+    border-radius: 8px;
+    background: var(--sl-color-gray-7, var(--sl-color-bg-sidebar));
+    margin-bottom: 0.875rem;
+  }
+
+  /* Individual stat block */
+  .ql-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .ql-stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  .ql-stat-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .ql-stat-icon--done {
+    background: color-mix(in srgb, var(--_done-clr) 14%, transparent);
+    color: var(--_done-clr);
+    border: 1px solid color-mix(in srgb, var(--_done-clr) 25%, transparent);
+  }
+
+  .ql-stat-icon--saved {
+    background: color-mix(in srgb, var(--_save-clr) 14%, transparent);
+    color: var(--_save-clr);
+    border: 1px solid color-mix(in srgb, var(--_save-clr) 25%, transparent);
+  }
+
+  .ql-stat-body {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+
+  .ql-stat-value {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--sl-color-text);
+    letter-spacing: -0.01em;
+  }
+
+  .ql-sep {
+    font-weight: 400;
+    color: var(--sl-color-gray-3);
+    margin: 0 0.1em;
+  }
+
+  .ql-stat-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--sl-color-gray-3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* Vertical divider */
+  .ql-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--sl-color-gray-5);
+    margin: 0 0.875rem;
+    flex-shrink: 0;
+  }
+
+  /* ── Progress bar ─────────────────────────────────────────── */
+  .ql-progress-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-left: 0.875rem;
+    min-width: 0;
+  }
+
+  .ql-progress-track {
+    flex: 1;
+    height: 6px;
+    background: var(--sl-color-gray-5);
+    border-radius: 999px;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .ql-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--sl-color-accent) 0%, var(--_done-clr) 100%);
+    border-radius: 999px;
+    transition: width 0.45s var(--_ease);
+  }
+
+  .ql-progress-pct {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--sl-color-gray-3);
+    white-space: nowrap;
+    min-width: 2.6em;
+    text-align: right;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Card container ──────────────────────────────────────────── */
+  .ql-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  /* Cards inside a list have proper spacing */
+  .ql-body :global(.qc) {
+    border-radius: 8px;
+    border: 1.5px solid var(--sl-color-gray-5);
+    margin-bottom: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+
+  .ql-body :global(.qc:last-child) {
+    margin-bottom: 0;
+  }
+
+  /* Slightly tighter padding inside a list - left offset for accent bar */
+  .ql-body :global(.qc-header),
+  .ql-body :global(.qc-question),
+  .ql-body :global(.qc-answer),
+  .ql-body :global(.qc-footer) {
+    --_pad-x: 1rem;
+  }
+
+  /* Force header to always centre-align meta and action buttons */
+  .ql-body :global(.qc-header) {
+    align-items: center;
+  }
+
+  /* ── Responsive ──────────────────────────────────────────────── */
+  @media (max-width: 540px) {
+    .ql-stats {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .ql-progress-wrap {
+      margin-left: 0;
+      width: 100%;
+      flex-basis: 100%;
+    }
+
+    .ql-divider {
+      display: none;
+    }
+  }
+</style>

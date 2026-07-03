@@ -1,0 +1,421 @@
+---
+interface Props {
+  id: string;
+  number?: number;
+  question: string;
+  difficulty?: "easy" | "medium" | "hard";
+  topic?: string;
+}
+
+const { id, number, question, difficulty = "medium", topic } = Astro.props;
+---
+
+<div class="qc" data-question-id={id} data-difficulty={difficulty}>
+  <!-- Card header -->
+  <div class="qc-header">
+    <div class="qc-meta">
+      {number && <span class="qc-num">Q{number}</span>}
+      {topic && <span class="qc-topic">{topic}</span>}
+      <span class="qc-diff" data-level={difficulty}>
+        <span class="qc-diff-dot"></span>
+        {difficulty}
+      </span>
+    </div>
+
+    <div class="qc-actions">
+      <!-- Done button -->
+      <button class="qc-btn" data-action="mark-done" aria-label="Mark as done" aria-pressed="false">
+        <svg class="qc-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="2.5 8.5 6 12 13.5 4.5"/>
+        </svg>
+        <span class="qc-btn-label">Done</span>
+      </button>
+
+      <!-- Bookmark button -->
+      <button class="qc-btn" data-action="bookmark" aria-label="Bookmark question" aria-pressed="false">
+        <svg class="qc-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 2h10v13l-5-3-5 3V2z"/>
+        </svg>
+        <span class="qc-btn-label">Save</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Question -->
+  <p class="qc-question">{question}</p>
+
+  <!-- Answer (hidden by default) -->
+  <div class="qc-answer" hidden>
+    <div class="qc-answer-body">
+      <slot />
+    </div>
+  </div>
+
+  <!-- Footer toggle -->
+  <div class="qc-footer">
+    <button class="qc-toggle" aria-expanded="false">
+      <svg class="qc-toggle-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="4 6 8 10 12 6"/>
+      </svg>
+      <span class="qc-toggle-label">Show Answer</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  function init(card: HTMLElement) {
+    const qid    = card.dataset.questionId!;
+    const key    = `q_${qid}`;
+    const answer = card.querySelector<HTMLElement>(".qc-answer")!;
+    const toggle = card.querySelector<HTMLButtonElement>(".qc-toggle")!;
+    const label  = toggle.querySelector<HTMLElement>(".qc-toggle-label")!;
+    const doneBtn= card.querySelector<HTMLButtonElement>('[data-action="mark-done"]')!;
+    const saveBtn= card.querySelector<HTMLButtonElement>('[data-action="bookmark"]')!;
+
+    type State = { done: boolean; saved: boolean; open: boolean };
+    let s: State = { done: false, saved: false, open: false };
+
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) s = { ...s, ...JSON.parse(raw) };
+    } catch (_) {}
+
+    function persist() {
+      localStorage.setItem(key, JSON.stringify(s));
+      document.dispatchEvent(new CustomEvent("qc:change"));
+    }
+
+    function render() {
+      // Done
+      card.classList.toggle("is-done", s.done);
+      doneBtn.setAttribute("aria-pressed", String(s.done));
+      doneBtn.classList.toggle("is-active", s.done);
+      doneBtn.setAttribute("aria-label", s.done ? "Mark as undone" : "Mark as done");
+
+      // Saved
+      card.classList.toggle("is-saved", s.saved);
+      saveBtn.setAttribute("aria-pressed", String(s.saved));
+      saveBtn.classList.toggle("is-active", s.saved);
+
+      // Open
+      card.classList.toggle("is-open", s.open);
+      toggle.setAttribute("aria-expanded", String(s.open));
+      label.textContent = s.open ? "Hide Answer" : "Show Answer";
+      if (s.open) {
+        answer.removeAttribute("hidden");
+      } else {
+        answer.setAttribute("hidden", "");
+      }
+    }
+
+    render();
+
+    toggle.addEventListener("click", () => { s.open = !s.open; render(); persist(); });
+    doneBtn.addEventListener("click", (e) => { e.stopPropagation(); s.done = !s.done; render(); persist(); });
+    saveBtn.addEventListener("click", (e) => { e.stopPropagation(); s.saved = !s.saved; render(); persist(); });
+  }
+
+  document.querySelectorAll<HTMLElement>(".qc").forEach(init);
+</script>
+
+<style>
+  /* ── Design tokens ─────────────────────────────────────────── */
+  .qc {
+    --_radius   : 8px;
+    --_gap      : 0.5rem;
+    --_pad-x    : 1.25rem;
+    --_pad-y    : 1rem;
+    --_ease     : cubic-bezier(0.4, 0, 0.2, 1);
+    --_done-clr : #22c55e;
+    --_save-clr : #f59e0b;
+    --_easy-bg  : #dcfce7; --_easy-fg  : #15803d;
+    --_med-bg   : #fef3c7; --_med-fg   : #b45309;
+    --_hard-bg  : #fee2e2; --_hard-fg  : #b91c1c;
+
+    position: relative;
+    border: 1.5px solid var(--sl-color-gray-5);
+    border-radius: var(--_radius);
+    background: var(--sl-color-bg);
+    margin-bottom: 0.875rem;
+    overflow: hidden;
+    transition:
+      border-color 0.18s var(--_ease),
+      box-shadow   0.18s var(--_ease),
+      background   0.18s var(--_ease);
+  }
+
+  /* Accent left bar — always present, changes color by state */
+  .qc::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--sl-color-gray-5);
+    border-radius: var(--_radius) 0 0 var(--_radius);
+    transition: background 0.2s var(--_ease);
+  }
+
+  .qc:hover {
+    border-color: var(--sl-color-gray-4);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+
+  .qc.is-done::before  { background: var(--_done-clr); }
+  .qc.is-saved::before { background: var(--_save-clr); }
+  .qc.is-done.is-saved::before { background: var(--_done-clr); }
+
+  .qc.is-done  { border-color: color-mix(in srgb, var(--_done-clr) 35%, var(--sl-color-gray-5)); }
+  .qc.is-saved { border-color: color-mix(in srgb, var(--_save-clr) 35%, var(--sl-color-gray-5)); }
+
+/* ── Header ─────────────────────────────────────────────────── */
+  .qc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--_gap);
+    padding: var(--_pad-y) var(--_pad-x) 0.75rem calc(var(--_pad-x) + 6px);
+    border-bottom: 1px solid var(--sl-color-gray-6);
+  }
+
+  .qc-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  /* Q-number pill */
+  .qc-num {
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #fff;
+    background: var(--sl-color-accent);
+    padding: 0.2em 0.6em;
+    border-radius: 5px;
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  /* Topic pill */
+  .qc-topic {
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--sl-color-gray-2);
+    background: var(--sl-color-gray-6);
+    border: 1px solid var(--sl-color-gray-5);
+    padding: 0.15em 0.6em;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  /* Difficulty pill */
+  .qc-diff {
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.15em 0.6em;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+  .qc-diff[data-level="easy"]   { background: var(--_easy-bg); color: var(--_easy-fg); }
+  .qc-diff[data-level="medium"] { background: var(--_med-bg);  color: var(--_med-fg);  }
+  .qc-diff[data-level="hard"]   { background: var(--_hard-bg); color: var(--_hard-fg); }
+
+  .qc-diff-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+    opacity: 0.8;
+  }
+
+  /* ── Action buttons ─────────────────────────────────────────── */
+  .qc-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .qc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    height: 22px;
+    padding: 0 0.625rem;
+    border-radius: 6px;
+    border: 1.5px solid var(--sl-color-gray-5);
+    background: transparent;
+    color: var(--sl-color-gray-3);
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      color        0.15s var(--_ease),
+      background   0.15s var(--_ease),
+      border-color 0.15s var(--_ease),
+      transform    0.1s  var(--_ease),
+      box-shadow   0.1s  var(--_ease);
+    font-family: inherit;
+  }
+
+  .qc-btn:hover {
+    border-color: var(--sl-color-gray-4);
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-text);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+
+  .qc-btn:active { transform: scale(0.95); }
+
+  /* Done active */
+  [data-action="mark-done"].is-active {
+    background: var(--_done-clr);
+    border-color: var(--_done-clr);
+    color: #fff;
+  }
+  [data-action="mark-done"].is-active:hover {
+    background: color-mix(in srgb, var(--_done-clr) 85%, black);
+    border-color: color-mix(in srgb, var(--_done-clr) 85%, black);
+  }
+
+  /* Save active */
+  [data-action="bookmark"].is-active {
+    background: var(--_save-clr);
+    border-color: var(--_save-clr);
+    color: #fff;
+  }
+  [data-action="bookmark"].is-active:hover {
+    background: color-mix(in srgb, var(--_save-clr) 85%, black);
+    border-color: color-mix(in srgb, var(--_save-clr) 85%, black);
+  }
+
+  .qc-icon {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+
+  /* ── Question text ──────────────────────────────────────────── */
+  .qc-question {
+    margin: 0.75rem var(--_pad-x) 0 var(--_pad-x);
+    font-size: 0.975rem;
+    font-weight: 600;
+    line-height: 1.55;
+    color: var(--sl-color-text);
+  }
+
+  /* ── Answer panel ───────────────────────────────────────────── */
+  .qc-answer {
+    margin: 0.75rem var(--_pad-x) 0 var(--_pad-x);
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--sl-color-gray-6);
+  }
+
+  .qc-answer-body {
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: var(--sl-color-text);
+  }
+
+  .qc-answer-body :global(p)         { margin: 0.5rem 0; }
+  .qc-answer-body :global(p:first-child) { margin-top: 0; }
+  .qc-answer-body :global(ul),
+  .qc-answer-body :global(ol)        { margin: 0.5rem 0; padding-left: 1.4rem; }
+  .qc-answer-body :global(li)        { margin: 0.2rem 0; }
+  .qc-answer-body :global(pre)       { margin: 0.65rem 0; border-radius: 7px; }
+  .qc-answer-body :global(table)     { font-size: 0.85rem; }
+  .qc-answer-body :global(blockquote) {
+    margin: 0.6rem 0;
+    padding: 0.5rem 0.875rem;
+    border-left: 3px solid var(--sl-color-accent);
+    background: color-mix(in srgb, var(--sl-color-accent) 6%, transparent);
+    border-radius: 0 5px 5px 0;
+    font-size: 0.875rem;
+  }
+  .qc-answer-body :global(blockquote p) { margin: 0; }
+
+  /* ── Footer / Toggle ────────────────────────────────────────── */
+  .qc-footer {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem var(--_pad-x) var(--_pad-y) var(--_pad-x);
+    border-top: 1px solid var(--sl-color-gray-6);
+    margin-top: 0.75rem;
+  }
+
+  .qc-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    height: 22px;
+    padding: 0 0.75rem;
+    border-radius: 6px;
+    border: 1.5px solid var(--sl-color-accent);
+    background: transparent;
+    color: var(--sl-color-accent);
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    font-family: inherit;
+    transition:
+      background    0.15s var(--_ease),
+      color         0.15s var(--_ease),
+      border-color  0.15s var(--_ease),
+      transform     0.1s  var(--_ease);
+  }
+
+  .qc-toggle:hover {
+    background: var(--sl-color-accent);
+    color: #fff;
+  }
+
+  .qc-toggle:active { transform: scale(0.96); }
+
+  .qc-toggle-icon {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    transition: transform 0.22s var(--_ease);
+  }
+
+  .is-open .qc-toggle-icon {
+    transform: rotate(180deg);
+  }
+
+  /* ── Dark mode adjustments ──────────────────────────────────── */
+  :global([data-theme="dark"]) .qc-diff[data-level="easy"] {
+    background: color-mix(in srgb, var(--_easy-fg) 15%, transparent);
+    color: #86efac;
+  }
+  :global([data-theme="dark"]) .qc-diff[data-level="medium"] {
+    background: color-mix(in srgb, var(--_med-fg) 15%, transparent);
+    color: #fcd34d;
+  }
+  :global([data-theme="dark"]) .qc-diff[data-level="hard"] {
+    background: color-mix(in srgb, var(--_hard-fg) 15%, transparent);
+    color: #fca5a5;
+  }
+</style>

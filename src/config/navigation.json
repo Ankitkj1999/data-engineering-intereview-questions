@@ -1,6 +1,11 @@
 {
   "sidebar": [
-
+    {
+      "label": "Roadmaps",
+      "items": [
+        { "label": "🐍 Python Roadmap", "link": "/roadmaps/python/" }
+      ]
+    },
     {
       "label": "Foundations",
       "items": [

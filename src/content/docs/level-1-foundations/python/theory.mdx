@@ -1,0 +1,527 @@
+---
+title: Python Theory | Core Concepts
+description: Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+Track your study progress — mark questions as **done** ✓, **bookmark** 🔖 for review, and expand answers on demand.
+
+---
+
+## Python Fundamentals
+
+Core language concepts that come up in every data engineering interview.
+
+<QuestionList topic="Python Fundamentals" storagePrefix="py-fundamentals">
+
+<QuestionCard
+  id="py-fund-01"
+  number={1}
+  question="What are the key features of Python?"
+  difficulty="easy"
+  topic="Fundamentals"
+>
+- **Simple syntax** — readable, English-like code reduces cognitive overhead
+- **Interpreted** — runs directly without a compilation step
+- **Dynamically typed** — no explicit type declarations required
+- **High-level** — memory management is handled by the runtime
+- **Cross-platform** — runs on Windows, Linux, macOS without changes
+- **Rich ecosystem** — pandas, NumPy, requests, and thousands of other libraries
+</QuestionCard>
+
+<QuestionCard
+  id="py-fund-02"
+  number={2}
+  question="What is the difference between a mutable and an immutable object? Give examples of each."
+  difficulty="easy"
+  topic="Fundamentals"
+>
+**Mutable** objects can be changed after creation:
+- `list` — `my_list.append(4)` modifies in place
+- `dict` — `my_dict["key"] = "value"` modifies in place
+- `set` — `my_set.add(5)` modifies in place
+
+**Immutable** objects cannot be changed:
+- `int`, `float`, `bool` — reassignment creates a new object
+- `str` — `"hello" + "!"` returns a new string
+- `tuple` — elements cannot be added, removed, or changed
+- `frozenset` — immutable version of set
+
+**Why it matters for data engineering:** immutable objects are safe as dict keys or set members; sharing mutable objects across threads causes subtle bugs.
+</QuestionCard>
+
+<QuestionCard
+  id="py-fund-03"
+  number={3}
+  question="Explain the difference between == and is in Python."
+  difficulty="easy"
+  topic="Fundamentals"
+>
+| Operator | Checks | Example |
+|----------|--------|---------|
+| `==` | **Value equality** — same value? | `[1,2] == [1,2]` → `True` |
+| `is` | **Identity** — same object in memory? | `[1,2] is [1,2]` → `False` |
+
+```python
+a = [1, 2, 3]
+b = a           # same reference
+c = [1, 2, 3]   # new object, same value
+
+print(a == c)   # True  — same value
+print(a is b)   # True  — same object
+print(a is c)   # False — different objects
+```
+
+> Use `is` only for singleton checks (`if x is None`). Use `==` for all value comparisons.
+</QuestionCard>
+
+<QuestionCard
+  id="py-fund-04"
+  number={4}
+  question="How does memory management and garbage collection work in Python?"
+  difficulty="medium"
+  topic="Fundamentals"
+>
+Python uses two mechanisms:
+
+**1. Reference Counting**
+Every object tracks how many references point to it. When the count hits 0 the memory is freed immediately.
+
+```python
+import sys
+a = [1, 2, 3]
+print(sys.getrefcount(a))  # 2 (a + getrefcount arg itself)
+del a  # refcount → 0, memory freed
+```
+
+**2. Cyclic Garbage Collector**
+Reference counting cannot handle circular references (A → B → A). Python's `gc` module runs periodically to detect and clean these cycles.
+
+```python
+import gc
+gc.collect()  # manually trigger GC
+```
+
+**Memory pools:** CPython uses `pymalloc`, a private heap for small objects (≤ 512 bytes), reducing `malloc` overhead.
+
+**For data engineering:** use `del df` + `gc.collect()` after processing large DataFrames, or prefer chunked processing to avoid OOM.
+</QuestionCard>
+
+<QuestionCard
+  id="py-fund-05"
+  number={5}
+  question="What is the Global Interpreter Lock (GIL) and how does it affect data engineering workloads?"
+  difficulty="hard"
+  topic="Concurrency"
+>
+The **GIL** is a mutex in CPython that allows only one thread to execute Python bytecode at a time, even on multi-core machines.
+
+**Impact by workload type:**
+
+| Workload | GIL Impact | Solution |
+|----------|-----------|---------|
+| I/O-bound (network, disk) | Minimal — GIL released during I/O | `threading` or `asyncio` |
+| CPU-bound (parsing, transforms) | Full — only one core used | `multiprocessing` |
+| NumPy / pandas ops | Minimal — C extensions release GIL | Can use threads |
+
+```python
+from multiprocessing import Pool
+
+def process_partition(chunk):
+    return chunk.apply(some_transform)
+
+with Pool(processes=4) as pool:
+    results = pool.map(process_partition, chunks)
+```
+
+> Python 3.13 introduced an experimental **no-GIL** build (PEP 703). This will change concurrent Python data pipeline design.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Functions & Generators
+
+Essential Python patterns for building efficient, composable data pipelines.
+
+<QuestionList topic="Functions & Generators" storagePrefix="py-functions">
+
+<QuestionCard
+  id="py-fn-01"
+  number={6}
+  question="What are generators and why are they useful in data engineering?"
+  difficulty="medium"
+  topic="Generators"
+>
+A **generator** uses `yield` instead of `return` — it produces values lazily, one at a time, without loading everything into memory.
+
+```python
+# ❌ Loads all 1M rows into memory at once
+def read_all_rows(file):
+    rows = []
+    with open(file) as f:
+        for line in f:
+            rows.append(line)
+    return rows
+
+# ✅ Yields one row at a time — memory stays flat
+def stream_rows(file):
+    with open(file) as f:
+        for line in f:
+            yield line.strip()
+
+for row in stream_rows("huge_file.csv"):
+    process(row)
+```
+
+**Why critical for data engineering:**
+- Process multi-GB files without OOM errors
+- Build composable, lazy pipeline stages
+- Power `chunksize` patterns in pandas
+
+**Generator expression** (inline):
+```python
+total = sum(len(line) for line in open("file.txt"))
+```
+</QuestionCard>
+
+<QuestionCard
+  id="py-fn-02"
+  number={7}
+  question="Explain *args and **kwargs. When would you use them in data pipelines?"
+  difficulty="easy"
+  topic="Functions"
+>
+- **`*args`** — captures extra positional arguments as a **tuple**
+- **`**kwargs`** — captures extra keyword arguments as a **dict**
+
+```python
+def log_event(event_type, *args, **kwargs):
+    print(f"Event: {event_type}")
+    print(f"Values: {args}")
+    print(f"Metadata: {kwargs}")
+
+log_event("click", 100, 200, user_id=42, session="abc")
+# Event: click
+# Values: (100, 200)
+# Metadata: {'user_id': 42, 'session': 'abc'}
+```
+
+**Data engineering use case — flexible reader wrapper:**
+```python
+def read_data(path, *args, **kwargs):
+    """Forward extra options to the right pandas reader."""
+    if path.endswith(".parquet"):
+        return pd.read_parquet(path, **kwargs)
+    return pd.read_csv(path, *args, **kwargs)
+```
+</QuestionCard>
+
+<QuestionCard
+  id="py-fn-03"
+  number={8}
+  question="What are decorators and how would you use one in a data pipeline?"
+  difficulty="medium"
+  topic="Functions"
+>
+A **decorator** wraps a function to extend its behaviour without modifying it directly.
+
+```python
+import time, functools
+
+def timer(func):
+    @functools.wraps(func)  # preserves __name__ and docstring
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = func(*args, **kwargs)
+        print(f"{func.__name__} took {time.perf_counter() - start:.3f}s")
+        return result
+    return wrapper
+
+@timer
+def load_dataset(path):
+    import pandas as pd
+    return pd.read_parquet(path)
+
+df = load_dataset("sales.parquet")
+# load_dataset took 0.243s
+```
+
+**Common DE decorator patterns:**
+- `@retry(max_attempts=3)` — resilient API / DB calls
+- `@log_inputs` — audit trail for transformations
+- `@validate_schema` — assert DataFrame shape before writing
+
+Airflow, dbt, and Prefect all use decorators (`@dag`, `@task`) to register pipeline units.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Object-Oriented Programming
+
+OOP patterns used in data engineering frameworks and libraries.
+
+<QuestionList topic="OOP in Python" storagePrefix="py-oop">
+
+<QuestionCard
+  id="py-oop-01"
+  number={9}
+  question="What is the difference between class methods, static methods, and instance methods?"
+  difficulty="medium"
+  topic="OOP"
+>
+| Method type | Decorator | First arg | Can access |
+|-------------|-----------|-----------|------------|
+| Instance | *(none)* | `self` | instance + class |
+| Class | `@classmethod` | `cls` | class only |
+| Static | `@staticmethod` | *(none)* | neither |
+
+```python
+class DatabaseConnector:
+    _default_port = 5432
+
+    def __init__(self, host, port=None):
+        self.host = host
+        self.port = port or self._default_port
+
+    def connect(self):
+        # Instance method — uses self
+        return f"Connecting to {self.host}:{self.port}"
+
+    @classmethod
+    def from_url(cls, url: str):
+        # Class method — factory pattern
+        host, port = url.split(":")
+        return cls(host, int(port))
+
+    @staticmethod
+    def validate_port(port: int) -> bool:
+        # Static — pure utility, no state needed
+        return 1 <= port <= 65535
+
+db = DatabaseConnector.from_url("localhost:5432")
+print(DatabaseConnector.validate_port(5432))  # True
+```
+</QuestionCard>
+
+<QuestionCard
+  id="py-oop-02"
+  number={10}
+  question="What are Python's magic (dunder) methods? Give examples relevant to data engineering."
+  difficulty="medium"
+  topic="OOP"
+>
+**Magic methods** (dunder = double underscore) let you define how objects behave with built-in operators and functions.
+
+```python
+class DataPipeline:
+    def __init__(self, steps: list):
+        self.steps = steps
+
+    def __repr__(self):
+        return f"DataPipeline(steps={self.steps})"
+
+    def __len__(self):
+        # len(pipeline)
+        return len(self.steps)
+
+    def __iter__(self):
+        # for step in pipeline
+        return iter(self.steps)
+
+    def __add__(self, other):
+        # pipeline1 + pipeline2
+        return DataPipeline(self.steps + other.steps)
+
+    def __contains__(self, step):
+        # "transform" in pipeline
+        return step in self.steps
+
+extract = DataPipeline(["extract"])
+load    = DataPipeline(["transform", "load"])
+full    = extract + load
+print(len(full))              # 3
+print("transform" in full)    # True
+```
+
+**Key dunder methods for DE:**
+- `__enter__` / `__exit__` — context manager for resource cleanup
+- `__getitem__` — custom indexing on dataset wrappers
+- `__call__` — make transformer objects callable like functions
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Concurrency & Performance
+
+Threading, async, and profiling patterns for high-throughput pipelines.
+
+<QuestionList topic="Concurrency & Performance" storagePrefix="py-concurrency">
+
+<QuestionCard
+  id="py-conc-01"
+  number={11}
+  question="What is the difference between threading, multiprocessing, and asyncio?"
+  difficulty="hard"
+  topic="Concurrency"
+>
+| Approach | Best for | GIL affected? | Overhead |
+|----------|----------|--------------|---------|
+| `threading` | I/O-bound (HTTP, DB queries) | Yes | Low |
+| `multiprocessing` | CPU-bound (data transforms) | No | High (process spawn) |
+| `asyncio` | Many concurrent I/O ops | Yes | Very low |
+
+```python
+# asyncio — ideal for many concurrent API calls
+import asyncio, httpx
+
+async def fetch(url, client):
+    r = await client.get(url)
+    return r.json()
+
+async def fetch_all(urls):
+    async with httpx.AsyncClient() as client:
+        return await asyncio.gather(*[fetch(u, client) for u in urls])
+
+results = asyncio.run(fetch_all(["https://api.example.com/data"] * 100))
+```
+
+**Rule of thumb for data engineering:**
+- Reading 100 S3 files in parallel → `asyncio` or `ThreadPoolExecutor`
+- Transforming 10 million rows → `multiprocessing.Pool`
+- Single background task → `threading.Thread`
+</QuestionCard>
+
+<QuestionCard
+  id="py-conc-02"
+  number={12}
+  question="How do you profile and optimize a slow Python data pipeline?"
+  difficulty="hard"
+  topic="Performance"
+>
+**Step 1 — Profile first, optimize second:**
+```python
+import cProfile
+cProfile.run('process_data(df)', sort='cumulative')
+```
+
+**Step 2 — Common bottlenecks and fixes:**
+
+| Bottleneck | Symptom | Fix |
+|------------|---------|-----|
+| Python loops over rows | Slow `iterrows()` | Vectorize with pandas / NumPy |
+| Repeated I/O | High disk/net read time | Batch reads, cache with `functools.lru_cache` |
+| Single-threaded CPU | One core at 100% | `multiprocessing.Pool` |
+| Memory pressure | OOM / swap thrashing | Generator / chunked processing |
+
+```python
+# ❌ Slow — Python loop
+for idx, row in df.iterrows():
+    df.at[idx, 'total'] = row['price'] * row['qty']
+
+# ✅ Fast — vectorized
+df['total'] = df['price'] * df['qty']
+```
+
+**Useful profiling tools:**
+- `cProfile` / `snakeviz` — function-level timings
+- `memory_profiler` — line-by-line memory usage
+- `py-spy` — sampling profiler, zero overhead on production
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Error Handling & Testing
+
+Writing robust, testable data pipeline code.
+
+<QuestionList topic="Error Handling & Testing" storagePrefix="py-testing">
+
+<QuestionCard
+  id="py-test-01"
+  number={13}
+  question="How do you handle exceptions in Python? What are best practices for data pipelines?"
+  difficulty="easy"
+  topic="Error Handling"
+>
+```python
+try:
+    result = load_from_db(query)
+except ConnectionError as e:
+    logger.error("DB connection failed: %s", e)
+    raise  # re-raise after logging
+except ValueError as e:
+    logger.warning("Bad data, skipping: %s", e)
+    result = default_value
+finally:
+    cleanup()  # always runs
+```
+
+**Data pipeline best practices:**
+- Catch **specific** exceptions — never bare `except:`
+- Log with context (row id, file name, batch id)
+- Distinguish **retryable** errors (network timeout) from **fatal** errors (schema mismatch)
+- Use `finally` for resource cleanup (close connections, delete temp files)
+
+```python
+# Context manager — cleanup guaranteed
+with closing(db.connect()) as conn:
+    rows = conn.execute(query).fetchall()
+```
+</QuestionCard>
+
+<QuestionCard
+  id="py-test-02"
+  number={14}
+  question="How do you test a data transformation function with pytest?"
+  difficulty="medium"
+  topic="Testing"
+>
+```python
+# transform.py
+import pandas as pd
+
+def normalize_revenue(df: pd.DataFrame) -> pd.DataFrame:
+    """Convert revenue from cents to dollars, drop nulls."""
+    df = df.dropna(subset=["revenue_cents"])
+    df["revenue"] = df["revenue_cents"] / 100
+    return df[["id", "revenue"]]
+```
+
+```python
+# test_transform.py
+import pandas as pd
+import pytest
+from transform import normalize_revenue
+
+def test_converts_cents_to_dollars():
+    input_df = pd.DataFrame({"id": [1], "revenue_cents": [1050]})
+    result = normalize_revenue(input_df)
+    assert result["revenue"].iloc[0] == 10.50
+
+def test_drops_null_revenue():
+    input_df = pd.DataFrame({"id": [1, 2], "revenue_cents": [500, None]})
+    result = normalize_revenue(input_df)
+    assert len(result) == 1
+
+def test_output_columns():
+    input_df = pd.DataFrame({"id": [1], "revenue_cents": [100]})
+    result = normalize_revenue(input_df)
+    assert list(result.columns) == ["id", "revenue"]
+```
+
+Run with: `pytest test_transform.py -v`
+
+**Key principle:** test the data contract (shape, types, values), not implementation details.
+</QuestionCard>
+
+</QuestionList>
