@@ -46,10 +46,13 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
         </div>
         <div class="rm-panel-status-row">
           <span class="rm-panel-status-label">Status</span>
-          <div class="rm-panel-status-btns">
-            <button class="rm-sbtn" data-s="pending">Pending</button>
-            <button class="rm-sbtn" data-s="inprogress">In Progress</button>
-            <button class="rm-sbtn" data-s="done">Done</button>
+          <div class="rm-status-select-wrap">
+            <span class="rm-status-dot" id="rm-status-dot"></span>
+            <select class="rm-status-select" id="rm-status-select" aria-label="Set status">
+              <option value="pending">⬜ Pending</option>
+              <option value="inprogress">🟡 In Progress</option>
+              <option value="done">✅ Done</option>
+            </select>
           </div>
         </div>
         <div class="rm-panel-body" id="rm-panel-body"></div>
@@ -347,7 +350,10 @@ function closePanel() {
 function syncBtns() {
   if (!activeId) return;
   const s = getS(activeId);
-  document.querySelectorAll<HTMLButtonElement>(".rm-sbtn").forEach(b => b.classList.toggle("is-active", b.dataset.s===s));
+  const sel = document.getElementById("rm-status-select") as HTMLSelectElement;
+  const dot = document.getElementById("rm-status-dot");
+  if (sel) { sel.value = s; sel.className = `rm-status-select${s !== "pending" ? ` is-${s}` : ""}`; }
+  if (dot) dot.className = `rm-status-dot${s !== "pending" ? ` is-${s}` : ""}`;
 }
 
 function setStatus(id: string, s: string) {
@@ -365,5 +371,7 @@ buildFlow(); refreshProgress();
 document.getElementById("rm-panel-close")?.addEventListener("click", closePanel);
 document.getElementById("rm-backdrop")?.addEventListener("click", closePanel);
 document.addEventListener("keydown", e => { if (e.key==="Escape") closePanel(); });
-document.querySelectorAll<HTMLButtonElement>(".rm-sbtn").forEach(b => b.addEventListener("click", () => { if (activeId) setStatus(activeId, b.dataset.s!); }));
+document.getElementById("rm-status-select")?.addEventListener("change", (e) => {
+  if (activeId) setStatus(activeId, (e.target as HTMLSelectElement).value);
+});
 </script>
