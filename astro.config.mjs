@@ -1,7 +1,7 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
-import lucode from "lucode-starlight";
+import pagePlugin from "@pelagornis/page";
 import cloudflare from "@astrojs/cloudflare";
 import navigationConfig from "./src/config/navigation.json";
 
@@ -26,9 +26,7 @@ export default defineConfig({
 			],
 			sidebar: navigationConfig.sidebar,
 			plugins: [
-				lucode({
-					footerText: "Built with [Lucode Starlight](https://github.com/lucas-labs/lucode-starlight-theme) & [Astro](https://astro.build)",
-				}),
+				pagePlugin(),
 			],
 		}),
 	],
