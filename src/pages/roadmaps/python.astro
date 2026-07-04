@@ -960,6 +960,7 @@ function setStatus(id: string, s: string) {
 buildFlow();
 refreshProgress();
 
+document.body.appendChild(document.getElementById("rm-drawer")!);
 document.getElementById("rm-panel-close")?.addEventListener("click", closePanel);
 document.getElementById("rm-backdrop")?.addEventListener("click", closePanel);
 document.addEventListener("keydown", e => { if (e.key === "Escape") closePanel(); });

@@ -569,3 +569,12 @@
   .rm-progress-summary  { width: 100%; }
   .rm-panel-status-btns { flex-wrap: wrap; }
 }
+
+/* ── Doc-chat coexistence ─────────────────────────────────────────────────── */
+/* When the doc-chat pane is open on desktop, constrain the roadmap drawer     */
+/* to the content area so it doesn't bleed into the chat panel.               */
+@media (min-width: 1025px) {
+  body.page-chat-open .rm-drawer {
+    right : var(--page-chat-pane-width, 360px);
+  }
+}
