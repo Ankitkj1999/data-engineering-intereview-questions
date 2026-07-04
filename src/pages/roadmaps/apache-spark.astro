@@ -1,0 +1,272 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "Apache Spark Roadmap",
+    description: "Master Apache Spark end to end — distributed systems, RDDs, DataFrames, Spark SQL, streaming, performance tuning, deployment, and production ops.",
+  }}
+>
+  <div id="rm-root">
+    <div class="rm-header">
+      <div class="rm-header-left">
+        <span class="rm-badge">Roadmap</span>
+        <h1 class="rm-title">Apache Spark</h1>
+        <p class="rm-subtitle">End-to-end guide to mastering Apache Spark for data engineering</p>
+      </div>
+      <div class="rm-header-right">
+        <div class="rm-legend">
+          <span class="rm-legend-item" data-status="pending"><span class="rm-dot"></span>Pending</span>
+          <span class="rm-legend-item" data-status="inprogress"><span class="rm-dot"></span>In Progress</span>
+          <span class="rm-legend-item" data-status="done"><span class="rm-dot"></span>Done</span>
+        </div>
+        <div class="rm-progress-summary">
+          <span class="rm-prog-label">Progress</span>
+          <div class="rm-prog-bar-wrap"><div class="rm-prog-bar" id="rm-prog-bar"></div></div>
+          <span class="rm-prog-pct" id="rm-prog-pct">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="rm-flow" id="rm-flow"></div>
+
+    <div class="rm-drawer" id="rm-drawer">
+      <div class="rm-backdrop" id="rm-backdrop"></div>
+      <div class="rm-panel">
+        <div class="rm-panel-header">
+          <div>
+            <span id="rm-panel-badge" class="rm-panel-badge"></span>
+            <h2 id="rm-panel-title" class="rm-panel-title"></h2>
+          </div>
+          <button id="rm-panel-close" class="rm-panel-close" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+            </svg>
+          </button>
+        </div>
+        <div class="rm-panel-status-row">
+          <span class="rm-panel-status-label">Status</span>
+          <div class="rm-status-select-wrap">
+            <span class="rm-status-dot" id="rm-status-dot"></span>
+            <select class="rm-status-select" id="rm-status-select" aria-label="Set status">
+              <option value="pending">⬜ Pending</option>
+              <option value="inprogress">🟡 In Progress</option>
+              <option value="done">✅ Done</option>
+            </select>
+          </div>
+        </div>
+        <div class="rm-panel-body" id="rm-panel-body"></div>
+      </div>
+    </div>
+  </div>
+</StarlightPage>
+
+<style is:global>
+  @import "/src/styles/roadmap.css";
+</style>
+
+<script>
+const ROADMAP = [
+  // ── Phase 1: Foundations ──────────────────────────────────────────────────
+  { id:"foundations", label:"Foundations", desc:"How Spark distributes work across machines and gets an application running.", subs:[
+    { id:"distributed-computing-fundamentals", label:"Distributed Computing Fundamentals", desc:"The core building blocks of how Spark distributes work across a cluster. Covers: driver node responsibilities, worker node architecture, executor processes and task slots, cluster manager concepts (YARN, Mesos, Standalone, Kubernetes), resource allocation strategies, dynamic resource allocation, and node heartbeats and health checks." },
+    { id:"execution-lifecycle",                label:"Cluster Architecture & Execution Lifecycle", desc:"How a Spark application is broken down, scheduled, and executed. Covers: job, stage, and task hierarchy, DAG scheduler flow, narrow versus wide dependencies, task scheduling and parallelism, data locality awareness, threading models within executors, shuffle phases and mechanics, and data serialization during shuffle." },
+    { id:"spark-core-fundamentals",            label:"Spark Core Fundamentals",              desc:"Getting a Spark application up, configured, and observable. Covers: SparkSession/SparkContext/SQLContext, spark-submit flags and master URL formats, Spark configuration and environment variables, logging levels, Spark UI monitoring basics, and the Spark Connect client-server architecture." },
+  ]},
+
+  // ── Phase 2: Core & Structured APIs ──────────────────────────────────────
+  { id:"core-apis", label:"Core & Structured APIs", desc:"The programming interfaces used to express computation in Spark.", subs:[
+    { id:"rdd-api",                  label:"Resilient Distributed Datasets (RDDs)", desc:"The low-level, fault-tolerant distributed collection API. Covers: RDD creation, transformations, actions, lazy evaluation, dependency graphs and lineage, persistence and storage levels, checkpointing, broadcast variables, accumulators, and custom partitioning." },
+    { id:"structured-apis",          label:"DataFrame & Dataset APIs",               desc:"The structured, higher-level APIs for modern Spark development. Covers: DataFrame creation, column expressions, row manipulation, schema definition and inference, null handling, type casting, Dataset API and type safety (Scala/Java), encoders, and the Pandas API on Spark." },
+    { id:"window-functions",         label:"Window Functions",                       desc:"Ranking, aggregate, and analytic functions computed over row windows. Covers: window specification definitions, ranking functions (rank, dense_rank, row_number), aggregate window functions, lead/lag operations, range versus row frames, partitioning within windows, and cumulative/running calculations." },
+    { id:"joins",                    label:"Joins & Relational Operations",           desc:"How Spark combines datasets and the strategies it picks between. Covers: inner/outer/semi/anti joins, cross joins, shuffle hash join, sort-merge join, broadcast hash join, join strategy hints, and handling data skew in joins." },
+    { id:"advanced-transformations", label:"Advanced RDD & DataFrame Transformations", desc:"Less common but important transformation patterns. Covers: mapPartitions and mapPartitionsWithIndex, filter and predicate pushdown, set-based operations (union, intersect, except), pivoting and unpivoting, sampling and data splitting, and exploding nested/array structures." },
+    { id:"udfs",                     label:"User Defined Functions (UDFs)",           desc:"Extending Spark SQL with custom logic. Covers: scalar UDFs, UDAFs, Pandas (vectorized) UDFs, Arrow-based data transfer, Python versus JVM execution overhead, built-in functions vs UDFs performance tradeoffs, higher-order functions for array/map columns, and dependency isolation for UDF environments." },
+  ]},
+
+  // ── Phase 3: Spark SQL Engine & Optimization ─────────────────────────────
+  { id:"sql-engine", label:"Spark SQL Engine & Optimization", desc:"How Spark parses, plans, optimizes, and executes queries under the hood.", subs:[
+    { id:"spark-sql-catalyst", label:"Spark SQL Engine & Catalyst Optimizer", desc:"The query planner and optimizer at the heart of Spark SQL. Covers: logical plan analysis and validation, rule-based optimization, physical plan generation, cost-based optimization (CBO), whole-stage code generation, vectorized execution, Adaptive Query Execution (AQE), dynamic partition coalescing, dynamic join strategy switching, skew join optimization, plan caching, reading explain plans, and Spark Thrift Server for JDBC/ODBC access." },
+  ]},
+
+  // ── Phase 4: Data & Storage ───────────────────────────────────────────────
+  { id:"data-storage", label:"Data & Storage", desc:"File formats, connectors, catalogs, and lakehouse table formats.", subs:[
+    { id:"file-formats",         label:"File Formats & Storage Optimization",  desc:"Choosing and tuning on-disk formats Spark reads and writes. Covers: Parquet, ORC, and Avro formats, schema evolution, columnar projection and column pruning, dictionary encoding, compression codec selection (Snappy, Zstd, GZIP), small file problem and compaction, predicate and partition pushdown, and metadata/footer caching." },
+    { id:"cloud-db-connectors",  label:"Cloud Storage & Database Connectors",  desc:"Reading from and writing to object stores and relational databases. Covers: S3, GCS, and ADLS integration, S3A implementation, partitioned directory reading, JDBC drivers and connection pooling, predicate pushdown for DB queries, partitioned reads and write batching, credential management, Kafka and REST API sources, and HDFS interaction." },
+    { id:"nosql-integration",    label:"NoSQL Database Integration",            desc:"Connecting Spark to Cassandra, MongoDB, and similar stores. Covers: Cassandra connector setup, Cassandra-aware partitioning, write consistency levels, cluster-aware read optimization, MongoDB BSON format handling, aggregation pipeline integration, write concern management, and schema/type conversion." },
+    { id:"metastore",            label:"Metastore & Catalog Management",        desc:"Tracking table metadata and schemas across a data platform. Covers: Hive Metastore integration, AWS Glue Data Catalog, Unity Catalog, external schema registries, catalog namespace isolation, and table discovery and metadata sync." },
+    { id:"lakehouse",            label:"Lakehouse Table Formats",               desc:"ACID transactional layers on top of data lake storage. Covers: Delta Lake ACID transactions and transaction log, Apache Iceberg architecture and partition evolution, Apache Hudi upsert and incremental processing, time travel queries, schema evolution strategies, MERGE INTO and upsert patterns, and table maintenance (compaction, vacuum, Z-ordering)." },
+  ]},
+
+  // ── Phase 5: Streaming & Data Quality ────────────────────────────────────
+  { id:"streaming-quality", label:"Streaming & Data Quality", desc:"Processing unbounded data and validating data correctness.", subs:[
+    { id:"structured-streaming", label:"Structured Streaming", desc:"Processing unbounded data with the same DataFrame API as batch. Covers: micro-batch processing model, continuous (low-latency) mode, streaming sources and sinks, Kafka source integration and offset management, event-time watermarking, stateful processing and state stores, late data handling, output modes (append, update, complete), checkpointing and fault recovery, and stream-stream and stream-static joins." },
+    { id:"data-quality",         label:"Data Quality Engineering", desc:"Validating, testing, and monitoring data correctness. Covers: Deequ constraint-based testing, Great Expectations integration, statistical anomaly detection, schema enforcement and evolution policies, data lineage verification, and pipeline alerting on quality metrics." },
+  ]},
+
+  // ── Phase 6: Machine Learning & Graph Processing ─────────────────────────
+  { id:"ml-graph", label:"Machine Learning & Graph Processing", desc:"Spark's libraries for large-scale ML and graph analytics.", subs:[
+    { id:"ml-graph-section", label:"MLlib & GraphFrames", desc:"MLlib and GraphFrames for analytics beyond ETL. Covers: MLlib Pipeline API (Estimators and Transformers), feature engineering at scale (VectorAssembler, StringIndexer), model training and hyperparameter tuning with CrossValidator, model persistence and serving, GraphFrames for graph processing, and graph algorithms (PageRank, connected components, shortest paths)." },
+  ]},
+
+  // ── Phase 7: Performance & Scaling ───────────────────────────────────────
+  { id:"performance", label:"Performance & Scaling", desc:"Making Spark jobs faster, cheaper, and more stable.", subs:[
+    { id:"performance-tuning", label:"Performance Tuning & Memory Management", desc:"Diagnosing and fixing slow, unstable, or expensive Spark jobs. Covers: unified memory model (execution vs storage), GC tuning (G1GC vs Parallel GC), off-heap memory allocation, OOM troubleshooting, serialization format comparison (Java vs Kryo), shuffle partition sizing, data skew mitigation and salting, speculative execution, task concurrency and core allocation, compression codec tradeoffs, network/shuffle I/O optimization, and broadcast join threshold tuning." },
+  ]},
+
+  // ── Phase 8: Deployment & Infrastructure ─────────────────────────────────
+  { id:"deployment-infrastructure", label:"Deployment & Infrastructure", desc:"Running Spark on self-hosted clusters or managed cloud platforms.", subs:[
+    { id:"cluster-deployment", label:"Cluster Deployment & Environment Setup", desc:"Running Spark on different cluster managers and packaging it to ship. Covers: Standalone mode setup, YARN deployment and queue management, Kubernetes operator and native scheduling, client mode versus cluster mode, containerization with Docker, legacy Mesos integration, and multi-tenancy and resource queue isolation." },
+    { id:"cloud-platforms",    label:"Cloud & Managed Platforms",              desc:"Running Spark on managed services instead of self-hosted clusters. Covers: Databricks runtime and Photon engine, AWS EMR, Google Cloud Dataproc, Azure Synapse Spark pools, managed service autoscaling, and instance type selection and spot/preemptible instances." },
+  ]},
+
+  // ── Phase 9: Engineering Practices & Operations ───────────────────────────
+  { id:"engineering-practices", label:"Engineering Practices & Operations", desc:"Treating Spark jobs like production software: tested, monitored, and orchestrated.", subs:[
+    { id:"testing-devops", label:"Application Testing & Development Practices", desc:"Treating Spark jobs like proper software with tests and pipelines. Covers: shared SparkSession test fixtures, unit testing transformation logic, integration testing for pipelines, mocking data source inputs, performance regression benchmarking, CI/CD pipeline automation, notebook environments (Jupyter, Zeppelin), packaging dependencies (JARs, wheels, fat jars), and configuration management across environments." },
+    { id:"monitoring",     label:"Production Monitoring & Observability",       desc:"Knowing what your Spark jobs are doing once they're live. Covers: Spark UI analysis (jobs, stages, SQL tab), stage and task latency tracking, executor usage and utilization metrics, event log parsing and history server, health check alerts, resource utilization monitoring (CPU, memory, I/O), and third-party observability integration (Prometheus, Grafana, Datadog)." },
+    { id:"orchestration",  label:"Workflow Orchestration",                      desc:"Scheduling and sequencing Spark jobs as part of larger pipelines. Covers: workflow scheduling concepts (Airflow, Dagster), task dependency management (DAGs of jobs), pipeline retries and failure recovery, job logging and traceability, alerting for pipeline failures, and orchestrating multi-engine pipelines (Spark + dbt + others)." },
+  ]},
+
+  // ── Phase 10: Administration & Governance ────────────────────────────────
+  { id:"administration", label:"Administration & Governance", desc:"Securing and maintaining a Spark platform over time.", subs:[
+    { id:"security",    label:"Security Hardening & Governance", desc:"Protecting data and controlling access across a Spark platform. Covers: Kerberos authentication, SSL/TLS encryption in transit, RBAC, secret and credential management, network security (firewalls, VPC/VNet isolation), data encryption at rest, and row/column-level security and data masking." },
+    { id:"maintenance", label:"Maintenance & Administration",    desc:"The ongoing operational work of keeping a Spark platform healthy. Covers: Spark version upgrade planning, dependency and library version management, configuration audits, cluster capacity planning, log rotation policies, and backup and disaster recovery procedures." },
+  ]},
+];
+
+const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
+const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;
+const ICON_DONE       = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="5.5 8.5 7 10 10.5 6"/></svg>`;
+const ICON_ARROW      = `<svg width="20" height="28" viewBox="0 0 20 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="10" y1="0" x2="10" y2="20"/><polyline points="5 15 10 22 15 15"/></svg>`;
+const ICON_CHEVRON    = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 5 7 9 11 5"/></svg>`;
+function iconFor(s: string) { return s==="done"?ICON_DONE:s==="inprogress"?ICON_INPROGRESS:ICON_PENDING; }
+
+const KEY = "spark_roadmap_v1";
+function load(): Record<string,string> { try { return JSON.parse(localStorage.getItem(KEY)||"{}"); } catch { return {}; } }
+function save(s: Record<string,string>) { localStorage.setItem(KEY, JSON.stringify(s)); }
+let state = load();
+function getS(id: string) { return state[id]||"pending"; }
+
+function allIds() {
+  const ids: string[] = [];
+  for (const t of ROADMAP) { ids.push(t.id); for (const s of t.subs) ids.push(s.id); }
+  return ids;
+}
+
+function refreshProgress() {
+  const ids = allIds();
+  const done = ids.filter(id => getS(id)==="done").length;
+  const pct = ids.length ? Math.round((done/ids.length)*100) : 0;
+  const bar = document.getElementById("rm-prog-bar");
+  const pctEl = document.getElementById("rm-prog-pct");
+  if (bar) bar.style.width = `${pct}%`;
+  if (pctEl) pctEl.textContent = `${pct}%`;
+}
+
+function buildFlow() {
+  const flow = document.getElementById("rm-flow");
+  if (!flow) return;
+  flow.innerHTML = "";
+  ROADMAP.forEach((topic, ti) => {
+    const s = getS(topic.id);
+    const topicEl = document.createElement("div");
+    topicEl.className = `rm-topic-node${s!=="pending"?` is-${s}`:""}`;
+    topicEl.dataset.id = topic.id;
+    topicEl.innerHTML = `<span class="rm-topic-icon">${iconFor(s)}</span><span class="rm-topic-label">${topic.label}</span>${topic.subs.length?`<span class="rm-count-badge">${topic.subs.length}</span>`:""}<span class="rm-chevron">${ICON_CHEVRON}</span>`;
+    topicEl.addEventListener("click", () => openPanel(topic.id, "topic"));
+    flow.appendChild(topicEl);
+    if (topic.subs.length > 0) {
+      const group = document.createElement("div");
+      group.className = "rm-sub-group";
+      for (const sub of topic.subs) {
+        const ss = getS(sub.id);
+        const subEl = document.createElement("div");
+        subEl.className = `rm-sub-node${ss!=="pending"?` is-${ss}`:""}`;
+        subEl.dataset.id = sub.id;
+        subEl.innerHTML = `<span class="rm-sub-icon">${iconFor(ss)}</span><span class="rm-sub-label">${sub.label}</span>`;
+        subEl.addEventListener("click", () => openPanel(sub.id, "subtopic", topic.id));
+        group.appendChild(subEl);
+      }
+      flow.appendChild(group);
+    }
+    if (ti < ROADMAP.length-1) {
+      const arrow = document.createElement("div");
+      arrow.className = "rm-arrow";
+      arrow.innerHTML = ICON_ARROW;
+      flow.appendChild(arrow);
+    }
+  });
+}
+
+let activeId: string|null = null, activeParent: string|null = null;
+function findItem(id: string): any {
+  for (const t of ROADMAP) { if (t.id===id) return {...t,type:"topic"}; for (const s of t.subs) { if (s.id===id) return {...s,type:"subtopic"}; } }
+  return null;
+}
+
+function openPanel(id: string, type: string, parentId?: string) {
+  activeId = id; activeParent = parentId??null;
+  const item = findItem(id); if (!item) return;
+  const badge = document.getElementById("rm-panel-badge")!;
+  const title = document.getElementById("rm-panel-title")!;
+  const body  = document.getElementById("rm-panel-body")!;
+  badge.textContent = type==="topic"?"Topic":"Subtopic";
+  badge.className   = `rm-panel-badge is-${type}`;
+  title.textContent = item.label;
+  body.innerHTML    = `<p class="rm-panel-desc">${item.desc}</p>`;
+  if (type==="topic" && item.subs?.length>0) {
+    const sublist = document.createElement("div");
+    sublist.className = "rm-panel-sublist";
+    sublist.innerHTML = `<p class="rm-panel-sublist-title">Subtopics (${item.subs.length})</p>`;
+    for (const sub of item.subs) {
+      const ss = getS(sub.id);
+      const row = document.createElement("div");
+      row.className = `rm-panel-subitem${ss!=="pending"?` is-${ss}`:""}`;
+      row.dataset.subId = sub.id;
+      row.innerHTML = `<span class="rm-panel-subitem-icon">${iconFor(ss)}</span><span class="rm-panel-subitem-label">${sub.label}</span><span class="rm-panel-subitem-tag">${ss}</span>`;
+      row.addEventListener("click", e => { e.stopPropagation(); openPanel(sub.id,"subtopic",id); });
+      sublist.appendChild(row);
+    }
+    body.appendChild(sublist);
+  }
+  syncBtns();
+  document.getElementById("rm-drawer")!.classList.add("is-open");
+  document.body.style.overflow = "hidden";
+}
+
+function closePanel() {
+  document.getElementById("rm-drawer")!.classList.remove("is-open");
+  document.body.style.overflow = "";
+  activeId = activeParent = null;
+}
+
+function syncBtns() {
+  if (!activeId) return;
+  const s = getS(activeId);
+  const sel = document.getElementById("rm-status-select") as HTMLSelectElement;
+  const dot = document.getElementById("rm-status-dot");
+  if (sel) { sel.value = s; sel.className = `rm-status-select${s !== "pending" ? ` is-${s}` : ""}`; }
+  if (dot) dot.className = `rm-status-dot${s !== "pending" ? ` is-${s}` : ""}`;
+}
+
+function setStatus(id: string, s: string) {
+  state[id] = s; save(state); buildFlow(); refreshProgress(); syncBtns();
+  const row = document.querySelector<HTMLElement>(`.rm-panel-subitem[data-sub-id="${id}"]`);
+  if (row) {
+    row.className = `rm-panel-subitem${s!=="pending"?` is-${s}`:""}`;
+    row.dataset.subId = id;
+    const icon = row.querySelector(".rm-panel-subitem-icon"); const tag = row.querySelector(".rm-panel-subitem-tag");
+    if (icon) icon.innerHTML = iconFor(s); if (tag) tag.textContent = s;
+  }
+}
+
+buildFlow(); refreshProgress();
+document.body.appendChild(document.getElementById("rm-drawer")!);
+document.getElementById("rm-panel-close")?.addEventListener("click", closePanel);
+document.getElementById("rm-backdrop")?.addEventListener("click", closePanel);
+document.addEventListener("keydown", e => { if (e.key==="Escape") closePanel(); });
+document.getElementById("rm-status-select")?.addEventListener("change", (e) => {
+  if (activeId) setStatus(activeId, (e.target as HTMLSelectElement).value);
+});
+</script>

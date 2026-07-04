@@ -1,0 +1,477 @@
+{
+  "title": "Apache Spark Engineering",
+  "description": "A consolidated, comprehensive roadmap for learning Apache Spark end to end — merging distributed systems fundamentals, core and structured APIs, the SQL engine, modern lakehouse and storage patterns, streaming, performance tuning, deployment, and production operations.",
+  "totalPhases": 10,
+  "totalSections": 26,
+  "totalTopics": 206,
+  "phases": [
+    {
+      "id": "foundations",
+      "name": "Foundations",
+      "description": "How Spark distributes work across machines and gets an application running.",
+      "sections": [
+        {
+          "id": "distributed-computing-fundamentals",
+          "name": "Distributed Computing Fundamentals",
+          "description": "The core building blocks of how Spark distributes work across a cluster.",
+          "topics": [
+            "Driver node responsibilities",
+            "Worker node architecture",
+            "Executor processes and task slots",
+            "Cluster manager concepts (YARN, Mesos, Standalone, Kubernetes)",
+            "Spark master and worker roles",
+            "Resource allocation strategies",
+            "Dynamic resource allocation",
+            "Node heartbeats and health checks"
+          ]
+        },
+        {
+          "id": "execution-lifecycle",
+          "name": "Cluster Architecture & Execution Lifecycle",
+          "description": "How a Spark application is broken down, scheduled, and executed.",
+          "topics": [
+            "Job, stage, and task hierarchy",
+            "DAG scheduler flow",
+            "Narrow versus wide dependencies",
+            "Task scheduling and parallelism",
+            "Data locality awareness",
+            "Threading models within executors",
+            "Shuffle phases and mechanics",
+            "Data serialization during shuffle"
+          ]
+        },
+        {
+          "id": "spark-core-fundamentals",
+          "name": "Spark Core Fundamentals",
+          "description": "Getting a Spark application up, configured, and observable.",
+          "topics": [
+            "SparkSession, SparkContext, and legacy SQLContext/HiveContext",
+            "spark-submit flags and master URL formats",
+            "Spark configuration and environment variables",
+            "Logging level configuration",
+            "Spark UI monitoring basics",
+            "Spark Connect client-server architecture"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "core-apis",
+      "name": "Core & Structured APIs",
+      "description": "The programming interfaces used to express computation in Spark.",
+      "sections": [
+        {
+          "id": "rdd-api",
+          "name": "Resilient Distributed Datasets (RDDs)",
+          "description": "The low-level, fault-tolerant distributed collection API underlying all of Spark.",
+          "topics": [
+            "RDD creation methods",
+            "Transformation operations",
+            "Action operations",
+            "Lazy evaluation model",
+            "Dependency graphs and lineage",
+            "Persistence and storage levels",
+            "RDD checkpointing and lineage truncation",
+            "Recovering failed tasks and executor loss mitigation",
+            "Broadcast variables",
+            "Accumulator usage patterns",
+            "Custom partitioning (hash and range)"
+          ]
+        },
+        {
+          "id": "structured-apis",
+          "name": "DataFrame & Dataset APIs",
+          "description": "The structured, higher-level APIs used for most modern Spark development.",
+          "topics": [
+            "DataFrame creation patterns",
+            "Column expressions and operations",
+            "Row manipulation functions",
+            "Schema definition and inference",
+            "Null handling strategies",
+            "Column type casting",
+            "Dataset API and type safety (Scala/Java)",
+            "Encoders and compile-time checks",
+            "Filtering, sorting, and selection logic",
+            "Pandas API on Spark (formerly Koalas)"
+          ]
+        },
+        {
+          "id": "window-functions",
+          "name": "Window Functions",
+          "description": "Ranking, aggregate, and analytic functions computed over row windows.",
+          "topics": [
+            "Window specification definitions",
+            "Ranking functions (rank, dense_rank, row_number)",
+            "Aggregate window functions",
+            "Lead and lag operations",
+            "Range versus row frames",
+            "Partitioning within windows",
+            "Cumulative and running calculations"
+          ]
+        },
+        {
+          "id": "joins",
+          "name": "Joins & Relational Operations",
+          "description": "How Spark combines datasets, and the strategies it picks between.",
+          "topics": [
+            "Inner, outer, semi, and anti joins",
+            "Cross joins and Cartesian products",
+            "Shuffle hash join",
+            "Sort-merge join",
+            "Broadcast hash join",
+            "Join strategy selection and hints",
+            "Handling data skew in joins"
+          ]
+        },
+        {
+          "id": "advanced-transformations",
+          "name": "Advanced RDD & DataFrame Transformations",
+          "description": "Less common but important transformation patterns.",
+          "topics": [
+            "mapPartitions and mapPartitionsWithIndex",
+            "Filter and predicate pushdown",
+            "Set-based operations (union, intersect, except)",
+            "Pivoting and unpivoting data",
+            "Sampling and data splitting",
+            "Exploding and flattening nested/array structures"
+          ]
+        },
+        {
+          "id": "udfs",
+          "name": "User Defined Functions (UDFs)",
+          "description": "Extending Spark SQL with custom logic, and its performance implications.",
+          "topics": [
+            "Scalar UDF implementation",
+            "User-defined aggregate functions (UDAFs)",
+            "Pandas (vectorized) UDFs",
+            "Arrow-based data transfer for UDFs",
+            "Python versus JVM execution overhead",
+            "Built-in functions versus custom UDFs (performance tradeoffs)",
+            "Higher-order functions for array/map columns",
+            "Dependency isolation for UDF environments"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sql-engine",
+      "name": "Spark SQL Engine & Optimization",
+      "description": "How Spark parses, plans, optimizes, and executes queries under the hood.",
+      "sections": [
+        {
+          "id": "spark-sql-catalyst",
+          "name": "Spark SQL Engine & Catalyst Optimizer",
+          "description": "The query planner and optimizer at the heart of Spark SQL.",
+          "topics": [
+            "Logical plan analysis and validation",
+            "Rule-based logical plan optimization",
+            "Physical plan generation and selection",
+            "Cost-based optimization (CBO)",
+            "Whole-stage code generation",
+            "Vectorized execution",
+            "Adaptive Query Execution (AQE)",
+            "Dynamic partition coalescing",
+            "Dynamic join strategy switching",
+            "Skew join optimization",
+            "Plan caching",
+            "Reading and interpreting explain plans",
+            "Spark Thrift Server (JDBC/ODBC access for BI tools)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "data-storage",
+      "name": "Data & Storage",
+      "description": "File formats, connectors, catalogs, and lakehouse table formats.",
+      "sections": [
+        {
+          "id": "file-formats",
+          "name": "File Formats & Storage Optimization",
+          "description": "Choosing and tuning the on-disk formats Spark reads and writes.",
+          "topics": [
+            "Parquet storage format and optimization",
+            "ORC file structure and benefits",
+            "Avro serialization and schema",
+            "Schema evolution across formats",
+            "Columnar projection and column pruning",
+            "Dictionary encoding mechanics",
+            "Compression codec selection (Snappy, Zstd, GZIP)",
+            "Small file problem and compaction strategies",
+            "Predicate and partition pushdown",
+            "Metadata and footer caching strategies"
+          ]
+        },
+        {
+          "id": "cloud-db-connectors",
+          "name": "Cloud Storage & Database Connectors",
+          "description": "Reading from and writing to object stores and relational databases.",
+          "topics": [
+            "S3, GCS, and ADLS integration",
+            "S3A implementation and file path patterns",
+            "Partitioned directory reading",
+            "JDBC drivers and connection pooling",
+            "Predicate pushdown for database queries",
+            "Partitioned database reads and write batching",
+            "Credential and secrets management for connectors",
+            "Kafka and REST APIs as batch data sources",
+            "Hadoop file system (HDFS) interaction"
+          ]
+        },
+        {
+          "id": "nosql-integration",
+          "name": "NoSQL Database Integration",
+          "description": "Connecting Spark to Cassandra, MongoDB, and similar stores.",
+          "topics": [
+            "Cassandra connector setup and configuration",
+            "Cassandra-aware data partitioning",
+            "Cassandra write consistency levels",
+            "Cluster-aware read optimization for Cassandra",
+            "MongoDB BSON format handling",
+            "MongoDB aggregation pipeline integration",
+            "MongoDB write concern management",
+            "Schema and type conversion across NoSQL stores"
+          ]
+        },
+        {
+          "id": "metastore",
+          "name": "Metastore & Catalog Management",
+          "description": "Tracking table metadata and schemas across a data platform.",
+          "topics": [
+            "Hive Metastore integration",
+            "AWS Glue Data Catalog usage",
+            "Unity Catalog implementation",
+            "External schema registries (for streaming/Avro)",
+            "Catalog namespace isolation",
+            "Table discovery and metadata sync"
+          ]
+        },
+        {
+          "id": "lakehouse",
+          "name": "Lakehouse Table Formats",
+          "description": "ACID transactional layers on top of data lake storage.",
+          "topics": [
+            "Delta Lake ACID transactions and transaction log",
+            "Apache Iceberg architecture and partition evolution",
+            "Apache Hudi upsert and incremental processing semantics",
+            "Time travel query capabilities",
+            "Schema evolution strategies",
+            "MERGE INTO syntax and upsert patterns",
+            "Table maintenance (compaction, vacuum, Z-ordering/optimize)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "streaming-quality",
+      "name": "Streaming & Data Quality",
+      "description": "Processing unbounded data and validating data correctness.",
+      "sections": [
+        {
+          "id": "structured-streaming",
+          "name": "Structured Streaming",
+          "description": "Processing unbounded data with the same DataFrame API as batch.",
+          "topics": [
+            "Micro-batch processing model",
+            "Continuous (low-latency) processing mode",
+            "Streaming sources and sinks",
+            "Kafka source integration and offset management",
+            "Event-time watermarking",
+            "Stateful stream processing and state stores",
+            "Late data handling",
+            "Output modes (append, update, complete)",
+            "Checkpointing and fault recovery",
+            "Stream-stream and stream-static joins"
+          ]
+        },
+        {
+          "id": "data-quality",
+          "name": "Data Quality Engineering",
+          "description": "Validating, testing, and monitoring the correctness of data itself.",
+          "topics": [
+            "Deequ constraint-based testing",
+            "Great Expectations integration",
+            "Statistical anomaly detection",
+            "Schema enforcement and evolution policies",
+            "Data lineage verification",
+            "Pipeline alerting on quality metrics"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ml-graph",
+      "name": "Machine Learning & Graph Processing",
+      "description": "Spark's libraries for large-scale ML and graph analytics.",
+      "sections": [
+        {
+          "id": "ml-graph-section",
+          "name": "Machine Learning & Graph Processing",
+          "description": "MLlib and GraphFrames for analytics beyond ETL.",
+          "topics": [
+            "MLlib Pipeline API (Estimators and Transformers)",
+            "Feature engineering at scale (VectorAssembler, StringIndexer, etc.)",
+            "Model training and hyperparameter tuning (CrossValidator)",
+            "Model persistence and serving",
+            "GraphFrames for graph processing",
+            "Graph algorithms (PageRank, connected components, shortest paths)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "performance",
+      "name": "Performance & Scaling",
+      "description": "Making Spark jobs faster, cheaper, and more stable.",
+      "sections": [
+        {
+          "id": "performance-tuning",
+          "name": "Performance Tuning & Memory Management",
+          "description": "Diagnosing and fixing slow, unstable, or expensive Spark jobs.",
+          "topics": [
+            "Execution memory versus storage memory (unified memory model)",
+            "Garbage collection tuning (G1GC vs. Parallel GC)",
+            "Off-heap memory allocation",
+            "Memory overhead limits and OOM troubleshooting",
+            "Serialization format comparison (Java vs. Kryo)",
+            "Shuffle partition sizing",
+            "Data skew mitigation and salting techniques",
+            "Speculative execution",
+            "Task concurrency and core allocation tuning",
+            "Compression codec tradeoffs",
+            "Network and shuffle I/O optimization",
+            "Broadcast join threshold tuning"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "deployment-infrastructure",
+      "name": "Deployment & Infrastructure",
+      "description": "Running Spark on self-hosted clusters or managed cloud platforms.",
+      "sections": [
+        {
+          "id": "cluster-deployment",
+          "name": "Cluster Deployment & Environment Setup",
+          "description": "Running Spark on different cluster managers and packaging it to ship.",
+          "topics": [
+            "Standalone mode setup",
+            "YARN deployment and queue management",
+            "Kubernetes operator and native scheduling",
+            "Client mode versus cluster mode",
+            "Containerization with Docker",
+            "Legacy Mesos integration",
+            "Multi-tenancy and resource queue isolation"
+          ]
+        },
+        {
+          "id": "cloud-platforms",
+          "name": "Cloud & Managed Platforms",
+          "description": "Running Spark on managed services instead of self-hosted clusters.",
+          "topics": [
+            "Databricks runtime and Photon execution engine",
+            "AWS EMR clusters",
+            "Google Cloud Dataproc",
+            "Azure Synapse Spark pools",
+            "Managed service autoscaling",
+            "Instance type selection and spot/preemptible instances"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "engineering-practices",
+      "name": "Engineering Practices & Operations",
+      "description": "Treating Spark jobs like production software: tested, monitored, and orchestrated.",
+      "sections": [
+        {
+          "id": "testing-devops",
+          "name": "Application Testing & Development Practices",
+          "description": "Treating Spark jobs like proper software with tests and pipelines.",
+          "topics": [
+            "Shared SparkSession test fixtures",
+            "Unit testing transformation logic",
+            "Integration testing for pipelines",
+            "Mocking data source inputs",
+            "Performance regression and scalability benchmarking",
+            "CI/CD pipeline automation for Spark jobs",
+            "Notebook development environments (Jupyter, Zeppelin)",
+            "Packaging dependencies (JARs, wheels, fat jars)",
+            "Configuration management across environments (dev/staging/prod)"
+          ]
+        },
+        {
+          "id": "monitoring",
+          "name": "Production Monitoring & Observability",
+          "description": "Knowing what your Spark jobs are doing once they're live.",
+          "topics": [
+            "Spark UI analysis (jobs, stages, SQL tab)",
+            "Stage and task latency tracking",
+            "Executor usage and utilization metrics",
+            "Event log parsing and history server",
+            "Health check alerts",
+            "Resource utilization monitoring (CPU, memory, I/O)",
+            "Third-party observability integration (Prometheus, Grafana, Datadog)"
+          ]
+        },
+        {
+          "id": "orchestration",
+          "name": "Workflow Orchestration",
+          "description": "Scheduling and sequencing Spark jobs as part of larger pipelines.",
+          "topics": [
+            "Workflow scheduling concepts (Airflow, Dagster, etc.)",
+            "Task dependency management (DAGs of jobs)",
+            "Pipeline retries and failure recovery strategies",
+            "Job logging and traceability",
+            "Alerting systems for pipeline failures",
+            "Orchestrating multi-engine pipelines (Spark + dbt + others)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "administration",
+      "name": "Administration & Governance",
+      "description": "Securing and maintaining a Spark platform over time.",
+      "sections": [
+        {
+          "id": "security",
+          "name": "Security Hardening & Governance",
+          "description": "Protecting data and controlling access across a Spark platform.",
+          "topics": [
+            "Kerberos authentication",
+            "SSL/TLS encryption for data in transit",
+            "Role-based access control (RBAC)",
+            "Secret and credential management",
+            "Network security (firewalls, VPC/VNet isolation)",
+            "Data encryption at rest",
+            "Row/column-level security and data masking"
+          ]
+        },
+        {
+          "id": "maintenance",
+          "name": "Maintenance & Administration",
+          "description": "The ongoing operational work of keeping a Spark platform healthy.",
+          "topics": [
+            "Spark version upgrade planning",
+            "Dependency and library version management",
+            "Configuration audits",
+            "Cluster capacity planning",
+            "Log rotation policies",
+            "Backup and disaster recovery procedures"
+          ]
+        }
+      ]
+    }
+  ],
+  "relatedRoadmaps": [
+    "Data Engineering",
+    "Distributed Systems",
+    "Cloud Computing",
+    "Python Programming",
+    "Big Data Infrastructure",
+    "Cloud Data Platforms",
+    "SQL",
+    "Apache Kafka"
+  ]
+}
