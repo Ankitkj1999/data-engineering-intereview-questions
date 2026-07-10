@@ -27,6 +27,7 @@
       "collapsed": false,
       "items": [
         { "label": "What is Data Engineering", "link": "/level-2-core-concepts/what-is-data-engineering/" },
+        { "label": "Data Engineer vs Data Scientist", "link": "/level-2-core-concepts/data-engineer-vs-data-scientist/" },
         { "label": "Data Modeling", "link": "/level-2-core-concepts/data-modeling/" },
         { "label": "Data Warehousing", "link": "/level-2-core-concepts/data-warehousing/" },
         { "label": "Data Quality", "link": "/level-2-core-concepts/data-quality/" },

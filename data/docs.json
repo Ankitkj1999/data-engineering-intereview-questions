@@ -3031,6 +3031,48 @@
     "content": "## Advanced Data Analysis in SQL\n\n**100. Explain how to use SQL for predictive analysis and machine learning.**\nWindow functions for trends, statistical aggregates, BigQuery ML, MADlib."
   },
   {
+    "path": "/level-2-core-concepts/data-engineer-vs-data-scientist/",
+    "locale": "en",
+    "title": "Data Engineer vs Data Scientist",
+    "description": "How data engineering and data science roles differ, overlap, and collaborate",
+    "content": "# Data Engineer vs Data Scientist\n\nData Engineering and Data Science are closely related but distinct disciplines. Data engineers build the infrastructure that data scientists rely on, while data scientists extract insights and build models from that data."
+  },
+  {
+    "path": "/level-2-core-concepts/data-engineer-vs-data-scientist/",
+    "locale": "en",
+    "title": "Data Engineer vs Data Scientist",
+    "description": "How data engineering and data science roles differ, overlap, and collaborate",
+    "content": "## Key Differences\n\n| Aspect | Data Engineer | Data Scientist |\n|--------|-------------|----------------|\n| Focus | Infrastructure & pipelines | Analysis & modeling |\n| Tools | SQL, Python, Spark, Airflow | Python, R, Jupyter, ML libraries |\n| Goals | Reliable data flow | Insights & predictions |\n| Output | Clean, structured datasets | Models, reports, dashboards |"
+  },
+  {
+    "path": "/level-2-core-concepts/data-engineer-vs-data-scientist/",
+    "locale": "en",
+    "title": "Data Engineer vs Data Scientist",
+    "description": "How data engineering and data science roles differ, overlap, and collaborate",
+    "content": "## Data Engineer\n\nA data engineer's primary responsibility is to **build and maintain data pipelines** — systems that move data from source systems through transformation layers to make it available for analysis, reporting, and machine learning. They focus on:\n\n- **Data Infrastructure**: Building reliable, scalable systems for data storage and processing\n- **Pipeline Architecture**: Designing ETL/ELT workflows that handle data movement\n- **Data Quality**: Ensuring accuracy, consistency, and reliability of data\n- **Performance Optimization**: Making queries and transformations efficient at scale"
+  },
+  {
+    "path": "/level-2-core-concepts/data-engineer-vs-data-scientist/",
+    "locale": "en",
+    "title": "Data Engineer vs Data Scientist",
+    "description": "How data engineering and data science roles differ, overlap, and collaborate",
+    "content": "## Data Scientist\n\nA data scientist focuses on extracting insights, building statistical models, and applying machine learning to solve business problems. They rely on the clean, reliable data that data engineers provide.\n\n- **Exploratory Analysis**: Finding patterns and trends in data\n- **Modeling**: Building predictive and prescriptive models\n- **Experimentation**: Designing and running experiments (e.g. A/B tests)\n- **Communication**: Translating findings into actionable business recommendations"
+  },
+  {
+    "path": "/level-2-core-concepts/data-engineer-vs-data-scientist/",
+    "locale": "en",
+    "title": "Data Engineer vs Data Scientist",
+    "description": "How data engineering and data science roles differ, overlap, and collaborate",
+    "content": "## How They Collaborate\n\nBoth roles are essential and often collaborate closely:\n\n- Data engineers provide the **clean, reliable datasets** that data scientists need\n- Data scientists communicate **data requirements** back to engineers\n- Together they form a feedback loop that turns raw data into business value"
+  },
+  {
+    "path": "/level-2-core-concepts/data-engineer-vs-data-scientist/",
+    "locale": "en",
+    "title": "Data Engineer vs Data Scientist",
+    "description": "How data engineering and data science roles differ, overlap, and collaborate",
+    "content": "## Learn More\n\nFollow the [Data Engineering Roadmap](/roadmaps/data-engineering/) to understand the skills and tools data engineers use every day."
+  },
+  {
     "path": "/level-2-core-concepts/data-governance/",
     "locale": "en",
     "title": "Data Governance",
@@ -5772,14 +5814,7 @@
     "locale": "en",
     "title": "What is Data Engineering",
     "description": "Data engineering fundamentals and the data engineering roadmap",
-    "content": "## Data Engineering Roadmap\n\nFollow the [Data Engineering Roadmap](/roadmaps/data-engineering/) to master these concepts step-by-step, covering:\n\n- Programming fundamentals (Python, SQL, Java/Scala)\n- Database systems (RDBMS, NoSQL, Data Warehouses)\n- Cloud platforms and infrastructure\n- Pipeline orchestration (Airflow, dbt)\n- Big data tools (Spark, Kafka)\n- Monitoring and testing practices"
-  },
-  {
-    "path": "/level-2-core-concepts/what-is-data-engineering/",
-    "locale": "en",
-    "title": "What is Data Engineering",
-    "description": "Data engineering fundamentals and the data engineering roadmap",
-    "content": "## Data Engineer vs Data Scientist\n\n| Aspect | Data Engineer | Data Scientist |\n|--------|-------------|----------------|\n| Focus | Infrastructure & pipelines | Analysis & modeling |\n| Tools | SQL, Python, Spark, Airflow | Python, R, Jupyter, ML libraries |\n| Goals | Reliable data flow | Insights & predictions |\n| Output | Clean, structured datasets | Models, reports, dashboards |\n\nBoth roles are essential and often collaborate closely — data engineers provide the clean, reliable data that data scientists need for their work."
+    "content": "## Data Engineering Roadmap\n\nFollow the [Data Engineering Roadmap](/roadmaps/data-engineering/) to master these concepts step-by-step, covering:\n\n- Programming fundamentals (Python, SQL, Java/Scala)\n- Database systems (RDBMS, NoSQL, Data Warehouses)\n- Cloud platforms and infrastructure\n- Pipeline orchestration (Airflow, dbt)\n- Big data tools (Spark, Kafka)\n- Monitoring and testing practices\n\nLearn more about the [Data Engineer vs Data Scientist](/level-2-core-concepts/data-engineer-vs-data-scientist/) distinction and how these roles complement each other."
   },
   {
     "path": "/level-3-technologies/batch-processing/hadoop/",

@@ -50,13 +50,4 @@ Follow the [Data Engineering Roadmap](/roadmaps/data-engineering/) to master the
 - Big data tools (Spark, Kafka)
 - Monitoring and testing practices
 
-## Data Engineer vs Data Scientist
-
-| Aspect | Data Engineer | Data Scientist |
-|--------|-------------|----------------|
-| Focus | Infrastructure & pipelines | Analysis & modeling |
-| Tools | SQL, Python, Spark, Airflow | Python, R, Jupyter, ML libraries |
-| Goals | Reliable data flow | Insights & predictions |
-| Output | Clean, structured datasets | Models, reports, dashboards |
-
-Both roles are essential and often collaborate closely — data engineers provide the clean, reliable data that data scientists need for their work.
+Learn more about the [Data Engineer vs Data Scientist](/level-2-core-concepts/data-engineer-vs-data-scientist/) distinction and how these roles complement each other.
