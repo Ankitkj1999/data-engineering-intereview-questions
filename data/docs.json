@@ -5740,6 +5740,48 @@
     "content": "## Topics Covered\n\n- **Data Modeling**: Designing effective data models with star schemas, dimension tables, and slowly changing dimensions\n- **Data Warehousing**: Architecture and design patterns for building data warehouses and marts\n- **Data Quality**: Ensuring data reliability through validation, testing, and monitoring\n- **Data Governance**: Managing data responsibly with policies, catalogs, and access controls\n\nA strong understanding of these concepts is necessary for designing and managing enterprise data systems."
   },
   {
+    "path": "/level-2-core-concepts/what-is-data-engineering/",
+    "locale": "en",
+    "title": "What is Data Engineering",
+    "description": "Data engineering fundamentals and the data engineering roadmap",
+    "content": "# What is Data Engineering?\n\nData Engineering is the practice of designing, building, and maintaining the infrastructure that stores, processes, and serves data at scale. Data engineers create the foundation that enables organizations to collect, transform, and analyze data reliably."
+  },
+  {
+    "path": "/level-2-core-concepts/what-is-data-engineering/",
+    "locale": "en",
+    "title": "What is Data Engineering",
+    "description": "Data engineering fundamentals and the data engineering roadmap",
+    "content": "## The Data Engineering Role\n\nA data engineer's primary responsibility is to **build and maintain data pipelines** — systems that move data from source systems through transformation layers to make it available for analysis, reporting, and machine learning. Unlike data scientists who focus on extracting insights, data engineers focus on:\n\n- **Data Infrastructure**: Building reliable, scalable systems for data storage and processing\n- **Pipeline Architecture**: Designing ETL/ELT workflows that handle data movement\n- **Data Quality**: Ensuring accuracy, consistency, and reliability of data\n- **Performance Optimization**: Making queries and transformations efficient at scale"
+  },
+  {
+    "path": "/level-2-core-concepts/what-is-data-engineering/",
+    "locale": "en",
+    "title": "What is Data Engineering",
+    "description": "Data engineering fundamentals and the data engineering roadmap",
+    "content": "## Skills and Responsibilities\n\n| Skill | Why It Matters |\n|-------|---------------|\n| **SQL** | The lingua franca for data transformation and querying |\n| **Python** | Most common language for pipeline scripting and automation |\n| **Cloud Platforms** | Modern data infrastructure runs on AWS, GCP, or Azure |\n| **Data Modeling** | Structuring data for efficient querying and analysis |\n| **System Design** | Building scalable, resilient data architectures |"
+  },
+  {
+    "path": "/level-2-core-concepts/what-is-data-engineering/",
+    "locale": "en",
+    "title": "What is Data Engineering",
+    "description": "Data engineering fundamentals and the data engineering roadmap",
+    "content": "## The Data Engineering Lifecycle\n\n```\nData Generation → Ingestion → Processing → Storage → Serving → Consumption\n```\n\n1. **Generation**: Data is created in source systems (databases, APIs, logs, IoT devices)\n2. **Ingestion**: Data is collected and brought into the platform (batch or streaming)\n3. **Processing**: Data is cleaned, transformed, and enriched\n4. **Storage**: Data is stored in warehouses, lakes, or databases\n5. **Serving**: Data is made available to consumers via APIs or query engines\n6. **Consumption**: Analysts, data scientists, and applications use the data"
+  },
+  {
+    "path": "/level-2-core-concepts/what-is-data-engineering/",
+    "locale": "en",
+    "title": "What is Data Engineering",
+    "description": "Data engineering fundamentals and the data engineering roadmap",
+    "content": "## Data Engineering Roadmap\n\nFollow the [Data Engineering Roadmap](/roadmaps/data-engineering/) to master these concepts step-by-step, covering:\n\n- Programming fundamentals (Python, SQL, Java/Scala)\n- Database systems (RDBMS, NoSQL, Data Warehouses)\n- Cloud platforms and infrastructure\n- Pipeline orchestration (Airflow, dbt)\n- Big data tools (Spark, Kafka)\n- Monitoring and testing practices"
+  },
+  {
+    "path": "/level-2-core-concepts/what-is-data-engineering/",
+    "locale": "en",
+    "title": "What is Data Engineering",
+    "description": "Data engineering fundamentals and the data engineering roadmap",
+    "content": "## Data Engineer vs Data Scientist\n\n| Aspect | Data Engineer | Data Scientist |\n|--------|-------------|----------------|\n| Focus | Infrastructure & pipelines | Analysis & modeling |\n| Tools | SQL, Python, Spark, Airflow | Python, R, Jupyter, ML libraries |\n| Goals | Reliable data flow | Insights & predictions |\n| Output | Clean, structured datasets | Models, reports, dashboards |\n\nBoth roles are essential and often collaborate closely — data engineers provide the clean, reliable data that data scientists need for their work."
+  },
+  {
     "path": "/level-3-technologies/batch-processing/hadoop/",
     "locale": "en",
     "title": "Hadoop",

@@ -62,3 +62,10 @@ Check out [our documentation](https://docs.astro.build) or jump into our [Discor
 ## Credit
 
 This theme is based off of the lovely [Bear Blog](https://github.com/HermanMartinus/bearblog/).
+
+
+### ToDo's
+
+Regenerate the Roadmap Json for SQL, Python and DE like Apache Sparl.
+
+Try to put topic in the Sidebar, whose completion mark the Topic done.

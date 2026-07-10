@@ -68,7 +68,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 <script>
 const ROADMAP = [
   { id:"intro", label:"Introduction", desc:"What data engineering is, how it differs from data science, and what skills are needed.", subs:[
-    { id:"what-is-de",      label:"What is Data Engineering?",          desc:"Designing, building, and maintaining pipelines that move and transform data at scale." },
+    { id:"what-is-de",      label:"What is Data Engineering?",          desc:"Designing, building, and maintaining pipelines that move and transform data at scale.", link:"/level-2-core-concepts/what-is-data-engineering/" },
     { id:"de-vs-ds",        label:"Data Engineering vs Data Science",   desc:"DE builds the infrastructure; DS uses it — roles, responsibilities, and overlap." },
     { id:"de-skills",       label:"Skills and Responsibilities",        desc:"SQL, Python, cloud platforms, pipeline design, data modeling, and system design." },
     { id:"de-lifecycle",    label:"Data Engineering Lifecycle",         desc:"Generation → Ingestion → Transformation → Serving — the full data journey." },
@@ -101,12 +101,13 @@ const ROADMAP = [
     { id:"data-modelling",  label:"Data Modelling Techniques",          desc:"ER diagrams, dimensional modelling, data vault, and wide table patterns." },
   ]},
   { id:"db-fundamentals", label:"Database Fundamentals", desc:"Core database concepts every data engineer must understand deeply.", subs:[
-    { id:"oltp-olap",       label:"OLTP vs OLAP",                       desc:"Write-optimised vs read-optimised systems — different schemas, indexes, and engines." },
-    { id:"learn-sql",       label:"Learn SQL",                          desc:"SELECT, JOINs, aggregations, window functions, CTEs — the lingua franca of data." },
-    { id:"indexing",        label:"Indexing",                           desc:"B-tree, hash, bitmap, and partial indexes — how they speed up queries." },
-    { id:"transactions-db", label:"Transactions",                       desc:"ACID guarantees, isolation levels, and locking strategies." },
-    { id:"cap",             label:"CAP Theorem",                        desc:"Consistency, Availability, Partition Tolerance — and why you can only have two." },
-    { id:"h-vs-v-scale",    label:"Horizontal vs Vertical Scaling",     desc:"Scale-up vs scale-out trade-offs for databases and compute." },
+    { id:"dbms",           label:"DBMS vs RDBMS",             desc:"Database Management Systems — relational vs non-relational, schemas, and data models." },
+    { id:"oltp-olap",       label:"OLTP vs OLAP",               desc:"Write-optimised vs read-optimised systems — different schemas, indexes, and engines." },
+    { id:"learn-sql",       label:"Learn SQL",                  desc:"SELECT, JOINs, aggregations, window functions, CTEs — the lingua franca of data." },
+    { id:"indexing",        label:"Indexing",                   desc:"B-tree, hash, bitmap, and partial indexes — how they speed up queries." },
+    { id:"transactions-db", label:"Transactions",               desc:"ACID guarantees, isolation levels, and locking strategies." },
+    { id:"cap",             label:"CAP Theorem",                desc:"Consistency, Availability, Partition Tolerance — and why you can only have two." },
+    { id:"h-vs-v-scale",    label:"Horizontal vs Vertical Scaling", desc:"Scale-up vs scale-out trade-offs for databases and compute." },
   ]},
   { id:"relational-dbs", label:"Relational Databases", desc:"Production-grade RDBMS platforms used in data engineering stacks.", subs:[
     { id:"mysql",           label:"MySQL",                              desc:"Open-source RDBMS — widely used for operational workloads and data sources." },
@@ -320,7 +321,7 @@ function openPanel(id: string, type: string, parentId?: string) {
   badge.textContent = type==="topic"?"Topic":"Subtopic";
   badge.className   = `rm-panel-badge is-${type}`;
   title.textContent = item.label;
-  body.innerHTML    = `<p class="rm-panel-desc">${item.desc}</p>`;
+  body.innerHTML    = `<p class="rm-panel-desc">${item.desc}</p>` + (item.link ? `<a href="${item.link}" class="rm-read-more">Read more →</a>` : "");
   if (type==="topic" && item.subs?.length>0) {
     const sublist = document.createElement("div");
     sublist.className = "rm-panel-sublist";

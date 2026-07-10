@@ -26,6 +26,7 @@
       "label": "Core Concepts",
       "collapsed": false,
       "items": [
+        { "label": "What is Data Engineering", "link": "/level-2-core-concepts/what-is-data-engineering/" },
         { "label": "Data Modeling", "link": "/level-2-core-concepts/data-modeling/" },
         { "label": "Data Warehousing", "link": "/level-2-core-concepts/data-warehousing/" },
         { "label": "Data Quality", "link": "/level-2-core-concepts/data-quality/" },
