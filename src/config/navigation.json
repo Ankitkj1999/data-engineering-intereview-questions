@@ -3,10 +3,10 @@
     {
       "label": "Roadmaps",
       "items": [
-        { "label": "⚙️ Data Engineering", "link": "/roadmaps/data-engineering/" },
-        { "label": "🐍 Python",           "link": "/roadmaps/python/" },
-        { "label": "🗄️ SQL",              "link": "/roadmaps/sql/" },
-        { "label": "⚡ Apache Spark",     "link": "/roadmaps/apache-spark/" }
+        { "label": "Data Engineering", "link": "/roadmaps/data-engineering/" },
+        { "label": "Python",           "link": "/roadmaps/python/" },
+        { "label": "SQL",              "link": "/roadmaps/sql/" },
+        { "label": "Apache Spark",     "link": "/roadmaps/apache-spark/" }
       ]
     },
     {

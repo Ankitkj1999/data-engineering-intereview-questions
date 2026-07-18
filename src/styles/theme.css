@@ -1,0 +1,121 @@
+/* ── Design tokens ────────────────────────────────────────────────────────────
+   Visual identity: a data-pipeline schematic. Slate "blueprint paper" ground,
+   ink text, amber as the single working accent (reused from the roadmap
+   pages' "in progress" status color so the whole site reads as one system).
+   Overrides two independent token systems that ship on this site:
+     - Starlight's --sl-color-* / --sl-font*  (content, sidebar, search, TOC)
+     - @pelagornis/page's --page-*            (header/footer chrome)
+   Loaded via Starlight's `customCss`, which Astro emits unlayered — so these
+   rules win over both vendors' `@layer`-wrapped defaults without !important.
+──────────────────────────────────────────────────────────────────────────── */
+
+:root {
+	/* ── Starlight tokens (this block is Starlight's default/dark state) ── */
+	--sl-color-white: #e7eaf2;
+	--sl-color-black: #0b1220;
+
+	--sl-color-gray-1: #d3d8e4;
+	--sl-color-gray-2: #a6afc7;
+	--sl-color-gray-3: #6b7690;
+	--sl-color-gray-4: #48526c;
+	--sl-color-gray-5: #1e2740;
+	--sl-color-gray-6: #131b2e;
+	--sl-color-gray-7: #0e1526;
+
+	--sl-color-accent-low: #3a2a0c;
+	--sl-color-accent: #f59e0b;
+	--sl-color-accent-high: #f8c471;
+
+	--sl-color-text: var(--sl-color-gray-2);
+	--sl-color-bg-sidebar: var(--sl-color-gray-6);
+	--sl-color-bg-nav: var(--sl-color-gray-6);
+	--sl-color-bg-inline-code: var(--sl-color-gray-5);
+	--sl-color-hairline-light: var(--sl-color-gray-5);
+	--sl-color-hairline: var(--sl-color-gray-6);
+
+	--sl-font: "IBM Plex Sans", var(--sl-font-system);
+	--sl-font-mono: "IBM Plex Mono", var(--sl-font-system-mono);
+
+	/* ── Page chrome tokens (this block is Page's default/light state) ── */
+	--page-bg: #f3f5f8;
+	--page-bg-secondary: #eaeef3;
+	--page-bg-tertiary: #e1e6ed;
+	--page-bg-elevated: #ffffff;
+	--page-text: #10182b;
+	--page-text-secondary: #47526b;
+	--page-text-muted: #7a869c;
+	--page-text-disabled: #aeb7c5;
+	--page-text-dark: #10182b;
+	--page-text-reverse: #d8dee9;
+	--page-border: #d8dee9;
+	--page-border-light: #e6eaf1;
+	--page-border-strong: #c3ccdc;
+	--page-accent: #10182b;
+	--page-accent-hover: #2b3552;
+	--page-accent-light: #e9edf3;
+	--page-accent-bg: #e9edf3;
+
+	--page-font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+	/* ── Shared brand tokens, used directly by the homepage ── */
+	--brand-paper: #f3f5f8;
+	--brand-ink: #10182b;
+	--brand-line: #d8dee9;
+	--brand-amber: #d97706;
+	--brand-green: #16a34a;
+	--brand-display: "Space Grotesk", var(--sl-font-system);
+	--brand-mono: "IBM Plex Mono", var(--sl-font-system-mono);
+}
+
+/* Starlight's light mode is toggled via this attribute; values above are dark. */
+:root[data-theme="light"] {
+	--sl-color-white: #10182b;
+	--sl-color-black: #f3f5f8;
+
+	--sl-color-gray-1: #10182b;
+	--sl-color-gray-2: #333e58;
+	--sl-color-gray-3: #5e6980;
+	--sl-color-gray-4: #98a2b8;
+	--sl-color-gray-5: #d8dee9;
+	--sl-color-gray-6: #e6eaf1;
+	--sl-color-gray-7: #ffffff;
+
+	--sl-color-accent-low: #fdecc8;
+	--sl-color-accent: #d97706;
+	--sl-color-accent-high: #7c4a0a;
+}
+
+/* Page chrome's dark mode is toggled via this attribute; :root above is light. */
+[data-theme="dark"] {
+	--page-bg: #0b1220;
+	--page-bg-secondary: #0f1729;
+	--page-bg-tertiary: #131b2e;
+	--page-bg-elevated: #131b2e;
+	--page-text: #e7eaf2;
+	--page-text-secondary: #a6afc7;
+	--page-text-muted: #6b7690;
+	--page-text-disabled: #48526c;
+	--page-text-dark: #e7eaf2;
+	--page-text-reverse: #1e2740;
+	--page-border: #1e2740;
+	--page-border-light: #182036;
+	--page-border-strong: #2a3450;
+	--page-accent: #e7eaf2;
+	--page-accent-hover: #c7cee0;
+	--page-accent-light: #182036;
+	--page-accent-bg: #182036;
+}
+
+/* Display face, used with restraint: top-level content headings + the
+   homepage signature only. Body copy and UI stay on IBM Plex Sans. */
+.sl-markdown-content :is(h1, h2, h3),
+.stage-title,
+.sink-title {
+	font-family: var(--brand-display);
+	letter-spacing: -0.01em;
+}
+
+.sl-markdown-content code,
+.sl-markdown-content pre {
+	font-family: var(--sl-font-mono);
+}

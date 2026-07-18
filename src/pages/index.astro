@@ -1,0 +1,505 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+
+const stages = [
+  {
+    id: "01",
+    title: "Foundations",
+    desc: "SQL, Python, data structures",
+    count: "3 core skills",
+    href: "/level-1-foundations/sql/basics/",
+  },
+  {
+    id: "02",
+    title: "Core Concepts",
+    desc: "Modeling, warehousing, quality, governance",
+    count: "6 concepts",
+    href: "/level-2-core-concepts/what-is-data-engineering/",
+  },
+  {
+    id: "03",
+    title: "Technologies",
+    desc: "Warehouses, streaming, orchestration, cloud",
+    count: "30+ tools",
+    href: "/level-3-technologies/",
+  },
+  {
+    id: "04",
+    title: "Advanced",
+    desc: "System design, cost, observability",
+    count: "3 topics",
+    href: "/level-4-advanced/system-design/",
+  },
+];
+
+const roadmaps = [
+  { title: "Data Engineering", desc: "The full path, end to end", count: "9 stages", href: "/roadmaps/data-engineering/" },
+  { title: "Python", desc: "Syntax to production pipelines", count: "7 stages", href: "/roadmaps/python/" },
+  { title: "SQL", desc: "Queries to query optimization", count: "6 stages", href: "/roadmaps/sql/" },
+  { title: "Apache Spark", desc: "RDDs to cluster tuning", count: "6 stages", href: "/roadmaps/apache-spark/" },
+];
+
+const ARROW = `<svg width="20" height="28" viewBox="0 0 20 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="10" y1="0" x2="10" y2="20"/><polyline points="5 15 10 22 15 15"/></svg>`;
+const CHECK = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"/><polyline points="5.5 8.5 7 10 10.5 6"/></svg>`;
+const CHEVRON = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 4 11 8 6 12"/></svg>`;
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "Data Engineering Interview Questions",
+    description:
+      "A staged curriculum for data engineering interviews: foundations, core concepts, technologies, and advanced system design, with 300+ questions and interactive roadmaps.",
+  }}
+>
+  <div id="home-root">
+    <section class="hero">
+      <p class="hero-eyebrow">Data engineering &middot; interview prep</p>
+      <h1 class="hero-title">Interview prep, staged like a pipeline.</h1>
+      <p class="hero-sub">
+        Four stages, one path: foundations in, system design out. 300+ questions across
+        SQL, Python, warehouses, and streaming &mdash; each one mapped to where it sits
+        in the pipeline.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/level-1-foundations/sql/basics/">Start with foundations</a>
+        <a class="btn btn-secondary" href="/roadmaps/data-engineering/">View interactive roadmaps</a>
+      </div>
+    </section>
+
+    <section class="pipeline" aria-label="Curriculum, staged as a pipeline">
+      <div class="pipeline-track">
+        {stages.map((stage) => (
+          <>
+            <a class="stage" href={stage.href}>
+              <span class="stage-id">{stage.id}</span>
+              <span class="stage-body">
+                <span class="stage-title">{stage.title}</span>
+                <span class="stage-desc">{stage.desc}</span>
+              </span>
+              <span class="stage-count">{stage.count}</span>
+            </a>
+            <span class="pipe" aria-hidden="true" set:html={ARROW} />
+          </>
+        ))}
+        <a class="sink" href="/level-4-advanced/system-design/">
+          <span class="sink-icon" set:html={CHECK} />
+          <span class="sink-title">Interview ready</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="stat-strip" aria-label="At a glance">
+      <span><strong>300+</strong> questions</span>
+      <span class="stat-dot" aria-hidden="true">&middot;</span>
+      <span><strong>30+</strong> technologies</span>
+      <span class="stat-dot" aria-hidden="true">&middot;</span>
+      <span><strong>4</strong> stages</span>
+      <span class="stat-dot" aria-hidden="true">&middot;</span>
+      <span>asked at <strong>FAANG, Databricks, Airbnb, Uber, Stripe</strong></span>
+    </section>
+
+    <section class="roadmaps-section">
+      <div class="section-head">
+        <span class="rm-badge">Track your progress</span>
+        <h2>Interactive roadmaps</h2>
+        <p>Work through each node, mark it done, and watch the bar fill in &mdash; your progress saves in the browser.</p>
+      </div>
+      <div class="roadmap-grid">
+        {roadmaps.map((rm) => (
+          <a class="roadmap-card" href={rm.href}>
+            <span class="roadmap-card-top">
+              <span class="roadmap-card-title">{rm.title}</span>
+              <span class="roadmap-card-chevron" set:html={CHEVRON} />
+            </span>
+            <span class="roadmap-card-desc">{rm.desc}</span>
+            <span class="roadmap-card-count">{rm.count}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  </div>
+</StarlightPage>
+
+<style is:global>
+  @import "/src/styles/roadmap.css";
+</style>
+
+<style>
+  /* Suppress Starlight's auto-generated <h1 id="_top"> above our custom hero. */
+  :global(h1#_top) {
+    display: none;
+  }
+
+  #home-root {
+    max-width: 880px;
+    margin: 0 auto;
+    padding-bottom: 4rem;
+  }
+
+  /* ── Hero ─────────────────────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    padding: 2.5rem 0 3rem;
+  }
+
+  /* Blueprint grid lives behind the copy but stays faint enough not to
+     fight the text underneath it -- ambient texture, not a ruling. */
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: -1rem -1.5rem auto -1.5rem;
+    height: 22rem;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--sl-color-gray-4) 35%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--sl-color-gray-4) 35%, transparent) 1px, transparent 1px);
+    background-size: 28px 28px;
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 85%);
+    mask-image: linear-gradient(to bottom, black 0%, transparent 85%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .hero > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--brand-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sl-color-accent);
+    margin: 0 0 0.75rem;
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 4.5vw, 3rem);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    color: var(--sl-color-white);
+    margin: 0 0 1rem;
+    max-width: 18ch;
+  }
+
+  .hero-sub {
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: var(--sl-color-gray-2);
+    max-width: 52ch;
+    margin: 0 0 1.75rem;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--sl-font);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.7em 1.2em;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: transform 0.15s var(--rm-ease, ease), background 0.15s, border-color 0.15s;
+  }
+
+  .btn-primary {
+    background: var(--sl-color-accent);
+    color: #14100a;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    background: color-mix(in srgb, var(--sl-color-accent) 88%, white);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--sl-color-white);
+    border: 1.5px solid var(--sl-color-gray-5);
+  }
+
+  .btn-secondary:hover {
+    transform: translateY(-1px);
+    border-color: var(--sl-color-accent);
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+
+  /* ── Pipeline schematic (signature element) ──────────────────────── */
+  .pipeline {
+    padding: 0.5rem 0 2.5rem;
+  }
+
+  .pipeline-track {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .stage {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+    border: 1.5px solid var(--sl-color-gray-5);
+    border-left: 4px solid var(--sl-color-accent);
+    border-radius: 10px;
+    background: var(--sl-color-bg-sidebar, var(--sl-color-gray-6));
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  }
+
+  .stage:hover {
+    border-color: var(--sl-color-accent);
+    transform: translateY(-1px);
+    box-shadow: var(--sl-shadow-sm);
+  }
+
+  .stage:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+
+  .stage-id {
+    font-family: var(--brand-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--sl-color-accent);
+    flex-shrink: 0;
+    width: 1.6em;
+  }
+
+  .stage-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .stage-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--sl-color-white);
+  }
+
+  .stage-desc {
+    font-size: 0.82rem;
+    color: var(--sl-color-gray-3);
+  }
+
+  .stage-count {
+    font-family: var(--brand-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--sl-color-gray-3);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .pipe {
+    display: flex;
+    justify-content: center;
+    padding: 2px 0;
+    color: var(--sl-color-gray-5);
+  }
+
+  .pipe :global(svg) {
+    display: block;
+  }
+
+  .sink {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 4px;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    background: var(--sl-color-accent);
+    color: #14100a;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    transition: transform 0.15s;
+  }
+
+  .sink:hover {
+    transform: translateY(-1px);
+  }
+
+  .sink:focus-visible {
+    outline: 2px solid var(--sl-color-white);
+    outline-offset: 2px;
+  }
+
+  .sink-icon :global(svg) {
+    display: block;
+  }
+
+  /* ── Stat strip ───────────────────────────────────────────────────── */
+  .stat-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--brand-mono);
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-3);
+    border-top: 1px solid var(--sl-color-gray-6);
+    border-bottom: 1px solid var(--sl-color-gray-6);
+    padding: 1rem 0;
+    margin-bottom: 3rem;
+  }
+
+  .stat-strip strong {
+    color: var(--sl-color-white);
+    font-weight: 600;
+  }
+
+  .stat-dot {
+    color: var(--sl-color-gray-5);
+  }
+
+  /* ── Roadmaps section ─────────────────────────────────────────────── */
+  .section-head {
+    margin-bottom: 1.25rem;
+  }
+
+  .section-head h2 {
+    font-size: 1.5rem;
+    margin: 0.5rem 0 0.4rem;
+  }
+
+  .section-head p {
+    color: var(--sl-color-gray-3);
+    font-size: 0.9rem;
+    margin: 0;
+    max-width: 48ch;
+  }
+
+  .roadmap-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+  }
+
+  .roadmap-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 1rem 1.1rem;
+    border: 1.5px solid var(--sl-color-gray-5);
+    border-radius: 10px;
+    background: var(--sl-color-bg-sidebar, var(--sl-color-gray-6));
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  }
+
+  .roadmap-card:hover {
+    border-color: var(--sl-color-accent);
+    transform: translateY(-1px);
+    box-shadow: var(--sl-shadow-sm);
+  }
+
+  .roadmap-card:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+
+  .roadmap-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .roadmap-card-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--sl-color-white);
+  }
+
+  .roadmap-card-chevron {
+    color: var(--sl-color-gray-4);
+  }
+
+  .roadmap-card-chevron :global(svg) {
+    display: block;
+  }
+
+  .roadmap-card-desc {
+    font-size: 0.82rem;
+    color: var(--sl-color-gray-3);
+  }
+
+  .roadmap-card-count {
+    font-family: var(--brand-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--sl-color-gray-4);
+    margin-top: 0.15rem;
+  }
+
+  /* ── Desktop: pipeline runs horizontally ─────────────────────────── */
+  @media (min-width: 760px) {
+    .pipeline-track {
+      flex-direction: row;
+      align-items: stretch;
+    }
+
+    .stage {
+      flex: 1;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+      text-align: left;
+    }
+
+    .stage-count {
+      align-self: flex-start;
+    }
+
+    .pipe {
+      align-items: center;
+      padding: 0 2px;
+    }
+
+    .pipe :global(svg) {
+      transform: rotate(-90deg);
+    }
+
+    .sink {
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-top: 0;
+      padding: 0.85rem 1.1rem;
+      width: 8.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .roadmap-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn,
+    .stage,
+    .sink,
+    .roadmap-card {
+      transition: none !important;
+    }
+  }
+</style>
