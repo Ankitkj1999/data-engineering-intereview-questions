@@ -271,6 +271,11 @@ function openPanel(id: string, type: string, parentId?: string) {
   }
   syncBtns();
   document.getElementById("rm-drawer")!.classList.add("is-open");
+  if (document.body.classList.contains("page-chat-open")) {
+    document.body.classList.remove("page-chat-open");
+    try { sessionStorage.setItem("page-chat-open", "0"); } catch (_) {}
+    document.body.dispatchEvent(new CustomEvent("page-chat-toggle"));
+  }
   document.body.style.overflow = "hidden";
 }
 
@@ -305,6 +310,9 @@ document.body.appendChild(document.getElementById("rm-drawer")!);
 document.getElementById("rm-panel-close")?.addEventListener("click", closePanel);
 document.getElementById("rm-backdrop")?.addEventListener("click", closePanel);
 document.addEventListener("keydown", e => { if (e.key==="Escape") closePanel(); });
+document.body.addEventListener("page-chat-toggle", () => {
+  if (document.body.classList.contains("page-chat-open")) closePanel();
+});
 document.getElementById("rm-status-select")?.addEventListener("change", (e) => {
   if (activeId) setStatus(activeId, (e.target as HTMLSelectElement).value);
 });
