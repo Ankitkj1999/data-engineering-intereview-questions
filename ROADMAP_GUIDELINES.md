@@ -367,6 +367,7 @@ The panel shows `desc` as a paragraph. Include the topic list naturally:
 | Python | `py_roadmap_v1` |
 | SQL | `sql_roadmap_v1` |
 | Apache Spark | `spark_roadmap_v1` |
+| AWS Services | `aws_roadmap_v1` |
 
 Pattern: `<short_name>_roadmap_v1`. Increment the version suffix if you ever need to reset everyone's saved progress due to a structural change.
 
@@ -416,6 +417,7 @@ Find the existing roadmaps sidebar group (look for the entries for Data Engineer
 | Python | `src/pages/roadmaps/python.astro` | `roadmap/python.json` | `py_roadmap_v1` |
 | SQL | `src/pages/roadmaps/sql.astro` | `roadmap/sql.json` | `sql_roadmap_v1` |
 | Apache Spark | *(to be created)* | `roadmap/apache-spark.json` | `spark_roadmap_v1` |
+| AWS Services | `src/pages/roadmaps/aws.astro` | `cheat-sheet/aws-cheatsheet.json` | `aws_roadmap_v1` |
 
 ---
 
