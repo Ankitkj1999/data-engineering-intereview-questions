@@ -1,0 +1,1047 @@
+[{
+  "aws_cheat_sheet": {
+    "category": "AWS Overview",
+    "topics": [
+      {
+        "name": "AWS Cloud Adoption Framework – AWS CAF"
+      },
+      {
+        "name": "AWS Design Principles"
+      },
+      {
+        "name": "AWS Disaster Recovery"
+      },
+      {
+        "name": "AWS Global Infrastructure"
+      },
+      {
+        "name": "AWS Pricing"
+      },
+      {
+        "name": "AWS Support Plans"
+      },
+      {
+        "name": "Six Pillars of Well-Architected Framework"
+      }
+    ],
+    "related_notes": [
+      {
+        "name": "AWS Shared Responsibility Model"
+      }
+    ]
+  }
+},
+
+{
+  "aws_cheat_sheet": {
+    "category": "AWS Compute Services",
+    "topics": [
+      {
+        "name": "Amazon EKS"
+      },
+      {
+        "name": "Amazon Elastic Compute Cloud (EC2)"
+      },
+      {
+        "name": "Amazon Elastic Container Registry (ECR)"
+      },
+      {
+        "name": "Amazon Elastic Container Service (ECS)"
+      },
+      {
+        "name": "Amazon Lightsail"
+      },
+      {
+        "name": "AWS Batch"
+      },
+      {
+        "name": "AWS Elastic Beanstalk"
+      },
+      {
+        "name": "AWS Fargate"
+      },
+      {
+        "name": "AWS Lambda"
+      },
+      {
+        "name": "AWS ParallelCluster"
+      },
+      {
+        "name": "AWS Serverless Application Model (SAM)"
+      },
+      {
+        "name": "AWS Serverless Application Repository"
+      },
+      {
+        "name": "AWS Savings Plan"
+      },
+      {
+        "name": "AWS Wavelength"
+      }
+    ],
+    "related_notes": [
+      {
+        "name": "Amazon EC2 Auto Scaling Lifecycle Hooks"
+      },
+      {
+        "name": "Building Serverless APIs with AWS API Gateway and AWS Lambda"
+      },
+      {
+        "name": "Configuring Notifications for Amazon EC2 Auto Scaling Lifecycle Hooks"
+      },
+      {
+        "name": "ECS Network Modes Comparison"
+      },
+      {
+        "name": "ECS Task Placement Strategies"
+      },
+      {
+        "name": "Real-time Monitoring of 5XX Errors using AWS Lambda, CloudWatch Logs and Slack"
+      },
+      {
+        "name": "Reduce The Cost Of Your Lambda functions With Event Filters(Part 1 of 2)"
+      },
+      {
+        "name": "Reduce The Cost Of Your Lambda functions With Event Filters(Part 2 of 2)"
+      },
+      {
+        "name": "SFTP on Your Ubuntu EC2 Instance – Quick and Simple Setup"
+      },
+      {
+        "name": "Understanding and Managing AWS Lambda Recursive Loop Invocations"
+      },
+      {
+        "name": "Utilizing Lambda Functions to Control Amazon EC2 Instances via Slack"
+      }
+    ]
+  }
+},
+
+
+{
+  "aws_cheat_sheet": {
+    "category": "AWS Storage Services",
+    "topics": [
+      {
+        "name": "Amazon EBS"
+      },
+      {
+        "name": "Amazon EFS"
+      },
+      {
+        "name": "Amazon FSx"
+      },
+      {
+        "name": "Amazon S3 Glacier"
+      },
+      {
+        "name": "Amazon S3"
+      },
+      {
+        "name": "AWS Backup"
+      },
+      {
+        "name": "AWS Snowball Edge"
+      },
+      {
+        "name": "AWS Snowmobile"
+      },
+      {
+        "name": "AWS Storage Gateway"
+      },
+      {
+        "name": "AWS Transfer Family"
+      }
+    ],
+    "related_notes": [
+      {
+        "name": "Amazon EBS Multi-Attach"
+      },
+      {
+        "name": "Amazon S3 Access Points"
+      },
+      {
+        "name": "Amazon S3 Bucket Policies for VPC Endpoints"
+      },
+      {
+        "name": "Amazon S3 Event Notifications"
+      },
+      {
+        "name": "Cost Allocation Tags on Amazon S3 Buckets and Using AWS Cost Explorer"
+      },
+      {
+        "name": "Enhancing S3 Bucket Security by Prohibiting Uploads of Unencrypted Objects"
+      },
+      {
+        "name": "Locking your Glacier Vault using the Amazon S3 Glacier API"
+      },
+      {
+        "name": "Redacting PIIs Using S3 Object Lambda"
+      },
+      {
+        "name": "Streamlining EBS Snapshot Management with Amazon Data Lifecycle Manager Automation"
+      },
+      {
+        "name": "Using Origin Access Control (OAC) to Secure S3 Object Access to CloudFront"
+      }
+    ]
+  }
+},
+{
+  "aws_cheat_sheet": {
+    "category": "AWS Database Services",
+    "topics": [
+      {
+        "name": "Amazon Aurora"
+      },
+      {
+        "name": "Amazon DocumentDB"
+      },
+      {
+        "name": "Amazon DynamoDB"
+      },
+      {
+        "name": "Amazon ElastiCache"
+      },
+      {
+        "name": "Amazon MemoryDB for Redis"
+      },
+      {
+        "name": "Amazon Neptune"
+      },
+      {
+        "name": "Amazon Quantum Ledger Database (QLDB)"
+      },
+      {
+        "name": "Amazon RDS"
+      },
+      {
+        "name": "Amazon Redshift"
+      },
+      {
+        "name": "Amazon Redshift Serverless"
+      }
+    ],
+    "related_notes": [
+      {
+        "name": "Amazon Aurora Machine Learning"
+      },
+      {
+        "name": "Aurora Serverless Tutorial – Part 1"
+      },
+      {
+        "name": "Aurora Server Tutorial – Part 2"
+      },
+      {
+        "name": "Calculating Required RCU And WCU For Your DynamoDB Table"
+      },
+      {
+        "name": "DynamoDB Scan vs Query"
+      },
+      {
+        "name": "Global Secondary Index vs Local Secondary Index"
+      },
+      {
+        "name": "Harnessing Real-Time Slack Notifications for Amazon RDS Event Monitoring"
+      },
+      {
+        "name": "Lambda Integration With Amazon DynamoDB Streams"
+      },
+      {
+        "name": "Redis (Cluster Mode Enabled vs Disabled) vs Memcached"
+      },
+      {
+        "name": "Redis Append-Only Files vs Redis Replication"
+      }
+    ]
+  }
+},
+{
+  "aws_cheat_sheet": {
+    "category": "AWS Migration Services",
+    "topics": [
+      {
+        "name": "AWS Database Migration Service"
+      },
+      {
+        "name": "AWS DataSync"
+      },
+      {
+        "name": "AWS Migration Strategies – The 6 R‘s"
+      },
+      {
+        "name": "AWS Server Migration Service (SMS)"
+      },
+      {
+        "name": "AWS Data Transfer Terminal"
+      },
+      {
+        "name": "AWS Snowball Edge"
+      },
+      {
+        "name": "AWS Snowmobile"
+      },
+      {
+        "name": "Migration Evaluator"
+      }
+    ],
+    "related_notes": []
+  }
+},
+{
+  "aws_cheat_sheet": {
+    "category": "AWS Networking & Content Delivery",
+    "topics": [
+      {
+        "name": "Amazon API Gateway"
+      },
+      {
+        "name": "Amazon CloudFront"
+      },
+      {
+        "name": "Amazon Route 53"
+      },
+      {
+        "name": "Amazon VPC"
+      },
+      {
+        "name": "AWS Direct Connect"
+      },
+      {
+        "name": "AWS Elastic Load Balancing (ELB)"
+      },
+      {
+        "name": "AWS Global Accelerator"
+      },
+      {
+        "name": "AWS Transit Gateway"
+      }
+    ],
+    "related_notes": [
+      {
+        "name": "Building a Private React Application Infrastructure with Terraform"
+      },
+      {
+        "name": "Building a Simple Video Hosting Service using Amazon CloudFront, Amazon S3, and AWS Amplify"
+      },
+      {
+        "name": "Increasing MTU for Your EC2 Instance"
+      },
+      {
+        "name": "Lightning-Fast Static Website with Amazon S3 and CloudFront with Origin Access Control (OAC)"
+      },
+      {
+        "name": "Longest Prefix Match: Understanding Advanced Concepts in VPC Peering"
+      },
+      {
+        "name": "Navigating DNS Management: Unveiling Amazon Route 53 Inbound and Outbound Resolver Endpoints"
+      },
+      {
+        "name": "Resolve Route 53 Private Hosted Zones from an On-premises Network"
+      },
+      {
+        "name": "Setting Up Redirects on Amazon S3 for a Custom Domain Registered with Amazon Route 53"
+      },
+      {
+        "name": "Split-view DNS using Amazon Route 53"
+      },
+      {
+        "name": "Using Amazon Route 53 Resolver"
+      },
+      {
+        "name": "VPC Peering"
+      },
+      {
+        "name": "Validate Referrer Headers Using CloudFront Function"
+      }
+    ]
+  }
+},{
+  "aws_cheat_sheet": {
+    "category": "AWS Security & Identity Services",
+    "topics": [
+      {
+        "name": "Amazon Cognito"
+      },
+      {
+        "name": "Amazon Detective"
+      },
+      {
+        "name": "Amazon GuardDuty"
+      },
+      {
+        "name": "Amazon Inspector"
+      },
+      {
+        "name": "Amazon Macie"
+      },
+      {
+        "name": "AWS Artifact"
+      },
+      {
+        "name": "AWS Audit Manager"
+      },
+      {
+        "name": "AWS Certificate Manager"
+      },
+      {
+        "name": "AWS CloudHSM"
+      },
+      {
+        "name": "AWS Directory Service"
+      },
+      {
+        "name": "AWS Firewall Manager"
+      },
+      {
+        "name": "AWS Identity & Access Management (IAM)"
+      },
+      {
+        "name": "AWS Key Management Service"
+      },
+      {
+        "name": "AWS Network Firewall"
+      },
+      {
+        "name": "AWS Organizations"
+      },
+      {
+        "name": "AWS Resource Access Manager (RAM)"
+      },
+      {
+        "name": "AWS Secrets Manager"
+      },
+      {
+        "name": "AWS Security Hub"
+      },
+      {
+        "name": "AWS Shield"
+      },
+      {
+        "name": "AWS WAF"
+      }
+    ],
+    "related_notes": [
+      {
+        "name": "Amazon Cognito User Pools vs Identity Pools"
+      },
+      {
+        "name": "AWS Managed Policies For Job Functions"
+      },
+      {
+        "name": "AWS Secrets Manager vs Systems Manager Parameter Store"
+      },
+      {
+        "name": "Customer Master Keys (CMKs) Policy Management in AWS KMS"
+      },
+      {
+        "name": "Enhance Your Security Posture: Configure SNS Notifications for AWS Secrets Manager Rotation Events"
+      },
+      {
+        "name": "How AWS IAM Handles Conflicting IAM Policies"
+      },
+      {
+        "name": "Managing Amazon GuardDuty Security Findings Across Multiple Accounts"
+      },
+      {
+        "name": "Symmetric vs. Asymmetric CMKs"
+      },
+      {
+        "name": "Understanding the IAM:PassRole Permission"
+      },
+      {
+        "name": "Using the Secure String Parameter in Systems Manager Parameter Store"
+      },
+      {
+        "name": "Working with Customer Master Keys (CMKs) Using the AWS KMS API"
+      }
+    ]
+  }
+},
+{
+  "aws_cheat_sheet": {
+    "category": "AWS Management Tools",
+    "topics": [
+      {
+        "name": "Amazon Managed Grafana"
+      },
+      {
+        "name": "Amazon Managed Service for Prometheus"
+      },
+      {
+        "name": "Amazon CloudWatch"
+      },
+      {
+        "name": "AWS Auto Scaling"
+      },
+      {
+        "name": "AWS Compute Optimizer"
+      },
+      {
+        "name": "AWS Cloud Development Kit (CDK)"
+      },
+      {
+        "name": "AWS CloudFormation"
+      },
+      {
+        "name": "AWS CloudShell"
+      },
+      {
+        "name": "AWS CloudTrail"
+      },
+      {
+        "name": "AWS Config"
+      },
+      {
+        "name": "AWS Control Tower"
+      },
+      {
+        "name": "AWS Health"
+      },
+      {
+        "name": "AWS License Manager"
+      },
+      {
+        "name": "AWS Management Console"
+      },
+      {
+        "name": "AWS OpsWorks"
+      },
+      {
+        "name": "AWS Outposts"
+      },
+      {
+        "name": "AWS Proton"
+      },
+      {
+        "name": "AWS Service Catalog"
+      },
+      {
+        "name": "AWS Systems Manager"
+      },
+      {
+        "name": "AWS Trusted Advisor"
+      },
+      {
+        "name": "AWS Well-Architected Tool"
+      }
+    ],
+    "related_notes": [
+      {
+        "name": "Adding Logs Insights Queries To Your CloudWatch Dashboard"
+      },
+      {
+        "name": "Automatic SSH Key Pair Rotation via AWS Systems Manager Fleet Manager"
+      },
+      {
+        "name": "AWS CloudFormation Deletion Policy"
+      },
+      {
+        "name": "AWS CloudFormation StackSets and Nested Stacks"
+      },
+      {
+        "name": "Default Host Management Configuration on AWS Systems Manager"
+      },
+      {
+        "name": "Different Ways of Passing Parameters Securely in CloudFormation"
+      },
+      {
+        "name": "How to Implement CloudFormation Creation Policy on Ubuntu"
+      },
+      {
+        "name": "Managing AWS Organizations and Accounts with AWS Control Tower"
+      },
+      {
+        "name": "Managing Non-EC2 Servers using AWS Systems Manager"
+      },
+      {
+        "name": "Setting Up AWS EventBridge for Cross-Region IAM Event Notifications"
+      },
+      {
+        "name": "Specifying Triggers for AWS Config Rules"
+      }
+    ]
+  }
+},
+{
+  "aws_cheat_sheet": {
+    "category": "AWS Analytics Services",
+    "topics": [
+      {
+        "name": "Amazon Athena"
+      },
+      {
+        "name": "Amazon CloudSearch"
+      },
+      {
+        "name": "Amazon Elasticsearch (ES)"
+      },
+      {
+        "name": "Amazon EMR"
+      },
+      {
+        "name": "Amazon Kinesis"
+      },
+      {
+        "name": "Amazon MSK"
+      },
+      {
+        "name": "Amazon QuickSight"
+      },
+      {
+        "name": "Amazon Redshift"
+      },
+      {
+        "name": "AWS Data Exchange"
+      },
+      {
+        "name": "AWS Data Pipeline"
+      },
+      {
+        "name": "AWS Glue"
+      },
+      {
+        "name": "AWS Glue DataBrew"
+      },
+      {
+        "name": "AWS Glue Data Quality"
+      },
+      {
+        "name": "AWS Lake Formation"
+      }
+    ],
+    "related_notes": [
+      {
+        "name": "Batch Data Ingestion Simplified in AWS"
+      },
+      {
+        "name": "Building Data Pipelines with No-Code ETL Using AWS Glue Studio"
+      },
+      {
+        "name": "In-Place Querying in AWS"
+      },
+      {
+        "name": "Kinesis Scaling Resharding And Parallel Processing"
+      }
+    ]
+  }
+},
+{
+  "aws_cheat_sheet": {
+    "category": "AWS Billing and Cost Management",
+    "topics": [
+      {
+        "name": "AWS Free Tier"
+      },
+      {
+        "name": "AWS Cost Anomaly Detection"
+      },
+      {
+        "name": "AWS Billing Conductor"
+      },
+      {
+        "name": "AWS Cost and Usage Reports"
+      },
+      {
+        "name": "AWS Cost Explorer"
+      },
+      {
+        "name": "AWS Budgets"
+      }
+    ],
+    "related_notes": []
+  }
+},
+{
+  "aws_cheat_sheet": {
+    "category": "AWS Developer Tools",
+    "topics": [
+      {
+        "name": "AWS AppConfig"
+      },
+      {
+        "name": "AWS CodeBuild"
+      },
+      {
+        "name": "AWS CodeCommit"
+      },
+      {
+        "name": "AWS CodeDeploy"
+      },
+      {
+        "name": "AWS CodePipeline"
+      },
+      {
+        "name": "AWS CodeStar"
+      },
+      {
+        "name": "AWS X-Ray"
+      }
+    ],
+    "related_notes": [
+      {
+        "name": "AWS CodeCommit Repository"
+      },
+      {
+        "name": "Building a Deployment Pipeline for a React Application with AWS CodePipeline"
+      },
+      {
+        "name": "Instrumenting Your Application with AWS X-Ray"
+      },
+      {
+        "name": "Lifecycle Event Hooks in CodeDeploy"
+      },
+      {
+        "name": "Release with a Pipeline: Continuous Delivery to AWS with GitHub Actions"
+      }
+    ]
+  }
+},
+{
+  "aws_cheat_sheet": {
+    "category": "AWS Application Services",
+    "topics": [
+      {
+        "name": "Amazon AppFlow"
+      },
+      {
+        "name": "Amazon EventBridge"
+      },
+      {
+        "name": "Amazon SES"
+      },
+      {
+        "name": "Amazon SNS"
+      },
+      {
+        "name": "Amazon SQS"
+      },
+      {
+        "name": "Amazon SWF"
+      },
+      {
+        "name": "AWS Step Functions"
+      },
+      {
+        "name": "Amazon Managed Workflows for Apache Airflow"
+      }
+    ],
+    "related_notes": [
+      {
+        "name": "Automate Confluence Backup Using AWS Step Functions"
+      },
+      {
+        "name": "Enabling Virtual Deliverability Manager in Amazon Simple Email Service (Amazon SES)"
+      }
+    ]
+  }
+},{
+  "aws_cheat_sheet": {
+    "category": "AWS Front-end Web & Mobile Services",
+    "topics": [
+      {
+        "name": "AWS Amplify"
+      },
+      {
+        "name": "AWS AppSync"
+      },
+      {
+        "name": "AWS Device Farm"
+      }
+    ],
+    "related_notes": []
+  }
+},{
+  "aws_cheat_sheet": {
+    "category": "AWS Desktop and App Streaming",
+    "topics": [
+      {
+        "name": "Amazon WorkSpaces"
+      }
+    ],
+    "related_notes": []
+  }
+},{
+  "aws_cheat_sheet": {
+    "category": "AWS Machine Learning and AI",
+    "topics": [
+      {
+        "name": "Amazon Augmented AI (A2I)"
+      },
+      {
+        "name": "AWS Agent Squad"
+      },
+      {
+        "name": "Amazon Bedrock"
+      },
+      {
+        "name": "Amazon Bedrock Data Automation"
+      },
+      {
+        "name": "Amazon Bedrock Flows"
+      },
+      {
+        "name": "Amazon Bedrock Knowledge Bases"
+      },
+      {
+        "name": "Amazon Bedrock Prompt Management"
+      },
+      {
+        "name": "Amazon Bedrock AgentCore"
+      },
+      {
+        "name": "Amazon Bedrock AgentCore Runtime"
+      },
+      {
+        "name": "Amazon Bedrock AgentCore Browser Tools"
+      },
+      {
+        "name": "Amazon Bedrock AgentCore Identity"
+      },
+      {
+        "name": "Amazon Bedrock AgentCore Observability"
+      },
+      {
+        "name": "Amazon Bedrock AgentCore Memory"
+      },
+      {
+        "name": "Amazon Bedrock AgentCore Gateway"
+      },
+      {
+        "name": "Amazon Bedrock AgentCore Code Interpreter"
+      },
+      {
+        "name": "Amazon Comprehend"
+      },
+      {
+        "name": "Amazon Comprehend Medical"
+      },
+      {
+        "name": "Amazon Elastic Inference"
+      },
+      {
+        "name": "Amazon Kendra"
+      },
+      {
+        "name": "Amazon Lex"
+      },
+      {
+        "name": "Amazon Personalize"
+      },
+      {
+        "name": "Amazon Polly"
+      },
+      {
+        "name": "Amazon Q"
+      },
+      {
+        "name": "Amazon Rekognition"
+      },
+      {
+        "name": "Amazon SageMaker"
+      },
+      {
+        "name": "Amazon SageMaker Feature Store"
+      },
+      {
+        "name": "Amazon SageMaker Data Wrangler"
+      },
+      {
+        "name": "Amazon SageMaker Clarify"
+      },
+      {
+        "name": "AWS Strands Agents"
+      },
+      {
+        "name": "Amazon Textract"
+      },
+      {
+        "name": "Amazon Titan"
+      },
+      {
+        "name": "Amazon Transcribe"
+      },
+      {
+        "name": "Amazon Translate"
+      },
+      {
+        "name": "AWS DeepLens"
+      },
+      {
+        "name": "AWS AI Factories"
+      }
+    ],
+    "related_notes": [
+      {
+        "name": "Amazon AI Fairness and Explainability with Amazon SageMaker Clarify"
+      },
+      {
+        "name": "Deploying a Serverless Inference Endpoint with Amazon SageMaker"
+      },
+      {
+        "name": "Distributed Data Parallel Training with TensorFlow and Amazon SageMaker Distributed Training Library"
+      },
+      {
+        "name": "Getting Started with SageMaker Ground Truth Private Workforce"
+      },
+      {
+        "name": "OpenAI’s ChatGPT vs Amazon Lex"
+      },
+      {
+        "name": "Personal ML Projects with Amazon SageMaker, Amazon Comprehend, Amazon Forecast and Other ML Services"
+      },
+      {
+        "name": "Scalable Data Processing and Transformation using SageMaker Processing (Part 1 of 2)"
+      },
+      {
+        "name": "Scalable Data Processing and Transformation using SageMaker Processing (Part 2 of 2)"
+      },
+      {
+        "name": "Securing LLMs with Guardrails for Amazon Bedrock"
+      },
+      {
+        "name": "Securing Your Repositories with AWS CodeGuru: How Machine Learning Can Improve Your Code Quality and Security"
+      },
+      {
+        "name": "Train and Deploy a Scikit-Learn Model in Amazon SageMaker"
+      },
+      {
+        "name": "Training an Image Classification Model with TensorFlow in Amazon SageMaker"
+      }
+    ]
+  }
+},{
+  "aws_cheat_sheet": {
+    "category": "Other AWS Services",
+    "topics": [
+      {
+        "name": "Amazon Mechanical Turk"
+      },
+      {
+        "name": "Amazon MQ"
+      },
+      {
+        "name": "AWS IoT Core"
+      }
+    ],
+    "related_notes": []
+  }
+},{
+  "aws_cheat_sheet": {
+    "category": "Comparison of AWS Services",
+    "topics": [
+      {
+        "name": "Amazon Aurora vs Amazon RDS"
+      },
+      {
+        "name": "Amazon Cognito User Pools vs Identity Pools"
+      },
+      {
+        "name": "Amazon EFS vs Amazon FSx for Windows vs Amazon FSx for Lustre"
+      },
+      {
+        "name": "Amazon EKS vs Amazon ECS"
+      },
+      {
+        "name": "Amazon Kinesis Data Streams vs Data Firehose vs Data Analytics vs Video Streams"
+      },
+      {
+        "name": "Amazon RDS vs DynamoDB"
+      },
+      {
+        "name": "Amazon S3 vs EBS vs EFS"
+      },
+      {
+        "name": "Amazon S3 vs Glacier"
+      },
+      {
+        "name": "Amazon SWF vs AWS Step Function vs Amazon SQS"
+      },
+      {
+        "name": "Application Load Balancer vs Network Load Balancer vs Classic Load Balancer"
+      },
+      {
+        "name": "AWS CloudTrail vs Amazon CloudWatch"
+      },
+      {
+        "name": "AWS DataSync vs Storage Gateway"
+      },
+      {
+        "name": "AWS Global Accelerator vs Amazon CloudFront"
+      },
+      {
+        "name": "AWS Secrets Manager vs Systems Manager Parameter Store"
+      },
+      {
+        "name": "Backup and Restore vs Pilot Light vs Warm Standby vs Multi – site"
+      },
+      {
+        "name": "CloudWatch Agent vs SSM Agent vs Custom Daemon Scripts"
+      },
+      {
+        "name": "EBS-SSD vs HDD"
+      },
+      {
+        "name": "EC2 Container Services ECS vs Lambda"
+      },
+      {
+        "name": "EC2 Instance Health Check vs ELB Health Check vs Auto Scaling and Custom Health Check"
+      },
+      {
+        "name": "Elastic Beanstalk vs CloudFormation vs OpsWorks vs CodeDeploy"
+      },
+      {
+        "name": "ELB Health Checks vs Route 53 Health Checks For Target Health Monitoring"
+      },
+      {
+        "name": "Global Secondary Index vs Local Secondary Index"
+      },
+      {
+        "name": "Interface Endpoint vs Gateway Endpoint vs Gateway Load Balancer Endpoint"
+      },
+      {
+        "name": "Latency Routing vs Geoproximity Routing vs Geolocation Routing"
+      },
+      {
+        "name": "Redis Append – Only files vs Redis Replication"
+      },
+      {
+        "name": "Redis Cluster Mode Enabled vs Disabled vs Memcached"
+      },
+      {
+        "name": "S3 Pre-Signed URLS vs CloudFront Signed URLS vs Origin Access Identity"
+      },
+      {
+        "name": "S3 Standard vs S3 Standard-IA vs S3OneZone-IA"
+      },
+      {
+        "name": "S3 Transfer Acceleration vs Direct Connect vs VPN vs Snowball vs Snowmobile"
+      },
+      {
+        "name": "Security Group vs NACL"
+      },
+      {
+        "name": "Service Control Policies vs IAM Policies"
+      },
+      {
+        "name": "SNI Custom SSL vs Dedicated IP Custom SSL"
+      },
+      {
+        "name": "Step Scaling vs Simple Scaling Policies in Amazon EC2"
+      },
+      {
+        "name": "VPC Interface Endpoint vs. Gateway Endpoint in AWS"
+      }
+    ],
+    "related_notes": [
+      {
+        "name": "AWS Certified Cloud Practitioner vs AZ-900 Microsoft Azure Fundamentals"
+      },
+      {
+        "name": "AWS vs Azure Services Comparison"
+      }
+    ]
+  }
+}
+
+]
