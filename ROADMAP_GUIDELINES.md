@@ -249,7 +249,7 @@ function openPanel(id: string, type: string, parentId?: string) {
   badge.textContent = type==="topic"?"Topic":"Subtopic";
   badge.className   = `rm-panel-badge is-${type}`;
   title.textContent = item.label;
-  body.innerHTML    = `<p class="rm-panel-desc">${item.desc}</p>`;
+  body.innerHTML    = `<p class="rm-panel-desc">${item.desc}</p>` + (item.link ? `<a href="${item.link}" class="rm-read-more">Read more →</a>` : "");
   if (type==="topic" && item.subs?.length>0) {
     const sublist = document.createElement("div");
     sublist.className = "rm-panel-sublist";
@@ -324,11 +324,13 @@ const ROADMAP = [
     id: "phase-id",           // must match JSON phase id
     label: "Phase Name",      // JSON phase.name
     desc: "Phase description.", // JSON phase.description
+    link: "/level-2-core-concepts/data-modeling/", // optional, see "Linking to Content Pages" below
     subs: [
       {
         id: "section-id",     // must match JSON section id
         label: "Section Name", // JSON section.name
         desc: "Section description. Topics: topic1, topic2, topic3.", // combine section.description + topics list
+        link: "/level-1-foundations/sql/#window-functions", // optional
       },
       // ... more sections
     ],
@@ -336,6 +338,17 @@ const ROADMAP = [
   // ... more phases
 ];
 ```
+
+### Linking to Content Pages
+
+`link` is optional on both topic and subtopic objects. When present, the drawer panel renders a "Learn more →" link below the `desc` paragraph, pointing into the actual content site rather than leaving the roadmap as a disconnected checklist.
+
+Priority order when deciding a topic's `link`:
+1. **A page we maintain that covers this exact topic** — link to it directly (e.g. roadmap topic "What is Data Engineering" → `/level-2-core-concepts/what-is-data-engineering/`).
+2. **A section within a page we maintain** — anchor-link into it (e.g. roadmap topic "Window Functions" → `/level-1-foundations/sql/#window-functions`), matching an actual `##`/`###` heading on that page.
+3. **Nothing of ours covers it yet** — omit `link` rather than pointing externally. Only link externally for topics that will never get their own page here (e.g. a specific third-party tool we don't otherwise document).
+
+Do not invent a page-per-leaf-topic to satisfy this — most roadmaps have 80-200+ leaf topics (SQL: 89, Python: 77, Data Engineering: 148, AWS: 226), far more than warrant individual pages. `link` is populated opportunistically as matching content pages already exist, not as a mandate to write one page per roadmap node.
 
 ### Converting `topics` array into `desc`
 
@@ -421,4 +434,4 @@ Find the existing roadmaps sidebar group (look for the entries for Data Engineer
 
 ---
 
-**Last Updated**: July 4, 2026
+**Last Updated**: July 21, 2026

@@ -132,5 +132,5 @@ You usually also enforce code review, documentation, and data tests for critical
 ## Next Steps
 
 - **Learn more about data transformation**: Explore [Data Warehouses](/level-3-technologies/databases/)
-- **Practice with SQL**: Check out [SQL Basics](/level-1-foundations/sql/basics/) to strengthen SQL skills
+- **Practice with SQL**: Check out [SQL Interview Questions](/level-1-foundations/sql/) to strengthen SQL skills
 - **Orchestration**: Review [Airflow](/level-3-technologies/orchestration/airflow/) for workflow management

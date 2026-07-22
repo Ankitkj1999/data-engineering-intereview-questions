@@ -6,14 +6,46 @@ This document outlines SEO best practices, content standards, and technical requ
 ---
 
 ## Table of Contents
-1. [Frontmatter Standards](#frontmatter-standards)
-2. [Content Structure](#content-structure)
-3. [SEO Guidelines](#seo-guidelines)
-4. [Markdown Formatting](#markdown-formatting)
-5. [Code Examples](#code-examples)
-6. [Internal Linking](#internal-linking)
-7. [Directory Organization](#directory-organization)
-8. [Meta Tags & Robots](#meta-tags--robots)
+1. [Content Page Pattern](#content-page-pattern)
+2. [Frontmatter Standards](#frontmatter-standards)
+3. [Content Structure](#content-structure)
+4. [SEO Guidelines](#seo-guidelines)
+5. [Markdown Formatting](#markdown-formatting)
+6. [Code Examples](#code-examples)
+7. [Internal Linking](#internal-linking)
+8. [Directory Organization](#directory-organization)
+9. [Meta Tags & Robots](#meta-tags--robots)
+
+---
+
+## Content Page Pattern
+
+**One page per topic by default.** A topic only gets a second page when its interview questions are a genuinely different *question format* — never because the subject is "foundational," never because there's a lot of content. A big topic gets narrower (e.g. "Data Warehouses" split per vendor, already done), not multi-page.
+
+### Default single-page shape
+Applies to everything in `level-2-core-concepts`, `level-3-technologies`, `level-4-advanced`, and most of `level-1-foundations`:
+
+1. **Quick Summary** — 1-2 sentence overview
+2. **Key Concepts** — the core ideas, briefly
+3. **Interview Questions** — rendered with `QuestionCard`/`QuestionList` (see below), not plain markdown Q&A
+4. **Common Interview Scenarios** — real-world framing
+5. **Further Reading** — 2-3 links, **our own existing pages first** (direct link to a page, or an anchor into a section of one), external sources only when nothing internal covers it
+
+### Current exceptions (format-driven, not tier-driven)
+- **Python** — two pages, `theory.md` (conceptual Q&A) and `practice.md` (coding problems). These are genuinely different question formats (explain-this vs. write-this-function), not different depth.
+- **Data Structures** — one page, practice-only shape (`practice.md`-style content). It's inherently coding-problem territory; there's no separate "theory" format to split out.
+- Everything else, including SQL, is single-page. SQL's old theory/practice split was never a real format difference (both were prose Q&A) — it's been merged into one page.
+
+Don't add a new exception without a concrete reason the question *format* differs, not just that the topic is large or foundational-feeling.
+
+### No dedicated tutorial/"basics" pages
+Roadmaps (`src/pages/roadmaps/*.astro`) are the curriculum/checklist layer — each roadmap topic already carries a short `desc` blurb (see `ROADMAP_GUIDELINES.md`), which is the "quick basics" layer. This site does not also maintain full from-scratch tutorials (no `basics.md` anywhere). Anything a page needs to explain to make sense of its interview questions belongs in that page's own **Key Concepts** section, kept brief — not a separate tutorial page.
+
+### Interview questions must use `QuestionCard`/`QuestionList`
+Any section presenting interview Q&A uses the `QuestionCard` and `QuestionList` components (`src/components/mdx/`), not plain markdown headings with bolded answers. This is what powers per-question "mark as done" progress tracking. Plain markdown Q&A sections are a sign a page hasn't been migrated yet, not an accepted alternative.
+
+### Known gap (being fixed incrementally, one topic at a time)
+Several existing pages predate this decision — most visibly Hadoop, Spark, Hive, and Flink, which are long narrative essays rather than the single-page template above, and most topics still use plain markdown Q&A instead of `QuestionCard`. Don't use these pages as a reference for new content; treat this document as the source of truth instead.
 
 ---
 
@@ -33,8 +65,8 @@ description: [Detailed description 150-160 characters that describes the page co
 - **Format**: Keep it SHORT and clear for sidebar/browser tabs
 - **In Markdown H1**: Use the longer, more descriptive version for page display
 - **Examples**:
-  - Title (frontmatter): `SQL Basics`
-  - H1 (markdown): `SQL Basics: Essential Syntax & Commands`
+  - Title (frontmatter): `SQL`
+  - H1 (markdown): `SQL Interview Questions: Syntax, Joins & Query Design`
   - Title (frontmatter): `Python Theory`
   - H1 (markdown): `Python Theory: Core Concepts for Data Engineering`
 - **Length**: 20-35 characters ideal (so sidebar displays well)
@@ -72,18 +104,18 @@ description: [Detailed description 150-160 characters that describes the page co
 ```yaml
 # ✅ CORRECT
 ---
-title: SQL Basics
+title: SQL
 ---
-## SQL Basics: Essential Syntax & Commands
+## SQL Interview Questions: Syntax, Joins & Query Design
 ```
 
 ```yaml
 # ❌ WRONG - Creates duplicate H1
 ---
-title: SQL Basics
+title: SQL
 ---
-# SQL Basics: Essential Syntax & Commands
-## SQL Basics: Essential Syntax & Commands
+# SQL Interview Questions: Syntax, Joins & Query Design
+## SQL Interview Questions: Syntax, Joins & Query Design
 ```
 
 **Why this matters:**
@@ -91,7 +123,7 @@ title: SQL Basics
 - Adding a markdown H1 creates duplicate titles on the page
 - Hurts user experience (redundant heading)
 - Hurts SEO (duplicate H1 is a markup error)
-- Reference: SQL Basics page does this correctly (no markdown H1)
+- Reference: the SQL page does this correctly (no markdown H1)
 
 ### H2 (First Markdown Heading - After H1 is Auto-Rendered)
 - **Use as the first markdown heading** (since frontmatter title renders as H1)
@@ -100,7 +132,7 @@ title: SQL Basics
 - **Include**: Subtitle with additional keywords/context
 - **Examples**:
   ```markdown
-  ## SQL Basics: Essential Syntax & Commands
+  ## SQL Interview Questions: Syntax, Joins & Query Design
   
   ## Python Theory: Core Concepts for Data Engineering
   
@@ -169,7 +201,7 @@ title: SQL Basics
 - **Anchor text**: Descriptive, keyword-rich
 - **Example**: 
   ```markdown
-  [Learn more about SQL Joins](/level-1-foundations/sql/theory/#joins)
+  [Learn more about SQL Joins](/level-1-foundations/sql/#joins)
   ```
 
 ### 6. Meta Description Best Practices
@@ -306,10 +338,10 @@ def calculate_average_salary(employees):
 ```
 
 ### Link Examples
-- ✅ `[Learn about JOINs](/level-1-foundations/sql/theory/#joins)`
-- ✅ `[SQL Basics](/level-1-foundations/sql/basics/)`
+- ✅ `[Learn about JOINs](/level-1-foundations/sql/#joins)`
+- ✅ `[SQL Interview Questions](/level-1-foundations/sql/)`
 - ✅ `[Advanced Queries](/level-3-technologies/databases/bigquery/)`
-- ❌ `[Click here](/level-1-foundations/sql/theory/)` (non-descriptive)
+- ❌ `[Click here](/level-1-foundations/sql/)` (non-descriptive)
 
 ---
 
@@ -319,31 +351,23 @@ def calculate_average_salary(employees):
 ```
 level-1-foundations/
 ├── data-structure/
-│   ├── index.md (overview)
-│   ├── practice.md (interview questions)
-│   └── theory.md (concepts)
+│   └── index.md (single page: concepts + interview/coding questions)
 ├── python/
-│   ├── index.md
-│   ├── theory.md
-│   ├── practice.md
-│   └── basics.md (syntax & fundamentals)
+│   ├── index.md (landing, links to theory + practice)
+│   ├── theory.md (conceptual interview Q&A)
+│   └── practice.md (coding problems)
 └── sql/
-    ├── index.md
-    ├── basics.md (syntax & commands)
-    ├── theory.md (concepts & design)
-    └── practice.md (interview questions)
+    └── index.md (single page: concepts + interview questions)
 ```
 
 ### Naming Conventions
 - **Lowercase**: All file names lowercase
 - **Hyphens**: Use hyphens for multiple words
-- **Examples**: `data-structures.md`, `sql-theory.md`
+- **Examples**: `data-structures.md`, `data-modeling.md`
 
 ### Folder Types
-- **index.md**: Overview/landing page for the section
-- **basics.md**: Practical syntax, commands, and fundamentals
-- **theory.md**: Concepts, design principles, architecture
-- **practice.md**: Interview questions and scenarios
+- **index.md**: The topic's page for single-page topics; a short landing page for the handful of topics with more than one page (currently only Python — see [Content Page Pattern](#content-page-pattern))
+- **theory.md** / **practice.md**: Only exist where a topic has an explicit format-based exception (currently only Python)
 
 ---
 
@@ -396,35 +420,20 @@ Sitemap: https://yourdomain.com/sitemap.xml
 Essential context about why this matters.
 ```
 
-### Basics Pages
+### Topic Pages (default, single page)
 - **Length**: 1,500-2,500 words
-- **Purpose**: Teach practical syntax and commands
-- **Content**:
-  - Code examples with explanations
-  - Step-by-step tutorials
-  - Common use cases
-  - Best practices
-  - Common mistakes
+- **Purpose**: Interview-ready understanding of one concept or technology
+- **Content**: Quick Summary → Key Concepts → Interview Questions (`QuestionCard`/`QuestionList`) → Common Interview Scenarios → Further Reading — see [Content Page Pattern](#content-page-pattern)
 
-### Theory Pages
+### Theory Pages (Python exception only)
 - **Length**: 2,000-3,000 words
-- **Purpose**: Explain concepts and design principles
-- **Content**:
-  - Concept definitions
-  - Context and background
-  - Use cases and benefits
-  - Detailed explanations
-  - Advanced considerations
+- **Purpose**: Interview questions on concepts and design principles
+- **Content**: `QuestionCard`/`QuestionList` entries covering concept definitions, context, use cases, and advanced considerations
 
-### Practice Pages
+### Practice Pages (Python and Data Structures)
 - **Length**: 1,500-2,500 words minimum
-- **Purpose**: Prepare for interviews
-- **Content**:
-  - Questions with full answers
-  - Real-world scenarios
-  - Edge cases and variations
-  - Explanation of solutions
-  - Common follow-up questions
+- **Purpose**: Prepare for interviews with hands-on coding exercises
+- **Content**: `QuestionCard`/`QuestionList` entries covering real-world scenarios, edge cases, and solution walkthroughs
 
 ---
 
@@ -539,7 +548,7 @@ SELECT * FROM table
 ✅ **Keyword-rich description**: `Master SQL fundamentals with practical examples. Learn SELECT, WHERE, JOINs, and aggregation functions.`
 
 ❌ **Vague links**: `[Click here](#)`  
-✅ **Descriptive links**: `[Learn about SQL JOINs](/level-1-foundations/sql/theory/#joins)`
+✅ **Descriptive links**: `[Learn about SQL JOINs](/level-1-foundations/sql/#joins)`
 
 ❌ **No code comments**: Code blocks without explanation  
 ✅ **Well-commented code**: Inline comments explaining purpose and syntax
@@ -578,7 +587,9 @@ npm run deploy
 
 When modifying guidelines, update this document to reflect changes. Keep this document as the single source of truth for content standards.
 
+`.kiro/specs/content-organization-plan.md` has been retired (2026-07-21) — its directory structure was already built, and its still-relevant content template is now the Pattern B definition above. Its unexecuted extras (frontmatter `difficulty`/`timeEstimate`/`prerequisites` fields, a dedicated "Learning Path" page) were never adopted anywhere in the codebase and are not part of the current plan; revisit only if a real need shows up.
+
 ---
 
-**Last Updated**: June 20, 2026  
+**Last Updated**: July 21, 2026  
 **Status**: Active - All new pages should follow these guidelines

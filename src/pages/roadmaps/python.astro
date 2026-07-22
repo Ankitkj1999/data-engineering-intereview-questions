@@ -898,7 +898,7 @@ function openPanel(id: string, type: string, parentId?: string) {
   badge.textContent = type === "topic" ? "Topic" : "Subtopic";
   badge.className   = `rm-panel-badge is-${type}`;
   title.textContent = item.label;
-  body.innerHTML    = `<p class="rm-panel-desc">${item.desc}</p>`;
+  body.innerHTML    = `<p class="rm-panel-desc">${item.desc}</p>` + (item.link ? `<a href="${item.link}" class="rm-read-more">Read more →</a>` : "");
 
   if (type === "topic" && item.subs?.length > 0) {
     const sublist = document.createElement("div");
