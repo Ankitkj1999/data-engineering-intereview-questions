@@ -366,7 +366,7 @@ function syncBtns() {
   const item = findItem(activeId);
   const isComputed = activeType === "topic" && item?.subs?.length > 0;
   const s = isComputed ? getTopicStatus(item) : getS(activeId);
-  const sel = document.querySelector<HTMLSelectElement>("#rm-status-select");
+  const sel = document.getElementById("rm-status-select") as HTMLSelectElement | null;
   const dot = document.getElementById("rm-status-dot");
   const label = document.getElementById("rm-status-label");
   if (sel) {
