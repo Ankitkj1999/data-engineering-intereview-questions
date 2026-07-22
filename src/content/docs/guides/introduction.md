@@ -1,9 +1,9 @@
 ---
 title: Introduction
-description: Get started with Data Engineering Interview Questions
+description: Get started with Data Engineering Questions
 ---
 
-Welcome to the Data Engineering Interview Questions guide. This is your resource for mastering common interview topics and questions in data engineering.
+Welcome to the Data Engineering Questions guide. This is your resource for mastering common interview topics and questions in data engineering.
 
 ## What You'll Find Here
 

@@ -10,7 +10,7 @@ export default defineConfig({
 	site: "https://example.com",
 	integrations: [
 		starlight({
-			title: "Data Engineering Interview Questions",
+			title: "Data Engineering Questions",
 			description: "Master data engineering through comprehensive interview questions and explanations",
 			head: [
 				{
