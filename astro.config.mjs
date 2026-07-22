@@ -44,13 +44,15 @@ export default defineConfig({
 			components: {
 				Header: "./src/overrides/Header.astro",
 				PageFrame: "./src/overrides/PageFrame.astro",
+				Sidebar: "./src/overrides/Sidebar.astro",
+				TwoColumnContent: "./src/overrides/TwoColumnContent.astro",
 			},
 			plugins: [
 				pagePlugin({
 					docChat: {
 						provider: "gemini",
 					},
-					skipComponents: ["Header", "PageFrame"],
+					skipComponents: ["Header", "PageFrame", "Sidebar", "TwoColumnContent"],
 				}),
 			],
 		}),

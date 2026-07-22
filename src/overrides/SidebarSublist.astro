@@ -1,0 +1,196 @@
+---
+import type { StarlightRouteData } from "@astrojs/starlight/route-data";
+
+interface Props {
+  sublist: StarlightRouteData["sidebar"];
+  nested?: boolean;
+}
+
+const { sublist, nested } = Astro.props;
+---
+
+{
+  sublist?.map((entry) => {
+    if (entry.type === "link") {
+      return (
+        <a
+          href={entry.href}
+          aria-current={entry.isCurrent && "page"}
+          class:list={["page-sidebar-link", entry.attrs?.class]}
+          {...entry.attrs}
+        >
+          <span class="page-sidebar-link-label">{entry.label}</span>
+          {entry.badge && (
+            <span class="page-sidebar-badge">{entry.badge.text}</span>
+          )}
+        </a>
+      );
+    } else if (entry.type === "group") {
+      return (
+        <details
+          class:list={["page-sidebar-group", !nested && "is-top"]}
+          open={!entry.collapsed}
+        >
+          <summary class="page-sidebar-group-title">
+            <span class="page-sidebar-group-label">{entry.label}</span>
+            <svg
+              class="page-sidebar-group-chevron"
+              width="10"
+              height="10"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="3 4.5 6 7.5 9 4.5" />
+            </svg>
+          </summary>
+          <div class="page-sidebar-group-links">
+            {entry.entries && entry.entries.length > 0 && (
+              <Astro.self sublist={entry.entries} nested />
+            )}
+          </div>
+        </details>
+      );
+    }
+
+    return null;
+  })
+}
+
+<style>
+  /* One rule drives the whole hierarchy: every level of nesting re-applies
+     this same indent + rail, so depth compounds automatically without
+     depth-specific selectors — a group inside a group reads one step
+     deeper than its parent, however many levels deep it goes. */
+  .page-sidebar-group-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding: 0.25rem 0 0 0.7rem;
+    margin-left: 0.35rem;
+    border-left: 1px solid var(--page-border-light);
+  }
+
+  .page-sidebar-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Section divider — a hairline between top-level groups, not decoration
+     but the boundary between one part of the curriculum and the next. */
+  .page-sidebar-group.is-top + .page-sidebar-group.is-top {
+    margin-top: var(--page-space-5);
+    padding-top: var(--page-space-5);
+    border-top: 1px solid var(--page-border-light);
+  }
+
+  /* Group label: the site's structural/metadata voice (mono, small, muted,
+     tracked-out — the same treatment as the homepage eyebrow and stat
+     labels) kept deliberately distinct from the sans-serif page titles
+     it groups, so the two never get confused for the same kind of text. */
+  .page-sidebar-group-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--page-space-2);
+    font-family: var(--brand-mono, var(--sl-font-mono));
+    font-weight: 600;
+    font-size: 0.68rem;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    padding: 0.4rem 0.6rem;
+    border-radius: var(--page-radius);
+    color: var(--page-text-muted);
+    text-transform: uppercase;
+    background: transparent;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+
+  .page-sidebar-group-title::-webkit-details-marker {
+    display: none;
+  }
+
+  .page-sidebar-group-title:hover {
+    color: var(--page-text);
+    background: var(--page-accent-light);
+  }
+
+  .page-sidebar-group-chevron {
+    flex-shrink: 0;
+    color: var(--page-text-disabled);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  details[open] > .page-sidebar-group-title .page-sidebar-group-chevron {
+    transform: rotate(180deg);
+  }
+
+  .page-sidebar-group-title:hover .page-sidebar-group-chevron {
+    color: var(--page-text-muted);
+  }
+
+  /* Links: plain sans-serif content voice, always one visual step lighter
+     than a heading until it's the current page. */
+  .page-sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: var(--page-space-2);
+    width: 100%;
+    min-height: 36px;
+    padding: 0.45rem var(--page-space-3);
+    border-radius: var(--page-radius-xl);
+    font-family: var(--page-font-family);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--page-text-secondary);
+    text-decoration: none;
+    text-underline-offset: 2px;
+    position: relative;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+
+  .page-sidebar-link:hover {
+    color: var(--page-text);
+    background: var(--page-accent-light);
+  }
+
+  .page-sidebar-link[aria-current="page"] {
+    color: var(--sl-color-accent);
+    font-weight: 600;
+    background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
+  }
+
+  .page-sidebar-link[aria-current="page"]::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.3rem;
+    bottom: 0.3rem;
+    width: 2.5px;
+    border-radius: 2px;
+    background: var(--sl-color-accent);
+  }
+
+  .page-sidebar-badge {
+    color: var(--page-neutral-white);
+    line-height: 1;
+    font-size: 0.75rem;
+    padding: var(--page-space-1) var(--page-space-2);
+    background: var(--page-neutral-700);
+    border-radius: var(--page-radius-sm);
+    margin-left: auto;
+    font-weight: 600;
+  }
+
+  [data-theme="dark"] .page-sidebar-badge {
+    background: var(--page-neutral-600);
+  }
+</style>

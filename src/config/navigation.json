@@ -14,9 +14,15 @@
       "label": "Foundations",
       "items": [
         { "label": "SQL", "link": "/level-1-foundations/sql/" },
-        { "label": "Python", "link": "/level-1-foundations/python/" },
-        { "label": "Python Theory", "link": "/level-1-foundations/python/theory/" },
-        { "label": "Python Practice", "link": "/level-1-foundations/python/practice/" },
+        {
+          "label": "Python",
+          "collapsed": true,
+          "items": [
+            { "label": "Overview", "link": "/level-1-foundations/python/" },
+            { "label": "Theory", "link": "/level-1-foundations/python/theory/" },
+            { "label": "Practice", "link": "/level-1-foundations/python/practice/" }
+          ]
+        },
         { "label": "Data Structures", "link": "/level-1-foundations/data-structure/" }
       ]
     },
