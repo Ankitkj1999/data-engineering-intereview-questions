@@ -1,0 +1,228 @@
+---
+title: SQL Practice | Core Concepts
+description: Hands-on SQL query-writing challenges with worked solutions for data engineering interviews. Interactive Q&A with progress tracking.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+Query-writing challenges with worked solutions — the format interviewers use to test whether you can actually write SQL, not just describe it. Mark them **done** ✓, **bookmark** 🔖 for review, and expand answers on demand.
+
+---
+
+## Ranking & Salary Queries
+
+The classic "Nth highest value" family of problems, and the different ways to answer them.
+
+<QuestionList topic="Ranking & Salary Queries" storagePrefix="sql-prac-rank">
+
+<QuestionCard id="sql-prac-rank-01" number={100} question="How would you find the second-highest salary in an Employee table?" difficulty="medium" topic="Ranking">
+Given an `Employee` table (`ID`, `Salary`), there are several ways to do this.
+
+**Option 1 — subquery with `NOT IN`:** find the max, exclude it, find the new max.
+```sql
+SELECT MAX(Salary) AS SecondHighestSalary
+FROM Employee
+WHERE Salary NOT IN (SELECT MAX(Salary) FROM Employee);
+```
+
+**Option 2 — not-equal operator**, efficient when excluding a single top value:
+```sql
+SELECT MAX(Salary) AS SecondHighestSalary
+FROM Employee
+WHERE Salary <> (SELECT MAX(Salary) FROM Employee);
+```
+
+**Option 3 — `LIMIT`/`OFFSET`** (best for row ordering); `DISTINCT` avoids ties breaking the logic:
+```sql
+SELECT DISTINCT Salary AS SecondHighestSalary
+FROM Employee
+ORDER BY Salary DESC
+LIMIT 1 OFFSET 1;
+```
+*(SQL Server: `OFFSET 1 ROWS FETCH NEXT 1 ROWS ONLY`.)*
+</QuestionCard>
+
+<QuestionCard id="sql-prac-rank-02" number={101} question="How would you find the maximum salary by department, including departments with no employees?" difficulty="medium" topic="Ranking">
+Given `Employee(ID, Salary, DeptID)` and `Department(ID, DeptName)` — **this is a trick question**: ask the interviewer whether departments with no employees should still appear. If yes, use `LEFT OUTER JOIN` (`NULL` salary for empty departments); if no, `INNER JOIN` is enough.
+
+```sql
+SELECT d.DeptName, MAX(e.Salary) AS MaxSalary
+FROM Department d
+LEFT OUTER JOIN Employee e ON d.ID = e.DeptID
+GROUP BY d.DeptName;
+```
+</QuestionCard>
+
+<QuestionCard id="sql-prac-rank-03" number={102} question="How would you find the maximum salary per department (without a Department table)?" difficulty="easy" topic="Ranking">
+```sql
+SELECT DeptID, MAX(Salary) AS MaxSalary
+FROM Employee
+GROUP BY DeptID;
+```
+</QuestionCard>
+
+<QuestionCard id="sql-prac-rank-04" number={103} question="How would you find the Nth highest salary, for an arbitrary N?" difficulty="hard" topic="Ranking">
+**Correlated subquery** — counts how many distinct salaries are higher; when that count is `N-1`, you've found rank N:
+```sql
+SELECT * FROM Employee emp1
+WHERE (N - 1) = (
+    SELECT COUNT(DISTINCT emp2.Salary) FROM Employee emp2 WHERE emp2.Salary > emp1.Salary
+);
+```
+
+**`ROW_NUMBER()` window function** (recommended — works across Oracle, SQL Server, PostgreSQL, MySQL):
+```sql
+SELECT * FROM (
+    SELECT *, ROW_NUMBER() OVER (ORDER BY Salary DESC) AS rnum FROM Employee
+) AS Subquery WHERE rnum = N;
+```
+*(Use `DENSE_RANK()` instead if duplicate salaries should share a rank.)*
+
+**`LIMIT`/`OFFSET`** (MySQL/PostgreSQL/SQLite — shortest if supported):
+```sql
+SELECT DISTINCT Salary FROM Employee ORDER BY Salary DESC LIMIT 1 OFFSET (N - 1);
+```
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Filtering, Sets & Duplicates
+
+Set comparisons between tables, and finding rows that don't belong.
+
+<QuestionList topic="Filtering, Sets & Duplicates" storagePrefix="sql-prac-filter">
+
+<QuestionCard id="sql-prac-filter-01" number={104} question="How would you select every other (alternate odd/even) record from a table?" difficulty="medium" topic="Filtering">
+Assign a row number with `ROW_NUMBER()`, then filter with modulo:
+
+```sql
+-- Even-numbered records
+SELECT * FROM (
+    SELECT *, ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS row_num
+    FROM Employee
+) AS Subquery
+WHERE MOD(row_num, 2) = 0;
+
+-- Odd-numbered: WHERE MOD(row_num, 2) = 1
+```
+*(No `MOD()` support? Use `WHERE row_num % 2 = 0`.)*
+</QuestionCard>
+
+<QuestionCard id="sql-prac-filter-02" number={105} question="How would you find records in Table A that don't exist in Table B, without using NOT IN?" difficulty="medium" topic="Filtering">
+**Set operators** — standard SQL/SQL Server/PostgreSQL/MySQL use `EXCEPT`, Oracle uses `MINUS`:
+```sql
+SELECT * FROM Table_A EXCEPT SELECT * FROM Table_B;   -- Oracle: MINUS instead of EXCEPT
+```
+
+**`LEFT JOIN`** (most universal — works across all SQL databases):
+```sql
+SELECT Table_A.* FROM Table_A
+LEFT JOIN Table_B ON Table_A.ID = Table_B.ID
+WHERE Table_B.ID IS NULL;
+```
+*(`NOT IN` is avoided here because it silently returns no rows if the subquery contains even one `NULL`.)*
+</QuestionCard>
+
+<QuestionCard id="sql-prac-filter-03" number={106} question="How would you find employees who share both the same name and email?" difficulty="easy" topic="Filtering">
+Group by both columns together — `HAVING COUNT(*) > 1` isolates rows where both fields match exactly:
+```sql
+SELECT name, email, COUNT(*) AS duplicate_count
+FROM Employee
+GROUP BY name, email
+HAVING COUNT(*) > 1;
+```
+</QuestionCard>
+
+<QuestionCard id="sql-prac-filter-04" number={107} question="How would you find duplicate email addresses in an Employee table?" difficulty="easy" topic="Filtering">
+```sql
+SELECT EMAIL, COUNT(EMAIL) AS occurrence_count
+FROM Employee
+GROUP BY EMAIL
+HAVING COUNT(EMAIL) > 1;
+```
+Note: with `GROUP BY`, only grouped or aggregated columns may appear in `SELECT`.
+</QuestionCard>
+
+<QuestionCard id="sql-prac-filter-05" number={108} question="How would you select 10 employees with odd employee IDs?" difficulty="easy" topic="Filtering">
+```sql
+-- Standard SQL / Oracle 12c+ / PostgreSQL / MySQL
+SELECT ID FROM Employee WHERE ID % 2 = 1 FETCH FIRST 10 ROWS ONLY;
+
+-- SQL Server
+SELECT TOP 10 ID FROM Employee WHERE ID % 2 = 1;
+```
+</QuestionCard>
+
+<QuestionCard id="sql-prac-filter-06" number={109} question="How would you do a case-insensitive name search?" difficulty="easy" topic="Filtering">
+```sql
+SELECT * FROM Employees WHERE UPPER(emp_name) LIKE '%RICH%';
+-- Equivalent: WHERE LOWER(emp_name) LIKE '%rich%'
+```
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Dates & Result Shaping
+
+Date arithmetic and controlling how many rows come back.
+
+<QuestionList topic="Dates & Result Shaping" storagePrefix="sql-prac-dates">
+
+<QuestionCard id="sql-prac-dates-01" number={110} question="How would you select employees born between two dates?" difficulty="easy" topic="Dates">
+`BETWEEN` is inclusive of both endpoints:
+```sql
+SELECT EmpName FROM Employees WHERE birth_date BETWEEN '1990-01-01' AND '2000-12-31';
+-- Equivalent: WHERE birth_date >= '1990-01-01' AND birth_date <= '2000-12-31'
+```
+</QuestionCard>
+
+<QuestionCard id="sql-prac-dates-02" number={111} question="How would you extract the quarter from a date?" difficulty="easy" topic="Dates">
+```sql
+-- Standard SQL (most portable)
+SELECT EXTRACT(QUARTER FROM DATE '2016-03-31') AS quarter;
+
+-- Oracle
+SELECT TO_CHAR(TO_DATE('03/31/2016', 'MM/DD/YYYY'), 'Q') AS quarter FROM DUAL;
+```
+</QuestionCard>
+
+<QuestionCard id="sql-prac-dates-03" number={112} question="How would you calculate the number of days between two dates?" difficulty="easy" topic="Dates">
+```sql
+-- MySQL
+SELECT DATEDIFF('2016-12-31', '2015-01-01') AS DaysDifference;
+
+-- SQL Server
+SELECT DATEDIFF(day, '2015-01-01', '2016-12-31') AS DaysDifference;
+
+-- PostgreSQL / Oracle
+SELECT '2016-12-31'::date - '2015-01-01'::date AS DaysDifference;
+```
+Note: in MySQL the larger date goes first for a positive result; in SQL Server/PostgreSQL, second.
+</QuestionCard>
+
+<QuestionCard id="sql-prac-dates-04" number={113} question="How do you get the current date and time in SQL?" difficulty="easy" topic="Dates">
+```sql
+SELECT CURRENT_DATE;       -- ANSI standard; MySQL: CURDATE()
+SELECT CURRENT_TIMESTAMP;  -- ANSI standard; MySQL: NOW()
+```
+</QuestionCard>
+
+<QuestionCard id="sql-prac-dates-05" number={114} question="How do you limit the number of rows returned by a query, and how does pagination build on that?" difficulty="easy" topic="Result Shaping">
+```sql
+-- Standard SQL
+SELECT * FROM table_name FETCH FIRST 10 ROWS ONLY;
+-- MySQL
+SELECT * FROM table_name LIMIT 10;
+
+-- Pagination: skip 3, take next 6
+SELECT * FROM table_name OFFSET 3 ROWS FETCH NEXT 6 ROWS ONLY;   -- MySQL: LIMIT 3, 6
+```
+Always pair `LIMIT`/`FETCH` with `ORDER BY` — without it, row order (and your results) are unpredictable.
+</QuestionCard>
+
+</QuestionList>

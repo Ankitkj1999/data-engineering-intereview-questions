@@ -247,100 +247,135 @@
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
-    "title": "Python for Data Engineering",
-    "description": "Interview questions covering python",
-    "content": "## Python for Data Engineering: Interview Questions\n\n**Practice Python concepts with real-world scenarios for data engineering interviews.**\n+ [Why is Python widely used in data engineering?](#Why-is-Python-widely-used-in-data-engineering)\n+ [How do iterators and generators help with large data processing?](#How-do-iterators-and-generators-help-with-large-data-processing)\n+ [What is the difference between threads, multiprocessing, and async IO in Python?](#What-is-the-difference-between-threads-multiprocessing-and-async-IO-in-Python)\n+ [What is the GIL and why does it matter?](#What-is-the-GIL-and-why-does-it-matter)\n+ [How do you read and write Parquet efficiently in Python?](#How-do-you-read-and-write-Parquet-efficiently-in-Python)\n+ [How do you process large CSV files without running ou"
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';\n\nScenario-based Python questions data engineers actually get asked — mark them **done** ✓, **bookmark** 🔖 for review, and expand answers on demand.\n\n---"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
-    "title": "Python for Data Engineering",
-    "description": "Interview questions covering python",
-    "content": "t of memory?](#How-do-you-process-large-CSV-files-without-running-out-of-memory)\n+ [How do you implement retries with exponential backoff?](#How-do-you-implement-retries-with-exponential-backoff)\n+ [What logging practices are important for data pipelines?](#What-logging-practices-are-important-for-data-pipelines)\n+ [How do you structure a Python project for data pipelines?](#How-do-you-structure-a-Python-project-for-data-pipelines)\n+ [How do you manage dependencies and reproducible environments?](#How-do-you-manage-dependencies-and-reproducible-environments)\n+ [How do you test data transformations in Python?](#How-do-you-test-data-transformations-in-Python)\n+ [How do you profile and optimize slow Python code?](#How-do-you-profile-and-optimize-slow-Python-code)"
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": "## Language Fundamentals in Practice\n\nWhy Python shows up everywhere in data platforms, and how its concurrency model plays out in real pipelines.\n\n<QuestionList topic=\"Language Fundamentals in Practice\" storagePrefix=\"py-prac-fundamentals\">\n\n<QuestionCard\n  id=\"py-prac-01\"\n  number={15}\n  question=\"Why is Python widely used in data engineering?\"\n  difficulty=\"easy\"\n  topic=\"Fundamentals\"\n>\nPython is popular because it's productive, readable, and has a strong ecosystem for data processing, orchestration, and integration.\n\n- **Glue code** — connecting APIs, databases, and file systems with minimal boilerplate\n- **Rich libraries** — pandas, PyArrow, SQLAlchemy, boto3 cover most pipeline needs out of the box\n- **Orchestration native** — Airflow, Dagster, and Prefect are all Python-first\n- **I"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
-    "title": "Python for Data Engineering",
-    "description": "Interview questions covering python",
-    "content": "## Why is Python widely used in data engineering?\nPython is popular because it is productive, readable, and has a strong ecosystem for data processing, orchestration, and integration. It is commonly used for glue code, transformations, APIs, and automation, even when the heavy compute runs on distributed engines.\n\n[Table of Contents](#Python-for-Data-Engineering)"
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": "nterop layer** — even when heavy compute runs on Spark or a warehouse engine, Python is the language stitching the pipeline together\n\nIt's rarely the fastest language for raw compute, but it's usually the fastest to build and maintain a correct pipeline in.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-02\"\n  number={16}\n  question=\"How do iterators and generators help with large data processing?\"\n  difficulty=\"medium\"\n  topic=\"Fundamentals\"\n>\nIterators and generators let you stream data instead of loading everything into memory — processing row-by-row or batch-by-batch keeps memory flat regardless of input size.\n\n```python\ndef batched(iterable, size):\n    \"\"\"Yield successive chunks without materializing the full list.\"\"\"\n    batch = []\n    for item in iterable:\n        batch.append(item)"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
-    "title": "Python for Data Engineering",
-    "description": "Interview questions covering python",
-    "content": "## How do iterators and generators help with large data processing?\nIterators and generators allow streaming data instead of loading everything into memory. They enable processing large datasets row-by-row or batch-by-batch. This reduces memory usage and often improves stability of ETL jobs.\n\n[Table of Contents](#Python-for-Data-Engineering)"
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": "if len(batch) == size:\n            yield batch\n            batch = []\n    if batch:\n        yield batch\n\ndef process_events(event_stream):\n    for chunk in batched(event_stream, size=500):\n        write_to_sink(chunk)  # one bounded batch at a time\n```\n\nThis pattern — pull, don't load — is what lets a single job process files far larger than available RAM.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-03\"\n  number={17}\n  question=\"What is the difference between threads, multiprocessing, and async IO in Python?\"\n  difficulty=\"medium\"\n  topic=\"Concurrency\"\n>\n| Approach | Good for | Limited by |\n|----------|----------|-----------|\n| `threading` | I/O-bound work (network, disk) | GIL — no CPU parallelism |\n| `multiprocessing` | CPU-bound work (parsing, transforms) | Process spawn/IPC over"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
-    "title": "Python for Data Engineering",
-    "description": "Interview questions covering python",
-    "content": "## What is the difference between threads, multiprocessing, and async IO in Python?\nThreads are useful for IO-bound workloads (network, disk) but limited by the GIL for CPU-bound tasks. Multiprocessing runs multiple processes and can use multiple CPU cores for CPU-bound work. Async IO uses an event loop to handle many concurrent IO operations efficiently when tasks spend time waiting.\n\n[Table of Contents](#Python-for-Data-Engineering)"
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": "head |\n| `asyncio` | Many concurrent I/O waits (API calls) | Single-threaded event loop |\n\n**Rule of thumb:** if the job spends most of its time *waiting* (network, disk), reach for threads or `asyncio`. If it spends its time *computing*, reach for `multiprocessing` or push the work to a native/distributed engine.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-04\"\n  number={18}\n  question=\"What is the GIL and why does it matter for a data pipeline you're building?\"\n  difficulty=\"medium\"\n  topic=\"Concurrency\"\n>\nThe **Global Interpreter Lock** allows only one thread to execute Python bytecode at a time in CPython, even on a multi-core machine.\n\nIn practice, most data engineering jobs are I/O-bound (waiting on S3, a database, or an API), so the GIL rarely matters — threads still help because th"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
-    "title": "Python for Data Engineering",
-    "description": "Interview questions covering python",
-    "content": "## What is the GIL and why does it matter?\nThe Global Interpreter Lock (GIL) allows only one thread to execute Python bytecode at a time in CPython. This limits CPU-bound parallelism with threads. Many data engineering tasks are IO-bound, so threads can still help, but CPU-bound tasks often require multiprocessing or native libraries.\n\n[Table of Contents](#Python-for-Data-Engineering)"
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": "e GIL is released during I/O. It only becomes a bottleneck when a job is CPU-bound (row-by-row transforms in pure Python), at which point `multiprocessing` or vectorized libraries (pandas/NumPy, which release the GIL in their C internals) are the fix.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
-    "title": "Python for Data Engineering",
-    "description": "Interview questions covering python",
-    "content": "## How do you read and write Parquet efficiently in Python?\nUsing `pyarrow` is common because it supports efficient columnar reads, predicate pushdown (engine-dependent), and schema handling. You should select only needed columns, write reasonably sized row groups/files, and avoid creating many tiny files. For large datasets, integrate with a distributed engine rather than pure local processing.\n\n[Table of Contents](#Python-for-Data-Engineering)"
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": "## Working with Data at Scale\n\nPractical patterns for reading, writing, and moving data reliably in production pipelines.\n\n<QuestionList topic=\"Working with Data at Scale\" storagePrefix=\"py-prac-data\">\n\n<QuestionCard\n  id=\"py-prac-05\"\n  number={19}\n  question=\"How do you read and write Parquet efficiently in Python?\"\n  difficulty=\"medium\"\n  topic=\"File Formats\"\n>\n`pyarrow` is the standard choice — it supports columnar reads, predicate pushdown, and explicit schema control.\n\n```python\nimport pyarrow.parquet as pq"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
-    "title": "Python for Data Engineering",
-    "description": "Interview questions covering python",
-    "content": "## How do you process large CSV files without running out of memory?\nYou can stream the file in chunks (for example using chunked readers), process line-by-line, or use a library that supports streaming and type inference control. You also avoid loading wide columns you do not need, and you write results incrementally. For very large data, consider Parquet and/or distributed processing.\n\n[Table of Contents](#Python-for-Data-Engineering)"
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": "# Read only the columns you need, filtered at the file level\ntable = pq.read_table(\n    \"s3://bucket/events/\",\n    columns=[\"user_id\", \"event_type\", \"ts\"],\n    filters=[(\"ts\", \">=\", \"2024-01-01\")],\n)\n```\n\nGuidelines: select only needed columns, keep row groups/files at a reasonable size (avoid the \"many tiny files\" problem), and hand large datasets off to a distributed engine rather than processing them purely locally.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-06\"\n  number={20}\n  question=\"How do you process a large CSV file without running out of memory?\"\n  difficulty=\"medium\"\n  topic=\"File Formats\"\n>\nStream the file in chunks instead of loading it whole:\n\n```python\nimport pandas as pd\n\ntotal = 0\nfor chunk in pd.read_csv(\"huge_file.csv\", chunksize=100_000):\n    total += chunk[\"amount\"]"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
-    "title": "Python for Data Engineering",
-    "description": "Interview questions covering python",
-    "content": "## How do you implement retries with exponential backoff?\nRetries should include exponential backoff and jitter to avoid thundering herds. You should only retry on transient errors (timeouts, rate limits) and limit total retry time. Always make operations idempotent or use deduplication to prevent duplicates on retries.\n\n[Table of Contents](#Python-for-Data-Engineering)"
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": ".sum()\n    chunk.to_parquet(f\"out/part-{chunk.index[0]}.parquet\")\n```\n\nSkip columns you don't need with `usecols`, and prefer writing results incrementally over accumulating them in memory. For anything beyond a few GB, converting to Parquet or moving to distributed processing is usually the better call than tuning chunk size further.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-07\"\n  number={21}\n  question=\"How do you implement retries with exponential backoff?\"\n  difficulty=\"medium\"\n  topic=\"Reliability\"\n>\n```python\nimport random, time, functools\n\ndef retry_with_backoff(max_attempts=5, base_delay=0.5):\n    def decorator(fn):\n        @functools.wraps(fn)\n        def wrapper(*args, **kwargs):\n            for attempt in range(1, max_attempts + 1):\n                try:\n                    re"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
-    "title": "Python for Data Engineering",
-    "description": "Interview questions covering python",
-    "content": "## What logging practices are important for data pipelines?\nLogs should include pipeline identifiers, run ids, input/output counts, and key timestamps. Structured logging (JSON) helps search and correlation. You should log errors with context and avoid logging sensitive data.\n\n[Table of Contents](#Python-for-Data-Engineering)"
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": "turn fn(*args, **kwargs)\n                except TransientError:\n                    if attempt == max_attempts:\n                        raise\n                    delay = base_delay * (2 ** (attempt - 1))\n                    time.sleep(delay + random.uniform(0, delay * 0.1))  # jitter\n        return wrapper\n    return decorator\n```\n\nOnly retry **transient** errors (timeouts, rate limits) — never retry a schema mismatch or a validation failure. Cap total retry time, and make the operation idempotent so a retried write can't duplicate data.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-08\"\n  number={22}\n  question=\"What logging practices are important for data pipelines?\"\n  difficulty=\"easy\"\n  topic=\"Reliability\"\n>\n```python\nimport logging, json\n\nlogger = logging.getLogger(\"pipeline\")\n\ndef log"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
-    "title": "Python for Data Engineering",
-    "description": "Interview questions covering python",
-    "content": "## How do you structure a Python project for data pipelines?\nA common structure separates reusable library code from job entrypoints. You keep configuration separate, use dependency injection for external services, and standardize logging and error handling. Small CLI entrypoints improve local runs and CI tests.\n\n[Table of Contents](#Python-for-Data-Engineering)"
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": "_event(level, message, **context):\n    logger.log(level, json.dumps({\"message\": message, **context}))\n\nlog_event(logging.INFO, \"batch loaded\", run_id=\"r-42\", rows=15000, table=\"orders\")\n```\n\nStructured (JSON) logs make pipeline runs searchable and correlatable across systems. Always include a run/pipeline id, log errors with enough context to debug without re-running the job, and never log sensitive values (PII, credentials).\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
-    "title": "Python for Data Engineering",
-    "description": "Interview questions covering python",
-    "content": "## How do you manage dependencies and reproducible environments?\nUse pinned dependencies and a lockfile (or equivalent) and isolate environments (virtualenv/containers). Reproducibility also requires pinning Python versions and building deterministic images. CI should use the same environment definition as production.\n\n[Table of Contents](#Python-for-Data-Engineering)"
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": "## Project Structure & Testing\n\nOrganizing and validating pipeline code so it's maintainable beyond the first script.\n\n<QuestionList topic=\"Project Structure & Testing\" storagePrefix=\"py-prac-structure\">\n\n<QuestionCard\n  id=\"py-prac-09\"\n  number={23}\n  question=\"How do you structure a Python project for data pipelines?\"\n  difficulty=\"medium\"\n  topic=\"Project Structure\"\n>\n```\nmy_pipeline/\n├── src/\n│   ├── extract.py\n│   ├── transform.py\n│   ├── load.py\n│   └── config.py        # env-driven settings, no hardcoded secrets\n├── jobs/\n│   └── run_daily.py      # thin CLI entrypoint\n├── tests/\n│   └── test_transform.py\n├── pyproject.toml\n```\n\nKeep reusable library code separate from job entrypoints, inject external services (DB clients, S3 clients) rather than constructing them deep in the call s"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
-    "title": "Python for Data Engineering",
-    "description": "Interview questions covering python",
-    "content": "## How do you test data transformations in Python?\nUse small fixture datasets and assert expected outputs (golden tests). Add property tests for invariants (non-negative amounts, uniqueness). Integration tests validate real connectors and schemas, but they should be isolated and stable.\n\n[Table of Contents](#Python-for-Data-Engineering)"
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": "tack, and standardize logging/error handling in one place so every job behaves consistently.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-10\"\n  number={24}\n  question=\"How do you manage dependencies and reproducible environments?\"\n  difficulty=\"easy\"\n  topic=\"Project Structure\"\n>\nPin dependencies with a lockfile (`poetry.lock`, `uv.lock`, or `requirements.txt` with hashes), and isolate environments per project with a virtualenv or container.\n\nReproducibility also means pinning the Python version itself and building deterministic images — CI should build and test against the exact same environment definition that runs in production, not a looser \"close enough\" one.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-11\"\n  number={25}\n  question=\"How do you test data transformations in Python?\"\n  d"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
-    "title": "Python for Data Engineering",
-    "description": "Interview questions covering python",
-    "content": "## How do you profile and optimize slow Python code?\nProfile first to find hotspots (CPU, IO, memory). Common fixes include vectorizing operations, reducing data copies, using efficient data structures, and offloading heavy compute to native libraries or distributed engines. Optimization should be guided by measurable impact.\n\n[Table of Contents](#Python-for-Data-Engineering)"
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": "ifficulty=\"medium\"\n  topic=\"Testing\"\n>\n```python\ndef test_normalize_revenue_golden_case():\n    input_df = pd.DataFrame({\"id\": [1], \"revenue_cents\": [1050]})\n    result = normalize_revenue(input_df)\n    assert result[\"revenue\"].iloc[0] == 10.50\n\n@given(revenue_cents=st.integers(min_value=0))\ndef test_revenue_is_never_negative(revenue_cents):\n    df = pd.DataFrame({\"id\": [1], \"revenue_cents\": [revenue_cents]})\n    result = normalize_revenue(df)\n    assert (result[\"revenue\"] >= 0).all()\n```\n\nCombine small **golden-case** fixtures (known input → known output) with **property-based tests** (`hypothesis`) for invariants that must hold across all inputs, like non-negative amounts or no duplicate keys. Keep integration tests against real connectors separate and isolated, since they're slower and l"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": "ess stable.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-12\"\n  number={26}\n  question=\"How do you profile and optimize slow Python code?\"\n  difficulty=\"hard\"\n  topic=\"Performance\"\n>\nProfile before optimizing — guessing at bottlenecks wastes time:\n\n```python\nimport cProfile\ncProfile.run(\"process_data(df)\", sort=\"cumulative\")\n```\n\nCommon fixes, in order of how often they apply:\n1. **Vectorize** — replace `iterrows()`/Python loops with pandas/NumPy operations\n2. **Reduce copies** — avoid chained `.loc`/`.copy()` calls that duplicate large frames\n3. **Offload CPU work** — `multiprocessing`, or push to a native/distributed engine\n4. **Cache repeated I/O** — `functools.lru_cache`, or batch reads instead of per-row calls\n\n`py-spy` is worth knowing for production debugging — it's a sampling profil"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "content": "er that attaches to a running process with effectively zero overhead.\n</QuestionCard>\n\n</QuestionList>"
+  },
+  {
+    "path": "/level-1-foundations/python/progress/",
+    "locale": "en",
+    "title": "Python Progress",
+    "description": "Your aggregated progress across every Python theory and practice question for data engineering interviews.",
+    "content": "import ProgressOverview from '../../../../components/mdx/ProgressOverview.astro';\n\nA single view of where you stand across all Python questions — [Theory](/level-1-foundations/python/theory/) and [Practice](/level-1-foundations/python/practice/) combined. Progress is tracked per-question in your browser, so marking a question **done** on either page updates this view automatically.\n\n<ProgressOverview sections={[\n  {\n    title: \"Theory · Python Fundamentals\",\n    anchor: \"/level-1-foundations/python/theory/#python-fundamentals\",\n    ids: [\"py-fund-01\", \"py-fund-02\", \"py-fund-03\", \"py-fund-04\", \"py-fund-05\"],\n  },\n  {\n    title: \"Theory · Functions & Generators\",\n    anchor: \"/level-1-foundations/python/theory/#functions--generators\",\n    ids: [\"py-fn-01\", \"py-fn-02\", \"py-fn-03\"],\n  },\n  {"
+  },
+  {
+    "path": "/level-1-foundations/python/progress/",
+    "locale": "en",
+    "title": "Python Progress",
+    "description": "Your aggregated progress across every Python theory and practice question for data engineering interviews.",
+    "content": "title: \"Theory · Object-Oriented Programming\",\n    anchor: \"/level-1-foundations/python/theory/#object-oriented-programming\",\n    ids: [\"py-oop-01\", \"py-oop-02\"],\n  },\n  {\n    title: \"Theory · Concurrency & Performance\",\n    anchor: \"/level-1-foundations/python/theory/#concurrency--performance\",\n    ids: [\"py-conc-01\", \"py-conc-02\"],\n  },\n  {\n    title: \"Theory · Error Handling & Testing\",\n    anchor: \"/level-1-foundations/python/theory/#error-handling--testing\",\n    ids: [\"py-test-01\", \"py-test-02\"],\n  },\n  {\n    title: \"Practice · Language Fundamentals in Practice\",\n    anchor: \"/level-1-foundations/python/practice/#language-fundamentals-in-practice\",\n    ids: [\"py-prac-01\", \"py-prac-02\", \"py-prac-03\", \"py-prac-04\"],\n  },\n  {\n    title: \"Practice · Working with Data at Scale\",\n    an"
+  },
+  {
+    "path": "/level-1-foundations/python/progress/",
+    "locale": "en",
+    "title": "Python Progress",
+    "description": "Your aggregated progress across every Python theory and practice question for data engineering interviews.",
+    "content": "chor: \"/level-1-foundations/python/practice/#working-with-data-at-scale\",\n    ids: [\"py-prac-05\", \"py-prac-06\", \"py-prac-07\", \"py-prac-08\"],\n  },\n  {\n    title: \"Practice · Project Structure & Testing\",\n    anchor: \"/level-1-foundations/python/practice/#project-structure--testing\",\n    ids: [\"py-prac-09\", \"py-prac-10\", \"py-prac-11\", \"py-prac-12\"],\n  },\n]} />"
   },
   {
     "path": "/level-1-foundations/python/theory/",
@@ -563,351 +598,561 @@
     "path": "/level-1-foundations/sql/index/",
     "locale": "en",
     "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "## SQL: Interview Questions & Query Design\n\n**SQL is the language every data engineer queries, transforms, and models data with — this page covers the concepts and query challenges interviewers actually ask about.**"
+    "description": "SQL fundamentals and interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges.",
+    "content": "## SQL: Fundamentals & Interview Questions\n\nSQL is the language every data engineer queries, transforms, and models data with. This section covers the concepts and query challenges interviewers actually ask about."
   },
   {
     "path": "/level-1-foundations/sql/index/",
     "locale": "en",
     "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Practice Problems](#practice-problems)\n- [Further Reading](#further-reading)\n\n---"
+    "description": "SQL fundamentals and interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges.",
+    "content": "## Topics\n\n- **Theory**: Core SQL concepts, joins, database design, optimization, security, and transactions — 99 questions across 15 categories\n- **Practice**: Hands-on query-writing challenges with worked solutions — the format interviewers use to test whether you can actually write SQL\n\nFor a from-scratch walkthrough of SQL, see the [SQL Roadmap](/roadmaps/sql/) — this section focuses on what interviewers ask, not how to learn SQL from zero."
   },
   {
     "path": "/level-1-foundations/sql/index/",
     "locale": "en",
     "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "## Key Concepts\n\nA quick-reference refresher on the syntax the interview questions below assume. For a from-scratch walkthrough of SQL, see the [SQL Roadmap](/roadmaps/sql/) — this page focuses on what interviewers ask, not how to learn SQL from zero."
+    "description": "SQL fundamentals and interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges.",
+    "content": "## Further Reading\n\n- [Data Modeling](/level-2-core-concepts/data-modeling/) — star/snowflake schemas and normalization in practice\n- [Data Warehousing](/level-2-core-concepts/data-warehousing/) — how SQL is used at the warehouse layer\n- [Data Structures](/level-1-foundations/data-structure/) — the algorithmic-problem counterpart to SQL query problems"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/practice/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
+    "title": "SQL Practice | Core Concepts",
+    "description": "Hands-on SQL query-writing challenges with worked solutions for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';\n\nQuery-writing challenges with worked solutions — the format interviewers use to test whether you can actually write SQL, not just describe it. Mark them **done** ✓, **bookmark** 🔖 for review, and expand answers on demand.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/practice/",
+    "locale": "en",
+    "title": "SQL Practice | Core Concepts",
+    "description": "Hands-on SQL query-writing challenges with worked solutions for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## Ranking & Salary Queries\n\nThe classic \"Nth highest value\" family of problems, and the different ways to answer them.\n\n<QuestionList topic=\"Ranking & Salary Queries\" storagePrefix=\"sql-prac-rank\">\n\n<QuestionCard id=\"sql-prac-rank-01\" number={100} question=\"How would you find the second-highest salary in an Employee table?\" difficulty=\"medium\" topic=\"Ranking\">\nGiven an `Employee` table (`ID`, `Salary`), there are several ways to do this.\n\n**Option 1 — subquery with `NOT IN`:** find the max, exclude it, find the new max.\n```sql\nSELECT MAX(Salary) AS SecondHighestSalary\nFROM Employee\nWHERE Salary NOT IN (SELECT MAX(Salary) FROM Employee);\n```\n\n**Option 2 — not-equal operator**, efficient when excluding a single top value:\n```sql\nSELECT MAX(Salary) AS SecondHighestSalary\nFROM Employee\nWHERE"
+  },
+  {
+    "path": "/level-1-foundations/sql/practice/",
+    "locale": "en",
+    "title": "SQL Practice | Core Concepts",
+    "description": "Hands-on SQL query-writing challenges with worked solutions for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "Salary <> (SELECT MAX(Salary) FROM Employee);\n```\n\n**Option 3 — `LIMIT`/`OFFSET`** (best for row ordering); `DISTINCT` avoids ties breaking the logic:\n```sql\nSELECT DISTINCT Salary AS SecondHighestSalary\nFROM Employee\nORDER BY Salary DESC\nLIMIT 1 OFFSET 1;\n```\n*(SQL Server: `OFFSET 1 ROWS FETCH NEXT 1 ROWS ONLY`.)*\n</QuestionCard>\n\n<QuestionCard id=\"sql-prac-rank-02\" number={101} question=\"How would you find the maximum salary by department, including departments with no employees?\" difficulty=\"medium\" topic=\"Ranking\">\nGiven `Employee(ID, Salary, DeptID)` and `Department(ID, DeptName)` — **this is a trick question**: ask the interviewer whether departments with no employees should still appear. If yes, use `LEFT OUTER JOIN` (`NULL` salary for empty departments); if no, `INNER JOIN` is enou"
+  },
+  {
+    "path": "/level-1-foundations/sql/practice/",
+    "locale": "en",
+    "title": "SQL Practice | Core Concepts",
+    "description": "Hands-on SQL query-writing challenges with worked solutions for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "gh.\n\n```sql\nSELECT d.DeptName, MAX(e.Salary) AS MaxSalary\nFROM Department d\nLEFT OUTER JOIN Employee e ON d.ID = e.DeptID\nGROUP BY d.DeptName;\n```\n</QuestionCard>\n\n<QuestionCard id=\"sql-prac-rank-03\" number={102} question=\"How would you find the maximum salary per department (without a Department table)?\" difficulty=\"easy\" topic=\"Ranking\">\n```sql\nSELECT DeptID, MAX(Salary) AS MaxSalary\nFROM Employee\nGROUP BY DeptID;\n```\n</QuestionCard>\n\n<QuestionCard id=\"sql-prac-rank-04\" number={103} question=\"How would you find the Nth highest salary, for an arbitrary N?\" difficulty=\"hard\" topic=\"Ranking\">\n**Correlated subquery** — counts how many distinct salaries are higher; when that count is `N-1`, you've found rank N:\n```sql\nSELECT * FROM Employee emp1\nWHERE (N - 1) = (\n    SELECT COUNT(DISTINCT emp"
+  },
+  {
+    "path": "/level-1-foundations/sql/practice/",
+    "locale": "en",
+    "title": "SQL Practice | Core Concepts",
+    "description": "Hands-on SQL query-writing challenges with worked solutions for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "2.Salary) FROM Employee emp2 WHERE emp2.Salary > emp1.Salary\n);\n```\n\n**`ROW_NUMBER()` window function** (recommended — works across Oracle, SQL Server, PostgreSQL, MySQL):\n```sql\nSELECT * FROM (\n    SELECT *, ROW_NUMBER() OVER (ORDER BY Salary DESC) AS rnum FROM Employee\n) AS Subquery WHERE rnum = N;\n```\n*(Use `DENSE_RANK()` instead if duplicate salaries should share a rank.)*\n\n**`LIMIT`/`OFFSET`** (MySQL/PostgreSQL/SQLite — shortest if supported):\n```sql\nSELECT DISTINCT Salary FROM Employee ORDER BY Salary DESC LIMIT 1 OFFSET (N - 1);\n```\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/practice/",
+    "locale": "en",
+    "title": "SQL Practice | Core Concepts",
+    "description": "Hands-on SQL query-writing challenges with worked solutions for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## Filtering, Sets & Duplicates\n\nSet comparisons between tables, and finding rows that don't belong.\n\n<QuestionList topic=\"Filtering, Sets & Duplicates\" storagePrefix=\"sql-prac-filter\">\n\n<QuestionCard id=\"sql-prac-filter-01\" number={104} question=\"How would you select every other (alternate odd/even) record from a table?\" difficulty=\"medium\" topic=\"Filtering\">\nAssign a row number with `ROW_NUMBER()`, then filter with modulo:\n\n```sql\n-- Even-numbered records\nSELECT * FROM (\n    SELECT *, ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS row_num\n    FROM Employee\n) AS Subquery\nWHERE MOD(row_num, 2) = 0;\n\n-- Odd-numbered: WHERE MOD(row_num, 2) = 1\n```\n*(No `MOD()` support? Use `WHERE row_num % 2 = 0`.)*\n</QuestionCard>\n\n<QuestionCard id=\"sql-prac-filter-02\" number={105} question=\"How would you fi"
+  },
+  {
+    "path": "/level-1-foundations/sql/practice/",
+    "locale": "en",
+    "title": "SQL Practice | Core Concepts",
+    "description": "Hands-on SQL query-writing challenges with worked solutions for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "nd records in Table A that don't exist in Table B, without using NOT IN?\" difficulty=\"medium\" topic=\"Filtering\">\n**Set operators** — standard SQL/SQL Server/PostgreSQL/MySQL use `EXCEPT`, Oracle uses `MINUS`:\n```sql\nSELECT * FROM Table_A EXCEPT SELECT * FROM Table_B;   -- Oracle: MINUS instead of EXCEPT\n```\n\n**`LEFT JOIN`** (most universal — works across all SQL databases):\n```sql\nSELECT Table_A.* FROM Table_A\nLEFT JOIN Table_B ON Table_A.ID = Table_B.ID\nWHERE Table_B.ID IS NULL;\n```\n*(`NOT IN` is avoided here because it silently returns no rows if the subquery contains even one `NULL`.)*\n</QuestionCard>\n\n<QuestionCard id=\"sql-prac-filter-03\" number={106} question=\"How would you find employees who share both the same name and email?\" difficulty=\"easy\" topic=\"Filtering\">\nGroup by both colum"
+  },
+  {
+    "path": "/level-1-foundations/sql/practice/",
+    "locale": "en",
+    "title": "SQL Practice | Core Concepts",
+    "description": "Hands-on SQL query-writing challenges with worked solutions for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "ns together — `HAVING COUNT(*) > 1` isolates rows where both fields match exactly:\n```sql\nSELECT name, email, COUNT(*) AS duplicate_count\nFROM Employee\nGROUP BY name, email\nHAVING COUNT(*) > 1;\n```\n</QuestionCard>\n\n<QuestionCard id=\"sql-prac-filter-04\" number={107} question=\"How would you find duplicate email addresses in an Employee table?\" difficulty=\"easy\" topic=\"Filtering\">\n```sql\nSELECT EMAIL, COUNT(EMAIL) AS occurrence_count\nFROM Employee\nGROUP BY EMAIL\nHAVING COUNT(EMAIL) > 1;\n```\nNote: with `GROUP BY`, only grouped or aggregated columns may appear in `SELECT`.\n</QuestionCard>\n\n<QuestionCard id=\"sql-prac-filter-05\" number={108} question=\"How would you select 10 employees with odd employee IDs?\" difficulty=\"easy\" topic=\"Filtering\">\n```sql\n-- Standard SQL / Oracle 12c+ / PostgreSQL /"
+  },
+  {
+    "path": "/level-1-foundations/sql/practice/",
+    "locale": "en",
+    "title": "SQL Practice | Core Concepts",
+    "description": "Hands-on SQL query-writing challenges with worked solutions for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "MySQL\nSELECT ID FROM Employee WHERE ID % 2 = 1 FETCH FIRST 10 ROWS ONLY;\n\n-- SQL Server\nSELECT TOP 10 ID FROM Employee WHERE ID % 2 = 1;\n```\n</QuestionCard>\n\n<QuestionCard id=\"sql-prac-filter-06\" number={109} question=\"How would you do a case-insensitive name search?\" difficulty=\"easy\" topic=\"Filtering\">\n```sql\nSELECT * FROM Employees WHERE UPPER(emp_name) LIKE '%RICH%';\n-- Equivalent: WHERE LOWER(emp_name) LIKE '%rich%'\n```\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/practice/",
+    "locale": "en",
+    "title": "SQL Practice | Core Concepts",
+    "description": "Hands-on SQL query-writing challenges with worked solutions for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## Dates & Result Shaping\n\nDate arithmetic and controlling how many rows come back.\n\n<QuestionList topic=\"Dates & Result Shaping\" storagePrefix=\"sql-prac-dates\">\n\n<QuestionCard id=\"sql-prac-dates-01\" number={110} question=\"How would you select employees born between two dates?\" difficulty=\"easy\" topic=\"Dates\">\n`BETWEEN` is inclusive of both endpoints:\n```sql\nSELECT EmpName FROM Employees WHERE birth_date BETWEEN '1990-01-01' AND '2000-12-31';\n-- Equivalent: WHERE birth_date >= '1990-01-01' AND birth_date <= '2000-12-31'\n```\n</QuestionCard>\n\n<QuestionCard id=\"sql-prac-dates-02\" number={111} question=\"How would you extract the quarter from a date?\" difficulty=\"easy\" topic=\"Dates\">\n```sql\n-- Standard SQL (most portable)\nSELECT EXTRACT(QUARTER FROM DATE '2016-03-31') AS quarter;\n\n-- Oracle\nSEL"
+  },
+  {
+    "path": "/level-1-foundations/sql/practice/",
+    "locale": "en",
+    "title": "SQL Practice | Core Concepts",
+    "description": "Hands-on SQL query-writing challenges with worked solutions for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "ECT TO_CHAR(TO_DATE('03/31/2016', 'MM/DD/YYYY'), 'Q') AS quarter FROM DUAL;\n```\n</QuestionCard>\n\n<QuestionCard id=\"sql-prac-dates-03\" number={112} question=\"How would you calculate the number of days between two dates?\" difficulty=\"easy\" topic=\"Dates\">\n```sql\n-- MySQL\nSELECT DATEDIFF('2016-12-31', '2015-01-01') AS DaysDifference;\n\n-- SQL Server\nSELECT DATEDIFF(day, '2015-01-01', '2016-12-31') AS DaysDifference;\n\n-- PostgreSQL / Oracle\nSELECT '2016-12-31'::date - '2015-01-01'::date AS DaysDifference;\n```\nNote: in MySQL the larger date goes first for a positive result; in SQL Server/PostgreSQL, second.\n</QuestionCard>\n\n<QuestionCard id=\"sql-prac-dates-04\" number={113} question=\"How do you get the current date and time in SQL?\" difficulty=\"easy\" topic=\"Dates\">\n```sql\nSELECT CURRENT_DATE;"
+  },
+  {
+    "path": "/level-1-foundations/sql/practice/",
+    "locale": "en",
+    "title": "SQL Practice | Core Concepts",
+    "description": "Hands-on SQL query-writing challenges with worked solutions for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "-- ANSI standard; MySQL: CURDATE()\nSELECT CURRENT_TIMESTAMP;  -- ANSI standard; MySQL: NOW()\n```\n</QuestionCard>\n\n<QuestionCard id=\"sql-prac-dates-05\" number={114} question=\"How do you limit the number of rows returned by a query, and how does pagination build on that?\" difficulty=\"easy\" topic=\"Result Shaping\">\n```sql\n-- Standard SQL\nSELECT * FROM table_name FETCH FIRST 10 ROWS ONLY;\n-- MySQL\nSELECT * FROM table_name LIMIT 10;\n\n-- Pagination: skip 3, take next 6\nSELECT * FROM table_name OFFSET 3 ROWS FETCH NEXT 6 ROWS ONLY;   -- MySQL: LIMIT 3, 6\n```\nAlways pair `LIMIT`/`FETCH` with `ORDER BY` — without it, row order (and your results) are unpredictable.\n</QuestionCard>\n\n</QuestionList>"
+  },
+  {
+    "path": "/level-1-foundations/sql/progress/",
+    "locale": "en",
+    "title": "SQL Progress",
+    "description": "Your aggregated progress across every SQL theory and practice question for data engineering interviews.",
+    "content": "import ProgressOverview from '../../../../components/mdx/ProgressOverview.astro';\n\nA single view of where you stand across all SQL questions — [Theory](/level-1-foundations/sql/theory/) and [Practice](/level-1-foundations/sql/practice/) combined. Progress is tracked per-question in your browser, so marking a question **done** on either page updates this view automatically.\n\n<ProgressOverview sections={[\n  {\n    title: \"Theory · SQL Fundamentals\",\n    anchor: \"/level-1-foundations/sql/theory/#sql-fundamentals\",\n    ids: [\"sql-fund-01\",\"sql-fund-02\",\"sql-fund-03\",\"sql-fund-04\",\"sql-fund-05\",\"sql-fund-06\",\"sql-fund-07\",\"sql-fund-08\",\"sql-fund-09\",\"sql-fund-10\",\"sql-fund-11\",\"sql-fund-12\",\"sql-fund-13\",\"sql-fund-14\",\"sql-fund-15\",\"sql-fund-16\",\"sql-fund-17\",\"sql-fund-18\",\"sql-fund-19\",\"sql-fu"
+  },
+  {
+    "path": "/level-1-foundations/sql/progress/",
+    "locale": "en",
+    "title": "SQL Progress",
+    "description": "Your aggregated progress across every SQL theory and practice question for data engineering interviews.",
+    "content": "nd-20\"],\n  },\n  {\n    title: \"Theory · SQL Data Types and Operators\",\n    anchor: \"/level-1-foundations/sql/theory/#sql-data-types-and-operators\",\n    ids: [\"sql-types-01\",\"sql-types-02\",\"sql-types-03\",\"sql-types-04\",\"sql-types-05\",\"sql-types-06\",\"sql-types-07\",\"sql-types-08\",\"sql-types-09\",\"sql-types-10\"],\n  },\n  {\n    title: \"Theory · SQL Advanced Queries\",\n    anchor: \"/level-1-foundations/sql/theory/#sql-advanced-queries\",\n    ids: [\"sql-adv-01\",\"sql-adv-02\",\"sql-adv-03\",\"sql-adv-04\",\"sql-adv-05\",\"sql-adv-06\",\"sql-adv-07\",\"sql-adv-08\",\"sql-adv-09\",\"sql-adv-10\"],\n  },\n  {\n    title: \"Theory · Database Design & Architecture\",\n    anchor: \"/level-1-foundations/sql/theory/#database-design--architecture\",\n    ids: [\"sql-design-01\",\"sql-design-02\",\"sql-design-03\",\"sql-design-04\",\"sql-design-"
+  },
+  {
+    "path": "/level-1-foundations/sql/progress/",
+    "locale": "en",
+    "title": "SQL Progress",
+    "description": "Your aggregated progress across every SQL theory and practice question for data engineering interviews.",
+    "content": "05\",\"sql-design-06\",\"sql-design-07\",\"sql-design-08\",\"sql-design-09\",\"sql-design-10\"],\n  },\n  {\n    title: \"Theory · SQL Optimization and Performance\",\n    anchor: \"/level-1-foundations/sql/theory/#sql-optimization-and-performance\",\n    ids: [\"sql-opt-01\",\"sql-opt-02\",\"sql-opt-03\",\"sql-opt-04\",\"sql-opt-05\",\"sql-opt-06\",\"sql-opt-07\"],\n  },\n  {\n    title: \"Theory · SQL Security\",\n    anchor: \"/level-1-foundations/sql/theory/#sql-security\",\n    ids: [\"sql-sec-01\",\"sql-sec-02\",\"sql-sec-03\"],\n  },\n  {\n    title: \"Theory · SQL Functions and Expressions\",\n    anchor: \"/level-1-foundations/sql/theory/#sql-functions-and-expressions\",\n    ids: [\"sql-func-01\",\"sql-func-02\",\"sql-func-03\",\"sql-func-04\"],\n  },\n  {\n    title: \"Theory · Transaction Control and Locking\",\n    anchor: \"/level-1-foundations/sq"
+  },
+  {
+    "path": "/level-1-foundations/sql/progress/",
+    "locale": "en",
+    "title": "SQL Progress",
+    "description": "Your aggregated progress across every SQL theory and practice question for data engineering interviews.",
+    "content": "l/theory/#transaction-control-and-locking\",\n    ids: [\"sql-txn-01\",\"sql-txn-02\",\"sql-txn-03\",\"sql-txn-04\",\"sql-txn-05\"],\n  },\n  {\n    title: \"Theory · SQL and Modern Data Ecosystems\",\n    anchor: \"/level-1-foundations/sql/theory/#sql-and-modern-data-ecosystems\",\n    ids: [\"sql-eco-01\",\"sql-eco-02\",\"sql-eco-03\",\"sql-eco-04\",\"sql-eco-05\"],\n  },\n  {\n    title: \"Theory · SQL Best Practices and Standards\",\n    anchor: \"/level-1-foundations/sql/theory/#sql-best-practices-and-standards\",\n    ids: [\"sql-best-01\",\"sql-best-02\",\"sql-best-03\",\"sql-best-04\",\"sql-best-05\"],\n  },\n  {\n    title: \"Theory · Analytical SQL Questions\",\n    anchor: \"/level-1-foundations/sql/theory/#analytical-sql-questions\",\n    ids: [\"sql-analytic-01\",\"sql-analytic-02\",\"sql-analytic-03\",\"sql-analytic-04\",\"sql-analytic-05\",\"s"
+  },
+  {
+    "path": "/level-1-foundations/sql/progress/",
+    "locale": "en",
+    "title": "SQL Progress",
+    "description": "Your aggregated progress across every SQL theory and practice question for data engineering interviews.",
+    "content": "ql-analytic-06\"],\n  },\n  {\n    title: \"Theory · Data Manipulation and ETL\",\n    anchor: \"/level-1-foundations/sql/theory/#data-manipulation-and-etl\",\n    ids: [\"sql-etl-01\",\"sql-etl-02\",\"sql-etl-03\",\"sql-etl-04\",\"sql-etl-05\"],\n  },\n  {\n    title: \"Theory · Domain-Specific SQL Scenarios\",\n    anchor: \"/level-1-foundations/sql/theory/#domain-specific-sql-scenarios\",\n    ids: [\"sql-domain-01\",\"sql-domain-02\",\"sql-domain-03\",\"sql-domain-04\",\"sql-domain-05\"],\n  },\n  {\n    title: \"Theory · Troubleshooting and Debugging\",\n    anchor: \"/level-1-foundations/sql/theory/#troubleshooting-and-debugging\",\n    ids: [\"sql-debug-01\",\"sql-debug-02\",\"sql-debug-03\",\"sql-debug-04\"],\n  },\n  {\n    title: \"Practice · Ranking & Salary Queries\",\n    anchor: \"/level-1-foundations/sql/practice/#ranking--salary-querie"
+  },
+  {
+    "path": "/level-1-foundations/sql/progress/",
+    "locale": "en",
+    "title": "SQL Progress",
+    "description": "Your aggregated progress across every SQL theory and practice question for data engineering interviews.",
+    "content": "s\",\n    ids: [\"sql-prac-rank-01\",\"sql-prac-rank-02\",\"sql-prac-rank-03\",\"sql-prac-rank-04\"],\n  },\n  {\n    title: \"Practice · Filtering, Sets & Duplicates\",\n    anchor: \"/level-1-foundations/sql/practice/#filtering-sets--duplicates\",\n    ids: [\"sql-prac-filter-01\",\"sql-prac-filter-02\",\"sql-prac-filter-03\",\"sql-prac-filter-04\",\"sql-prac-filter-05\",\"sql-prac-filter-06\"],\n  },\n  {\n    title: \"Practice · Dates & Result Shaping\",\n    anchor: \"/level-1-foundations/sql/practice/#dates--result-shaping\",\n    ids: [\"sql-prac-dates-01\",\"sql-prac-dates-02\",\"sql-prac-dates-03\",\"sql-prac-dates-04\",\"sql-prac-dates-05\"],\n  },\n]} />"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';\n\nTrack your study progress — mark questions as **done** ✓, **bookmark** 🔖 for review, and expand answers on demand.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## Quick Reference\n\nA refresher on the syntax the questions below assume. For a from-scratch walkthrough of SQL, see the [SQL Roadmap](/roadmaps/sql/) — this page focuses on what interviewers ask, not how to learn SQL from zero."
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
     "content": "### Reading data\n`SELECT` retrieves columns, `WHERE` filters rows, `ORDER BY` sorts, `GROUP BY`/`HAVING` aggregate and filter groups, `LIMIT`/`OFFSET` paginate:\n\n```sql\nSELECT department, COUNT(*) AS employee_count, AVG(salary) AS avg_salary\nFROM employees\nWHERE hire_date >= '2020-01-01'\nGROUP BY department\nHAVING COUNT(*) > 5\nORDER BY avg_salary DESC\nLIMIT 10;\n```"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
     "content": "### Joins\n`INNER JOIN` returns only matching rows; `LEFT`/`RIGHT JOIN` keep all rows from one side (NULL where unmatched); `FULL OUTER JOIN` keeps all rows from both; `CROSS JOIN` produces a Cartesian product; a self join joins a table to itself via an alias.\n\n```sql\nSELECT e.employee_name, d.department_name\nFROM employees e\nLEFT JOIN departments d ON e.department_id = d.id;\n```"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
     "content": "### Modifying data & schema\n`INSERT`, `UPDATE`, `DELETE` (DML) manipulate rows; `CREATE TABLE`, `ALTER TABLE`, `DROP TABLE` (DDL) manage schema. Always scope `UPDATE`/`DELETE` with `WHERE` — omitting it applies to every row.\n\n```sql\nCREATE TABLE employees (\n    employee_id INT PRIMARY KEY AUTO_INCREMENT,\n    name VARCHAR(100) NOT NULL,\n    salary DECIMAL(10, 2),\n    department_id INT,\n    FOREIGN KEY (department_id) REFERENCES departments(id)\n);\n\nUPDATE employees SET salary = salary * 1.10 WHERE department_id = 2;\n```"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
     "content": "### Constraints & data types\n`PRIMARY KEY` (unique row identifier), `FOREIGN KEY` (referential integrity), `UNIQUE`, `NOT NULL`, `CHECK` (validates values), `DEFAULT`. Common types: `INT`, `VARCHAR(n)`, `DECIMAL(precision, scale)`, `DATE`, `DATETIME`, `BOOLEAN`, `TEXT`."
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
     "content": "### Common mistakes\n\n| Mistake | Problem | Fix |\n|---------|---------|-----|\n| `WHERE col = NULL` | Always returns no rows | Use `WHERE col IS NULL` |\n| Missing `WHERE` on `UPDATE`/`DELETE` | Modifies/deletes every row | Always scope with `WHERE` |\n| `SELECT *` on large tables | Slow, excess data transfer | Select only needed columns |\n| Using a column alias in `WHERE` | Alias isn't resolved yet at that stage | Only usable in `ORDER BY`/`SELECT` |\n\n---"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "## Interview Questions"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## SQL Fundamentals\n\nThe core vocabulary and commands every SQL interview starts with.\n\n<QuestionList topic=\"SQL Fundamentals\" storagePrefix=\"sql-fundamentals\">\n\n<QuestionCard id=\"sql-fund-01\" number={1} question=\"What is SQL and what is it used for?\" difficulty=\"easy\" topic=\"Fundamentals\">\nSQL (Structured Query Language) is the standard programming language for managing relational databases. It enables data professionals to create, read, update, and delete data (CRUD), manage schemas, and perform data analysis.\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-02\" number={2} question=\"Describe the difference between SQL and NoSQL databases.\" difficulty=\"easy\" topic=\"Fundamentals\">\n- **SQL** — relational, structured schema, ACID compliance, tables with rows/columns\n- **NoSQL** — non-relational,"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### SQL Fundamentals\n\n**1. What is SQL and what is it used for?**\nSQL (Structured Query Language) is the standard programming language for managing relational databases. It enables data professionals to create, read, update, and delete data (CRUD), manage schemas, and perform data analysis.\n\n**2. Describe the difference between SQL and NoSQL databases.**\n- **SQL:** Relational, structured schema, ACID compliance, tables with rows/columns\n- **NoSQL:** Non-relational, flexible schema, eventual consistency, document/key-value/graph models\n\n**3. What are the different types of SQL commands?**\n- **DDL:** Data Definition (CREATE, ALTER, DROP)\n- **DML:** Data Manipulation (SELECT, INSERT, UPDATE, DELETE)\n- **DCL:** Data Control (GRANT, REVOKE)\n- **TCL:** Transaction Control (COMMIT, ROLLBACK, SAVE"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "flexible schema, eventual consistency, document/key-value/graph models\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-03\" number={3} question=\"What are the different types of SQL commands?\" difficulty=\"easy\" topic=\"Fundamentals\">\n- **DDL** — Data Definition (`CREATE`, `ALTER`, `DROP`)\n- **DML** — Data Manipulation (`SELECT`, `INSERT`, `UPDATE`, `DELETE`)\n- **DCL** — Data Control (`GRANT`, `REVOKE`)\n- **TCL** — Transaction Control (`COMMIT`, `ROLLBACK`, `SAVEPOINT`)\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-04\" number={4} question=\"Explain the purpose of the SELECT statement.\" difficulty=\"easy\" topic=\"Fundamentals\">\nRetrieves data from tables.\n\n```sql\nSELECT columns FROM table WHERE conditions ORDER BY columns;\n```\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-05\" number={5} question=\"What is"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "POINT)\n\n**4. Explain the purpose of the SELECT statement.**\nRetrieves data from tables. Syntax: `SELECT columns FROM table WHERE conditions ORDER BY columns;`\n\n**5. What is the difference between WHERE and HAVING clauses?**\n- **WHERE:** Filters rows before GROUP BY\n- **HAVING:** Filters groups after aggregation\n\n**6. Define what a JOIN is in SQL and list its types.**\nJOINs combine rows based on related columns.\n- **INNER JOIN:** Matching rows only\n- **LEFT/RIGHT JOIN:** All rows from one + matching from other\n- **FULL OUTER JOIN:** All rows from both tables\n- **CROSS JOIN:** Cartesian product\n\n**7. What is a primary key in a database?**\nUnique identifier for each row. Cannot be NULL, must be unique. Enforces entity integrity.\n\n**8. Explain what a foreign key is and how it is used.**\nColumn"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "the difference between WHERE and HAVING clauses?\" difficulty=\"easy\" topic=\"Fundamentals\">\n- **`WHERE`** — filters rows *before* `GROUP BY`\n- **`HAVING`** — filters groups *after* aggregation\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-06\" number={6} question=\"Define what a JOIN is in SQL and list its types.\" difficulty=\"easy\" topic=\"Joins\">\nJOINs combine rows based on related columns.\n\n- **`INNER JOIN`** — matching rows only\n- **`LEFT`/`RIGHT JOIN`** — all rows from one side + matching from the other\n- **`FULL OUTER JOIN`** — all rows from both tables\n- **`CROSS JOIN`** — Cartesian product\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-07\" number={7} question=\"What is a primary key in a database?\" difficulty=\"easy\" topic=\"Fundamentals\">\nThe unique identifier for each row. Cannot be `NULL`, mu"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "referencing a primary key. Enforces referential integrity and creates relationships.\n\n**9. How can you prevent SQL injections?**\nParameterized queries, input validation, least privilege, stored procedures (cautiously).\n\n**10. What is normalization? Explain with examples.**\nOrganizing data to reduce redundancy: 1NF (atomic), 2NF (full dependency), 3NF (no transitive).\n\n**11. Describe the concept of denormalization and when you would use it.**\nAdding redundant data to improve read performance. Used in data warehouses and read-heavy apps.\n\n**12. What are indexes and how can they improve query performance?**\nB-tree structures for fast lookups. Faster WHERE/JOIN/ORDER BY, slower INSERT/UPDATE/DELETE.\n\n**13. Explain the purpose of the GROUP BY clause.**\nGroups rows into summary rows, used with"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "st be unique — enforces entity integrity.\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-08\" number={8} question=\"Explain what a foreign key is and how it is used.\" difficulty=\"easy\" topic=\"Fundamentals\">\nA column referencing another table's primary key. Enforces referential integrity and creates relationships between tables.\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-09\" number={9} question=\"How can you prevent SQL injections?\" difficulty=\"medium\" topic=\"Security\">\nParameterized queries (prepared statements), input validation, least-privilege database accounts, and stored procedures used cautiously — never build queries by concatenating raw user input.\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-10\" number={10} question=\"What is normalization? Explain with examples.\" difficulty=\"medium\" top"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "aggregate functions.\n\n**14. What is a subquery, and when would you use one?**\nNested query in SELECT/WHERE/FROM. Used for complex filtering based on another query.\n\n**15. Describe the functions of the ORDER BY clause.**\nSorts result set in ascending (ASC) or descending (DESC) order.\n\n**16. What are aggregate functions in SQL?**\nFunctions computing values from multiple rows: COUNT, SUM, AVG, MIN, MAX.\n\n**17. Explain the differences between INNER JOIN, LEFT JOIN, RIGHT JOIN, and FULL JOIN.**\n- **INNER:** Only matching rows\n- **LEFT:** All left rows + matching right (NULL if no match)\n- **RIGHT:** All right rows + matching left (NULL if no match)\n- **FULL:** All rows from both tables\n\n**18. How do you insert a new row into a database table?**\n`INSERT INTO table (col1, col2) VALUES (val1, val2"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "ic=\"Data Modeling\">\nOrganizing data to reduce redundancy:\n\n- **1NF** — atomic values, no repeating groups\n- **2NF** — every non-key column fully depends on the whole primary key\n- **3NF** — no transitive dependencies (non-key columns depend only on the key)\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-11\" number={11} question=\"Describe the concept of denormalization and when you would use it.\" difficulty=\"medium\" topic=\"Data Modeling\">\nDeliberately adding redundant data to improve read performance, at the cost of write complexity and storage. Common in data warehouses and read-heavy applications where join cost outweighs storage cost.\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-12\" number={12} question=\"What are indexes and how can they improve query performance?\" difficulty=\"medium\" topic="
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": ");`\n\n**19. Explain how to update records in a database table.**\n`UPDATE table SET col1 = val1 WHERE condition;`\n\n**20. What is a SQL View and what are its advantages?**\nVirtual table based on SELECT query. Simplifies queries, security, reusable logic."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "\"Performance\">\nB-tree structures that enable fast lookups. They speed up `WHERE`/`JOIN`/`ORDER BY`, but slow down `INSERT`/`UPDATE`/`DELETE` since the index has to be maintained on every write.\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-13\" number={13} question=\"Explain the purpose of the GROUP BY clause.\" difficulty=\"easy\" topic=\"Fundamentals\">\nGroups rows into summary rows so aggregate functions (`COUNT`, `SUM`, `AVG`, ...) can be applied per group instead of across the whole table.\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-14\" number={14} question=\"What is a subquery, and when would you use one?\" difficulty=\"medium\" topic=\"Fundamentals\">\nA query nested inside `SELECT`, `WHERE`, or `FROM`. Used for complex filtering that depends on the result of another query — for example, filtering"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### SQL Data Types and Operators\n\n**21. List the different data types available in SQL.**\nNumeric (INT, DECIMAL), String (CHAR, VARCHAR, TEXT), Date/Time (DATE, TIMESTAMP).\n\n**22. What are the differences between CHAR, VARCHAR, and TEXT data types?**\n- **CHAR:** Fixed length\n- **VARCHAR:** Variable length\n- **TEXT:** Large variable length\n\n**23. How do you use the BETWEEN operator in SQL?**\n`SELECT * FROM table WHERE column BETWEEN 10 AND 20;`\n\n**24. Describe the use of the IN operator.**\n`SELECT * FROM table WHERE column IN (val1, val2, val3);`\n\n**25. Explain the use of wildcard characters in SQL.**\n`%` matches any sequence, `_` matches single character. Used with LIKE.\n\n**26. What is the purpose of the LIKE operator?**\nPattern matching: `SELECT * FROM users WHERE name LIKE 'J%';`\n\n**27."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "rows above an aggregate computed elsewhere.\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-15\" number={15} question=\"Describe the functions of the ORDER BY clause.\" difficulty=\"easy\" topic=\"Fundamentals\">\nSorts the result set in ascending (`ASC`, default) or descending (`DESC`) order, by one or more columns.\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-16\" number={16} question=\"What are aggregate functions in SQL?\" difficulty=\"easy\" topic=\"Fundamentals\">\nFunctions that compute a single value from multiple rows: `COUNT`, `SUM`, `AVG`, `MIN`, `MAX`.\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-17\" number={17} question=\"Explain the differences between INNER JOIN, LEFT JOIN, RIGHT JOIN, and FULL JOIN.\" difficulty=\"easy\" topic=\"Joins\">\n- **`INNER`** — only matching rows\n- **`LEFT`** — all left rows"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "How do you handle NULL values in SQL?**\nUse `IS NULL` / `IS NOT NULL`. Functions: COALESCE, ISNULL.\n\n**28. What does the COALESCE function do?**\nReturns first non-NULL value: `SELECT COALESCE(phone, email, 'N/A');`\n\n**29. What is the difference between UNION and UNION ALL?**\n- **UNION:** Combines, removes duplicates\n- **UNION ALL:** Combines all, keeps duplicates (faster)\n\n**30. Describe the use of arithmetic operators in SQL queries.**\nStandard operators (+, -, *, /) in SELECT and WHERE clauses."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "+ matching right rows (`NULL` if no match)\n- **`RIGHT`** — all right rows + matching left rows (`NULL` if no match)\n- **`FULL`** — all rows from both tables\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-18\" number={18} question=\"How do you insert a new row into a database table?\" difficulty=\"easy\" topic=\"Fundamentals\">\n```sql\nINSERT INTO table (col1, col2) VALUES (val1, val2);\n```\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-19\" number={19} question=\"Explain how to update records in a database table.\" difficulty=\"easy\" topic=\"Fundamentals\">\n```sql\nUPDATE table SET col1 = val1 WHERE condition;\n```\nAlways scope with `WHERE` — omitting it updates every row.\n</QuestionCard>\n\n<QuestionCard id=\"sql-fund-20\" number={20} question=\"What is a SQL View and what are its advantages?\" difficulty=\"medium\" t"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### SQL Advanced Queries\n\n**31. Explain how to use the CASE statement in SQL.**\n`SELECT CASE WHEN age < 18 THEN 'Minor' ELSE 'Adult' END FROM users;`\n\n**32. How would you perform a self JOIN?**\n`SELECT e1.name, e2.name FROM employees e1 JOIN employees e2 ON e1.manager_id = e2.id;`\n\n**33. What is a cross JOIN and when would you use it?**\nCartesian product. Used for generating test data or combining dimensions.\n\n**34. How to implement pagination in SQL queries?**\nMySQL/PostgreSQL: `LIMIT 10 OFFSET 20`. SQL Server: `OFFSET 10 ROWS FETCH NEXT 20 ROWS ONLY`.\n\n**35. Explain the concept of Common Table Expressions (CTEs) and recursive CTEs.**\nCTEs (`WITH` clause) create temporary named result sets. Recursive CTEs handle hierarchies.\n\n**36. What are window functions and how are they used?**\nComput"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "opic=\"Fundamentals\">\nA virtual table based on a stored `SELECT` query. Advantages: simplifies repeated complex queries, provides a security layer (expose only certain columns/rows), and centralizes reusable logic.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "e values over windows: ROW_NUMBER(), RANK(), LAG(), LEAD().\n\n**37. How can you concatenate column values in SQL?**\nStandard SQL: `||` or CONCAT(). SQL Server: `+`. MySQL: CONCAT().\n\n**38. What is the PIVOT operation and how would you apply it?**\nTransforms rows to columns. SQL Server: PIVOT keyword. Others: CASE aggregation.\n\n**39. Explain combining GROUP BY with ORDER BY.**\nORDER BY comes after GROUP BY to sort aggregated results.\n\n**40. How would you find duplicate records in a table?**\n`SELECT col, COUNT(*) FROM table GROUP BY col HAVING COUNT(*) > 1;`"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## SQL Data Types and Operators\n\nTypes, comparison operators, and NULL handling that show up in almost every query.\n\n<QuestionList topic=\"SQL Data Types and Operators\" storagePrefix=\"sql-types\">\n\n<QuestionCard id=\"sql-types-01\" number={21} question=\"List the different data types available in SQL.\" difficulty=\"easy\" topic=\"Data Types\">\n- **Numeric** — `INT`, `DECIMAL`\n- **String** — `CHAR`, `VARCHAR`, `TEXT`\n- **Date/Time** — `DATE`, `TIMESTAMP`\n</QuestionCard>\n\n<QuestionCard id=\"sql-types-02\" number={22} question=\"What are the differences between CHAR, VARCHAR, and TEXT data types?\" difficulty=\"easy\" topic=\"Data Types\">\n- **`CHAR`** — fixed length, padded with spaces\n- **`VARCHAR`** — variable length, up to a defined limit\n- **`TEXT`** — large variable-length text, typically no practical l"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Database Design & Architecture\n\n**41. What is the Entity-Relationship Model?**\nConceptual model using entities (tables), attributes (columns), relationships.\n\n**42. Explain the different types of database schema.**\n- **Logical:** Structure without DBMS specifics\n- **Physical:** Implementation details\n- **Conceptual:** High-level business view\n\n**43. What are Stored Procedures and how are they beneficial?**\nPrecompiled code blocks. Benefits: reduced traffic, security, plan caching.\n\n**44. What is a trigger in SQL and when should it be used?**\nAutomatic code on DML events. Used for audit trails, validation.\n\n**45. Describe the concept of ACID in databases.**\nAtomicity, Consistency, Isolation, Durability - ensuring reliable transactions.\n\n**46. What is database sharding?**\nHorizontal part"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "imit\n</QuestionCard>\n\n<QuestionCard id=\"sql-types-03\" number={23} question=\"How do you use the BETWEEN operator in SQL?\" difficulty=\"easy\" topic=\"Operators\">\n```sql\nSELECT * FROM table WHERE column BETWEEN 10 AND 20;\n```\nInclusive of both endpoints.\n</QuestionCard>\n\n<QuestionCard id=\"sql-types-04\" number={24} question=\"Describe the use of the IN operator.\" difficulty=\"easy\" topic=\"Operators\">\n```sql\nSELECT * FROM table WHERE column IN (val1, val2, val3);\n```\nShorthand for chaining several `OR` conditions on the same column.\n</QuestionCard>\n\n<QuestionCard id=\"sql-types-05\" number={25} question=\"Explain the use of wildcard characters in SQL.\" difficulty=\"easy\" topic=\"Operators\">\n`%` matches any sequence of characters, `_` matches exactly one character. Used with `LIKE`.\n</QuestionCard>\n\n<Que"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "itioning across database instances for scalability.\n\n**47. How do database indexes work and what types are there?**\nB-tree structures. Types: B-tree, Hash, Bitmap, GiST, GIN.\n\n**48. Describe the process of data warehousing.**\nETL processes, dimensional modeling (star/snowflake), OLAP cubes.\n\n**49. Explain the difference between OLTP and OLAP systems.**\n- **OLTP:** Transactional, frequent writes, operational\n- **OLAP:** Analytical, read-heavy, historical analysis\n\n**50. What are materialized views and how do they differ from standard views?**\nPrecomputed stored results. Unlike virtual views, improve read performance."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "stionCard id=\"sql-types-06\" number={26} question=\"What is the purpose of the LIKE operator?\" difficulty=\"easy\" topic=\"Operators\">\nPattern matching on strings:\n\n```sql\nSELECT * FROM users WHERE name LIKE 'J%';\n```\n</QuestionCard>\n\n<QuestionCard id=\"sql-types-07\" number={27} question=\"How do you handle NULL values in SQL?\" difficulty=\"easy\" topic=\"NULL Handling\">\nUse `IS NULL` / `IS NOT NULL` for comparisons — `= NULL` never matches. Functions like `COALESCE` and `ISNULL` substitute a default when a value is `NULL`.\n</QuestionCard>\n\n<QuestionCard id=\"sql-types-08\" number={28} question=\"What does the COALESCE function do?\" difficulty=\"easy\" topic=\"NULL Handling\">\nReturns the first non-`NULL` value in its argument list:\n\n```sql\nSELECT COALESCE(phone, email, 'N/A');\n```\n</QuestionCard>\n\n<Questi"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### SQL Optimization and Performance\n\n**51. How do you identify and optimize slow-running queries?**\nUse EXPLAIN, add indexes, avoid SELECT *, optimize JOINs.\n\n**52. What is query execution plan in SQL?**\nDatabase strategy showing scans, joins, indexes, costs.\n\n**53. Explain how to use EXPLAIN or EXPLAIN ANALYZE.**\nEXPLAIN: plan only. EXPLAIN ANALYZE: executes and shows actual costs.\n\n**54. How can indexing affect performance both positively and negatively?**\n- **Positive:** Faster SELECT\n- **Negative:** Slower INSERT/UPDATE/DELETE\n\n**55. Describe how to measure the performance of SQL queries.**\nExecution time, rows examined, index usage, EXPLAIN output.\n\n**56. How would you rewrite a query to improve its performance?**\nUse JOINs over subqueries, minimize SELECT *, add indexes.\n\n**57. What"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "onCard id=\"sql-types-09\" number={29} question=\"What is the difference between UNION and UNION ALL?\" difficulty=\"medium\" topic=\"Operators\">\n- **`UNION`** — combines result sets, removes duplicates (extra sort/dedup cost)\n- **`UNION ALL`** — combines result sets, keeps duplicates (faster, no dedup pass)\n</QuestionCard>\n\n<QuestionCard id=\"sql-types-10\" number={30} question=\"Describe the use of arithmetic operators in SQL queries.\" difficulty=\"easy\" topic=\"Operators\">\nStandard operators (`+`, `-`, `*`, `/`) can be used directly in `SELECT` and `WHERE` clauses to compute or filter on derived numeric values.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "are partitioned tables and how can they optimize performance?**\nTables split by date/range/hash. Queries scan only relevant partitions."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## SQL Advanced Queries\n\nPatterns that go beyond basic filtering — conditional logic, self joins, CTEs, and window functions.\n\n<QuestionList topic=\"SQL Advanced Queries\" storagePrefix=\"sql-advanced\">\n\n<QuestionCard id=\"sql-adv-01\" number={31} question=\"Explain how to use the CASE statement in SQL.\" difficulty=\"medium\" topic=\"Advanced Queries\">\n```sql\nSELECT CASE WHEN age < 18 THEN 'Minor' ELSE 'Adult' END FROM users;\n```\nWorks like an inline if/else — usable in `SELECT`, `WHERE`, and `ORDER BY`.\n</QuestionCard>\n\n<QuestionCard id=\"sql-adv-02\" number={32} question=\"How would you perform a self JOIN?\" difficulty=\"medium\" topic=\"Joins\">\n```sql\nSELECT e1.name, e2.name\nFROM employees e1\nJOIN employees e2 ON e1.manager_id = e2.id;\n```\nJoins a table to itself via two aliases — common for hierarchi"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### SQL Security\n\n**58. How do you implement database encryption in SQL?**\nTDE (at rest), column encryption, SSL/TLS (in transit).\n\n**59. What are roles and how do they manage database access?**\nNamed privilege collections. Users inherit permissions for access control.\n\n**60. Explain the concept of row-level security.**\nRestricts row access based on user context. Dynamic filtering."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "cal relationships like employee/manager.\n</QuestionCard>\n\n<QuestionCard id=\"sql-adv-03\" number={33} question=\"What is a cross JOIN and when would you use it?\" difficulty=\"medium\" topic=\"Joins\">\nProduces the Cartesian product of two tables (every row of A paired with every row of B). Used for generating test data or combining independent dimensions (e.g. all product/color combinations).\n</QuestionCard>\n\n<QuestionCard id=\"sql-adv-04\" number={34} question=\"How to implement pagination in SQL queries?\" difficulty=\"medium\" topic=\"Advanced Queries\">\n```sql\n-- MySQL / PostgreSQL\nSELECT * FROM table ORDER BY id LIMIT 10 OFFSET 20;\n\n-- SQL Server\nSELECT * FROM table ORDER BY id OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY;\n```\nAlways pair with `ORDER BY` — without it, page boundaries aren't guaranteed to"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### SQL Functions and Expressions\n\n**61. Describe scalar-valued and table-valued functions.**\n- **Scalar:** Returns single value\n- **Table-valued:** Returns table (FROM clause)\n\n**62. How would you define a stored procedure with input and output parameters?**\n`CREATE PROCEDURE proc(@input INT, @output INT OUTPUT) AS ...`\n\n**63. What is the difference between a function and a stored procedure?**\nFunctions return values, can be in queries, no DML on same table. Procedures have OUT params, full DML.\n\n**64. How do you use the CAST and CONVERT functions?**\nConvert types: `CAST(col AS INT)` or `CONVERT(INT, col)`."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "be stable.\n</QuestionCard>\n\n<QuestionCard id=\"sql-adv-05\" number={35} question=\"Explain the concept of Common Table Expressions (CTEs) and recursive CTEs.\" difficulty=\"medium\" topic=\"Advanced Queries\">\nA CTE (`WITH` clause) creates a temporary named result set scoped to one query, improving readability over nested subqueries. A **recursive CTE** references itself to walk hierarchical data (org charts, category trees) level by level.\n</QuestionCard>\n\n<QuestionCard id=\"sql-adv-06\" number={36} question=\"What are window functions and how are they used?\" difficulty=\"medium\" topic=\"Window Functions\">\nFunctions that compute a value across a \"window\" of related rows without collapsing them into one row, unlike `GROUP BY`.\n\n```sql\nSELECT name, salary,\n       RANK() OVER (PARTITION BY department ORD"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Transaction Control and Locking\n\n**65. What is a database transaction?**\nAtomic unit ensuring ACID properties. Commits fully or rolls back.\n\n**66. Explain the concept of locking and its types in SQL databases.**\nPrevents conflicting access. Types: row-level, page-level, table-level.\n\n**67. What are the properties of transactions?**\nACID: Atomicity, Consistency, Isolation, Durability.\n\n**68. How do you manage transaction isolation levels?**\n`SET TRANSACTION ISOLATION LEVEL`. Levels: READ UNCOMMITTED to SERIALIZABLE.\n\n**69. What does it mean to commit or roll back a transaction?**\n- **COMMIT:** Permanently saves changes\n- **ROLLBACK:** Undoes all changes"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "ER BY salary DESC) AS dept_rank\nFROM employees;\n```\nCommon ones: `ROW_NUMBER()`, `RANK()`, `LAG()`, `LEAD()`.\n</QuestionCard>\n\n<QuestionCard id=\"sql-adv-07\" number={37} question=\"How can you concatenate column values in SQL?\" difficulty=\"easy\" topic=\"Advanced Queries\">\n- **Standard SQL / PostgreSQL** — `||`\n- **MySQL** — `CONCAT(a, b)`\n- **SQL Server** — `+`\n</QuestionCard>\n\n<QuestionCard id=\"sql-adv-08\" number={38} question=\"What is the PIVOT operation and how would you apply it?\" difficulty=\"medium\" topic=\"Advanced Queries\">\nTransforms distinct row values into columns. SQL Server has a native `PIVOT` keyword; most other databases emulate it with conditional aggregation:\n\n```sql\nSELECT\n    department,\n    SUM(CASE WHEN quarter = 'Q1' THEN revenue END) AS q1,\n    SUM(CASE WHEN quarter = 'Q"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### SQL and Modern Data Ecosystems\n\n**70. How can SQL be integrated with big data technologies?**\nSQL-on-Hadoop (Hive, Spark SQL), external tables, JDBC/ODBC connectors.\n\n**71. Discuss the interoperability of SQL with cloud-based data stores.**\nCloud databases (RDS, BigQuery, Snowflake) offer SQL interfaces.\n\n**72. What is Data Lake and how can SQL interact with it?**\nCentralized raw data repository. SQL engines (Presto, Athena) query directly.\n\n**73. Explain the interaction between SQL and NoSQL within the same application.**\nPolyglot persistence: SQL for transactions, NoSQL for scale.\n\n**74. How does SQL work within a microservices architecture?**\nEach service owns its database. Shared data via APIs/events."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "2' THEN revenue END) AS q2\nFROM sales\nGROUP BY department;\n```\n</QuestionCard>\n\n<QuestionCard id=\"sql-adv-09\" number={39} question=\"Explain combining GROUP BY with ORDER BY.\" difficulty=\"easy\" topic=\"Advanced Queries\">\n`ORDER BY` runs after `GROUP BY` (and after `HAVING`), so it sorts the already-aggregated result rows — you can order by an aggregate expression like `COUNT(*)`.\n</QuestionCard>\n\n<QuestionCard id=\"sql-adv-10\" number={40} question=\"How would you find duplicate records in a table?\" difficulty=\"medium\" topic=\"Advanced Queries\">\n```sql\nSELECT col, COUNT(*)\nFROM table\nGROUP BY col\nHAVING COUNT(*) > 1;\n```\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### SQL Best Practices and Standards\n\n**75. What are some common SQL coding practices you follow?**\nConsistent naming, proper indexing, avoid SELECT *, parameterized queries.\n\n**76. How can you ensure the portability of SQL scripts across systems?**\nUse ANSI SQL, avoid vendor functions, abstract with views.\n\n**77. What methods do you use for version controlling SQL scripts?**\nGit, migration tools (Flyway, Liquibase), database-as-code.\n\n**78. What are the benefits of using stored procedures instead of embedded SQL?**\nReduced round trips, plan caching, centralized logic, security.\n\n**79. How do you document SQL code effectively?**\nInline comments, ER diagrams, data dictionaries."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## Database Design & Architecture\n\nModeling, schema strategy, and the objects that support them.\n\n<QuestionList topic=\"Database Design & Architecture\" storagePrefix=\"sql-design\">\n\n<QuestionCard id=\"sql-design-01\" number={41} question=\"What is the Entity-Relationship Model?\" difficulty=\"easy\" topic=\"Data Modeling\">\nA conceptual model using entities (tables), attributes (columns), and relationships between entities to design a database before implementation.\n</QuestionCard>\n\n<QuestionCard id=\"sql-design-02\" number={42} question=\"Explain the different types of database schema.\" difficulty=\"medium\" topic=\"Data Modeling\">\n- **Conceptual** — high-level business view, no implementation detail\n- **Logical** — structure (entities, relationships, attributes) without DBMS-specific detail\n- **Physical"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Analytical SQL Questions\n\n**80. How would you find the Nth highest salary from a table?**\n`SELECT DISTINCT salary FROM employees ORDER BY salary DESC LIMIT 1 OFFSET N-1;`\n\n**81. How do you count occurrences of a specific value in a column?**\n`SELECT COUNT(*) FROM table WHERE column = 'value';`\n\n**82. How can you calculate running totals in SQL?**\nWindow function: `SUM(col) OVER (ORDER BY col)`.\n\n**83. Explain how to reverse the contents of a column without reverse function.**\nApplication-level processing, stored procedures with loops.\n\n**84. What approach do you use for creating a calendar table?**\nGenerate date range with flags for time-based analysis."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "** — the actual implementation: tables, indexes, storage\n</QuestionCard>\n\n<QuestionCard id=\"sql-design-03\" number={43} question=\"What are Stored Procedures and how are they beneficial?\" difficulty=\"medium\" topic=\"Database Objects\">\nPrecompiled, named blocks of SQL stored in the database. Benefits: reduced network round trips, centralized/reusable logic, tighter access control, and execution plan caching.\n</QuestionCard>\n\n<QuestionCard id=\"sql-design-04\" number={44} question=\"What is a trigger in SQL and when should it be used?\" difficulty=\"medium\" topic=\"Database Objects\">\nCode that runs automatically in response to a DML event (`INSERT`/`UPDATE`/`DELETE`) on a table. Used for audit trails, enforcing complex validation, or keeping denormalized data in sync.\n</QuestionCard>\n\n<QuestionCard i"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Data Manipulation and ETL\n\n**85. What is the process of Extract, Transform, Load (ETL)?**\nExtract → Transform → Load to target. Foundation of data warehousing.\n\n**86. How do you import/export data from/to a flat file using SQL?**\nPostgreSQL: COPY. MySQL: LOAD DATA INFILE. SQL Server: BULK INSERT.\n\n**87. Explain the steps for a basic ETL process.**\nExtract → Clean → Validate → Load to staging → Load to warehouse → Index.\n\n**88. How do you cleanse and format data using SQL queries?**\nTRIM whitespace, UPPER/LOWER, REPLACE patterns, REGEX.\n\n**89. What tools do you use for automating data import/export?**\nApache Airflow, dbt, Talend, Informatica, cron scripts."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "d=\"sql-design-05\" number={45} question=\"Describe the concept of ACID in databases.\" difficulty=\"medium\" topic=\"Transactions\">\n**Atomicity, Consistency, Isolation, Durability** — the guarantees that make a transaction reliable: it fully completes or fully rolls back, leaves the database in a valid state, is isolated from concurrent transactions, and survives a crash once committed.\n</QuestionCard>\n\n<QuestionCard id=\"sql-design-06\" number={46} question=\"What is database sharding?\" difficulty=\"hard\" topic=\"Scalability\">\nHorizontal partitioning of data across multiple database instances (shards), typically by a key like customer ID or region, to scale writes and storage beyond a single machine.\n</QuestionCard>\n\n<QuestionCard id=\"sql-design-07\" number={47} question=\"How do database indexes work"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Domain-Specific SQL Scenarios\n\n**90. How would you model a many-to-many relationship in SQL?**\nJunction table with foreign keys linking entities.\n\n**91. Describe how to manage hierarchical data in SQL.**\nAdjacency list (parent_id), nested sets, recursive CTEs.\n\n**92. How would you approach writing SQL queries for reporting?**\nDimensional models, GROUP BY aggregates, optimize reads.\n\n**93. Explain how to handle temporal data and time zones in SQL.**\nStore in UTC, TIMESTAMP WITH TIME ZONE, AT TIME ZONE conversion.\n\n**94. How do you use SQL in financial applications for risk analysis?**\nTime-series queries, window functions, risk metrics."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "and what types are there?\" difficulty=\"medium\" topic=\"Performance\">\nMost commonly a **B-tree** structure that keeps sorted keys for fast range/equality lookups. Other types: **Hash** (equality-only, O(1) lookup), **Bitmap** (low-cardinality columns), **GiST**/**GIN** (PostgreSQL — full-text search, geometric data).\n</QuestionCard>\n\n<QuestionCard id=\"sql-design-08\" number={48} question=\"Describe the process of data warehousing.\" difficulty=\"medium\" topic=\"Data Warehousing\">\nETL processes move data from operational systems into a warehouse, modeled dimensionally (star/snowflake schema), and queried through OLAP cubes or SQL for reporting and analysis.\n</QuestionCard>\n\n<QuestionCard id=\"sql-design-09\" number={49} question=\"Explain the difference between OLTP and OLAP systems.\" difficulty=\"me"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Troubleshooting and Debugging\n\n**95. What steps do you take to troubleshoot a failed SQL query?**\nCheck syntax, verify names, validate types, test simpler queries.\n\n**96. How can you recover data from a corrupt SQL database?**\nRestore from backups, transaction logs, DBCC CHECKDB.\n\n**97. What methods do you employ to ensure data integrity?**\nPrimary/foreign keys, CHECK constraints, unique indexes, triggers.\n\n**98. How do you decipher and resolve deadlocks in SQL?**\nAnalyze deadlock graphs, identify resource contention, optimize transaction ordering, reduce transaction scope."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "dium\" topic=\"Data Warehousing\">\n- **OLTP** — transactional, frequent small writes, operational (e.g. order processing)\n- **OLAP** — analytical, read-heavy, large scans over historical data (e.g. reporting)\n</QuestionCard>\n\n<QuestionCard id=\"sql-design-10\" number={50} question=\"What are materialized views and how do they differ from standard views?\" difficulty=\"medium\" topic=\"Database Objects\">\nA materialized view stores the query result physically and must be refreshed to stay current, trading staleness for read speed. A standard (virtual) view re-runs its underlying query on every access.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Advanced Data Analysis in SQL\n\n**99. Explain how to use SQL for predictive analysis and machine learning.**\nWindow functions for trends, statistical aggregates, BigQuery ML, MADlib.\n\n---"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## SQL Optimization and Performance\n\nReading execution plans and making queries faster.\n\n<QuestionList topic=\"SQL Optimization and Performance\" storagePrefix=\"sql-optimization\">\n\n<QuestionCard id=\"sql-opt-01\" number={51} question=\"How do you identify and optimize slow-running queries?\" difficulty=\"medium\" topic=\"Optimization\">\nUse `EXPLAIN`/`EXPLAIN ANALYZE` to find the bottleneck, add targeted indexes, avoid `SELECT *`, and restructure `JOIN`s so the database can use indexes and smaller intermediate result sets.\n</QuestionCard>\n\n<QuestionCard id=\"sql-opt-02\" number={52} question=\"What is query execution plan in SQL?\" difficulty=\"medium\" topic=\"Optimization\">\nThe database's chosen strategy for running a query — which scans, joins, and indexes it will use, and their estimated (or actual) co"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "## Practice Problems\n\nHands-on query challenges with worked solutions — the format interviewers use to test whether you can actually write SQL, not just describe it."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "st.\n</QuestionCard>\n\n<QuestionCard id=\"sql-opt-03\" number={53} question=\"Explain how to use EXPLAIN or EXPLAIN ANALYZE.\" difficulty=\"medium\" topic=\"Optimization\">\n- **`EXPLAIN`** — shows the planned execution strategy without running the query\n- **`EXPLAIN ANALYZE`** — actually executes the query and shows real timings and row counts alongside the plan\n</QuestionCard>\n\n<QuestionCard id=\"sql-opt-04\" number={54} question=\"How can indexing affect performance both positively and negatively?\" difficulty=\"medium\" topic=\"Optimization\">\n- **Positive** — much faster `SELECT`/`JOIN`/`ORDER BY` on indexed columns\n- **Negative** — slower `INSERT`/`UPDATE`/`DELETE`, since every index has to be updated too, plus extra storage\n</QuestionCard>\n\n<QuestionCard id=\"sql-opt-05\" number={55} question=\"Describe"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Second highest salary\n\nGiven an `Employee` table (`ID`, `Salary`), there are several ways to find the second-highest salary.\n\n**Option 1 — subquery with `NOT IN`:** find the max, exclude it, find the new max.\n```sql\nSELECT MAX(Salary) AS SecondHighestSalary\nFROM Employee\nWHERE Salary NOT IN (SELECT MAX(Salary) FROM Employee);\n```\n\n**Option 2 — not-equal operator**, efficient when excluding a single top value:\n```sql\nSELECT MAX(Salary) AS SecondHighestSalary\nFROM Employee\nWHERE Salary <> (SELECT MAX(Salary) FROM Employee);\n```\n\n**Option 3 — `LIMIT`/`OFFSET`** (best for row ordering); `DISTINCT` avoids ties breaking the logic:\n```sql\nSELECT DISTINCT Salary AS SecondHighestSalary\nFROM Employee\nORDER BY Salary DESC\nLIMIT 1 OFFSET 1;\n```\n*(SQL Server: `OFFSET 1 ROWS FETCH NEXT 1 ROWS ONLY`."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "how to measure the performance of SQL queries.\" difficulty=\"medium\" topic=\"Optimization\">\nExecution time, rows examined vs. rows returned, whether indexes are actually used (from `EXPLAIN` output), and I/O cost.\n</QuestionCard>\n\n<QuestionCard id=\"sql-opt-06\" number={56} question=\"How would you rewrite a query to improve its performance?\" difficulty=\"medium\" topic=\"Optimization\">\nPrefer `JOIN`s over correlated subqueries where possible, select only needed columns instead of `SELECT *`, filter early, and add indexes that match the query's `WHERE`/`JOIN` columns.\n</QuestionCard>\n\n<QuestionCard id=\"sql-opt-07\" number={57} question=\"What are partitioned tables and how can they optimize performance?\" difficulty=\"medium\" topic=\"Optimization\">\nTables physically split by a key (date, range, or hash"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": ")*"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "). Queries that filter on the partition key only scan relevant partitions (\"partition pruning\"), dramatically reducing I/O on large tables.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Alternate (odd/even) records\n\nAssign a row number with `ROW_NUMBER()`, then filter with modulo:\n\n```sql\n-- Even-numbered records\nSELECT * FROM (\n    SELECT *, ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS row_num\n    FROM Employee\n) AS Subquery\nWHERE MOD(row_num, 2) = 0;\n\n-- Odd-numbered: WHERE MOD(row_num, 2) = 1\n```\n*(No `MOD()` support? Use `WHERE row_num % 2 = 0`.)*"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## SQL Security\n\nProtecting access to data.\n\n<QuestionList topic=\"SQL Security\" storagePrefix=\"sql-security\">\n\n<QuestionCard id=\"sql-sec-01\" number={58} question=\"How do you implement database encryption in SQL?\" difficulty=\"medium\" topic=\"Security\">\n**TDE** (Transparent Data Encryption) for data at rest, column-level encryption for specific sensitive fields, and **SSL/TLS** for data in transit.\n</QuestionCard>\n\n<QuestionCard id=\"sql-sec-02\" number={59} question=\"What are roles and how do they manage database access?\" difficulty=\"easy\" topic=\"Security\">\nNamed collections of privileges. Users are assigned roles and inherit the underlying permissions — simplifies access control at scale versus granting permissions per-user.\n</QuestionCard>\n\n<QuestionCard id=\"sql-sec-03\" number={60} question="
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Maximum salary by department\n\nGiven `Employee(ID, Salary, DeptID)` and `Department(ID, DeptName)` — **this is a trick question**: ask the interviewer whether departments with no employees should still appear. If yes, use `LEFT OUTER JOIN` (NULL salary for empty departments); if no, `INNER JOIN` is enough.\n\n```sql\nSELECT d.DeptName, MAX(e.Salary) AS MaxSalary\nFROM Department d\nLEFT OUTER JOIN Employee e ON d.ID = e.DeptID\nGROUP BY d.DeptName;\n```"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "\"Explain the concept of row-level security.\" difficulty=\"medium\" topic=\"Security\">\nRestricts which rows a user can see or modify based on their identity or context (e.g. a sales rep only sees their own region's rows), enforced by the database rather than application code.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Records in Table A not in Table B (without `NOT IN`)\n\n**Set operators** — standard SQL/SQL Server/PostgreSQL/MySQL use `EXCEPT`, Oracle uses `MINUS`:\n```sql\nSELECT * FROM Table_A EXCEPT SELECT * FROM Table_B;   -- Oracle: MINUS instead of EXCEPT\n```\n\n**`LEFT JOIN`** (most universal — works across all SQL databases):\n```sql\nSELECT Table_A.* FROM Table_A\nLEFT JOIN Table_B ON Table_A.ID = Table_B.ID\nWHERE Table_B.ID IS NULL;\n```"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## SQL Functions and Expressions\n\nScalar/table-valued functions and stored procedures.\n\n<QuestionList topic=\"SQL Functions and Expressions\" storagePrefix=\"sql-functions\">\n\n<QuestionCard id=\"sql-func-01\" number={61} question=\"Describe scalar-valued and table-valued functions.\" difficulty=\"medium\" topic=\"Functions\">\n- **Scalar** — returns a single value, usable inline in `SELECT`/`WHERE`\n- **Table-valued** — returns a table, usable in a `FROM` clause like a regular table\n</QuestionCard>\n\n<QuestionCard id=\"sql-func-02\" number={62} question=\"How would you define a stored procedure with input and output parameters?\" difficulty=\"medium\" topic=\"Functions\">\n```sql\nCREATE PROCEDURE proc(@input INT, @output INT OUTPUT) AS\nBEGIN\n    SET @output = @input * 2;\nEND;\n```\n</QuestionCard>\n\n<QuestionCard id"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Duplicate names and emails\n\nGroup by both columns together — `HAVING COUNT(*) > 1` isolates rows where both fields match exactly:\n```sql\nSELECT name, email, COUNT(*) AS duplicate_count\nFROM Employee\nGROUP BY name, email\nHAVING COUNT(*) > 1;\n```"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "=\"sql-func-03\" number={63} question=\"What is the difference between a function and a stored procedure?\" difficulty=\"medium\" topic=\"Functions\">\n- **Function** — returns a value, callable inline within a query, generally can't perform DML on the tables it reads\n- **Procedure** — supports `OUTPUT` parameters, can perform full DML, but can't be called inline inside a `SELECT`\n</QuestionCard>\n\n<QuestionCard id=\"sql-func-04\" number={64} question=\"How do you use the CAST and CONVERT functions?\" difficulty=\"easy\" topic=\"Functions\">\n```sql\nSELECT CAST(col AS INT);       -- ANSI standard\nSELECT CONVERT(INT, col);      -- SQL Server style\n```\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Maximum salary per department\n\n```sql\nSELECT DeptID, MAX(Salary) AS MaxSalary\nFROM Employee\nGROUP BY DeptID;\n```"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## Transaction Control and Locking\n\nConcurrency guarantees and how the database enforces them.\n\n<QuestionList topic=\"Transaction Control and Locking\" storagePrefix=\"sql-transactions\">\n\n<QuestionCard id=\"sql-txn-01\" number={65} question=\"What is a database transaction?\" difficulty=\"easy\" topic=\"Transactions\">\nAn atomic unit of work that either commits fully or rolls back fully, preserving the database's ACID guarantees.\n</QuestionCard>\n\n<QuestionCard id=\"sql-txn-02\" number={66} question=\"Explain the concept of locking and its types in SQL databases.\" difficulty=\"medium\" topic=\"Transactions\">\nLocks prevent conflicting concurrent access to the same data. Granularity ranges from **row-level** (fine-grained, more concurrency) to **page-level** to **table-level** (coarse, less concurrency but ch"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Nth highest salary\n\n**Correlated subquery** — counts how many distinct salaries are higher; when that count is `N-1`, you've found rank N:\n```sql\nSELECT * FROM Employee emp1\nWHERE (N - 1) = (\n    SELECT COUNT(DISTINCT emp2.Salary) FROM Employee emp2 WHERE emp2.Salary > emp1.Salary\n);\n```\n\n**`ROW_NUMBER()` window function** (recommended — works across Oracle, SQL Server, PostgreSQL, MySQL):\n```sql\nSELECT * FROM (\n    SELECT *, ROW_NUMBER() OVER (ORDER BY Salary DESC) AS rnum FROM Employee\n) AS Subquery WHERE rnum = N;\n```\n*(Use `DENSE_RANK()` instead if duplicate salaries should share a rank.)*\n\n**`LIMIT`/`OFFSET`** (MySQL/PostgreSQL/SQLite — shortest if supported):\n```sql\nSELECT DISTINCT Salary FROM Employee ORDER BY Salary DESC LIMIT 1 OFFSET (N - 1);\n```"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "eaper to manage).\n</QuestionCard>\n\n<QuestionCard id=\"sql-txn-03\" number={67} question=\"What are the properties of transactions?\" difficulty=\"easy\" topic=\"Transactions\">\n**ACID**: Atomicity, Consistency, Isolation, Durability.\n</QuestionCard>\n\n<QuestionCard id=\"sql-txn-04\" number={68} question=\"How do you manage transaction isolation levels?\" difficulty=\"hard\" topic=\"Transactions\">\n```sql\nSET TRANSACTION ISOLATION LEVEL READ COMMITTED;\n```\nLevels range from `READ UNCOMMITTED` (weakest, allows dirty reads) through `READ COMMITTED`, `REPEATABLE READ`, to `SERIALIZABLE` (strongest, fully isolated but least concurrent).\n</QuestionCard>\n\n<QuestionCard id=\"sql-txn-05\" number={69} question=\"What does it mean to commit or roll back a transaction?\" difficulty=\"easy\" topic=\"Transactions\">\n- **`COMMIT"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### 10 employees with odd employee IDs\n\n```sql\n-- Standard SQL / Oracle 12c+ / PostgreSQL / MySQL\nSELECT ID FROM Employee WHERE ID % 2 = 1 FETCH FIRST 10 ROWS ONLY;\n\n-- SQL Server\nSELECT TOP 10 ID FROM Employee WHERE ID % 2 = 1;\n```"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "`** — permanently saves all changes made in the transaction\n- **`ROLLBACK`** — undoes all changes made in the transaction, as if it never happened\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Employees born between two dates\n\n`BETWEEN` is inclusive of both endpoints:\n```sql\nSELECT EmpName FROM Employees WHERE birth_date BETWEEN '1990-01-01' AND '2000-12-31';\n-- Equivalent: WHERE birth_date >= '1990-01-01' AND birth_date <= '2000-12-31'\n```"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## SQL and Modern Data Ecosystems\n\nWhere SQL sits alongside big data and cloud platforms.\n\n<QuestionList topic=\"SQL and Modern Data Ecosystems\" storagePrefix=\"sql-ecosystems\">\n\n<QuestionCard id=\"sql-eco-01\" number={70} question=\"How can SQL be integrated with big data technologies?\" difficulty=\"medium\" topic=\"Ecosystems\">\nSQL-on-Hadoop engines (Hive, Spark SQL), external/federated tables, and JDBC/ODBC connectors all let SQL query data sitting in big-data storage.\n</QuestionCard>\n\n<QuestionCard id=\"sql-eco-02\" number={71} question=\"Discuss the interoperability of SQL with cloud-based data stores.\" difficulty=\"easy\" topic=\"Ecosystems\">\nCloud databases and warehouses (RDS, BigQuery, Snowflake, Redshift) all expose standard-ish SQL interfaces, so most SQL knowledge transfers directly.\n</Quest"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Extract the quarter from a date\n\n```sql\n-- Standard SQL (most portable)\nSELECT EXTRACT(QUARTER FROM DATE '2016-03-31') AS quarter;\n\n-- Oracle\nSELECT TO_CHAR(TO_DATE('03/31/2016', 'MM/DD/YYYY'), 'Q') AS quarter FROM DUAL;\n```"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "ionCard>\n\n<QuestionCard id=\"sql-eco-03\" number={72} question=\"What is Data Lake and how can SQL interact with it?\" difficulty=\"medium\" topic=\"Ecosystems\">\nA centralized repository of raw data in its native format. Query engines like Presto/Trino and Athena let you run SQL directly against files in the lake without a separate load step.\n</QuestionCard>\n\n<QuestionCard id=\"sql-eco-04\" number={73} question=\"Explain the interaction between SQL and NoSQL within the same application.\" difficulty=\"medium\" topic=\"Ecosystems\">\nPolyglot persistence — using SQL databases for transactional/relational data and NoSQL stores for scale or flexible schema, within the same system.\n</QuestionCard>\n\n<QuestionCard id=\"sql-eco-05\" number={74} question=\"How does SQL work within a microservices architecture?\" diff"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Duplicate emails\n\n```sql\nSELECT EMAIL, COUNT(EMAIL) AS occurrence_count\nFROM Employee\nGROUP BY EMAIL\nHAVING COUNT(EMAIL) > 1;\n```\nNote: with `GROUP BY`, only grouped or aggregated columns may appear in `SELECT`."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "iculty=\"medium\" topic=\"Ecosystems\">\nEach service typically owns its own database (often SQL), and shares data with other services through APIs or events rather than direct cross-service queries — avoiding a shared-schema coupling problem.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Case-insensitive name search\n\n```sql\nSELECT * FROM Employees WHERE UPPER(emp_name) LIKE '%RICH%';\n-- Equivalent: WHERE LOWER(emp_name) LIKE '%rich%'\n```"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## SQL Best Practices and Standards\n\nWriting SQL that's maintainable and portable.\n\n<QuestionList topic=\"SQL Best Practices and Standards\" storagePrefix=\"sql-best-practices\">\n\n<QuestionCard id=\"sql-best-01\" number={75} question=\"What are some common SQL coding practices you follow?\" difficulty=\"easy\" topic=\"Best Practices\">\nConsistent naming conventions, indexing based on actual query patterns, avoiding `SELECT *`, and always using parameterized queries.\n</QuestionCard>\n\n<QuestionCard id=\"sql-best-02\" number={76} question=\"How can you ensure the portability of SQL scripts across systems?\" difficulty=\"medium\" topic=\"Best Practices\">\nStick to ANSI SQL where possible, avoid vendor-specific functions, and abstract vendor differences behind views where you can't avoid them.\n</QuestionCard>\n\n<Qu"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Days between two dates\n\n```sql\n-- MySQL\nSELECT DATEDIFF('2016-12-31', '2015-01-01') AS DaysDifference;\n\n-- SQL Server\nSELECT DATEDIFF(day, '2015-01-01', '2016-12-31') AS DaysDifference;\n\n-- PostgreSQL / Oracle\nSELECT '2016-12-31'::date - '2015-01-01'::date AS DaysDifference;\n```\nNote: in MySQL the larger date goes first for a positive result; in SQL Server/PostgreSQL, second."
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "estionCard id=\"sql-best-03\" number={77} question=\"What methods do you use for version controlling SQL scripts?\" difficulty=\"easy\" topic=\"Best Practices\">\nGit for the SQL files themselves, plus migration tools (Flyway, Liquibase, or a dbt-style migrations folder) to apply schema changes as ordered, repeatable steps — \"database as code.\"\n</QuestionCard>\n\n<QuestionCard id=\"sql-best-04\" number={78} question=\"What are the benefits of using stored procedures instead of embedded SQL?\" difficulty=\"medium\" topic=\"Best Practices\">\nFewer network round trips, cached execution plans, centralized logic that's easier to secure and audit than SQL scattered across application code.\n</QuestionCard>\n\n<QuestionCard id=\"sql-best-05\" number={79} question=\"How do you document SQL code effectively?\" difficulty=\"e"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Current date and time\n\n```sql\nSELECT CURRENT_DATE;       -- ANSI standard; MySQL: CURDATE()\nSELECT CURRENT_TIMESTAMP;  -- ANSI standard; MySQL: NOW()\n```"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "asy\" topic=\"Best Practices\">\nInline comments explaining *why* (not what), ER diagrams for schema relationships, and a data dictionary describing tables/columns for anyone querying the data later.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "### Limiting rows returned\n\n```sql\n-- Standard SQL\nSELECT * FROM table_name FETCH FIRST 10 ROWS ONLY;\n-- MySQL\nSELECT * FROM table_name LIMIT 10;\n\n-- Pagination: skip 3, take next 6\nSELECT * FROM table_name OFFSET 3 ROWS FETCH NEXT 6 ROWS ONLY;   -- MySQL: LIMIT 3, 6\n```\nAlways pair `LIMIT`/`FETCH` with `ORDER BY` — without it, row order (and your results) are unpredictable.\n\n---"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## Analytical SQL Questions\n\nRanking, running totals, and other analysis-oriented patterns.\n\n<QuestionList topic=\"Analytical SQL Questions\" storagePrefix=\"sql-analytical\">\n\n<QuestionCard id=\"sql-analytic-01\" number={80} question=\"How would you find the Nth highest salary from a table?\" difficulty=\"medium\" topic=\"Analytics\">\n```sql\nSELECT DISTINCT salary FROM employees ORDER BY salary DESC LIMIT 1 OFFSET N-1;\n```\n</QuestionCard>\n\n<QuestionCard id=\"sql-analytic-02\" number={81} question=\"How do you count occurrences of a specific value in a column?\" difficulty=\"easy\" topic=\"Analytics\">\n```sql\nSELECT COUNT(*) FROM table WHERE column = 'value';\n```\n</QuestionCard>\n\n<QuestionCard id=\"sql-analytic-03\" number={82} question=\"How can you calculate running totals in SQL?\" difficulty=\"medium\" topic=\"A"
   },
   {
-    "path": "/level-1-foundations/sql/index/",
+    "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
-    "title": "SQL",
-    "description": "SQL interview questions for data engineering — core concepts, joins, indexing, normalization, optimization, and hands-on query challenges with solutions.",
-    "content": "## Further Reading\n\n- [Data Modeling](/level-2-core-concepts/data-modeling/) — star/snowflake schemas and normalization in practice\n- [Data Warehousing](/level-2-core-concepts/data-warehousing/) — how SQL is used at the warehouse layer\n- [Data Structures](/level-1-foundations/data-structure/) — the algorithmic-problem counterpart to SQL query problems\n- [SQL Roadmap](/roadmaps/sql/) — the full curriculum this page's questions are drawn from"
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "nalytics\">\n```sql\nSELECT order_date, amount,\n       SUM(amount) OVER (ORDER BY order_date) AS running_total\nFROM orders;\n```\n</QuestionCard>\n\n<QuestionCard id=\"sql-analytic-04\" number={83} question=\"Explain how to reverse the contents of a column without a reverse function.\" difficulty=\"hard\" topic=\"Analytics\">\nWhen the database has no built-in `REVERSE()`, fall back to application-level processing, or a stored procedure/recursive query that rebuilds the string character by character in reverse order.\n</QuestionCard>\n\n<QuestionCard id=\"sql-analytic-05\" number={84} question=\"What approach do you use for creating a calendar table?\" difficulty=\"medium\" topic=\"Analytics\">\nGenerate a contiguous date range (via a recursive CTE or a numbers table joined to a base date) and add derived flag column"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "s — weekday, is_weekend, fiscal_quarter — for fast time-based joins and analysis.\n</QuestionCard>\n\n<QuestionCard id=\"sql-analytic-06\" number={99} question=\"Explain how to use SQL for predictive analysis and machine learning.\" difficulty=\"hard\" topic=\"Analytics\">\nWindow functions and statistical aggregates can compute trend features directly in SQL. Warehouse-native ML (BigQuery ML, Redshift ML) and extensions like MADlib go further, letting you train and score models without leaving SQL.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## Data Manipulation and ETL\n\nMoving and cleaning data with SQL.\n\n<QuestionList topic=\"Data Manipulation and ETL\" storagePrefix=\"sql-etl\">\n\n<QuestionCard id=\"sql-etl-01\" number={85} question=\"What is the process of Extract, Transform, Load (ETL)?\" difficulty=\"easy\" topic=\"ETL\">\nExtract data from source systems, transform it (clean, join, aggregate), and load it into a target system — the foundation of most data warehousing pipelines.\n</QuestionCard>\n\n<QuestionCard id=\"sql-etl-02\" number={86} question=\"How do you import/export data from/to a flat file using SQL?\" difficulty=\"medium\" topic=\"ETL\">\n- **PostgreSQL** — `COPY`\n- **MySQL** — `LOAD DATA INFILE`\n- **SQL Server** — `BULK INSERT`\n</QuestionCard>\n\n<QuestionCard id=\"sql-etl-03\" number={87} question=\"Explain the steps for a basic ETL pro"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "cess.\" difficulty=\"medium\" topic=\"ETL\">\nExtract → clean → validate → load to a staging table → load to the warehouse → (re)build indexes.\n</QuestionCard>\n\n<QuestionCard id=\"sql-etl-04\" number={88} question=\"How do you cleanse and format data using SQL queries?\" difficulty=\"medium\" topic=\"ETL\">\n`TRIM` to remove stray whitespace, `UPPER`/`LOWER` to normalize case, `REPLACE` for known bad patterns, and regex functions (`REGEXP_REPLACE`, etc.) for more complex cleanup.\n</QuestionCard>\n\n<QuestionCard id=\"sql-etl-05\" number={89} question=\"What tools do you use for automating data import/export?\" difficulty=\"easy\" topic=\"ETL\">\nApache Airflow or dbt for orchestration/transformation, Talend or Informatica for GUI-driven ETL, or plain cron-scheduled scripts for simpler pipelines.\n</QuestionCard>\n\n</"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## Domain-Specific SQL Scenarios\n\nModeling patterns for relationships, hierarchies, and time.\n\n<QuestionList topic=\"Domain-Specific SQL Scenarios\" storagePrefix=\"sql-domain\">\n\n<QuestionCard id=\"sql-domain-01\" number={90} question=\"How would you model a many-to-many relationship in SQL?\" difficulty=\"medium\" topic=\"Data Modeling\">\nA junction (bridge) table holding foreign keys to both related tables — e.g. `student_id` and `course_id` in an `enrollments` table.\n</QuestionCard>\n\n<QuestionCard id=\"sql-domain-02\" number={91} question=\"Describe how to manage hierarchical data in SQL.\" difficulty=\"hard\" topic=\"Data Modeling\">\n- **Adjacency list** — each row stores its `parent_id`; simple, but multi-level queries need recursion\n- **Nested sets** — stores left/right bounds; fast subtree reads, expe"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "nsive writes\n- **Recursive CTEs** — walk an adjacency list to arbitrary depth in a single query\n</QuestionCard>\n\n<QuestionCard id=\"sql-domain-03\" number={92} question=\"How would you approach writing SQL queries for reporting?\" difficulty=\"medium\" topic=\"Reporting\">\nQuery against a dimensional model (star/snowflake) rather than raw OLTP tables, aggregate with `GROUP BY`, and optimize for read patterns since reporting queries are run far more often than the underlying data changes.\n</QuestionCard>\n\n<QuestionCard id=\"sql-domain-04\" number={93} question=\"Explain how to handle temporal data and time zones in SQL.\" difficulty=\"hard\" topic=\"Data Modeling\">\nStore timestamps in UTC using a timezone-aware type (`TIMESTAMP WITH TIME ZONE`), and convert to a local zone only at display time with `AT TI"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "ME ZONE`. Storing local time directly makes cross-region comparisons and DST transitions error-prone.\n</QuestionCard>\n\n<QuestionCard id=\"sql-domain-05\" number={94} question=\"How do you use SQL in financial applications for risk analysis?\" difficulty=\"hard\" topic=\"Reporting\">\nTime-series queries over historical prices/positions, window functions for rolling metrics (moving average, volatility), and aggregate risk measures computed directly in the warehouse close to the data.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "## Troubleshooting and Debugging\n\nDiagnosing failures, corruption, and concurrency issues.\n\n<QuestionList topic=\"Troubleshooting and Debugging\" storagePrefix=\"sql-debugging\">\n\n<QuestionCard id=\"sql-debug-01\" number={95} question=\"What steps do you take to troubleshoot a failed SQL query?\" difficulty=\"medium\" topic=\"Troubleshooting\">\nCheck syntax first, verify table/column names exist, validate data types match, then isolate the problem by simplifying the query (remove joins/conditions one at a time) until it runs.\n</QuestionCard>\n\n<QuestionCard id=\"sql-debug-02\" number={96} question=\"How can you recover data from a corrupt SQL database?\" difficulty=\"hard\" topic=\"Troubleshooting\">\nRestore from the most recent clean backup, replay transaction logs to minimize data loss, and for engine-level"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "corruption run integrity checks like `DBCC CHECKDB` (SQL Server) to identify and, where possible, repair the damage.\n</QuestionCard>\n\n<QuestionCard id=\"sql-debug-03\" number={97} question=\"What methods do you employ to ensure data integrity?\" difficulty=\"medium\" topic=\"Troubleshooting\">\nPrimary/foreign key constraints, `CHECK` constraints for value rules, unique indexes to prevent duplicates, and triggers for cross-row validation that constraints alone can't express.\n</QuestionCard>\n\n<QuestionCard id=\"sql-debug-04\" number={98} question=\"How do you decipher and resolve deadlocks in SQL?\" difficulty=\"hard\" topic=\"Troubleshooting\">\nAnalyze the deadlock graph the database produces to see which transactions were holding/waiting on which locks, identify the resource contention pattern, then fix i"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "SQL Theory | Core Concepts",
+    "description": "Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.",
+    "content": "t by keeping transactions short, accessing tables in a consistent order, and reducing lock scope.\n</QuestionCard>\n\n</QuestionList>"
   },
   {
     "path": "/level-2-core-concepts/data-engineer-vs-data-scientist/",

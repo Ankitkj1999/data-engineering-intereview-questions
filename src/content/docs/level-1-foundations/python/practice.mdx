@@ -1,0 +1,289 @@
+---
+title: Python Practice | Core Concepts
+description: Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+Scenario-based Python questions data engineers actually get asked — mark them **done** ✓, **bookmark** 🔖 for review, and expand answers on demand.
+
+---
+
+## Language Fundamentals in Practice
+
+Why Python shows up everywhere in data platforms, and how its concurrency model plays out in real pipelines.
+
+<QuestionList topic="Language Fundamentals in Practice" storagePrefix="py-prac-fundamentals">
+
+<QuestionCard
+  id="py-prac-01"
+  number={15}
+  question="Why is Python widely used in data engineering?"
+  difficulty="easy"
+  topic="Fundamentals"
+>
+Python is popular because it's productive, readable, and has a strong ecosystem for data processing, orchestration, and integration.
+
+- **Glue code** — connecting APIs, databases, and file systems with minimal boilerplate
+- **Rich libraries** — pandas, PyArrow, SQLAlchemy, boto3 cover most pipeline needs out of the box
+- **Orchestration native** — Airflow, Dagster, and Prefect are all Python-first
+- **Interop layer** — even when heavy compute runs on Spark or a warehouse engine, Python is the language stitching the pipeline together
+
+It's rarely the fastest language for raw compute, but it's usually the fastest to build and maintain a correct pipeline in.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-02"
+  number={16}
+  question="How do iterators and generators help with large data processing?"
+  difficulty="medium"
+  topic="Fundamentals"
+>
+Iterators and generators let you stream data instead of loading everything into memory — processing row-by-row or batch-by-batch keeps memory flat regardless of input size.
+
+```python
+def batched(iterable, size):
+    """Yield successive chunks without materializing the full list."""
+    batch = []
+    for item in iterable:
+        batch.append(item)
+        if len(batch) == size:
+            yield batch
+            batch = []
+    if batch:
+        yield batch
+
+def process_events(event_stream):
+    for chunk in batched(event_stream, size=500):
+        write_to_sink(chunk)  # one bounded batch at a time
+```
+
+This pattern — pull, don't load — is what lets a single job process files far larger than available RAM.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-03"
+  number={17}
+  question="What is the difference between threads, multiprocessing, and async IO in Python?"
+  difficulty="medium"
+  topic="Concurrency"
+>
+| Approach | Good for | Limited by |
+|----------|----------|-----------|
+| `threading` | I/O-bound work (network, disk) | GIL — no CPU parallelism |
+| `multiprocessing` | CPU-bound work (parsing, transforms) | Process spawn/IPC overhead |
+| `asyncio` | Many concurrent I/O waits (API calls) | Single-threaded event loop |
+
+**Rule of thumb:** if the job spends most of its time *waiting* (network, disk), reach for threads or `asyncio`. If it spends its time *computing*, reach for `multiprocessing` or push the work to a native/distributed engine.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-04"
+  number={18}
+  question="What is the GIL and why does it matter for a data pipeline you're building?"
+  difficulty="medium"
+  topic="Concurrency"
+>
+The **Global Interpreter Lock** allows only one thread to execute Python bytecode at a time in CPython, even on a multi-core machine.
+
+In practice, most data engineering jobs are I/O-bound (waiting on S3, a database, or an API), so the GIL rarely matters — threads still help because the GIL is released during I/O. It only becomes a bottleneck when a job is CPU-bound (row-by-row transforms in pure Python), at which point `multiprocessing` or vectorized libraries (pandas/NumPy, which release the GIL in their C internals) are the fix.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Working with Data at Scale
+
+Practical patterns for reading, writing, and moving data reliably in production pipelines.
+
+<QuestionList topic="Working with Data at Scale" storagePrefix="py-prac-data">
+
+<QuestionCard
+  id="py-prac-05"
+  number={19}
+  question="How do you read and write Parquet efficiently in Python?"
+  difficulty="medium"
+  topic="File Formats"
+>
+`pyarrow` is the standard choice — it supports columnar reads, predicate pushdown, and explicit schema control.
+
+```python
+import pyarrow.parquet as pq
+
+# Read only the columns you need, filtered at the file level
+table = pq.read_table(
+    "s3://bucket/events/",
+    columns=["user_id", "event_type", "ts"],
+    filters=[("ts", ">=", "2024-01-01")],
+)
+```
+
+Guidelines: select only needed columns, keep row groups/files at a reasonable size (avoid the "many tiny files" problem), and hand large datasets off to a distributed engine rather than processing them purely locally.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-06"
+  number={20}
+  question="How do you process a large CSV file without running out of memory?"
+  difficulty="medium"
+  topic="File Formats"
+>
+Stream the file in chunks instead of loading it whole:
+
+```python
+import pandas as pd
+
+total = 0
+for chunk in pd.read_csv("huge_file.csv", chunksize=100_000):
+    total += chunk["amount"].sum()
+    chunk.to_parquet(f"out/part-{chunk.index[0]}.parquet")
+```
+
+Skip columns you don't need with `usecols`, and prefer writing results incrementally over accumulating them in memory. For anything beyond a few GB, converting to Parquet or moving to distributed processing is usually the better call than tuning chunk size further.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-07"
+  number={21}
+  question="How do you implement retries with exponential backoff?"
+  difficulty="medium"
+  topic="Reliability"
+>
+```python
+import random, time, functools
+
+def retry_with_backoff(max_attempts=5, base_delay=0.5):
+    def decorator(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    return fn(*args, **kwargs)
+                except TransientError:
+                    if attempt == max_attempts:
+                        raise
+                    delay = base_delay * (2 ** (attempt - 1))
+                    time.sleep(delay + random.uniform(0, delay * 0.1))  # jitter
+        return wrapper
+    return decorator
+```
+
+Only retry **transient** errors (timeouts, rate limits) — never retry a schema mismatch or a validation failure. Cap total retry time, and make the operation idempotent so a retried write can't duplicate data.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-08"
+  number={22}
+  question="What logging practices are important for data pipelines?"
+  difficulty="easy"
+  topic="Reliability"
+>
+```python
+import logging, json
+
+logger = logging.getLogger("pipeline")
+
+def log_event(level, message, **context):
+    logger.log(level, json.dumps({"message": message, **context}))
+
+log_event(logging.INFO, "batch loaded", run_id="r-42", rows=15000, table="orders")
+```
+
+Structured (JSON) logs make pipeline runs searchable and correlatable across systems. Always include a run/pipeline id, log errors with enough context to debug without re-running the job, and never log sensitive values (PII, credentials).
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Project Structure & Testing
+
+Organizing and validating pipeline code so it's maintainable beyond the first script.
+
+<QuestionList topic="Project Structure & Testing" storagePrefix="py-prac-structure">
+
+<QuestionCard
+  id="py-prac-09"
+  number={23}
+  question="How do you structure a Python project for data pipelines?"
+  difficulty="medium"
+  topic="Project Structure"
+>
+```
+my_pipeline/
+├── src/
+│   ├── extract.py
+│   ├── transform.py
+│   ├── load.py
+│   └── config.py        # env-driven settings, no hardcoded secrets
+├── jobs/
+│   └── run_daily.py      # thin CLI entrypoint
+├── tests/
+│   └── test_transform.py
+├── pyproject.toml
+```
+
+Keep reusable library code separate from job entrypoints, inject external services (DB clients, S3 clients) rather than constructing them deep in the call stack, and standardize logging/error handling in one place so every job behaves consistently.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-10"
+  number={24}
+  question="How do you manage dependencies and reproducible environments?"
+  difficulty="easy"
+  topic="Project Structure"
+>
+Pin dependencies with a lockfile (`poetry.lock`, `uv.lock`, or `requirements.txt` with hashes), and isolate environments per project with a virtualenv or container.
+
+Reproducibility also means pinning the Python version itself and building deterministic images — CI should build and test against the exact same environment definition that runs in production, not a looser "close enough" one.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-11"
+  number={25}
+  question="How do you test data transformations in Python?"
+  difficulty="medium"
+  topic="Testing"
+>
+```python
+def test_normalize_revenue_golden_case():
+    input_df = pd.DataFrame({"id": [1], "revenue_cents": [1050]})
+    result = normalize_revenue(input_df)
+    assert result["revenue"].iloc[0] == 10.50
+
+@given(revenue_cents=st.integers(min_value=0))
+def test_revenue_is_never_negative(revenue_cents):
+    df = pd.DataFrame({"id": [1], "revenue_cents": [revenue_cents]})
+    result = normalize_revenue(df)
+    assert (result["revenue"] >= 0).all()
+```
+
+Combine small **golden-case** fixtures (known input → known output) with **property-based tests** (`hypothesis`) for invariants that must hold across all inputs, like non-negative amounts or no duplicate keys. Keep integration tests against real connectors separate and isolated, since they're slower and less stable.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-12"
+  number={26}
+  question="How do you profile and optimize slow Python code?"
+  difficulty="hard"
+  topic="Performance"
+>
+Profile before optimizing — guessing at bottlenecks wastes time:
+
+```python
+import cProfile
+cProfile.run("process_data(df)", sort="cumulative")
+```
+
+Common fixes, in order of how often they apply:
+1. **Vectorize** — replace `iterrows()`/Python loops with pandas/NumPy operations
+2. **Reduce copies** — avoid chained `.loc`/`.copy()` calls that duplicate large frames
+3. **Offload CPU work** — `multiprocessing`, or push to a native/distributed engine
+4. **Cache repeated I/O** — `functools.lru_cache`, or batch reads instead of per-row calls
+
+`py-spy` is worth knowing for production debugging — it's a sampling profiler that attaches to a running process with effectively zero overhead.
+</QuestionCard>
+
+</QuestionList>

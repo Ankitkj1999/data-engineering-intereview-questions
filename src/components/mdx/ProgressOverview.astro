@@ -1,0 +1,220 @@
+---
+interface Section {
+  title: string;
+  anchor: string;
+  ids: string[];
+}
+
+interface Props {
+  sections: Section[];
+}
+
+const { sections } = Astro.props;
+const dataId = `po-data-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<div class="po" data-config-id={dataId}>
+  <script type="application/json" set:html={JSON.stringify(sections)} data-po-config={dataId} />
+
+  <div class="po-overall">
+    <div class="po-overall-body">
+      <span class="po-overall-value"><span class="po-done">0</span><span class="po-sep">/</span><span class="po-total">0</span></span>
+      <span class="po-overall-label">Questions completed</span>
+    </div>
+    <div class="po-overall-bar-wrap" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Overall progress">
+      <div class="po-overall-bar-track"><div class="po-overall-bar-fill"></div></div>
+      <span class="po-overall-pct">0%</span>
+    </div>
+  </div>
+
+  <div class="po-sections"></div>
+</div>
+
+<script>
+  function initProgress(root: HTMLElement) {
+    const configId = root.dataset.configId!;
+    const configEl = root.querySelector<HTMLScriptElement>(`script[data-po-config="${configId}"]`)!;
+    const sections: { title: string; anchor: string; ids: string[] }[] = JSON.parse(configEl.textContent || "[]");
+
+    const doneEl  = root.querySelector<HTMLElement>(".po-done")!;
+    const totalEl = root.querySelector<HTMLElement>(".po-total")!;
+    const fill    = root.querySelector<HTMLElement>(".po-overall-bar-fill")!;
+    const pctEl   = root.querySelector<HTMLElement>(".po-overall-pct")!;
+    const wrap    = root.querySelector<HTMLElement>(".po-overall-bar-wrap")!;
+    const list    = root.querySelector<HTMLElement>(".po-sections")!;
+
+    function isDone(id: string): boolean {
+      try {
+        const raw = localStorage.getItem(`q_${id}`);
+        return raw ? !!JSON.parse(raw).done : false;
+      } catch (_) { return false; }
+    }
+
+    function render() {
+      list.innerHTML = "";
+      let totalDone = 0, totalCount = 0;
+
+      for (const section of sections) {
+        const done = section.ids.filter(isDone).length;
+        const count = section.ids.length;
+        totalDone += done;
+        totalCount += count;
+        const pct = count ? Math.round((done / count) * 100) : 0;
+
+        const row = document.createElement("a");
+        row.className = `po-section${done === count && count > 0 ? " is-complete" : ""}`;
+        row.href = section.anchor;
+        row.innerHTML = `
+          <span class="po-section-title">${section.title}</span>
+          <div class="po-section-bar-track"><div class="po-section-bar-fill" style="width:${pct}%"></div></div>
+          <span class="po-section-count">${done}/${count}</span>
+        `;
+        list.appendChild(row);
+      }
+
+      const overallPct = totalCount ? Math.round((totalDone / totalCount) * 100) : 0;
+      doneEl.textContent = String(totalDone);
+      totalEl.textContent = String(totalCount);
+      fill.style.width = `${overallPct}%`;
+      pctEl.textContent = `${overallPct}%`;
+      wrap.setAttribute("aria-valuenow", String(overallPct));
+    }
+
+    render();
+    document.addEventListener("qc:change", render);
+  }
+
+  document.querySelectorAll<HTMLElement>(".po").forEach(initProgress);
+</script>
+
+<style>
+  .po {
+    --_done-clr: #22c55e;
+    margin: 1.5rem 0 2rem;
+  }
+
+  .po-overall {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1rem 1.25rem;
+    border: 1.5px solid var(--sl-color-gray-5);
+    border-radius: 10px;
+    background: var(--sl-color-gray-7, var(--sl-color-bg-sidebar));
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .po-overall-body {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    flex-shrink: 0;
+  }
+
+  .po-overall-value {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--sl-color-text);
+    letter-spacing: -0.02em;
+  }
+
+  .po-sep { color: var(--sl-color-gray-3); font-weight: 400; margin: 0 0.15em; }
+
+  .po-overall-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--sl-color-gray-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .po-overall-bar-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 180px;
+  }
+
+  .po-overall-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--sl-color-gray-5);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .po-overall-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--sl-color-accent) 0%, var(--_done-clr) 100%);
+    border-radius: 999px;
+    transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .po-overall-pct {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--sl-color-gray-3);
+    min-width: 2.8em;
+    text-align: right;
+  }
+
+  .po-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .po-section {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.7rem 0.9rem;
+    border: 1.5px solid var(--sl-color-gray-5);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .po-section:hover { border-color: var(--sl-color-gray-4); background: var(--sl-color-gray-6); }
+  .po-section.is-complete { border-color: color-mix(in srgb, var(--_done-clr) 35%, var(--sl-color-gray-5)); }
+
+  .po-section-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--sl-color-text);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .po-section-bar-track {
+    width: 100px;
+    flex-shrink: 0;
+    height: 5px;
+    background: var(--sl-color-gray-5);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .po-section-bar-fill {
+    height: 100%;
+    background: var(--_done-clr);
+    border-radius: 999px;
+    transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .po-section-count {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--sl-color-gray-3);
+    min-width: 2.6em;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 480px) {
+    .po-section-bar-track { display: none; }
+  }
+</style>

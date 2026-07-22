@@ -13,14 +13,24 @@
     {
       "label": "Foundations",
       "items": [
-        { "label": "SQL", "link": "/level-1-foundations/sql/" },
+        {
+          "label": "SQL",
+          "collapsed": true,
+          "items": [
+            { "label": "Overview", "link": "/level-1-foundations/sql/" },
+            { "label": "Theory", "link": "/level-1-foundations/sql/theory/" },
+            { "label": "Practice", "link": "/level-1-foundations/sql/practice/" },
+            { "label": "Progress", "link": "/level-1-foundations/sql/progress/" }
+          ]
+        },
         {
           "label": "Python",
           "collapsed": true,
           "items": [
             { "label": "Overview", "link": "/level-1-foundations/python/" },
             { "label": "Theory", "link": "/level-1-foundations/python/theory/" },
-            { "label": "Practice", "link": "/level-1-foundations/python/practice/" }
+            { "label": "Practice", "link": "/level-1-foundations/python/practice/" },
+            { "label": "Progress", "link": "/level-1-foundations/python/progress/" }
           ]
         },
         { "label": "Data Structures", "link": "/level-1-foundations/data-structure/" }

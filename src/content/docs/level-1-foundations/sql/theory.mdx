@@ -1,0 +1,714 @@
+---
+title: SQL Theory | Core Concepts
+description: Master SQL fundamentals, advanced queries, database design, and optimization for data engineering interviews. Interactive Q&A with progress tracking.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+Track your study progress — mark questions as **done** ✓, **bookmark** 🔖 for review, and expand answers on demand.
+
+---
+
+## Quick Reference
+
+A refresher on the syntax the questions below assume. For a from-scratch walkthrough of SQL, see the [SQL Roadmap](/roadmaps/sql/) — this page focuses on what interviewers ask, not how to learn SQL from zero.
+
+### Reading data
+`SELECT` retrieves columns, `WHERE` filters rows, `ORDER BY` sorts, `GROUP BY`/`HAVING` aggregate and filter groups, `LIMIT`/`OFFSET` paginate:
+
+```sql
+SELECT department, COUNT(*) AS employee_count, AVG(salary) AS avg_salary
+FROM employees
+WHERE hire_date >= '2020-01-01'
+GROUP BY department
+HAVING COUNT(*) > 5
+ORDER BY avg_salary DESC
+LIMIT 10;
+```
+
+### Joins
+`INNER JOIN` returns only matching rows; `LEFT`/`RIGHT JOIN` keep all rows from one side (NULL where unmatched); `FULL OUTER JOIN` keeps all rows from both; `CROSS JOIN` produces a Cartesian product; a self join joins a table to itself via an alias.
+
+```sql
+SELECT e.employee_name, d.department_name
+FROM employees e
+LEFT JOIN departments d ON e.department_id = d.id;
+```
+
+### Modifying data & schema
+`INSERT`, `UPDATE`, `DELETE` (DML) manipulate rows; `CREATE TABLE`, `ALTER TABLE`, `DROP TABLE` (DDL) manage schema. Always scope `UPDATE`/`DELETE` with `WHERE` — omitting it applies to every row.
+
+```sql
+CREATE TABLE employees (
+    employee_id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    salary DECIMAL(10, 2),
+    department_id INT,
+    FOREIGN KEY (department_id) REFERENCES departments(id)
+);
+
+UPDATE employees SET salary = salary * 1.10 WHERE department_id = 2;
+```
+
+### Constraints & data types
+`PRIMARY KEY` (unique row identifier), `FOREIGN KEY` (referential integrity), `UNIQUE`, `NOT NULL`, `CHECK` (validates values), `DEFAULT`. Common types: `INT`, `VARCHAR(n)`, `DECIMAL(precision, scale)`, `DATE`, `DATETIME`, `BOOLEAN`, `TEXT`.
+
+### Common mistakes
+
+| Mistake | Problem | Fix |
+|---------|---------|-----|
+| `WHERE col = NULL` | Always returns no rows | Use `WHERE col IS NULL` |
+| Missing `WHERE` on `UPDATE`/`DELETE` | Modifies/deletes every row | Always scope with `WHERE` |
+| `SELECT *` on large tables | Slow, excess data transfer | Select only needed columns |
+| Using a column alias in `WHERE` | Alias isn't resolved yet at that stage | Only usable in `ORDER BY`/`SELECT` |
+
+---
+
+## SQL Fundamentals
+
+The core vocabulary and commands every SQL interview starts with.
+
+<QuestionList topic="SQL Fundamentals" storagePrefix="sql-fundamentals">
+
+<QuestionCard id="sql-fund-01" number={1} question="What is SQL and what is it used for?" difficulty="easy" topic="Fundamentals">
+SQL (Structured Query Language) is the standard programming language for managing relational databases. It enables data professionals to create, read, update, and delete data (CRUD), manage schemas, and perform data analysis.
+</QuestionCard>
+
+<QuestionCard id="sql-fund-02" number={2} question="Describe the difference between SQL and NoSQL databases." difficulty="easy" topic="Fundamentals">
+- **SQL** — relational, structured schema, ACID compliance, tables with rows/columns
+- **NoSQL** — non-relational, flexible schema, eventual consistency, document/key-value/graph models
+</QuestionCard>
+
+<QuestionCard id="sql-fund-03" number={3} question="What are the different types of SQL commands?" difficulty="easy" topic="Fundamentals">
+- **DDL** — Data Definition (`CREATE`, `ALTER`, `DROP`)
+- **DML** — Data Manipulation (`SELECT`, `INSERT`, `UPDATE`, `DELETE`)
+- **DCL** — Data Control (`GRANT`, `REVOKE`)
+- **TCL** — Transaction Control (`COMMIT`, `ROLLBACK`, `SAVEPOINT`)
+</QuestionCard>
+
+<QuestionCard id="sql-fund-04" number={4} question="Explain the purpose of the SELECT statement." difficulty="easy" topic="Fundamentals">
+Retrieves data from tables.
+
+```sql
+SELECT columns FROM table WHERE conditions ORDER BY columns;
+```
+</QuestionCard>
+
+<QuestionCard id="sql-fund-05" number={5} question="What is the difference between WHERE and HAVING clauses?" difficulty="easy" topic="Fundamentals">
+- **`WHERE`** — filters rows *before* `GROUP BY`
+- **`HAVING`** — filters groups *after* aggregation
+</QuestionCard>
+
+<QuestionCard id="sql-fund-06" number={6} question="Define what a JOIN is in SQL and list its types." difficulty="easy" topic="Joins">
+JOINs combine rows based on related columns.
+
+- **`INNER JOIN`** — matching rows only
+- **`LEFT`/`RIGHT JOIN`** — all rows from one side + matching from the other
+- **`FULL OUTER JOIN`** — all rows from both tables
+- **`CROSS JOIN`** — Cartesian product
+</QuestionCard>
+
+<QuestionCard id="sql-fund-07" number={7} question="What is a primary key in a database?" difficulty="easy" topic="Fundamentals">
+The unique identifier for each row. Cannot be `NULL`, must be unique — enforces entity integrity.
+</QuestionCard>
+
+<QuestionCard id="sql-fund-08" number={8} question="Explain what a foreign key is and how it is used." difficulty="easy" topic="Fundamentals">
+A column referencing another table's primary key. Enforces referential integrity and creates relationships between tables.
+</QuestionCard>
+
+<QuestionCard id="sql-fund-09" number={9} question="How can you prevent SQL injections?" difficulty="medium" topic="Security">
+Parameterized queries (prepared statements), input validation, least-privilege database accounts, and stored procedures used cautiously — never build queries by concatenating raw user input.
+</QuestionCard>
+
+<QuestionCard id="sql-fund-10" number={10} question="What is normalization? Explain with examples." difficulty="medium" topic="Data Modeling">
+Organizing data to reduce redundancy:
+
+- **1NF** — atomic values, no repeating groups
+- **2NF** — every non-key column fully depends on the whole primary key
+- **3NF** — no transitive dependencies (non-key columns depend only on the key)
+</QuestionCard>
+
+<QuestionCard id="sql-fund-11" number={11} question="Describe the concept of denormalization and when you would use it." difficulty="medium" topic="Data Modeling">
+Deliberately adding redundant data to improve read performance, at the cost of write complexity and storage. Common in data warehouses and read-heavy applications where join cost outweighs storage cost.
+</QuestionCard>
+
+<QuestionCard id="sql-fund-12" number={12} question="What are indexes and how can they improve query performance?" difficulty="medium" topic="Performance">
+B-tree structures that enable fast lookups. They speed up `WHERE`/`JOIN`/`ORDER BY`, but slow down `INSERT`/`UPDATE`/`DELETE` since the index has to be maintained on every write.
+</QuestionCard>
+
+<QuestionCard id="sql-fund-13" number={13} question="Explain the purpose of the GROUP BY clause." difficulty="easy" topic="Fundamentals">
+Groups rows into summary rows so aggregate functions (`COUNT`, `SUM`, `AVG`, ...) can be applied per group instead of across the whole table.
+</QuestionCard>
+
+<QuestionCard id="sql-fund-14" number={14} question="What is a subquery, and when would you use one?" difficulty="medium" topic="Fundamentals">
+A query nested inside `SELECT`, `WHERE`, or `FROM`. Used for complex filtering that depends on the result of another query — for example, filtering rows above an aggregate computed elsewhere.
+</QuestionCard>
+
+<QuestionCard id="sql-fund-15" number={15} question="Describe the functions of the ORDER BY clause." difficulty="easy" topic="Fundamentals">
+Sorts the result set in ascending (`ASC`, default) or descending (`DESC`) order, by one or more columns.
+</QuestionCard>
+
+<QuestionCard id="sql-fund-16" number={16} question="What are aggregate functions in SQL?" difficulty="easy" topic="Fundamentals">
+Functions that compute a single value from multiple rows: `COUNT`, `SUM`, `AVG`, `MIN`, `MAX`.
+</QuestionCard>
+
+<QuestionCard id="sql-fund-17" number={17} question="Explain the differences between INNER JOIN, LEFT JOIN, RIGHT JOIN, and FULL JOIN." difficulty="easy" topic="Joins">
+- **`INNER`** — only matching rows
+- **`LEFT`** — all left rows + matching right rows (`NULL` if no match)
+- **`RIGHT`** — all right rows + matching left rows (`NULL` if no match)
+- **`FULL`** — all rows from both tables
+</QuestionCard>
+
+<QuestionCard id="sql-fund-18" number={18} question="How do you insert a new row into a database table?" difficulty="easy" topic="Fundamentals">
+```sql
+INSERT INTO table (col1, col2) VALUES (val1, val2);
+```
+</QuestionCard>
+
+<QuestionCard id="sql-fund-19" number={19} question="Explain how to update records in a database table." difficulty="easy" topic="Fundamentals">
+```sql
+UPDATE table SET col1 = val1 WHERE condition;
+```
+Always scope with `WHERE` — omitting it updates every row.
+</QuestionCard>
+
+<QuestionCard id="sql-fund-20" number={20} question="What is a SQL View and what are its advantages?" difficulty="medium" topic="Fundamentals">
+A virtual table based on a stored `SELECT` query. Advantages: simplifies repeated complex queries, provides a security layer (expose only certain columns/rows), and centralizes reusable logic.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## SQL Data Types and Operators
+
+Types, comparison operators, and NULL handling that show up in almost every query.
+
+<QuestionList topic="SQL Data Types and Operators" storagePrefix="sql-types">
+
+<QuestionCard id="sql-types-01" number={21} question="List the different data types available in SQL." difficulty="easy" topic="Data Types">
+- **Numeric** — `INT`, `DECIMAL`
+- **String** — `CHAR`, `VARCHAR`, `TEXT`
+- **Date/Time** — `DATE`, `TIMESTAMP`
+</QuestionCard>
+
+<QuestionCard id="sql-types-02" number={22} question="What are the differences between CHAR, VARCHAR, and TEXT data types?" difficulty="easy" topic="Data Types">
+- **`CHAR`** — fixed length, padded with spaces
+- **`VARCHAR`** — variable length, up to a defined limit
+- **`TEXT`** — large variable-length text, typically no practical limit
+</QuestionCard>
+
+<QuestionCard id="sql-types-03" number={23} question="How do you use the BETWEEN operator in SQL?" difficulty="easy" topic="Operators">
+```sql
+SELECT * FROM table WHERE column BETWEEN 10 AND 20;
+```
+Inclusive of both endpoints.
+</QuestionCard>
+
+<QuestionCard id="sql-types-04" number={24} question="Describe the use of the IN operator." difficulty="easy" topic="Operators">
+```sql
+SELECT * FROM table WHERE column IN (val1, val2, val3);
+```
+Shorthand for chaining several `OR` conditions on the same column.
+</QuestionCard>
+
+<QuestionCard id="sql-types-05" number={25} question="Explain the use of wildcard characters in SQL." difficulty="easy" topic="Operators">
+`%` matches any sequence of characters, `_` matches exactly one character. Used with `LIKE`.
+</QuestionCard>
+
+<QuestionCard id="sql-types-06" number={26} question="What is the purpose of the LIKE operator?" difficulty="easy" topic="Operators">
+Pattern matching on strings:
+
+```sql
+SELECT * FROM users WHERE name LIKE 'J%';
+```
+</QuestionCard>
+
+<QuestionCard id="sql-types-07" number={27} question="How do you handle NULL values in SQL?" difficulty="easy" topic="NULL Handling">
+Use `IS NULL` / `IS NOT NULL` for comparisons — `= NULL` never matches. Functions like `COALESCE` and `ISNULL` substitute a default when a value is `NULL`.
+</QuestionCard>
+
+<QuestionCard id="sql-types-08" number={28} question="What does the COALESCE function do?" difficulty="easy" topic="NULL Handling">
+Returns the first non-`NULL` value in its argument list:
+
+```sql
+SELECT COALESCE(phone, email, 'N/A');
+```
+</QuestionCard>
+
+<QuestionCard id="sql-types-09" number={29} question="What is the difference between UNION and UNION ALL?" difficulty="medium" topic="Operators">
+- **`UNION`** — combines result sets, removes duplicates (extra sort/dedup cost)
+- **`UNION ALL`** — combines result sets, keeps duplicates (faster, no dedup pass)
+</QuestionCard>
+
+<QuestionCard id="sql-types-10" number={30} question="Describe the use of arithmetic operators in SQL queries." difficulty="easy" topic="Operators">
+Standard operators (`+`, `-`, `*`, `/`) can be used directly in `SELECT` and `WHERE` clauses to compute or filter on derived numeric values.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## SQL Advanced Queries
+
+Patterns that go beyond basic filtering — conditional logic, self joins, CTEs, and window functions.
+
+<QuestionList topic="SQL Advanced Queries" storagePrefix="sql-advanced">
+
+<QuestionCard id="sql-adv-01" number={31} question="Explain how to use the CASE statement in SQL." difficulty="medium" topic="Advanced Queries">
+```sql
+SELECT CASE WHEN age < 18 THEN 'Minor' ELSE 'Adult' END FROM users;
+```
+Works like an inline if/else — usable in `SELECT`, `WHERE`, and `ORDER BY`.
+</QuestionCard>
+
+<QuestionCard id="sql-adv-02" number={32} question="How would you perform a self JOIN?" difficulty="medium" topic="Joins">
+```sql
+SELECT e1.name, e2.name
+FROM employees e1
+JOIN employees e2 ON e1.manager_id = e2.id;
+```
+Joins a table to itself via two aliases — common for hierarchical relationships like employee/manager.
+</QuestionCard>
+
+<QuestionCard id="sql-adv-03" number={33} question="What is a cross JOIN and when would you use it?" difficulty="medium" topic="Joins">
+Produces the Cartesian product of two tables (every row of A paired with every row of B). Used for generating test data or combining independent dimensions (e.g. all product/color combinations).
+</QuestionCard>
+
+<QuestionCard id="sql-adv-04" number={34} question="How to implement pagination in SQL queries?" difficulty="medium" topic="Advanced Queries">
+```sql
+-- MySQL / PostgreSQL
+SELECT * FROM table ORDER BY id LIMIT 10 OFFSET 20;
+
+-- SQL Server
+SELECT * FROM table ORDER BY id OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY;
+```
+Always pair with `ORDER BY` — without it, page boundaries aren't guaranteed to be stable.
+</QuestionCard>
+
+<QuestionCard id="sql-adv-05" number={35} question="Explain the concept of Common Table Expressions (CTEs) and recursive CTEs." difficulty="medium" topic="Advanced Queries">
+A CTE (`WITH` clause) creates a temporary named result set scoped to one query, improving readability over nested subqueries. A **recursive CTE** references itself to walk hierarchical data (org charts, category trees) level by level.
+</QuestionCard>
+
+<QuestionCard id="sql-adv-06" number={36} question="What are window functions and how are they used?" difficulty="medium" topic="Window Functions">
+Functions that compute a value across a "window" of related rows without collapsing them into one row, unlike `GROUP BY`.
+
+```sql
+SELECT name, salary,
+       RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS dept_rank
+FROM employees;
+```
+Common ones: `ROW_NUMBER()`, `RANK()`, `LAG()`, `LEAD()`.
+</QuestionCard>
+
+<QuestionCard id="sql-adv-07" number={37} question="How can you concatenate column values in SQL?" difficulty="easy" topic="Advanced Queries">
+- **Standard SQL / PostgreSQL** — `||`
+- **MySQL** — `CONCAT(a, b)`
+- **SQL Server** — `+`
+</QuestionCard>
+
+<QuestionCard id="sql-adv-08" number={38} question="What is the PIVOT operation and how would you apply it?" difficulty="medium" topic="Advanced Queries">
+Transforms distinct row values into columns. SQL Server has a native `PIVOT` keyword; most other databases emulate it with conditional aggregation:
+
+```sql
+SELECT
+    department,
+    SUM(CASE WHEN quarter = 'Q1' THEN revenue END) AS q1,
+    SUM(CASE WHEN quarter = 'Q2' THEN revenue END) AS q2
+FROM sales
+GROUP BY department;
+```
+</QuestionCard>
+
+<QuestionCard id="sql-adv-09" number={39} question="Explain combining GROUP BY with ORDER BY." difficulty="easy" topic="Advanced Queries">
+`ORDER BY` runs after `GROUP BY` (and after `HAVING`), so it sorts the already-aggregated result rows — you can order by an aggregate expression like `COUNT(*)`.
+</QuestionCard>
+
+<QuestionCard id="sql-adv-10" number={40} question="How would you find duplicate records in a table?" difficulty="medium" topic="Advanced Queries">
+```sql
+SELECT col, COUNT(*)
+FROM table
+GROUP BY col
+HAVING COUNT(*) > 1;
+```
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Database Design & Architecture
+
+Modeling, schema strategy, and the objects that support them.
+
+<QuestionList topic="Database Design & Architecture" storagePrefix="sql-design">
+
+<QuestionCard id="sql-design-01" number={41} question="What is the Entity-Relationship Model?" difficulty="easy" topic="Data Modeling">
+A conceptual model using entities (tables), attributes (columns), and relationships between entities to design a database before implementation.
+</QuestionCard>
+
+<QuestionCard id="sql-design-02" number={42} question="Explain the different types of database schema." difficulty="medium" topic="Data Modeling">
+- **Conceptual** — high-level business view, no implementation detail
+- **Logical** — structure (entities, relationships, attributes) without DBMS-specific detail
+- **Physical** — the actual implementation: tables, indexes, storage
+</QuestionCard>
+
+<QuestionCard id="sql-design-03" number={43} question="What are Stored Procedures and how are they beneficial?" difficulty="medium" topic="Database Objects">
+Precompiled, named blocks of SQL stored in the database. Benefits: reduced network round trips, centralized/reusable logic, tighter access control, and execution plan caching.
+</QuestionCard>
+
+<QuestionCard id="sql-design-04" number={44} question="What is a trigger in SQL and when should it be used?" difficulty="medium" topic="Database Objects">
+Code that runs automatically in response to a DML event (`INSERT`/`UPDATE`/`DELETE`) on a table. Used for audit trails, enforcing complex validation, or keeping denormalized data in sync.
+</QuestionCard>
+
+<QuestionCard id="sql-design-05" number={45} question="Describe the concept of ACID in databases." difficulty="medium" topic="Transactions">
+**Atomicity, Consistency, Isolation, Durability** — the guarantees that make a transaction reliable: it fully completes or fully rolls back, leaves the database in a valid state, is isolated from concurrent transactions, and survives a crash once committed.
+</QuestionCard>
+
+<QuestionCard id="sql-design-06" number={46} question="What is database sharding?" difficulty="hard" topic="Scalability">
+Horizontal partitioning of data across multiple database instances (shards), typically by a key like customer ID or region, to scale writes and storage beyond a single machine.
+</QuestionCard>
+
+<QuestionCard id="sql-design-07" number={47} question="How do database indexes work and what types are there?" difficulty="medium" topic="Performance">
+Most commonly a **B-tree** structure that keeps sorted keys for fast range/equality lookups. Other types: **Hash** (equality-only, O(1) lookup), **Bitmap** (low-cardinality columns), **GiST**/**GIN** (PostgreSQL — full-text search, geometric data).
+</QuestionCard>
+
+<QuestionCard id="sql-design-08" number={48} question="Describe the process of data warehousing." difficulty="medium" topic="Data Warehousing">
+ETL processes move data from operational systems into a warehouse, modeled dimensionally (star/snowflake schema), and queried through OLAP cubes or SQL for reporting and analysis.
+</QuestionCard>
+
+<QuestionCard id="sql-design-09" number={49} question="Explain the difference between OLTP and OLAP systems." difficulty="medium" topic="Data Warehousing">
+- **OLTP** — transactional, frequent small writes, operational (e.g. order processing)
+- **OLAP** — analytical, read-heavy, large scans over historical data (e.g. reporting)
+</QuestionCard>
+
+<QuestionCard id="sql-design-10" number={50} question="What are materialized views and how do they differ from standard views?" difficulty="medium" topic="Database Objects">
+A materialized view stores the query result physically and must be refreshed to stay current, trading staleness for read speed. A standard (virtual) view re-runs its underlying query on every access.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## SQL Optimization and Performance
+
+Reading execution plans and making queries faster.
+
+<QuestionList topic="SQL Optimization and Performance" storagePrefix="sql-optimization">
+
+<QuestionCard id="sql-opt-01" number={51} question="How do you identify and optimize slow-running queries?" difficulty="medium" topic="Optimization">
+Use `EXPLAIN`/`EXPLAIN ANALYZE` to find the bottleneck, add targeted indexes, avoid `SELECT *`, and restructure `JOIN`s so the database can use indexes and smaller intermediate result sets.
+</QuestionCard>
+
+<QuestionCard id="sql-opt-02" number={52} question="What is query execution plan in SQL?" difficulty="medium" topic="Optimization">
+The database's chosen strategy for running a query — which scans, joins, and indexes it will use, and their estimated (or actual) cost.
+</QuestionCard>
+
+<QuestionCard id="sql-opt-03" number={53} question="Explain how to use EXPLAIN or EXPLAIN ANALYZE." difficulty="medium" topic="Optimization">
+- **`EXPLAIN`** — shows the planned execution strategy without running the query
+- **`EXPLAIN ANALYZE`** — actually executes the query and shows real timings and row counts alongside the plan
+</QuestionCard>
+
+<QuestionCard id="sql-opt-04" number={54} question="How can indexing affect performance both positively and negatively?" difficulty="medium" topic="Optimization">
+- **Positive** — much faster `SELECT`/`JOIN`/`ORDER BY` on indexed columns
+- **Negative** — slower `INSERT`/`UPDATE`/`DELETE`, since every index has to be updated too, plus extra storage
+</QuestionCard>
+
+<QuestionCard id="sql-opt-05" number={55} question="Describe how to measure the performance of SQL queries." difficulty="medium" topic="Optimization">
+Execution time, rows examined vs. rows returned, whether indexes are actually used (from `EXPLAIN` output), and I/O cost.
+</QuestionCard>
+
+<QuestionCard id="sql-opt-06" number={56} question="How would you rewrite a query to improve its performance?" difficulty="medium" topic="Optimization">
+Prefer `JOIN`s over correlated subqueries where possible, select only needed columns instead of `SELECT *`, filter early, and add indexes that match the query's `WHERE`/`JOIN` columns.
+</QuestionCard>
+
+<QuestionCard id="sql-opt-07" number={57} question="What are partitioned tables and how can they optimize performance?" difficulty="medium" topic="Optimization">
+Tables physically split by a key (date, range, or hash). Queries that filter on the partition key only scan relevant partitions ("partition pruning"), dramatically reducing I/O on large tables.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## SQL Security
+
+Protecting access to data.
+
+<QuestionList topic="SQL Security" storagePrefix="sql-security">
+
+<QuestionCard id="sql-sec-01" number={58} question="How do you implement database encryption in SQL?" difficulty="medium" topic="Security">
+**TDE** (Transparent Data Encryption) for data at rest, column-level encryption for specific sensitive fields, and **SSL/TLS** for data in transit.
+</QuestionCard>
+
+<QuestionCard id="sql-sec-02" number={59} question="What are roles and how do they manage database access?" difficulty="easy" topic="Security">
+Named collections of privileges. Users are assigned roles and inherit the underlying permissions — simplifies access control at scale versus granting permissions per-user.
+</QuestionCard>
+
+<QuestionCard id="sql-sec-03" number={60} question="Explain the concept of row-level security." difficulty="medium" topic="Security">
+Restricts which rows a user can see or modify based on their identity or context (e.g. a sales rep only sees their own region's rows), enforced by the database rather than application code.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## SQL Functions and Expressions
+
+Scalar/table-valued functions and stored procedures.
+
+<QuestionList topic="SQL Functions and Expressions" storagePrefix="sql-functions">
+
+<QuestionCard id="sql-func-01" number={61} question="Describe scalar-valued and table-valued functions." difficulty="medium" topic="Functions">
+- **Scalar** — returns a single value, usable inline in `SELECT`/`WHERE`
+- **Table-valued** — returns a table, usable in a `FROM` clause like a regular table
+</QuestionCard>
+
+<QuestionCard id="sql-func-02" number={62} question="How would you define a stored procedure with input and output parameters?" difficulty="medium" topic="Functions">
+```sql
+CREATE PROCEDURE proc(@input INT, @output INT OUTPUT) AS
+BEGIN
+    SET @output = @input * 2;
+END;
+```
+</QuestionCard>
+
+<QuestionCard id="sql-func-03" number={63} question="What is the difference between a function and a stored procedure?" difficulty="medium" topic="Functions">
+- **Function** — returns a value, callable inline within a query, generally can't perform DML on the tables it reads
+- **Procedure** — supports `OUTPUT` parameters, can perform full DML, but can't be called inline inside a `SELECT`
+</QuestionCard>
+
+<QuestionCard id="sql-func-04" number={64} question="How do you use the CAST and CONVERT functions?" difficulty="easy" topic="Functions">
+```sql
+SELECT CAST(col AS INT);       -- ANSI standard
+SELECT CONVERT(INT, col);      -- SQL Server style
+```
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Transaction Control and Locking
+
+Concurrency guarantees and how the database enforces them.
+
+<QuestionList topic="Transaction Control and Locking" storagePrefix="sql-transactions">
+
+<QuestionCard id="sql-txn-01" number={65} question="What is a database transaction?" difficulty="easy" topic="Transactions">
+An atomic unit of work that either commits fully or rolls back fully, preserving the database's ACID guarantees.
+</QuestionCard>
+
+<QuestionCard id="sql-txn-02" number={66} question="Explain the concept of locking and its types in SQL databases." difficulty="medium" topic="Transactions">
+Locks prevent conflicting concurrent access to the same data. Granularity ranges from **row-level** (fine-grained, more concurrency) to **page-level** to **table-level** (coarse, less concurrency but cheaper to manage).
+</QuestionCard>
+
+<QuestionCard id="sql-txn-03" number={67} question="What are the properties of transactions?" difficulty="easy" topic="Transactions">
+**ACID**: Atomicity, Consistency, Isolation, Durability.
+</QuestionCard>
+
+<QuestionCard id="sql-txn-04" number={68} question="How do you manage transaction isolation levels?" difficulty="hard" topic="Transactions">
+```sql
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+```
+Levels range from `READ UNCOMMITTED` (weakest, allows dirty reads) through `READ COMMITTED`, `REPEATABLE READ`, to `SERIALIZABLE` (strongest, fully isolated but least concurrent).
+</QuestionCard>
+
+<QuestionCard id="sql-txn-05" number={69} question="What does it mean to commit or roll back a transaction?" difficulty="easy" topic="Transactions">
+- **`COMMIT`** — permanently saves all changes made in the transaction
+- **`ROLLBACK`** — undoes all changes made in the transaction, as if it never happened
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## SQL and Modern Data Ecosystems
+
+Where SQL sits alongside big data and cloud platforms.
+
+<QuestionList topic="SQL and Modern Data Ecosystems" storagePrefix="sql-ecosystems">
+
+<QuestionCard id="sql-eco-01" number={70} question="How can SQL be integrated with big data technologies?" difficulty="medium" topic="Ecosystems">
+SQL-on-Hadoop engines (Hive, Spark SQL), external/federated tables, and JDBC/ODBC connectors all let SQL query data sitting in big-data storage.
+</QuestionCard>
+
+<QuestionCard id="sql-eco-02" number={71} question="Discuss the interoperability of SQL with cloud-based data stores." difficulty="easy" topic="Ecosystems">
+Cloud databases and warehouses (RDS, BigQuery, Snowflake, Redshift) all expose standard-ish SQL interfaces, so most SQL knowledge transfers directly.
+</QuestionCard>
+
+<QuestionCard id="sql-eco-03" number={72} question="What is Data Lake and how can SQL interact with it?" difficulty="medium" topic="Ecosystems">
+A centralized repository of raw data in its native format. Query engines like Presto/Trino and Athena let you run SQL directly against files in the lake without a separate load step.
+</QuestionCard>
+
+<QuestionCard id="sql-eco-04" number={73} question="Explain the interaction between SQL and NoSQL within the same application." difficulty="medium" topic="Ecosystems">
+Polyglot persistence — using SQL databases for transactional/relational data and NoSQL stores for scale or flexible schema, within the same system.
+</QuestionCard>
+
+<QuestionCard id="sql-eco-05" number={74} question="How does SQL work within a microservices architecture?" difficulty="medium" topic="Ecosystems">
+Each service typically owns its own database (often SQL), and shares data with other services through APIs or events rather than direct cross-service queries — avoiding a shared-schema coupling problem.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## SQL Best Practices and Standards
+
+Writing SQL that's maintainable and portable.
+
+<QuestionList topic="SQL Best Practices and Standards" storagePrefix="sql-best-practices">
+
+<QuestionCard id="sql-best-01" number={75} question="What are some common SQL coding practices you follow?" difficulty="easy" topic="Best Practices">
+Consistent naming conventions, indexing based on actual query patterns, avoiding `SELECT *`, and always using parameterized queries.
+</QuestionCard>
+
+<QuestionCard id="sql-best-02" number={76} question="How can you ensure the portability of SQL scripts across systems?" difficulty="medium" topic="Best Practices">
+Stick to ANSI SQL where possible, avoid vendor-specific functions, and abstract vendor differences behind views where you can't avoid them.
+</QuestionCard>
+
+<QuestionCard id="sql-best-03" number={77} question="What methods do you use for version controlling SQL scripts?" difficulty="easy" topic="Best Practices">
+Git for the SQL files themselves, plus migration tools (Flyway, Liquibase, or a dbt-style migrations folder) to apply schema changes as ordered, repeatable steps — "database as code."
+</QuestionCard>
+
+<QuestionCard id="sql-best-04" number={78} question="What are the benefits of using stored procedures instead of embedded SQL?" difficulty="medium" topic="Best Practices">
+Fewer network round trips, cached execution plans, centralized logic that's easier to secure and audit than SQL scattered across application code.
+</QuestionCard>
+
+<QuestionCard id="sql-best-05" number={79} question="How do you document SQL code effectively?" difficulty="easy" topic="Best Practices">
+Inline comments explaining *why* (not what), ER diagrams for schema relationships, and a data dictionary describing tables/columns for anyone querying the data later.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Analytical SQL Questions
+
+Ranking, running totals, and other analysis-oriented patterns.
+
+<QuestionList topic="Analytical SQL Questions" storagePrefix="sql-analytical">
+
+<QuestionCard id="sql-analytic-01" number={80} question="How would you find the Nth highest salary from a table?" difficulty="medium" topic="Analytics">
+```sql
+SELECT DISTINCT salary FROM employees ORDER BY salary DESC LIMIT 1 OFFSET N-1;
+```
+</QuestionCard>
+
+<QuestionCard id="sql-analytic-02" number={81} question="How do you count occurrences of a specific value in a column?" difficulty="easy" topic="Analytics">
+```sql
+SELECT COUNT(*) FROM table WHERE column = 'value';
+```
+</QuestionCard>
+
+<QuestionCard id="sql-analytic-03" number={82} question="How can you calculate running totals in SQL?" difficulty="medium" topic="Analytics">
+```sql
+SELECT order_date, amount,
+       SUM(amount) OVER (ORDER BY order_date) AS running_total
+FROM orders;
+```
+</QuestionCard>
+
+<QuestionCard id="sql-analytic-04" number={83} question="Explain how to reverse the contents of a column without a reverse function." difficulty="hard" topic="Analytics">
+When the database has no built-in `REVERSE()`, fall back to application-level processing, or a stored procedure/recursive query that rebuilds the string character by character in reverse order.
+</QuestionCard>
+
+<QuestionCard id="sql-analytic-05" number={84} question="What approach do you use for creating a calendar table?" difficulty="medium" topic="Analytics">
+Generate a contiguous date range (via a recursive CTE or a numbers table joined to a base date) and add derived flag columns — weekday, is_weekend, fiscal_quarter — for fast time-based joins and analysis.
+</QuestionCard>
+
+<QuestionCard id="sql-analytic-06" number={99} question="Explain how to use SQL for predictive analysis and machine learning." difficulty="hard" topic="Analytics">
+Window functions and statistical aggregates can compute trend features directly in SQL. Warehouse-native ML (BigQuery ML, Redshift ML) and extensions like MADlib go further, letting you train and score models without leaving SQL.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Data Manipulation and ETL
+
+Moving and cleaning data with SQL.
+
+<QuestionList topic="Data Manipulation and ETL" storagePrefix="sql-etl">
+
+<QuestionCard id="sql-etl-01" number={85} question="What is the process of Extract, Transform, Load (ETL)?" difficulty="easy" topic="ETL">
+Extract data from source systems, transform it (clean, join, aggregate), and load it into a target system — the foundation of most data warehousing pipelines.
+</QuestionCard>
+
+<QuestionCard id="sql-etl-02" number={86} question="How do you import/export data from/to a flat file using SQL?" difficulty="medium" topic="ETL">
+- **PostgreSQL** — `COPY`
+- **MySQL** — `LOAD DATA INFILE`
+- **SQL Server** — `BULK INSERT`
+</QuestionCard>
+
+<QuestionCard id="sql-etl-03" number={87} question="Explain the steps for a basic ETL process." difficulty="medium" topic="ETL">
+Extract → clean → validate → load to a staging table → load to the warehouse → (re)build indexes.
+</QuestionCard>
+
+<QuestionCard id="sql-etl-04" number={88} question="How do you cleanse and format data using SQL queries?" difficulty="medium" topic="ETL">
+`TRIM` to remove stray whitespace, `UPPER`/`LOWER` to normalize case, `REPLACE` for known bad patterns, and regex functions (`REGEXP_REPLACE`, etc.) for more complex cleanup.
+</QuestionCard>
+
+<QuestionCard id="sql-etl-05" number={89} question="What tools do you use for automating data import/export?" difficulty="easy" topic="ETL">
+Apache Airflow or dbt for orchestration/transformation, Talend or Informatica for GUI-driven ETL, or plain cron-scheduled scripts for simpler pipelines.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Domain-Specific SQL Scenarios
+
+Modeling patterns for relationships, hierarchies, and time.
+
+<QuestionList topic="Domain-Specific SQL Scenarios" storagePrefix="sql-domain">
+
+<QuestionCard id="sql-domain-01" number={90} question="How would you model a many-to-many relationship in SQL?" difficulty="medium" topic="Data Modeling">
+A junction (bridge) table holding foreign keys to both related tables — e.g. `student_id` and `course_id` in an `enrollments` table.
+</QuestionCard>
+
+<QuestionCard id="sql-domain-02" number={91} question="Describe how to manage hierarchical data in SQL." difficulty="hard" topic="Data Modeling">
+- **Adjacency list** — each row stores its `parent_id`; simple, but multi-level queries need recursion
+- **Nested sets** — stores left/right bounds; fast subtree reads, expensive writes
+- **Recursive CTEs** — walk an adjacency list to arbitrary depth in a single query
+</QuestionCard>
+
+<QuestionCard id="sql-domain-03" number={92} question="How would you approach writing SQL queries for reporting?" difficulty="medium" topic="Reporting">
+Query against a dimensional model (star/snowflake) rather than raw OLTP tables, aggregate with `GROUP BY`, and optimize for read patterns since reporting queries are run far more often than the underlying data changes.
+</QuestionCard>
+
+<QuestionCard id="sql-domain-04" number={93} question="Explain how to handle temporal data and time zones in SQL." difficulty="hard" topic="Data Modeling">
+Store timestamps in UTC using a timezone-aware type (`TIMESTAMP WITH TIME ZONE`), and convert to a local zone only at display time with `AT TIME ZONE`. Storing local time directly makes cross-region comparisons and DST transitions error-prone.
+</QuestionCard>
+
+<QuestionCard id="sql-domain-05" number={94} question="How do you use SQL in financial applications for risk analysis?" difficulty="hard" topic="Reporting">
+Time-series queries over historical prices/positions, window functions for rolling metrics (moving average, volatility), and aggregate risk measures computed directly in the warehouse close to the data.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Troubleshooting and Debugging
+
+Diagnosing failures, corruption, and concurrency issues.
+
+<QuestionList topic="Troubleshooting and Debugging" storagePrefix="sql-debugging">
+
+<QuestionCard id="sql-debug-01" number={95} question="What steps do you take to troubleshoot a failed SQL query?" difficulty="medium" topic="Troubleshooting">
+Check syntax first, verify table/column names exist, validate data types match, then isolate the problem by simplifying the query (remove joins/conditions one at a time) until it runs.
+</QuestionCard>
+
+<QuestionCard id="sql-debug-02" number={96} question="How can you recover data from a corrupt SQL database?" difficulty="hard" topic="Troubleshooting">
+Restore from the most recent clean backup, replay transaction logs to minimize data loss, and for engine-level corruption run integrity checks like `DBCC CHECKDB` (SQL Server) to identify and, where possible, repair the damage.
+</QuestionCard>
+
+<QuestionCard id="sql-debug-03" number={97} question="What methods do you employ to ensure data integrity?" difficulty="medium" topic="Troubleshooting">
+Primary/foreign key constraints, `CHECK` constraints for value rules, unique indexes to prevent duplicates, and triggers for cross-row validation that constraints alone can't express.
+</QuestionCard>
+
+<QuestionCard id="sql-debug-04" number={98} question="How do you decipher and resolve deadlocks in SQL?" difficulty="hard" topic="Troubleshooting">
+Analyze the deadlock graph the database produces to see which transactions were holding/waiting on which locks, identify the resource contention pattern, then fix it by keeping transactions short, accessing tables in a consistent order, and reducing lock scope.
+</QuestionCard>
+
+</QuestionList>
