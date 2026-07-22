@@ -97,12 +97,13 @@ const { sublist, nested } = Astro.props;
     align-items: center;
     justify-content: space-between;
     gap: var(--page-space-2);
+    min-height: 34px;
     font-family: var(--brand-mono, var(--sl-font-mono));
     font-weight: 600;
     font-size: 0.68rem;
     line-height: 1.2;
     letter-spacing: 0.08em;
-    padding: 0.4rem 0.6rem;
+    padding: 0.45rem var(--page-space-3);
     border-radius: var(--page-radius);
     color: var(--page-text-muted);
     text-transform: uppercase;
@@ -177,6 +178,25 @@ const { sublist, nested } = Astro.props;
     width: 2.5px;
     border-radius: 2px;
     background: var(--sl-color-accent);
+  }
+
+  /* The vendor stylesheet forces every <a> to full-bright text via
+     `[data-theme="dark"] a:not(...):not(...):not(...) { color: ... !important }`
+     (specificity 0,4,1) and several `a:hover { color: ... !important }` rules.
+     That's what was silently winning over the muted/active states above —
+     out-specify it deliberately (repeated class = free specificity,
+     :where() from Astro's scoping still contributes nothing) rather than
+     matching !important alone, which would still lose on specificity. */
+  a.page-sidebar-link.page-sidebar-link.page-sidebar-link.page-sidebar-link.page-sidebar-link {
+    color: var(--page-text-secondary) !important;
+  }
+
+  a.page-sidebar-link.page-sidebar-link.page-sidebar-link.page-sidebar-link.page-sidebar-link:hover {
+    color: var(--page-text) !important;
+  }
+
+  a.page-sidebar-link.page-sidebar-link.page-sidebar-link.page-sidebar-link.page-sidebar-link[aria-current="page"] {
+    color: var(--sl-color-accent) !important;
   }
 
   .page-sidebar-badge {
