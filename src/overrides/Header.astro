@@ -355,7 +355,15 @@ const hasSidebar = sidebar && sidebar.length > 0;
     min-height: 24px !important;
   }
 
-  /* Page-style site title */
+  /* Page-style site title — lives in the sidebar now (Sidebar.astro) at
+     desktop widths, where the sidebar spans the full viewport height and
+     covers this header's left column. Stays visible here on mobile (the
+     sidebar's full-height treatment is desktop-only) and reappears here the
+     moment the sidebar is collapsed, so there's still a way home.
+
+     Ordering matters: the hiding rule below has the same specificity
+     (0-1-0) as this base rule, so it must come AFTER it in source order to
+     win at desktop widths — .sidebar-collapsed then out-specifies both. */
   .page-site-title {
     display: flex;
     align-items: center;
@@ -365,6 +373,16 @@ const hasSidebar = sidebar && sidebar.length > 0;
     font-weight: 700;
     font-size: 1.125rem;
     transition: opacity 0.2s ease;
+  }
+
+  @media (min-width: 769px) {
+    .page-site-title {
+      display: none;
+    }
+  }
+
+  :global(body.sidebar-collapsed) .page-site-title {
+    display: flex;
   }
 
   .page-site-title:hover {

@@ -1,52 +1,102 @@
 ---
 import SidebarSublist from "./SidebarSublist.astro";
 
-const { sidebar } = Astro.locals.starlightRoute;
+const { sidebar, siteTitle, siteTitleHref } = Astro.locals.starlightRoute;
 ---
 
 <div class="page-sidebar">
+  <div class="page-sidebar-header">
+    <a href={siteTitleHref} class="page-sidebar-title">
+      <span class="page-title-text">{siteTitle}</span>
+    </a>
+  </div>
   <div class="page-sidebar-container">
     <SidebarSublist sublist={sidebar} />
   </div>
 </div>
 
 <style>
+  /* Pinned header row (site title) + independently-scrolling nav list below
+     it — a flat child reorder wouldn't work here, since the header needs to
+     stay put while the list scrolls under it. */
   .page-sidebar {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    overflow-y: auto;
-    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
     height: 100%;
+    overflow: hidden;
     background: var(--page-bg-secondary);
-    scroll-behavior: smooth;
-    -webkit-scrollbar-width: none;
-    -moz-scrollbar-width: none;
   }
 
-  .page-sidebar::-webkit-scrollbar {
+  .page-sidebar-header {
+    flex-shrink: 0;
+    height: var(--page-header-height);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--page-space-6);
+    border-bottom: 1px solid var(--page-border);
+  }
+
+  /* Same treatment as Header.astro's .page-site-title/.page-title-text —
+     this is the same identity mark, just relocated into the sidebar. */
+  .page-sidebar-title {
+    display: flex;
+    align-items: center;
+    gap: var(--page-space-3);
+    text-decoration: none;
+    color: var(--page-text);
+    font-weight: 700;
+    font-size: 1.125rem;
+    transition: opacity 0.2s ease;
+  }
+
+  .page-sidebar-title:hover {
+    opacity: 0.7;
+  }
+
+  .page-sidebar-title .page-title-text {
+    font-family: var(--page-font-family);
+    letter-spacing: -0.02em;
+  }
+
+  /* The vendor stylesheet force-overrides plain <a> color in dark mode via a
+     high-specificity selector (documented in SidebarSublist.astro) — out-
+     specify it the same way rather than reaching for !important. */
+  a.page-sidebar-title.page-sidebar-title.page-sidebar-title.page-sidebar-title.page-sidebar-title {
+    color: var(--page-text) !important;
+  }
+
+  .page-sidebar-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-behavior: smooth;
+    padding: var(--page-space-6);
+    gap: var(--page-space-8);
+    flex-direction: column;
+    display: flex;
+  }
+
+  .page-sidebar-container::-webkit-scrollbar {
     width: 0 !important;
     height: 0 !important;
     display: none !important;
   }
 
-  .page-sidebar::-webkit-scrollbar-track {
+  .page-sidebar-container::-webkit-scrollbar-track {
     display: none !important;
     background: transparent !important;
   }
 
-  .page-sidebar::-webkit-scrollbar-thumb {
+  .page-sidebar-container::-webkit-scrollbar-thumb {
     display: none !important;
     background: transparent !important;
   }
 
-  .page-sidebar::-webkit-scrollbar-corner {
+  .page-sidebar-container::-webkit-scrollbar-corner {
     display: none !important;
     background: transparent !important;
-  }
-
-  .page-sidebar-container {
-    gap: var(--page-space-8);
-    flex-direction: column;
-    display: flex;
   }
 </style>

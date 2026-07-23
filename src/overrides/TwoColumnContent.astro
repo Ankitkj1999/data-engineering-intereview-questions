@@ -22,13 +22,14 @@ const hasSidebar = sidebar && sidebar.length > 0;
     hasSidebar && (
       <button
         id="sidebar-collapse-toggle"
-        class="sidebar-collapse-toggle"
+        class="sidebar-collapse-toggle ds-icon-btn"
         type="button"
         aria-label="Collapse sidebar"
         aria-expanded="true"
       >
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="6.5 1.5 2.5 5 6.5 8.5" />
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2" y="3" width="12" height="10" rx="2" />
+          <line x1="6.5" y1="3" x2="6.5" y2="13" />
         </svg>
       </button>
     )
@@ -161,27 +162,51 @@ const hasSidebar = sidebar && sidebar.length > 0;
   }
 
   /* Left sidebar (narrow) — a distinct surface, not the same tone as the
-     content it sits beside, plus the hairline the mobile drawer already had. */
+     content it sits beside, plus the hairline the mobile drawer already had.
+     Scroll ownership lives on Sidebar.astro's own .page-sidebar-container
+     now (it needs a pinned header row above the scrolling nav list), so this
+     outer panel just clips to its own rounded corners. */
   .page-sidebar-nav {
     width: var(--page-sidebar-width);
     flex-shrink: 0;
     background: var(--page-bg-secondary);
     border-right: 1px solid var(--page-border);
-    overflow-y: auto;
+    overflow: hidden;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
   }
 
-  /* Show sidebar on desktop (narrow) */
+  /* Show sidebar on desktop (narrow) — spans the full viewport height,
+     including the row the top header occupies (the header's own copy of the
+     site title is hidden at this width; the sidebar's built-in header row
+     is what's visible there now — see Sidebar.astro). Corners are "notched":
+     flush against the left/top/bottom viewport edges, rounded only on the
+     two corners that face the content area. */
   @media (min-width: 769px) {
     .page-sidebar-nav {
       position: fixed;
-      top: var(--page-header-height, 64px);
+      top: 0;
       left: 0;
-      height: calc(100vh - var(--page-header-height, 64px));
-      z-index: 10;
+      height: 100vh;
+      /* Clears .header's real z-index (100, set in PageFrame.astro — not
+         .page-header's locally-scoped 1000, which only orders that
+         component's own children) so the sidebar draws over the header's
+         left column instead of under it. */
+      z-index: 150;
       transform: translateX(0);
-      padding: var(--page-space-6);
       width: var(--page-sidebar-width);
+      border-radius: 0 var(--page-radius-lg) var(--page-radius-lg) 0;
+    }
+  }
+
+  /* Between 769–1024px the chat panel opens as a full-width bottom sheet
+     (z-index 50, in the vendor's ChatPane) that spatially overlaps the
+     sidebar's lower ~70%. The sidebar's new z-index:150 would otherwise draw
+     over that open sheet — drop back below it in just this band, where the
+     header (the thing z-index:150 actually needs to clear) never overlaps
+     the chat sheet anyway, so nothing is lost by lowering it here. */
+  @media (max-width: 1024px) {
+    :global(body.page-chat-open) .page-sidebar-nav {
+      z-index: 10;
     }
   }
 
@@ -444,9 +469,11 @@ const hasSidebar = sidebar && sidebar.length > 0;
   }
 
   /* Same flat, hairline-bordered, edge-attached surface as .page-sidebar-nav
-     — a single inward-facing border, no radius, no shadow — so the two rails
+     — flush to the viewport's right edge, no shadow — so the two rails
      flanking the content read as one system instead of "flat panel" on one
-     side and "floating rounded card" on the other. */
+     side and "floating rounded card" on the other. Corners are "notched"
+     the same way the sidebar's are: square on the outer/right edge, rounded
+     only on the two corners that face the content. */
   .page-toc-sticky {
     position: fixed;
     top: calc(var(--page-header-height) + var(--page-space-8));
@@ -455,6 +482,7 @@ const hasSidebar = sidebar && sidebar.length > 0;
     padding: var(--page-space-6);
     background: var(--page-bg-secondary);
     border-left: 1px solid var(--page-border);
+    border-radius: var(--page-radius-lg) 0 0 var(--page-radius-lg);
   }
 
   /* TOC title style */
@@ -740,9 +768,14 @@ const hasSidebar = sidebar && sidebar.length > 0;
     }
   }
 
-  /* Sidebar collapse toggle — a rail handle, not a header button, so it
-     reads as part of the sidebar's own edge rather than global chrome.
-     Desktop only: mobile already has the hamburger for this job. */
+  /* Sidebar collapse toggle — sits on the sidebar's own header-row seam
+     (vertically centered in the same var(--page-header-height) band as
+     Sidebar.astro's .page-sidebar-header), at its right edge. Visual shape
+     (background/radius/hover) comes from the shared .ds-icon-btn primitive;
+     only position/size is scoped here. Desktop only: mobile already has the
+     hamburger for this job. Stays a DOM sibling of <Sidebar/>, not a child
+     of it, on purpose — .page-sidebar's innerHTML gets cloned into the
+     mobile drawer, and a cloned button would lose its click handler. */
   .sidebar-collapse-toggle {
     display: none;
   }
@@ -753,25 +786,16 @@ const hasSidebar = sidebar && sidebar.length > 0;
       align-items: center;
       justify-content: center;
       position: fixed;
-      top: calc(var(--page-header-height, 64px) + 1.75rem);
+      top: calc(var(--page-header-height) / 2);
       left: var(--page-sidebar-width);
-      transform: translate(-50%, 0);
-      width: 22px;
-      height: 22px;
+      transform: translate(-50%, -50%);
+      width: 32px;
+      height: 32px;
       padding: 0;
-      border-radius: 999px;
-      border: 1px solid var(--page-border);
-      background: var(--page-bg-elevated);
-      color: var(--page-text-muted);
       cursor: pointer;
-      z-index: 20;
-      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s ease,
-        border-color 0.15s ease, background 0.15s ease;
-    }
-
-    .sidebar-collapse-toggle:hover {
-      color: var(--page-text);
-      border-color: var(--page-border-strong);
+      /* Above the sidebar (150) so it's never covered, expanded or collapsed. */
+      z-index: 160;
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .sidebar-collapse-toggle:focus-visible {
