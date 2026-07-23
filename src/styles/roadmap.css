@@ -1,14 +1,24 @@
 /* ── Shared roadmap styles ────────────────────────────────────────────────────
-   Used by python.astro, sql.astro, data-engineering.astro
-   All selectors are plain (no Astro scoping) so JS-generated DOM is styled.
+   Used by python.astro, sql.astro, data-engineering.astro, apache-spark.astro,
+   aws.astro. All selectors are plain (no Astro scoping) so JS-generated DOM
+   is styled — every roadmap page builds its nodes/panels/badges via
+   client-side innerHTML template strings, not Astro markup, so this file
+   can only share CSS *recipes* with primitives.css/the ui/ components (same
+   custom properties, same radius/color tokens) — it can't import or render
+   Button.astro/Badge.astro/ProgressBar.astro directly. Don't try to; keep
+   the visual language in sync by hand instead.
 ──────────────────────────────────────────────────────────────────────────── */
 
 #rm-root {
   --rm-pending   : #94a3b8;
-  --rm-inprogress: #f59e0b;
-  --rm-done      : #22c55e;
+  /* Aliased, not literal — so these two track the sitewide accent/success
+     colors (theme swap for accent, single source for success) instead of
+     drifting into their own copy. Below, every state color reads these
+     vars; nothing re-hardcodes the hex. */
+  --rm-inprogress: var(--sl-color-accent);
+  --rm-done      : var(--brand-green);
   --rm-ease      : cubic-bezier(0.4, 0, 0.2, 1);
-  --rm-radius    : 10px;
+  --rm-radius    : var(--page-radius-lg);
   max-width      : 640px;
   margin         : 0 auto;
   padding-bottom : 4rem;
@@ -154,7 +164,6 @@
 
 .rm-topic-node:hover {
   border-color: var(--sl-color-accent);
-  box-shadow  : 0 2px 12px rgba(0,0,0,0.09);
   transform   : translateY(-1px);
 }
 
@@ -245,7 +254,7 @@
   padding      : 0.5rem 0.875rem;
   border       : 1.5px solid var(--sl-color-gray-6);
   border-left  : 3px solid var(--rm-pending);
-  border-radius: 8px;
+  border-radius: var(--rm-radius);
   background   : var(--sl-color-bg-sidebar, var(--sl-color-gray-7, #f8fafc));
   cursor       : pointer;
   user-select  : none;
@@ -397,7 +406,7 @@
   height         : 28px;
   flex-shrink    : 0;
   border         : 1.5px solid var(--sl-color-gray-5);
-  border-radius  : 6px;
+  border-radius  : var(--page-radius-lg);
   background     : transparent;
   color          : var(--sl-color-gray-3);
   cursor         : pointer;
@@ -439,20 +448,20 @@
   width        : 8px;
   height       : 8px;
   border-radius: 50%;
-  background   : #94a3b8;
+  background   : var(--rm-pending);
   pointer-events: none;
   flex-shrink  : 0;
   transition   : background 0.2s;
 }
 
-.rm-status-dot.is-inprogress { background: #f59e0b; }
-.rm-status-dot.is-done       { background: #22c55e; }
+.rm-status-dot.is-inprogress { background: var(--rm-inprogress); }
+.rm-status-dot.is-done       { background: var(--rm-done); }
 
 .rm-status-select {
   width        : 100%;
   height       : 30px;
   padding      : 0 0.625rem 0 1.75rem;
-  border-radius: 6px;
+  border-radius: var(--page-radius-lg);
   border       : 1.5px solid var(--sl-color-gray-5);
   background   : var(--sl-color-bg);
   color        : var(--sl-color-text);
@@ -472,8 +481,8 @@
 .rm-status-select:hover  { border-color: var(--sl-color-gray-4); }
 .rm-status-select:focus  { outline: none; border-color: var(--sl-color-accent); }
 
-.rm-status-select.is-inprogress { border-color: #f59e0b; color: #f59e0b; }
-.rm-status-select.is-done       { border-color: #22c55e; color: #22c55e; }
+.rm-status-select.is-inprogress { border-color: var(--rm-inprogress); color: var(--rm-inprogress); }
+.rm-status-select.is-done       { border-color: var(--rm-done); color: var(--rm-done); }
 
 .rm-status-select:disabled {
   cursor  : not-allowed;
@@ -508,7 +517,7 @@
 
 .rm-panel-sublist {
   border       : 1.5px solid var(--sl-color-gray-5);
-  border-radius: 8px;
+  border-radius: var(--page-radius-lg);
   overflow     : hidden;
 }
 
@@ -543,12 +552,12 @@
   flex-shrink: 0;
   display    : flex;
   align-items: center;
-  color      : #94a3b8;
+  color      : var(--rm-pending);
 }
 
 .rm-panel-subitem-icon svg { width: 13px; height: 13px; display: block; }
-.rm-panel-subitem.is-inprogress .rm-panel-subitem-icon { color: #f59e0b; }
-.rm-panel-subitem.is-done       .rm-panel-subitem-icon { color: #22c55e; }
+.rm-panel-subitem.is-inprogress .rm-panel-subitem-icon { color: var(--rm-inprogress); }
+.rm-panel-subitem.is-done       .rm-panel-subitem-icon { color: var(--rm-done); }
 
 .rm-panel-subitem-label {
   flex       : 1;
@@ -568,20 +577,20 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   padding       : 0.15em 0.45em;
-  border-radius : 4px;
+  border-radius : var(--page-radius-full);
   background    : var(--sl-color-gray-6);
   color         : var(--sl-color-gray-3);
   white-space   : nowrap;
 }
 
 .rm-panel-subitem.is-inprogress .rm-panel-subitem-tag {
-  background: color-mix(in srgb, #f59e0b 18%, transparent);
-  color     : #f59e0b;
+  background: color-mix(in srgb, var(--rm-inprogress) 18%, transparent);
+  color     : var(--rm-inprogress);
 }
 
 .rm-panel-subitem.is-done .rm-panel-subitem-tag {
-  background: color-mix(in srgb, #22c55e 18%, transparent);
-  color     : #22c55e;
+  background: color-mix(in srgb, var(--rm-done) 18%, transparent);
+  color     : var(--rm-done);
 }
 
 /* ── Responsive ───────────────────────────────────────────────────────────── */

@@ -1,0 +1,25 @@
+---
+interface Props {
+	tone?: "accent" | "success" | "danger" | "neutral";
+	dot?: boolean;
+	class?: string;
+}
+
+const { tone = "neutral", dot = false, class: className } = Astro.props;
+---
+
+<span class:list={["ds-pill", `ds-pill--${tone}`, className]}>
+	{dot && <span class="ds-badge-dot" aria-hidden="true" />}
+	<slot />
+</span>
+
+<style>
+	.ds-badge-dot {
+		width: 5px;
+		height: 5px;
+		border-radius: 50%;
+		background: currentColor;
+		flex-shrink: 0;
+		opacity: 0.8;
+	}
+</style>

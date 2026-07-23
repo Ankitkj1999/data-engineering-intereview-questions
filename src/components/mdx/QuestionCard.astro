@@ -1,4 +1,6 @@
 ---
+import Badge from "../ui/Badge.astro";
+
 interface Props {
   id: string;
   number?: number;
@@ -8,6 +10,8 @@ interface Props {
 }
 
 const { id, number, question, difficulty = "medium", topic } = Astro.props;
+
+const DIFFICULTY_TONE = { easy: "success", medium: "accent", hard: "danger" } as const;
 ---
 
 <div class="qc" data-question-id={id} data-difficulty={difficulty}>
@@ -15,11 +19,8 @@ const { id, number, question, difficulty = "medium", topic } = Astro.props;
   <div class="qc-header">
     <div class="qc-meta">
       {number && <span class="qc-num">Q{number}</span>}
-      {topic && <span class="qc-topic">{topic}</span>}
-      <span class="qc-diff" data-level={difficulty}>
-        <span class="qc-diff-dot"></span>
-        {difficulty}
-      </span>
+      {topic && <Badge tone="neutral">{topic}</Badge>}
+      <Badge tone={DIFFICULTY_TONE[difficulty]} dot>{difficulty}</Badge>
     </div>
 
     <div class="qc-actions">
@@ -121,16 +122,13 @@ const { id, number, question, difficulty = "medium", topic } = Astro.props;
 <style>
   /* ── Design tokens ─────────────────────────────────────────── */
   .qc {
-    --_radius   : 8px;
+    --_radius   : var(--page-radius-lg);
     --_gap      : 0.5rem;
     --_pad-x    : 1.25rem;
     --_pad-y    : 1rem;
     --_ease     : cubic-bezier(0.4, 0, 0.2, 1);
-    --_done-clr : #22c55e;
-    --_save-clr : #f59e0b;
-    --_easy-bg  : #dcfce7; --_easy-fg  : #15803d;
-    --_med-bg   : #fef3c7; --_med-fg   : #b45309;
-    --_hard-bg  : #fee2e2; --_hard-fg  : #b91c1c;
+    --_done-clr : var(--brand-green);
+    --_save-clr : var(--sl-color-accent);
 
     position: relative;
     border: 1.5px solid var(--sl-color-gray-5);
@@ -185,7 +183,9 @@ const { id, number, question, difficulty = "medium", topic } = Astro.props;
     min-width: 0;
   }
 
-  /* Q-number pill */
+  /* Q-number chip — a solid-fill identifier, deliberately distinct from the
+     tinted status pills (Badge) next to it: this labels *which* question,
+     not a state of it. */
   .qc-num {
     height: 22px;
     display: inline-flex;
@@ -196,52 +196,13 @@ const { id, number, question, difficulty = "medium", topic } = Astro.props;
     color: #fff;
     background: var(--sl-color-accent);
     padding: 0.2em 0.6em;
-    border-radius: 5px;
+    border-radius: var(--page-radius-full);
     white-space: nowrap;
     line-height: 1;
   }
 
-  /* Topic pill */
-  .qc-topic {
-    height: 22px;
-    display: inline-flex;
-    align-items: center;
-    font-size: 0.7rem;
-    font-weight: 500;
-    color: var(--sl-color-gray-2);
-    background: var(--sl-color-gray-6);
-    border: 1px solid var(--sl-color-gray-5);
-    padding: 0.15em 0.6em;
-    border-radius: 5px;
-    white-space: nowrap;
-  }
-
-  /* Difficulty pill */
-  .qc-diff {
-    height: 22px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3em;
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 0.15em 0.6em;
-    border-radius: 5px;
-    white-space: nowrap;
-  }
-  .qc-diff[data-level="easy"]   { background: var(--_easy-bg); color: var(--_easy-fg); }
-  .qc-diff[data-level="medium"] { background: var(--_med-bg);  color: var(--_med-fg);  }
-  .qc-diff[data-level="hard"]   { background: var(--_hard-bg); color: var(--_hard-fg); }
-
-  .qc-diff-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: currentColor;
-    flex-shrink: 0;
-    opacity: 0.8;
-  }
+  /* Topic/difficulty badges render via <Badge> (src/components/ui/Badge.astro)
+     — see .ds-pill* in primitives.css for their styling. */
 
   /* ── Action buttons ─────────────────────────────────────────── */
   .qc-actions {
@@ -258,7 +219,7 @@ const { id, number, question, difficulty = "medium", topic } = Astro.props;
     gap: 0.3rem;
     height: 22px;
     padding: 0 0.625rem;
-    border-radius: 6px;
+    border-radius: var(--page-radius-lg);
     border: 1.5px solid var(--sl-color-gray-5);
     background: transparent;
     color: var(--sl-color-gray-3);
@@ -342,14 +303,14 @@ const { id, number, question, difficulty = "medium", topic } = Astro.props;
   .qc-answer-body :global(ul),
   .qc-answer-body :global(ol)        { margin: 0.5rem 0; padding-left: 1.4rem; }
   .qc-answer-body :global(li)        { margin: 0.2rem 0; }
-  .qc-answer-body :global(pre)       { margin: 0.65rem 0; border-radius: 7px; }
+  .qc-answer-body :global(pre)       { margin: 0.65rem 0; border-radius: var(--page-radius-lg); }
   .qc-answer-body :global(table)     { font-size: 0.85rem; }
   .qc-answer-body :global(blockquote) {
     margin: 0.6rem 0;
     padding: 0.5rem 0.875rem;
     border-left: 3px solid var(--sl-color-accent);
     background: color-mix(in srgb, var(--sl-color-accent) 6%, transparent);
-    border-radius: 0 5px 5px 0;
+    border-radius: 0 var(--page-radius-lg) var(--page-radius-lg) 0;
     font-size: 0.875rem;
   }
   .qc-answer-body :global(blockquote p) { margin: 0; }
@@ -370,7 +331,7 @@ const { id, number, question, difficulty = "medium", topic } = Astro.props;
     gap: 0.3rem;
     height: 22px;
     padding: 0 0.75rem;
-    border-radius: 6px;
+    border-radius: var(--page-radius-lg);
     border: 1.5px solid var(--sl-color-accent);
     background: transparent;
     color: var(--sl-color-accent);
@@ -405,17 +366,4 @@ const { id, number, question, difficulty = "medium", topic } = Astro.props;
     transform: rotate(180deg);
   }
 
-  /* ── Dark mode adjustments ──────────────────────────────────── */
-  :global([data-theme="dark"]) .qc-diff[data-level="easy"] {
-    background: color-mix(in srgb, var(--_easy-fg) 15%, transparent);
-    color: #86efac;
-  }
-  :global([data-theme="dark"]) .qc-diff[data-level="medium"] {
-    background: color-mix(in srgb, var(--_med-fg) 15%, transparent);
-    color: #fcd34d;
-  }
-  :global([data-theme="dark"]) .qc-diff[data-level="hard"] {
-    background: color-mix(in srgb, var(--_hard-fg) 15%, transparent);
-    color: #fca5a5;
-  }
 </style>

@@ -1,0 +1,82 @@
+---
+interface Props {
+	variant?: "primary" | "secondary" | "ghost";
+	href?: string;
+	type?: "button" | "submit";
+	class?: string;
+}
+
+const { variant = "primary", href, type = "button", class: className } = Astro.props;
+const Tag = href ? "a" : "button";
+---
+
+<Tag
+	class:list={["ds-btn", `ds-btn-${variant}`, className]}
+	href={href}
+	type={href ? undefined : type}
+>
+	<slot />
+</Tag>
+
+<style>
+	.ds-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.4em;
+		font-family: var(--sl-font);
+		font-size: 0.9rem;
+		font-weight: 600;
+		padding: 0.7em 1.2em;
+		border-radius: var(--page-radius-lg);
+		border: none;
+		text-decoration: none;
+		cursor: pointer;
+		transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+	}
+
+	.ds-btn:focus-visible {
+		outline: 2px solid var(--sl-color-accent);
+		outline-offset: 2px;
+	}
+
+	.ds-btn-primary {
+		background: var(--sl-color-accent);
+		color: #14100a;
+	}
+
+	.ds-btn-primary:hover {
+		transform: translateY(-1px);
+		background: color-mix(in srgb, var(--sl-color-accent) 88%, white);
+	}
+
+	.ds-btn-secondary {
+		background: transparent;
+		color: var(--page-text);
+		border: 1.5px solid var(--page-border);
+	}
+
+	.ds-btn-secondary:hover {
+		transform: translateY(-1px);
+		border-color: var(--sl-color-accent);
+	}
+
+	.ds-btn-ghost {
+		background: var(--page-accent-light);
+		color: var(--page-text-secondary);
+	}
+
+	.ds-btn-ghost:hover {
+		background: var(--page-text-reverse);
+		color: var(--page-text);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.ds-btn {
+			transition: none;
+		}
+		.ds-btn:hover {
+			transform: none;
+		}
+	}
+</style>

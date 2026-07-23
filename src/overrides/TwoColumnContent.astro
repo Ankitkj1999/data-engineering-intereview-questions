@@ -96,7 +96,10 @@ const hasSidebar = sidebar && sidebar.length > 0;
     --page-sidebar-width: 320px;
     --page-toc-width: 320px;
     --page-content-gap: var(--page-space-10);
-    --page-toc-right-margin: 40px;
+    /* Flush against the viewport edge, same as the left sidebar — a floating
+       card offset from the edge is what made this panel read as a different
+       system from the sidebar it sits opposite. */
+    --page-toc-right-margin: 0px;
     --page-toc-top-position: 88px;
     --page-toc-height: calc(100vh - 104px);
   }
@@ -180,12 +183,6 @@ const hasSidebar = sidebar && sidebar.length > 0;
       padding: var(--page-space-6);
       width: var(--page-sidebar-width);
     }
-
-    .page-content-wrapper {
-      margin-left: 200px;
-      width: calc(100% - 200px);
-      max-width: calc(100% - 200px);
-    }
   }
 
   /* Hide sidebar on mobile (access via hamburger only) */
@@ -207,7 +204,7 @@ const hasSidebar = sidebar && sidebar.length > 0;
       transform: translateX(-100%);
       transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       overflow-y: auto;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--page-shadow-lg);
       display: block !important;
       visibility: visible !important;
     }
@@ -446,20 +443,18 @@ const hasSidebar = sidebar && sidebar.length > 0;
     }
   }
 
+  /* Same flat, hairline-bordered, edge-attached surface as .page-sidebar-nav
+     — a single inward-facing border, no radius, no shadow — so the two rails
+     flanking the content read as one system instead of "flat panel" on one
+     side and "floating rounded card" on the other. */
   .page-toc-sticky {
     position: fixed;
     top: calc(var(--page-header-height) + var(--page-space-8));
-    max-height: calc(100vh - var(--page-header-height) - var(--page-space-10));
+    height: calc(100vh - var(--page-header-height) - var(--page-space-8));
     overflow-y: auto;
     padding: var(--page-space-6);
-    background: var(--page-bg);
-    border: 1px solid var(--page-border);
-    border-radius: 24px;
-  }
-
-  [data-theme="dark"] .page-toc-sticky {
-    background: var(--page-bg);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    background: var(--page-bg-secondary);
+    border-left: 1px solid var(--page-border);
   }
 
   /* TOC title style */
@@ -492,7 +487,7 @@ const hasSidebar = sidebar && sidebar.length > 0;
     font-size: 0.875rem;
     line-height: 1.4;
     transition: all 0.2s ease;
-    border-radius: var(--page-radius-xl);
+    border-radius: var(--page-radius-lg);
     margin: 2px 0;
   }
 
@@ -544,7 +539,7 @@ const hasSidebar = sidebar && sidebar.length > 0;
     text-decoration: none !important;
     display: block !important;
     padding: var(--page-space-2) 0 !important;
-    border-radius: var(--page-radius-xl) !important;
+    border-radius: var(--page-radius-lg) !important;
     transition: all 0.2s ease !important;
     margin: 2px 0 !important;
   }
@@ -606,9 +601,9 @@ const hasSidebar = sidebar && sidebar.length > 0;
     justify-content: space-between;
     width: 100%;
     padding: var(--page-space-3) var(--page-space-4);
-    background: var(--page-bg);
+    background: var(--page-bg-secondary);
     border: 1px solid var(--page-border);
-    border-radius: 6px;
+    border-radius: var(--page-radius-lg);
     cursor: pointer;
     font-size: 0.875rem;
     font-weight: 500;
@@ -635,7 +630,7 @@ const hasSidebar = sidebar && sidebar.length > 0;
     font-size: 0.875rem !important;
     line-height: 1.4 !important;
     transition: all 0.2s ease !important;
-    border-radius: 6px !important;
+    border-radius: var(--page-radius-lg) !important;
     margin: 2px 0 !important;
   }
 
@@ -690,7 +685,6 @@ const hasSidebar = sidebar && sidebar.length > 0;
   [data-theme="dark"] :global(.sl-toc) {
     background: var(--page-bg) !important;
     border-color: var(--page-border) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
   }
 
   [data-theme="dark"] :global(.sl-toc > summary) {

@@ -1,16 +1,27 @@
 /* ── Design tokens ────────────────────────────────────────────────────────────
    Visual identity: a data-pipeline schematic. Slate "blueprint paper" ground,
-   ink text, amber as the single working accent (reused from the roadmap
-   pages' "in progress" status color so the whole site reads as one system).
-   Overrides two independent token systems that ship on this site:
-     - Starlight's --sl-color-* / --sl-font*  (content, sidebar, search, TOC)
-     - @pelagornis/page's --page-*            (header/footer chrome)
+   ink text, amber as the single working accent.
+
+   --sl-color-* (Starlight's own tokens) is the ONE authoritative palette.
+   Starlight's untouched internals — code blocks, admonitions, search modal,
+   pagination — depend on its exact shape, so those values stay as they are.
+   Every other token family on this site is a thin alias on top of it, not an
+   independent palette:
+     - @pelagornis/page's --page-*  (header/footer/chat chrome)
+     - this site's own --brand-*    (fonts, plus one role --sl-color-* has no
+                                      equivalent for: a theme-constant "success"
+                                      green used by done/progress states)
+   Aliasing means --page-* can never drift into its own palette again — which
+   is what had already happened here: --page-accent was a stray literal that
+   never actually resolved to the brand's amber in dark mode, so the header
+   and chat button never showed the accent color the rest of the site uses.
+
    Loaded via Starlight's `customCss`, which Astro emits unlayered — so these
    rules win over both vendors' `@layer`-wrapped defaults without !important.
 ──────────────────────────────────────────────────────────────────────────── */
 
 :root {
-	/* ── Starlight tokens (this block is Starlight's default/dark state) ── */
+	/* ── Starlight tokens — authoritative palette (dark, this site's default) ── */
 	--sl-color-white: #e7eaf2;
 	--sl-color-black: #0b1220;
 
@@ -36,38 +47,48 @@
 	--sl-font: "IBM Plex Sans", var(--sl-font-system);
 	--sl-font-mono: "IBM Plex Mono", var(--sl-font-system-mono);
 
-	/* ── Page chrome tokens (this block is Page's default/light state) ── */
-	--page-bg: #f3f5f8;
-	--page-bg-secondary: #eaeef3;
-	--page-bg-tertiary: #e1e6ed;
-	--page-bg-elevated: #ffffff;
-	--page-text: #10182b;
-	--page-text-secondary: #47526b;
-	--page-text-muted: #7a869c;
-	--page-text-disabled: #aeb7c5;
-	--page-text-dark: #10182b;
-	--page-text-reverse: #d8dee9;
-	--page-border: #d8dee9;
-	--page-border-light: #e6eaf1;
-	--page-border-strong: #c3ccdc;
-	--page-accent: #10182b;
-	--page-accent-hover: #2b3552;
-	--page-accent-light: #e9edf3;
-	--page-accent-bg: #e9edf3;
+	/* ── Page chrome tokens — alias the palette above, no values of their own.
+	     Radius/spacing/shadow scales are intentionally NOT redefined here:
+	     @pelagornis/page already ships a complete, sane scale (--page-radius-*,
+	     --page-space-*, --page-shadow-*) — the fix is consistent usage of it
+	     across the site, not a second scale layered on top. See DESIGN_SYSTEM.md. ── */
+	--page-bg: var(--sl-color-black);
+	--page-bg-secondary: var(--sl-color-gray-6);
+	--page-bg-tertiary: var(--sl-color-gray-5);
+	--page-bg-elevated: var(--sl-color-gray-7);
+	--page-text: var(--sl-color-white);
+	--page-text-secondary: var(--sl-color-gray-2);
+	--page-text-muted: var(--sl-color-gray-3);
+	--page-text-disabled: var(--sl-color-gray-4);
+	--page-text-dark: var(--sl-color-white);
+	--page-text-reverse: var(--sl-color-gray-5);
+	--page-border: var(--sl-color-gray-5);
+	--page-border-light: var(--sl-color-gray-6);
+	--page-border-strong: var(--sl-color-gray-4);
+	--page-accent: var(--sl-color-accent);
+	--page-accent-hover: var(--sl-color-accent-high);
+	/* Neutral hover/resting surface tint for icon buttons — deliberately NOT
+	   accent-tinted, since most buttons using it (search, theme, language,
+	   chat, menu) aren't in an "active/accent" state most of the time. Active/
+	   current states use an explicit accent color-mix instead (see Header.astro
+	   .page-nav-link.active, SidebarSublist.astro [aria-current="page"]). */
+	--page-accent-light: var(--sl-color-gray-6);
+	--page-accent-bg: var(--sl-color-gray-6);
 
 	--page-font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-	/* ── Shared brand tokens, used directly by the homepage ── */
-	--brand-paper: #f3f5f8;
-	--brand-ink: #10182b;
-	--brand-line: #d8dee9;
-	--brand-amber: #d97706;
-	--brand-green: #16a34a;
+	/* ── Brand tokens ── */
+	--brand-green: #22c55e;
 	--brand-display: "Space Grotesk", var(--sl-font-system);
 	--brand-mono: "IBM Plex Mono", var(--sl-font-system-mono);
 }
 
-/* Starlight's light mode is toggled via this attribute; values above are dark. */
+/* Starlight's light mode is toggled via this attribute; values above are dark.
+   --page-* and --brand-green need no light-mode block of their own — they're
+   pure aliases, so they update automatically once the --sl-color-* values
+   below do. This is the only theme-switching block in the file now (previously
+   --sl-color-* and --page-* each had their own, toggled by different
+   selectors with opposite default polarity — collapsed into one for clarity). */
 :root[data-theme="light"] {
 	--sl-color-white: #10182b;
 	--sl-color-black: #f3f5f8;
@@ -83,27 +104,6 @@
 	--sl-color-accent-low: #fdecc8;
 	--sl-color-accent: #d97706;
 	--sl-color-accent-high: #7c4a0a;
-}
-
-/* Page chrome's dark mode is toggled via this attribute; :root above is light. */
-[data-theme="dark"] {
-	--page-bg: #0b1220;
-	--page-bg-secondary: #0f1729;
-	--page-bg-tertiary: #131b2e;
-	--page-bg-elevated: #131b2e;
-	--page-text: #e7eaf2;
-	--page-text-secondary: #a6afc7;
-	--page-text-muted: #6b7690;
-	--page-text-disabled: #48526c;
-	--page-text-dark: #e7eaf2;
-	--page-text-reverse: #1e2740;
-	--page-border: #1e2740;
-	--page-border-light: #182036;
-	--page-border-strong: #2a3450;
-	--page-accent: #e7eaf2;
-	--page-accent-hover: #c7cee0;
-	--page-accent-light: #182036;
-	--page-accent-bg: #182036;
 }
 
 /* Display face, used with restraint: top-level content headings + the

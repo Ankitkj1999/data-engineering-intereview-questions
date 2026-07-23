@@ -1,0 +1,144 @@
+/* ── Design-system primitives ─────────────────────────────────────────────────
+   Shared CSS-class recipes for the surfaces used across the header, both
+   sidebars, homepage, and content cards — so they read as one system instead
+   of three. Every property here reads from theme.css's tokens; no literal
+   colors/radii/shadows. See DESIGN_SYSTEM.md for the rules these encode.
+
+   Loaded via Starlight's `customCss` (astro.config.mjs), same mechanism as
+   theme.css — NOT via global.css/BaseHead.astro, which turned out to be dead
+   code never actually imported by any live page (confirmed empirically: the
+   built CSS output has zero content from that path).
+
+   Some consumers (Header.astro's Search/ThemeSelect/LanguageSelect/
+   SocialIcons/MobileMenuToggle) render markup from @pelagornis/page, not this
+   site, so that markup can't carry these class names — only be targeted by
+   selector. The vendor's own unlayered stylesheets (header-icons.css,
+   components.css) carry heavy !important, so selectors targeting that markup
+   still need !important to win; that's load-bearing, not cruft to clean up.
+   For markup this site fully owns, prefer SidebarSublist.astro's
+   repeated-class specificity trick over adding more !important.
+──────────────────────────────────────────────────────────────────────────── */
+
+/* Flat, hairline-bordered surface — the one panel treatment used by the
+   header and both sidebars, so they read as the same system rather than
+   three different ones (glass header / flat rail / floating rounded card). */
+.ds-panel {
+	background: var(--page-bg-secondary);
+	color: var(--page-text);
+}
+
+/* Interactive card: bordered, left accent bar, flat until hovered — the
+   shape shared by homepage stage/roadmap cards and QuestionCard. */
+.ds-card-interactive {
+	display: block;
+	border: 1.5px solid var(--page-border);
+	border-left: 3px solid var(--sl-color-accent);
+	border-radius: var(--page-radius-lg);
+	background: var(--page-bg-secondary);
+	text-decoration: none;
+	transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.ds-card-interactive:hover {
+	border-color: var(--sl-color-accent);
+	transform: translateY(-1px);
+}
+
+.ds-card-interactive:focus-visible {
+	outline: 2px solid var(--sl-color-accent);
+	outline-offset: 2px;
+}
+
+/* Icon button: the one shape for every square icon control (search, theme,
+   language, chat, menu) — resting on a neutral tint, never a border. */
+.ds-icon-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	border-radius: var(--page-radius-lg);
+	background: var(--page-accent-light);
+	color: var(--page-text-secondary);
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ds-icon-btn:hover {
+	background: var(--page-text-reverse);
+	color: var(--page-text);
+}
+
+/* Pill: status/count/difficulty tags only — never a nav item or button.
+   Reserving the full-radius shape for these keeps it meaning something. */
+.ds-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3em;
+	border-radius: var(--page-radius-full);
+	font-size: 0.7rem;
+	font-weight: 600;
+	line-height: 1;
+	padding: 0.3em 0.65em;
+	white-space: nowrap;
+}
+
+.ds-pill--accent {
+	background: color-mix(in srgb, var(--sl-color-accent) 14%, transparent);
+	color: var(--sl-color-accent-high);
+}
+
+/* Success/danger text color swaps for light mode, same reason
+   --sl-color-accent does: a mid-tone hue read directly as text needs to get
+   darker on a light background and lighter on a dark one to stay readable at
+   pill-text size. Default (unprefixed :root) is this site's dark state. */
+.ds-pill--success {
+	background: color-mix(in srgb, var(--brand-green) 16%, transparent);
+	color: #86efac;
+}
+
+:root[data-theme="light"] .ds-pill--success {
+	color: #15803d;
+}
+
+.ds-pill--neutral {
+	background: var(--page-bg-tertiary);
+	color: var(--page-text-secondary);
+	border: 1px solid var(--page-border);
+}
+
+/* The one "danger" hue in the site (QuestionCard's "hard" difficulty tag) —
+   not promoted to a theme.css token since it has exactly this one consumer. */
+.ds-pill--danger {
+	background: color-mix(in srgb, #b91c1c 16%, transparent);
+	color: #fca5a5;
+}
+
+:root[data-theme="light"] .ds-pill--danger {
+	color: #b91c1c;
+}
+
+/* Progress bar: one track/fill recipe. Shared by roadmap.css (DOM built via
+   client-side JS innerHTML — a CSS-only consumer, it cannot use
+   ProgressBar.astro) and ProgressBar.astro (an Astro-rendered consumer). */
+.ds-progress-track {
+	height: 6px;
+	border-radius: var(--page-radius-full);
+	background: var(--page-border);
+	overflow: hidden;
+}
+
+.ds-progress-fill {
+	display: block;
+	height: 100%;
+	border-radius: var(--page-radius-full);
+	background: linear-gradient(90deg, var(--sl-color-accent), var(--brand-green));
+	transition: width 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ds-card-interactive,
+	.ds-icon-btn,
+	.ds-progress-fill {
+		transition: none !important;
+	}
+}

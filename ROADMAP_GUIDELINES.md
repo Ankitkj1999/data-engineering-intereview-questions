@@ -27,6 +27,8 @@ Each roadmap is a self-contained Astro page (`src/pages/roadmaps/*.astro`) that:
 - Uses shared CSS from `src/styles/roadmap.css` — **do not duplicate those styles inside the page**
 - Moves the `#rm-drawer` element to `document.body` at init time so the slide-in panel is never clipped by Starlight's layout containers
 
+For the tokens/radius/color rules `roadmap.css` itself follows (and why it can't consume the `Button`/`Badge`/`ProgressBar` components), see `DESIGN_SYSTEM.md`.
+
 The source of truth for roadmap content is a JSON file under `data/data-engineering-interview-questions-master/roadmap/`. The Astro page does **not** import the JSON at build time — the data is manually transcribed into the `ROADMAP` constant in the `<script>` block so it runs fully client-side with no server dependency.
 
 ---

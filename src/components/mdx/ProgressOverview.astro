@@ -1,4 +1,6 @@
 ---
+import ProgressBar from "../ui/ProgressBar.astro";
+
 interface Section {
   title: string;
   anchor: string;
@@ -21,8 +23,8 @@ const dataId = `po-data-${Math.random().toString(36).slice(2, 8)}`;
       <span class="po-overall-value"><span class="po-done">0</span><span class="po-sep">/</span><span class="po-total">0</span></span>
       <span class="po-overall-label">Questions completed</span>
     </div>
-    <div class="po-overall-bar-wrap" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Overall progress">
-      <div class="po-overall-bar-track"><div class="po-overall-bar-fill"></div></div>
+    <div class="po-overall-bar-wrap">
+      <ProgressBar value={0} label="Overall progress" class="po-overall-bar" />
       <span class="po-overall-pct">0%</span>
     </div>
   </div>
@@ -38,9 +40,9 @@ const dataId = `po-data-${Math.random().toString(36).slice(2, 8)}`;
 
     const doneEl  = root.querySelector<HTMLElement>(".po-done")!;
     const totalEl = root.querySelector<HTMLElement>(".po-total")!;
-    const fill    = root.querySelector<HTMLElement>(".po-overall-bar-fill")!;
+    const fill    = root.querySelector<HTMLElement>(".po-overall-bar .ds-progress-fill")!;
     const pctEl   = root.querySelector<HTMLElement>(".po-overall-pct")!;
-    const wrap    = root.querySelector<HTMLElement>(".po-overall-bar-wrap")!;
+    const wrap    = root.querySelector<HTMLElement>(".po-overall-bar")!;
     const list    = root.querySelector<HTMLElement>(".po-sections")!;
 
     function isDone(id: string): boolean {
@@ -64,9 +66,13 @@ const dataId = `po-data-${Math.random().toString(36).slice(2, 8)}`;
         const row = document.createElement("a");
         row.className = `po-section${done === count && count > 0 ? " is-complete" : ""}`;
         row.href = section.anchor;
+        // Reuses the .ds-progress-track/.ds-progress-fill CSS recipe from
+        // primitives.css directly — this row is built client-side, so it
+        // can't consume the ProgressBar.astro component (same constraint as
+        // roadmap.css's nodes).
         row.innerHTML = `
           <span class="po-section-title">${section.title}</span>
-          <div class="po-section-bar-track"><div class="po-section-bar-fill" style="width:${pct}%"></div></div>
+          <div class="ds-progress-track po-section-bar"><span class="ds-progress-fill" style="width:${pct}%"></span></div>
           <span class="po-section-count">${done}/${count}</span>
         `;
         list.appendChild(row);
@@ -89,7 +95,6 @@ const dataId = `po-data-${Math.random().toString(36).slice(2, 8)}`;
 
 <style>
   .po {
-    --_done-clr: #22c55e;
     margin: 1.5rem 0 2rem;
   }
 
@@ -98,9 +103,9 @@ const dataId = `po-data-${Math.random().toString(36).slice(2, 8)}`;
     align-items: center;
     gap: 1.25rem;
     padding: 1rem 1.25rem;
-    border: 1.5px solid var(--sl-color-gray-5);
-    border-radius: 10px;
-    background: var(--sl-color-gray-7, var(--sl-color-bg-sidebar));
+    border: 1.5px solid var(--page-border);
+    border-radius: var(--page-radius-lg);
+    background: var(--page-bg-secondary);
     margin-bottom: 1rem;
     flex-wrap: wrap;
   }
@@ -137,20 +142,9 @@ const dataId = `po-data-${Math.random().toString(36).slice(2, 8)}`;
     min-width: 180px;
   }
 
-  .po-overall-bar-track {
+  .po-overall-bar-wrap :global(.po-overall-bar) {
     flex: 1;
     height: 8px;
-    background: var(--sl-color-gray-5);
-    border-radius: 999px;
-    overflow: hidden;
-  }
-
-  .po-overall-bar-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--sl-color-accent) 0%, var(--_done-clr) 100%);
-    border-radius: 999px;
-    transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .po-overall-pct {
@@ -172,14 +166,14 @@ const dataId = `po-data-${Math.random().toString(36).slice(2, 8)}`;
     align-items: center;
     gap: 0.875rem;
     padding: 0.7rem 0.9rem;
-    border: 1.5px solid var(--sl-color-gray-5);
-    border-radius: 8px;
+    border: 1.5px solid var(--page-border);
+    border-radius: var(--page-radius-lg);
     text-decoration: none;
     transition: border-color 0.15s, background 0.15s;
   }
 
-  .po-section:hover { border-color: var(--sl-color-gray-4); background: var(--sl-color-gray-6); }
-  .po-section.is-complete { border-color: color-mix(in srgb, var(--_done-clr) 35%, var(--sl-color-gray-5)); }
+  .po-section:hover { border-color: var(--sl-color-gray-4); background: var(--page-bg-tertiary); }
+  .po-section.is-complete { border-color: color-mix(in srgb, var(--brand-green) 35%, var(--page-border)); }
 
   .po-section-title {
     font-size: 0.85rem;
@@ -189,20 +183,10 @@ const dataId = `po-data-${Math.random().toString(36).slice(2, 8)}`;
     min-width: 0;
   }
 
-  .po-section-bar-track {
+  .po-section :global(.po-section-bar) {
     width: 100px;
     flex-shrink: 0;
     height: 5px;
-    background: var(--sl-color-gray-5);
-    border-radius: 999px;
-    overflow: hidden;
-  }
-
-  .po-section-bar-fill {
-    height: 100%;
-    background: var(--_done-clr);
-    border-radius: 999px;
-    transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .po-section-count {
@@ -215,6 +199,6 @@ const dataId = `po-data-${Math.random().toString(36).slice(2, 8)}`;
   }
 
   @media (max-width: 480px) {
-    .po-section-bar-track { display: none; }
+    .po-section :global(.po-section-bar) { display: none; }
   }
 </style>

@@ -1,7 +1,7 @@
 # Content Guidelines for Data Engineering Questions
 
 ## Overview
-This document outlines SEO best practices, content standards, and technical requirements for maintaining and adding new pages to the Data Engineering Questions knowledge base.
+This document outlines SEO best practices, content standards, and technical requirements for maintaining and adding new pages to the Data Engineering Questions knowledge base. For the visual/token rules `QuestionCard`, `QuestionList`, and `ProgressOverview` follow, see `DESIGN_SYSTEM.md`.
 
 ---
 

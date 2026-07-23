@@ -227,57 +227,21 @@ const hasSidebar = sidebar && sidebar.length > 0;
 </script>
 
 <style>
-  /* Page-style header */
+  /* Page-style header — same flat, hairline-bordered surface as the sidebar
+     and TOC (.ds-panel's recipe), not a glass/blur treatment found nowhere
+     else in the app. */
   .page-header {
     position: relative;
     top: 0;
     left: 0;
     right: 0;
     height: var(--page-header-height);
-    background: rgba(255, 255, 255, 0.6);
+    background: var(--page-bg-secondary);
+    border-bottom: 1px solid var(--page-border);
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    isolation: isolate;
-    transform: translateZ(0);
-  }
-
-  /* Perf: apply backdrop-filter conditionally */
-  @media (min-resolution: 1.5dppx) and (min-width: 768px) {
-    .page-header {
-      backdrop-filter: blur(30px) saturate(180%);
-      -webkit-backdrop-filter: blur(30px) saturate(180%);
-      -moz-backdrop-filter: blur(30px) saturate(180%);
-      will-change: backdrop-filter;
-    }
-  }
-
-  /* Dark theme header overrides */
-  :global([data-theme="dark"]) .page-header {
-    background: rgba(0, 0, 0, 0.3) !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
-  }
-
-  /* Perf: dark mode backdrop-filter conditionally */
-  @media (min-resolution: 1.5dppx) and (min-width: 768px) {
-    :global([data-theme="dark"]) .page-header {
-      backdrop-filter: blur(30px) saturate(180%) !important;
-      -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
-      -moz-backdrop-filter: blur(30px) saturate(180%) !important;
-    }
-  }
-
-  /* Fallback for browsers without backdrop-filter */
-  @supports not (backdrop-filter: blur(1px)) {
-    .page-header {
-      background: rgba(255, 255, 255, 0.98);
-    }
-
-    :global([data-theme="dark"]) .page-header {
-      background: rgba(0, 0, 0, 0.95);
-    }
   }
 
   .page-header-container {
@@ -329,7 +293,7 @@ const hasSidebar = sidebar && sidebar.length > 0;
     min-height: 40px !important;
     padding: var(--page-space-3) !important;
     border: none !important;
-    border-radius: var(--page-radius) !important;
+    border-radius: var(--page-radius-lg) !important;
     background: var(--page-accent-light) !important;
     color: var(--page-text-secondary) !important;
     box-sizing: border-box !important;
@@ -439,7 +403,7 @@ const hasSidebar = sidebar && sidebar.length > 0;
     display: inline-flex;
     align-items: center;
     padding: var(--page-space-2) var(--page-space-4);
-    border-radius: var(--page-radius-xl);
+    border-radius: var(--page-radius-lg);
     text-decoration: none;
     color: var(--page-text-secondary);
     font-weight: 500;
@@ -453,15 +417,13 @@ const hasSidebar = sidebar && sidebar.length > 0;
     background: var(--page-accent-light);
   }
 
+  /* Active state uses an explicit accent tint, not --page-accent-light —
+     that token is a neutral hover surface shared by every icon button, not
+     an "active" indicator (see theme.css). */
   .page-nav-link.active {
-    color: var(--page-accent);
-    background: var(--page-accent-light);
+    color: var(--sl-color-accent);
+    background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
     font-weight: 600;
-  }
-
-  [data-theme="dark"] .page-nav-link.active {
-    background: var(--page-accent-light);
-    color: var(--page-accent);
   }
 
   /* Page-style button */
@@ -471,7 +433,7 @@ const hasSidebar = sidebar && sidebar.length > 0;
     justify-content: center;
     padding: var(--page-space-3);
     border: none;
-    border-radius: var(--page-radius);
+    border-radius: var(--page-radius-lg);
     background: var(--page-accent-light);
     color: var(--page-text-secondary);
     cursor: pointer;
@@ -537,7 +499,7 @@ const hasSidebar = sidebar && sidebar.length > 0;
     width: 40px;
     height: 40px;
     border: none;
-    border-radius: var(--page-radius);
+    border-radius: var(--page-radius-lg);
     background: var(--page-accent-light);
     color: var(--page-text-secondary);
     cursor: pointer;
@@ -635,21 +597,6 @@ const hasSidebar = sidebar && sidebar.length > 0;
       min-height: 20px !important;
     }
 
-    /* Mobile perf */
-    .page-header {
-      background: rgba(255, 255, 255, 0.6) !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      -moz-backdrop-filter: none !important;
-    }
-
-    :global([data-theme="dark"]) .page-header {
-      background: rgba(0, 0, 0, 0.4) !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      -moz-backdrop-filter: none !important;
-    }
-
     /* Mobile animation tuning */
     .page-btn,
     .page-theme-toggle,
@@ -688,14 +635,6 @@ const hasSidebar = sidebar && sidebar.length > 0;
     .page-logo {
       width: 28px;
       height: 28px;
-    }
-
-    .page-header {
-      background: rgba(255, 255, 255, 0.99) !important;
-    }
-
-    :global([data-theme="dark"]) .page-header {
-      background: rgba(0, 0, 0, 0.98) !important;
     }
   }
 </style>

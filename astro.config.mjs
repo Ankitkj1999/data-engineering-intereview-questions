@@ -40,7 +40,7 @@ export default defineConfig({
 				{ label: "GitHub", href: "https://github.com/Ankitkj1999/data-engineering-intereview-questions", icon: "github" },
 			],
 			sidebar: navigationConfig.sidebar,
-			customCss: ["./src/styles/theme.css"],
+			customCss: ["./src/styles/theme.css", "./src/styles/primitives.css"],
 			components: {
 				Header: "./src/overrides/Header.astro",
 				PageFrame: "./src/overrides/PageFrame.astro",
