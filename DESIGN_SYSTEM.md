@@ -67,7 +67,7 @@ Every roadmap page must be `<style is:global>@import "/src/styles/roadmap.css";<
 
 ## Accessibility: amber usage
 
-The site's accent amber swaps per theme (`#f59e0b` dark / `#d97706` light) specifically so it stays legible — but even the light-mode value is only ~3.2:1 against white, which clears WCAG's 3:1 non-text threshold (icons, borders, filled backgrounds with white text) but falls short of the 4.5:1 required for small colored text on a light surface. **Use amber for icons, borders, and pill backgrounds — not as the text color of small text sitting directly on a light background.**
+The site's accent amber swaps per theme (`#f59e0b` dark / `#e26523` light) specifically so it stays legible — but even the light-mode value is only ~3.2:1 against white, which clears WCAG's 3:1 non-text threshold (icons, borders, filled backgrounds with white text) but falls short of the 4.5:1 required for small colored text on a light surface. **Use amber for icons, borders, and pill backgrounds — not as the text color of small text sitting directly on a light background.**
 
 ## Known, deliberate out-of-scope areas
 

@@ -7,6 +7,20 @@ const { sidebar, siteTitle, siteTitleHref } = Astro.locals.starlightRoute;
 <div class="page-sidebar">
   <div class="page-sidebar-header">
     <a href={siteTitleHref} class="page-sidebar-title">
+      <img
+        class="dark:sl-hidden sidebar-logo"
+        alt={siteTitle}
+        src="/icons/logo-light.png"
+        width="28"
+        height="28"
+      />
+      <img
+        class="light:sl-hidden sidebar-logo"
+        alt={siteTitle}
+        src="/icons/logo-dark.png"
+        width="28"
+        height="28"
+      />
       <span class="page-title-text">{siteTitle}</span>
     </a>
   </div>
@@ -56,6 +70,11 @@ const { sidebar, siteTitle, siteTitleHref } = Astro.locals.starlightRoute;
   .page-sidebar-title .page-title-text {
     font-family: var(--page-font-family);
     letter-spacing: -0.02em;
+  }
+
+  .sidebar-logo {
+    border-radius: var(--page-radius-sm);
+    flex-shrink: 0;
   }
 
   /* The vendor stylesheet force-overrides plain <a> color in dark mode via a

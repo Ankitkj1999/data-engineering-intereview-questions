@@ -9,7 +9,6 @@ import MobileMenuToggle from "@pelagornis/page/overrides/MobileMenuToggle.astro"
 import LanguageSelect from "@pelagornis/page/overrides/LanguageSelect.astro";
 import ThemeSelect from "@pelagornis/page/overrides/ThemeSelect.astro";
 import config from "virtual:starlight/user-config";
-import { logos } from "virtual:starlight/user-images";
 
 // Build path considering locale
 function localizedPath(path: string): string {
@@ -44,32 +43,20 @@ const hasSidebar = sidebar && sidebar.length > 0;
     <div class="page-header-left">
       <!-- Page-style site title -->
       <a href={siteTitleHref} class="page-site-title">
-        {
-          config.logo && logos.dark && (
-            <>
-              <img
-                class:list={[
-                  { "light:sl-hidden": !("src" in config.logo) },
-                  "logo-size",
-                ]}
-                alt={config.logo.alt}
-                src={logos.dark.src}
-                width={logos.dark.width}
-                height={logos.dark.height}
-              />
-              {/* Show light alternate if a user configure both light and dark logos. */}
-              {!("src" in config.logo) && (
-                <img
-                  class="dark:sl-hidden logo-size"
-                  alt={config.logo.alt}
-                  src={logos.light?.src}
-                  width={logos.light?.width}
-                  height={logos.light?.height}
-                />
-              )}
-            </>
-          )
-        }
+        <img
+          class="dark:sl-hidden logo-size"
+          alt={siteTitle}
+          src="/icons/logo-light.png"
+          width="32"
+          height="32"
+        />
+        <img
+          class="light:sl-hidden logo-size"
+          alt={siteTitle}
+          src="/icons/logo-dark.png"
+          width="32"
+          height="32"
+        />
         <span class="page-title-text">{siteTitle}</span>
       </a>
 

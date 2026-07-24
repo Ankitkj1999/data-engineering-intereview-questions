@@ -12,6 +12,7 @@ export default defineConfig({
 		starlight({
 			title: "Data Engineering Questions",
 			description: "Master data engineering through comprehensive interview questions and explanations",
+			favicon: "/icons/logo-light.png",
 			head: [
 				{
 					tag: "meta",
