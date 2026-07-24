@@ -1,0 +1,260 @@
+---
+title: GCP
+description: GCP interview questions covering BigQuery, Dataflow, Composer, Pub/Sub, IAM, VPC networking, security, and reliability for data engineering interviews.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## GCP: Google Cloud Platform Data Services
+
+**Google Cloud Platform gives data engineers a set of managed services — BigQuery for warehousing, Dataflow and Dataproc for processing, Pub/Sub and Composer for orchestration — built on top of IAM, VPC networking, and reliability primitives that span all of them.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+GCP's data stack splits cleanly by workload shape. **BigQuery** is the serverless, SQL-first data warehouse for large-scale analytics; **Cloud Storage** is the object store most pipelines land raw data in first; and **Cloud SQL**, **Cloud Spanner**, **Cloud Datastore**, and **Memorystore** cover relational, globally-distributed relational, NoSQL document, and in-memory workloads respectively. For movement and transformation, **Cloud Dataflow** runs serverless batch/stream pipelines, **Cloud Dataproc** runs managed Spark/Hadoop clusters, **Cloud Pub/Sub** handles asynchronous messaging, and **Cloud Composer** (managed Apache Airflow) orchestrates the dependencies between all of it. Across every service, **Cloud IAM** controls who can do what via fine-grained policies, **VPC** provides network isolation with subnets and firewall rules, and a family of networking services (**Cloud Load Balancing**, **Cloud CDN**, **Cloud DNS**, **Cloud NAT**, **Cloud VPN**) handle traffic distribution and connectivity. Reliability is a shared responsibility across regional/multi-regional deployment, automated backups, and data replication — the same primitives show up whether you're talking about high availability, disaster recovery, or redundancy, because they're solving the same underlying problem from different angles.
+
+---
+
+## Interview Questions
+
+### Core Services & Data Storage
+
+<QuestionList topic="GCP Core Services" storagePrefix="gcp-core">
+
+<QuestionCard id="gcp-core-01" number={1} question="What is Google Cloud Platform (GCP)?" difficulty="easy" topic="Fundamentals">
+Google Cloud Platform is a suite of cloud computing services provided by Google, offering a wide range of infrastructure and platform services for building, deploying, and managing applications and data.
+</QuestionCard>
+
+<QuestionCard id="gcp-core-02" number={2} question="What are the key components of GCP?" difficulty="easy" topic="Fundamentals">
+GCP comprises various services across compute, storage, networking, databases, big data, machine learning, and management/monitoring tooling.
+</QuestionCard>
+
+<QuestionCard id="gcp-core-03" number={3} question="What are the advantages of using GCP for data engineering?" difficulty="easy" topic="Fundamentals">
+GCP provides scalability, flexibility, high-performance computing, a range of data storage options, managed services that reduce operational overhead, strong security, and tight integration with other Google services.
+</QuestionCard>
+
+<QuestionCard id="gcp-core-04" number={4} question="How does GCP store data?" difficulty="medium" topic="Storage">
+GCP offers a range of storage options depending on the shape of your data: Cloud Storage for object storage, Cloud SQL for managed relational databases, Bigtable for a NoSQL wide-column store, and Cloud Firestore for document-based NoSQL data.
+</QuestionCard>
+
+<QuestionCard id="gcp-core-05" number={5} question="What is Google BigQuery?" difficulty="easy" topic="Analytics">
+BigQuery is a fully managed, serverless data warehouse provided by GCP. It lets you analyze massive datasets using SQL queries with high speed and scalability.
+</QuestionCard>
+
+<QuestionCard id="gcp-core-06" number={6} question="Explain the role of Cloud Storage in GCP." difficulty="easy" topic="Storage">
+Cloud Storage is an object storage service provided by GCP. It offers scalable, durable, and highly available storage for objects of any size, and is commonly used for storing files, backups, and serving static content.
+</QuestionCard>
+
+<QuestionCard id="gcp-core-07" number={7} question="What is Cloud Spanner in GCP?" difficulty="medium" topic="Databases">
+Cloud Spanner is a horizontally scalable, globally distributed relational database service provided by GCP. It combines the transactional consistency of relational databases with the horizontal scalability more typical of NoSQL systems.
+</QuestionCard>
+
+<QuestionCard id="gcp-core-08" number={8} question="What is Cloud SQL and how is it used in GCP?" difficulty="easy" topic="Databases">
+Cloud SQL is a managed database service in GCP that provides MySQL, PostgreSQL, and SQL Server databases. It simplifies database management tasks, offers high availability, and scales seamlessly.
+</QuestionCard>
+
+<QuestionCard id="gcp-core-09" number={9} question="Explain the use of Cloud Datastore in GCP." difficulty="medium" topic="Databases">
+Cloud Datastore is a NoSQL document database provided by GCP. It's schemaless, scales automatically, and is well suited to applications that require low-latency reads and writes.
+</QuestionCard>
+
+<QuestionCard id="gcp-core-10" number={10} question="What is Memorystore in GCP?" difficulty="medium" topic="Caching">
+Cloud Memorystore is a fully managed in-memory data store service. Its Redis offering provides high-performance, scalable Redis instances for caching and fast data access, without you having to manage the underlying infrastructure.
+</QuestionCard>
+
+<QuestionCard id="gcp-core-11" number={11} question="What is the purpose of Cloud SQL Proxy in GCP?" difficulty="medium" topic="Databases">
+Cloud SQL Proxy is a secure client-side proxy for connecting to Cloud SQL instances from external applications or local development environments, without exposing the database directly to the internet.
+</QuestionCard>
+
+<QuestionCard id="gcp-core-12" number={12} question="How does GCP handle data archiving and long-term storage?" difficulty="medium" topic="Storage">
+GCP offers services like Cloud Storage Coldline and Archive for long-term data storage, providing cost-effective options for archiving data while maintaining high durability and availability.
+</QuestionCard>
+
+</QuestionList>
+
+### Data Processing, Ingestion & Machine Learning
+
+<QuestionList topic="GCP Data Processing" storagePrefix="gcp-processing">
+
+<QuestionCard id="gcp-processing-01" number={13} question="How can you move data into GCP for analysis?" difficulty="easy" topic="Ingestion">
+You can use services like Cloud Storage, Cloud Pub/Sub, Data Transfer Service, or third-party tools to import data into GCP for analysis.
+</QuestionCard>
+
+<QuestionCard id="gcp-processing-02" number={14} question="Explain the concept and use of Cloud Dataflow in GCP." difficulty="medium" topic="Processing">
+Cloud Dataflow is a serverless data processing service for building, deploying, and executing data pipelines that transform and process data in parallel. It supports both batch and stream processing, and integrates with other GCP services like BigQuery.
+</QuestionCard>
+
+<QuestionCard id="gcp-processing-03" number={15} question="What is Cloud Dataproc?" difficulty="medium" topic="Processing">
+Cloud Dataproc is a fully managed service in GCP for running Apache Spark and Apache Hadoop clusters. It provides a scalable and cost-effective way to process big data workloads.
+</QuestionCard>
+
+<QuestionCard id="gcp-processing-04" number={16} question="What is Cloud Pub/Sub?" difficulty="easy" topic="Messaging">
+Cloud Pub/Sub is a messaging service in GCP that enables asynchronous communication between independent applications. It lets you build scalable, event-driven architectures.
+</QuestionCard>
+
+<QuestionCard id="gcp-processing-05" number={17} question="What is Cloud Composer in GCP and what is it used for?" difficulty="medium" topic="Orchestration">
+Cloud Composer is a fully managed workflow orchestration service based on Apache Airflow. It lets you create, schedule, and monitor workflows composed of tasks — managing dependencies between them — for data processing and ETL pipelines.
+</QuestionCard>
+
+<QuestionCard id="gcp-processing-06" number={18} question="What is the purpose of Cloud Machine Learning Engine in GCP?" difficulty="medium" topic="Machine Learning">
+Cloud Machine Learning Engine is a managed service for building, training, deploying, and serving machine learning models at scale. It supports popular frameworks like TensorFlow and scikit-learn, and integrates with other GCP services like BigQuery and Cloud Storage.
+</QuestionCard>
+
+<QuestionCard id="gcp-processing-07" number={19} question="Explain the use of Cloud AutoML in GCP." difficulty="medium" topic="Machine Learning">
+Cloud AutoML is a suite of machine learning products in GCP that lets you train custom machine learning models with minimal coding. It supports vision, natural language, and tabular data use cases.
+</QuestionCard>
+
+<QuestionCard id="gcp-processing-08" number={20} question="How can you optimize data ingestion in GCP?" difficulty="medium" topic="Ingestion">
+GCP provides services like Cloud Pub/Sub and Cloud Dataflow for efficient, scalable data ingestion. You can further optimize ingestion using partitioning, batching, and compression techniques.
+</QuestionCard>
+
+<QuestionCard id="gcp-processing-09" number={21} question="Explain the use of Cloud Datalab in GCP." difficulty="easy" topic="Analytics Tools">
+Cloud Datalab is an interactive data exploration and visualization tool in GCP. It provides a Jupyter notebook interface for analyzing and visualizing data using Python, SQL, and BigQuery.
+</QuestionCard>
+
+<QuestionCard id="gcp-processing-10" number={22} question="How can you optimize data processing in GCP?" difficulty="medium" topic="Processing">
+GCP offers optimization techniques like data partitioning, distributed processing, caching, and choosing the appropriate storage and processing services for the workload, to achieve efficient and scalable data processing.
+</QuestionCard>
+
+<QuestionCard id="gcp-processing-11" number={23} question="Explain the use of Cloud IoT Core in GCP." difficulty="medium" topic="IoT">
+Cloud IoT Core is a fully managed service in GCP for securely connecting, managing, and ingesting data from IoT devices at scale. It provides device management, data ingestion, and integration with other GCP services.
+</QuestionCard>
+
+</QuestionList>
+
+### Security, Reliability & Compliance
+
+<QuestionList topic="GCP Security and Reliability" storagePrefix="gcp-security">
+
+<QuestionCard id="gcp-security-01" number={24} question="How does GCP ensure data security?" difficulty="medium" topic="Security">
+GCP employs various security measures, including encryption at rest and in transit, identity and access management, network security controls, and DDoS protection.
+</QuestionCard>
+
+<QuestionCard id="gcp-security-02" number={25} question="How can you securely transfer data to and from GCP?" difficulty="medium" topic="Security">
+GCP supports secure data transfer over encrypted connections using protocols like HTTPS and SSL/TLS. It also provides Cloud VPN and Dedicated Interconnect for private network connections.
+</QuestionCard>
+
+<QuestionCard id="gcp-security-03" number={26} question="What is the purpose of Cloud Identity and Access Management (IAM) in GCP?" difficulty="easy" topic="IAM">
+Cloud Identity and Access Management (IAM) manages access control and permissions for GCP resources. It lets you define fine-grained access policies — who has access to which resources and what actions they can perform — and grant access to specific users, groups, or service accounts.
+</QuestionCard>
+
+<QuestionCard id="gcp-security-04" number={27} question="How does GCP handle data encryption?" difficulty="medium" topic="Security">
+GCP supports encryption at rest and in transit. It provides key management services like Cloud Key Management Service (KMS) for managing encryption keys, and Cloud HSM for hardware security modules.
+</QuestionCard>
+
+<QuestionCard id="gcp-security-05" number={28} question="How does GCP ensure compliance and data privacy?" difficulty="medium" topic="Compliance">
+GCP complies with various industry standards and regulations. It offers features like data location controls, access transparency, and compliance certifications to help meet data privacy and compliance requirements.
+</QuestionCard>
+
+<QuestionCard id="gcp-security-06" number={29} question="How can you ensure data integrity in GCP?" difficulty="medium" topic="Data Quality">
+GCP provides various mechanisms for ensuring data integrity, including checksums, encryption, redundancy, and regular backups.
+</QuestionCard>
+
+<QuestionCard id="gcp-security-07" number={30} question="Explain the use of Cloud Security Command Center in GCP." difficulty="medium" topic="Security">
+Cloud Security Command Center is a security and risk management service provided by GCP. It helps you discover, monitor, and manage security vulnerabilities and threats across your GCP resources.
+</QuestionCard>
+
+<QuestionCard id="gcp-security-08" number={31} question="What is the purpose of Cloud Security Scanner in GCP?" difficulty="medium" topic="Security">
+Cloud Security Scanner is a web application vulnerability scanning service provided by GCP. It helps you identify security vulnerabilities in your web applications by crawling your website.
+</QuestionCard>
+
+<QuestionCard id="gcp-security-09" number={32} question="Explain the use of Cloud Key Management Service (KMS) in GCP." difficulty="medium" topic="Security">
+Cloud KMS is a managed service in GCP for generating, using, and managing encryption keys. It helps you encrypt data and control access to sensitive information.
+</QuestionCard>
+
+<QuestionCard id="gcp-security-10" number={33} question="How can you ensure high availability and fault tolerance in GCP?" difficulty="medium" topic="Reliability">
+GCP offers regional and multi-regional options for deploying services across multiple zones and regions. Load balancing, auto-scaling, and managed instance groups all help ensure high availability and fault tolerance.
+</QuestionCard>
+
+<QuestionCard id="gcp-security-11" number={34} question="How does GCP handle disaster recovery?" difficulty="medium" topic="Reliability">
+GCP provides disaster recovery capabilities through features like regional and multi-regional deployments, automated backups, and replication across zones and regions.
+</QuestionCard>
+
+<QuestionCard id="gcp-security-12" number={35} question="How does GCP handle data redundancy and backup?" difficulty="medium" topic="Reliability">
+GCP offers redundancy and backup options such as regional and multi-regional storage, snapshot-based backups, and data replication across multiple zones and regions.
+</QuestionCard>
+
+<QuestionCard id="gcp-security-13" number={36} question="How does GCP handle data replication and synchronization?" difficulty="medium" topic="Reliability">
+GCP offers data replication and synchronization capabilities through services like Cloud Storage, Cloud Datastore, Cloud Spanner, and database-specific replication features.
+</QuestionCard>
+
+</QuestionList>
+
+### Networking, Compute & Operations
+
+<QuestionList topic="GCP Networking and Operations" storagePrefix="gcp-ops">
+
+<QuestionCard id="gcp-ops-01" number={37} question="How can you monitor, analyze, and troubleshoot performance issues in GCP?" difficulty="medium" topic="Monitoring">
+GCP provides monitoring tools like Cloud Monitoring and logging tools like Cloud Logging (formerly part of Stackdriver), which let you collect, analyze, and visualize metrics, logs, and traces — both to understand resource health generally and to troubleshoot specific performance issues.
+</QuestionCard>
+
+<QuestionCard id="gcp-ops-02" number={38} question="Explain the concept of VPC (Virtual Private Cloud) in GCP." difficulty="medium" topic="Networking">
+A VPC lets you create a virtual private network within GCP, providing isolation and control over network resources. It lets you define IP ranges, subnets, firewall rules, and routing tables.
+</QuestionCard>
+
+<QuestionCard id="gcp-ops-03" number={39} question="What is the purpose of Cloud Load Balancing in GCP?" difficulty="easy" topic="Networking">
+Cloud Load Balancing distributes incoming traffic across multiple instances or backend services, to ensure high availability, scalability, and fault tolerance.
+</QuestionCard>
+
+<QuestionCard id="gcp-ops-04" number={40} question="Explain the use of Cloud CDN (Content Delivery Network) in GCP." difficulty="easy" topic="Networking">
+Cloud CDN is a global content delivery network that caches and delivers content from GCP to users with low latency and high bandwidth. It improves the performance of web applications and reduces serving costs.
+</QuestionCard>
+
+<QuestionCard id="gcp-ops-05" number={41} question="How can you monitor and analyze GCP costs?" difficulty="medium" topic="Cost Management">
+GCP provides tools like Cloud Billing, Cost Management, and budgets to monitor, analyze, and optimize costs associated with your GCP resources and services.
+</QuestionCard>
+
+<QuestionCard id="gcp-ops-06" number={42} question="What is the purpose of Cloud Deployment Manager in GCP?" difficulty="medium" topic="Infrastructure as Code">
+Cloud Deployment Manager is an infrastructure deployment service in GCP. It lets you define and manage resources as code, making it easier to create and maintain consistent infrastructure configurations.
+</QuestionCard>
+
+<QuestionCard id="gcp-ops-07" number={43} question="What is the purpose of Cloud Monitoring in GCP?" difficulty="easy" topic="Monitoring">
+Cloud Monitoring is a monitoring and observability service provided by GCP. It lets you collect and analyze metrics, create dashboards, set up alerts, and visualize the health and performance of your resources.
+</QuestionCard>
+
+<QuestionCard id="gcp-ops-08" number={44} question="What is the purpose of Cloud DNS in GCP?" difficulty="easy" topic="Networking">
+Cloud DNS is a scalable and reliable domain name system (DNS) service provided by GCP. It lets you manage and resolve domain names to IP addresses.
+</QuestionCard>
+
+<QuestionCard id="gcp-ops-09" number={45} question="Explain the use of Cloud Run in GCP." difficulty="easy" topic="Compute">
+Cloud Run is a fully managed serverless execution environment in GCP. It lets you run containers without worrying about infrastructure provisioning or scaling.
+</QuestionCard>
+
+<QuestionCard id="gcp-ops-10" number={46} question="What is the purpose of Cloud NAT in GCP?" difficulty="medium" topic="Networking">
+Cloud NAT is a service in GCP that lets your virtual machine instances send outbound traffic to the internet without exposing their internal IP addresses. It provides network address translation capabilities.
+</QuestionCard>
+
+<QuestionCard id="gcp-ops-11" number={47} question="Explain the use of Cloud VPN in GCP." difficulty="easy" topic="Networking">
+Cloud VPN is a service in GCP that provides a secure, encrypted connection between your on-premises network and a GCP Virtual Private Cloud (VPC) network.
+</QuestionCard>
+
+<QuestionCard id="gcp-ops-12" number={48} question="What is the purpose of Cloud Functions in GCP?" difficulty="easy" topic="Compute">
+Cloud Functions is a serverless compute service in GCP that lets you run event-driven code in response to events from various GCP services or HTTP requests.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Design a pipeline that ingests IoT sensor data and makes it queryable in near real time."** Talk through Pub/Sub as the ingestion buffer, Dataflow for streaming transformation, and BigQuery as the query target, with Composer coordinating anything batch-oriented alongside it.
+- **"A team needs to give a third-party analytics vendor read-only access to one BigQuery dataset, and nothing else."** Walk through IAM's fine-grained, resource-level policies versus project-wide roles, and why you'd scope the grant to the dataset rather than the project.
+- **"Your workload needs to survive a full regional outage with minimal data loss."** Discuss multi-regional deployment, automated backups, and cross-region replication — and how the same primitives underpin GCP's answers to high availability, disaster recovery, and backup/redundancy questions.
+- **"How would you keep a growing GCP bill under control without slowing teams down?"** Cover Cloud Billing budgets and alerts, right-sizing with Cloud Monitoring data, and storage-class choices like Coldline/Archive for infrequently accessed data.
+
+---
+
+## Further Reading
+
+- [Azure](/level-3-technologies/cloud/azure/) — Microsoft's equivalent compute, storage, and identity services for comparison
+- [AWS](/level-3-technologies/cloud/aws/) — the third major cloud platform, useful for cross-cloud interview comparisons
+- [BigQuery](/level-3-technologies/data-warehouses/bigquery/) — a deeper dive into GCP's flagship data warehouse

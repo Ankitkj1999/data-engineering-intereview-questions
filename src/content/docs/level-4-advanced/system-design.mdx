@@ -1,0 +1,92 @@
+---
+title: System Design
+description: Data platform system design interview questions covering pipeline architecture, streaming, idempotency, layering, multi-tenancy, and reliability patterns.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## Data System Design: Architecture & Patterns
+
+**Master system design concepts for building scalable data platforms and pipelines — from batch and streaming architecture to reliability, schema evolution, and multi-tenancy.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Data system design questions test whether you can turn a vague business requirement into a concrete architecture. Most answers draw from a small set of recurring building blocks: a **layered storage model** (raw/silver/gold) that separates immutable ingestion from cleaned and business-ready data; a **batch vs. streaming** decision driven by latency needs versus complexity and cost; **reliability patterns** — idempotent writes, retries, dead-letter queues, checkpointing — that make pipelines safe to rerun; and handling for the messy realities of production data, like **late-arriving events**, **schema evolution**, and **backfills**. Around all of that sit platform-level concerns — **multi-tenancy**, **observability**, and **cost vs. SLA trade-offs** — that turn a single pipeline into a platform other teams can build on safely.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="System Design" storagePrefix="system-design">
+
+<QuestionCard id="sysdesign-01" number={1} question="How would you design a batch analytics pipeline?" difficulty="medium" topic="Batch Design">
+A typical design ingests data into a raw layer (immutable), transforms it into curated datasets (cleaned and modeled), and publishes it into marts or BI-serving datasets. You define SLAs, data quality checks, and clear ownership for each dataset along the way. Batch pipelines are usually scheduled daily or hourly and optimized for correctness and cost rather than latency.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-02" number={2} question="How would you design a near-real-time ingestion pipeline?" difficulty="hard" topic="Streaming">
+You typically use an event log or CDC stream (Kafka, Pub/Sub, Kinesis) and write to a raw, append-only store with durable offsets. Downstream, you materialize current-state tables and metrics using windowing and deduplication. The hard parts are designing for replays, ordering guarantees, and late-arriving events, since streaming systems don't get a second batch run to fix mistakes.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-03" number={3} question="How do you ensure idempotency in data pipelines?" difficulty="medium" topic="Reliability">
+Idempotency means retries don't change the final result. Common strategies include writing with deterministic keys (upserts or merges instead of blind appends), using exactly-once features where the engine supports them, and keeping raw data immutable while rebuilding derived layers from it. You also need to store checkpoints and watermarks consistently with the writes they correspond to, so a retry replays from a known-good point.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-04" number={4} question="How do you handle late-arriving events and backfills?" difficulty="hard" topic="Data Quality">
+You define an allowed lateness window and design tables keyed by event time, not just ingestion time. For late events, you reprocess the affected windows or partitions and update derived outputs deterministically, so reprocessing produces the same result regardless of when it runs. Backfills specifically should be incremental, validated, and isolated so they don't corrupt current reporting while they're in flight.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-05" number={5} question="When would you choose streaming over batch processing, and vice versa?" difficulty="medium" topic="Architecture">
+Streaming is chosen for low latency and continuous updates, but it adds real complexity — state management, ordering, exactly-once semantics. Batch is simpler and often cheaper for many analytics use cases where near-real-time freshness isn't a hard requirement. Many real systems end up hybrid: streaming ingestion into a raw layer, with batch modeling on top to build marts.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-06" number={6} question="What is the raw/silver/gold layering pattern, and why use it?" difficulty="easy" topic="Data Modeling">
+Raw (or bronze) is immutable ingestion with minimal transformation. Silver is cleaned, standardized, and deduplicated data with consistent schemas. Gold is business-ready marts and aggregates designed for BI and applications. This layering helps with reprocessing (you can always rebuild silver/gold from raw), governance, and giving each layer a clear contract with its consumers.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-07" number={7} question="How do you design a multi-tenant data platform?" difficulty="hard" topic="Platform Design">
+You need isolation — separate compute or quotas per tenant — clear ownership, and strong governance. Provide shared standards for naming, testing, and documentation, plus a catalog for discovery so tenants can find and trust each other's datasets. Multi-tenancy also requires controlling cost and preventing one team's workloads from impacting others, which usually means resource quotas and workload separation.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-08" number={8} question="How do you handle schema evolution in a data platform?" difficulty="medium" topic="Schema">
+You define compatibility rules, version schemas or contracts, and enforce them in CI and at ingestion. Downstream transforms should tolerate additive fields but fail fast on breaking changes rather than silently producing wrong data. You also maintain backward-compatible outputs wherever multiple consumers depend on a stable schema, since you can't force every consumer to upgrade at once.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-09" number={9} question="What reliability patterns do you use for production data pipelines?" difficulty="medium" topic="Reliability">
+Common patterns include idempotent writes, retries with backoff, dead-letter queues for records that repeatedly fail, exactly-once or effectively-once processing, and separating raw from derived layers so derived data can always be rebuilt. You also rely on checkpointing and consistent watermark management to avoid gaps and duplicates across restarts.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-10" number={10} question="What does platform observability look like for a data system?" difficulty="medium" topic="Observability">
+You monitor freshness, volume, quality, and lineage, plus pipeline runtime and failure rates. Alerts should be actionable and tied to runbooks, not just noise that gets ignored. Observability should be end-to-end — from source systems all the way through to the final BI datasets and the metrics stakeholders actually look at.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-11" number={11} question="How do you manage cost vs. SLA trade-offs in system design?" difficulty="medium" topic="Cost">
+You optimize storage layout (partitioning, file sizes), avoid unnecessary recomputation, and use selective materialization rather than materializing everything. You also schedule heavy jobs off-peak, enforce resource quotas, and track cost per dataset or pipeline so spend is visible and attributable. Cost has to be part of the design from the start, not an afterthought bolted on once the bill is too high.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Design a data platform that ingests clickstream events and serves near-real-time dashboards."** Walk through the streaming ingestion choice, the raw/silver/gold layering, windowing and deduplication, and how you'd handle late events without corrupting already-served metrics.
+- **"A backfill you ran overwrote correct data with stale data — how do you prevent that next time?"** Talk through isolating backfills from live pipelines, validating output before promoting it, and designing idempotent, deterministic reprocessing keyed by event time.
+- **"Multiple teams want to share one data platform — how do you design for that?"** Cover isolation and quotas, a shared catalog and naming standards, and cost/SLA guardrails that stop one tenant's workload from degrading everyone else's.
+- **"How would you detect and diagnose a silent data quality problem before a stakeholder does?"** Describe the observability layer — freshness, volume, and quality monitors with actionable alerts — spanning from source ingestion through to the gold-layer datasets people actually query.
+
+---
+
+## Further Reading
+
+- [Cost Optimization](/level-4-advanced/cost-optimization/) — the cost side of the design trade-offs discussed here
+- [Observability](/level-4-advanced/observability/) — a deeper look at monitoring freshness, quality, and pipeline health
+- [Streaming](/level-3-technologies/streaming/) — the tools and patterns behind the near-real-time ingestion designs above

@@ -1,0 +1,181 @@
+---
+title: Kafka
+description: Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Apache Kafka: Distributed Event Streaming
+
+**Kafka is a distributed, partitioned, replicated commit log that decouples the systems producing data from the systems consuming it — the backbone most streaming architectures build on for durable, replayable, high-throughput messaging.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A **topic** is a named stream of records, split into **partitions** that are distributed and replicated across the **brokers** in a cluster — this is how Kafka scales horizontally and survives broker failures. Every record in a partition gets a monotonically increasing **offset**, and consumers (organized into **consumer groups**) track their own read position by committing offsets rather than the broker tracking per-consumer state. That single mechanism is what lets Kafka support both queue-like delivery (one consumer group splitting partitions among its members) and pub-sub delivery (many independent consumer groups each reading the whole topic) from the same underlying log. **Producers** write records to a partition, either directly or via a partitioning key that hashes to one. Durability comes from **replication**: each partition has a leader replica that serves all reads/writes and follower replicas that copy it, with the **In-Sync Replica (ISR)** set tracking which followers are caught up enough to safely take over as leader if the current one fails.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Kafka" storagePrefix="kafka">
+
+<QuestionCard id="kafka-01" number={1} question="What is Apache Kafka?" difficulty="easy" topic="Fundamentals">
+Apache Kafka is a distributed publish-subscribe messaging system originally developed at LinkedIn and written in Java and Scala. At its core it's a distributed, partitioned, and replicated commit log service — a durable, append-only sequence of records that producers write to and consumers read from independently.
+</QuestionCard>
+
+<QuestionCard id="kafka-02" number={2} question="What is the traditional method of transferring messages, and how does Kafka's consumer group model generalize it?" difficulty="easy" topic="Fundamentals">
+Traditional messaging used two separate models:
+
+- **Queuing** — a pool of consumers reads from the server, and each message goes to exactly one of them (good for scaling out work, but no consumer sees every message).
+- **Publish-Subscribe** — messages are broadcast to every consumer (good for fan-out, but you can't easily scale a single logical consumer across multiple processes).
+
+Kafka's **consumer group** abstraction generalizes both: within a group, partitions are divided among members so each message is processed once per group (queue-like), while multiple independent groups can each subscribe to the same topic and get their own full copy of the stream (pub-sub-like).
+</QuestionCard>
+
+<QuestionCard id="kafka-03" number={3} question="What are the benefits of Apache Kafka over traditional messaging techniques?" difficulty="medium" topic="Fundamentals">
+- **Scalability** — scales out horizontally by adding brokers to the cluster, handling more partitions and higher throughput without downtime.
+- **Performance** — high throughput for both publishing and subscribing, using a disk structure optimized for sequential, batched writes and reads.
+- **Durability and reliability** — replicates data across multiple brokers (configurable replication factor) so data survives individual broker failures.
+- **Fault tolerance** — the distributed architecture, combined with replication, keeps the system operating even when individual components fail.
+- **Real-time processing** — producers and consumers exchange data with minimal latency, supporting real-time analytics and monitoring.
+- **Decoupling of data streams** — producers and consumers operate independently; neither needs to know about or coordinate with the other.
+- **Replayability** — Kafka retains data for a configurable retention period, so applications can replay history or recover from errors by reprocessing.
+- **High availability** — the distributed, replicated design keeps the system available even when some brokers or partitions are temporarily unavailable.
+</QuestionCard>
+
+<QuestionCard id="kafka-04" number={4} question="What is the meaning of broker in Apache Kafka?" difficulty="easy" topic="Architecture">
+A broker is a single server in a Kafka cluster that stores and manages data. Each broker holds a set of topic partitions, so Kafka spreads load across the cluster by distributing partitions among brokers. Brokers handle all producer and consumer read/write requests and coordinate data replication to prevent data loss.
+</QuestionCard>
+
+<QuestionCard id="kafka-05" number={5} question="What is the maximum size of a message that Kafka can receive?" difficulty="easy" topic="Configuration">
+It's governed by two configuration parameters — `message.max.bytes` on the broker and `max.message.bytes` on the topic. By default Kafka allows messages up to 1 MB (1,048,576 bytes), but both parameters can be increased if the workload needs larger messages.
+</QuestionCard>
+
+<QuestionCard id="kafka-06" number={6} question="What is ZooKeeper's role in Kafka's ecosystem, and can Kafka run without it?" difficulty="medium" topic="Architecture">
+ZooKeeper historically managed and coordinated Kafka brokers — leader election for partitions, cluster membership, and configuration management.
+
+As of **KRaft mode** (Kafka Raft metadata mode), Kafka can run without ZooKeeper entirely. KRaft replaces it with a built-in Raft-based consensus mechanism for managing cluster metadata, simplifying the architecture and improving scalability.
+</QuestionCard>
+
+<QuestionCard id="kafka-07" number={7} question="How are messages consumed by a consumer in Apache Kafka?" difficulty="easy" topic="Consumers">
+Kafka consumers use a **pull-based model**. A consumer subscribes to one or more topics and polls the broker at regular intervals to fetch new messages, reading them in the order they're stored within each partition. Each consumer tracks its own offset per partition — the position of the next message to read — so it can resume exactly where it left off after a restart or failure.
+</QuestionCard>
+
+<QuestionCard id="kafka-08" number={8} question="How can you improve the throughput of a remote consumer?" difficulty="medium" topic="Consumers">
+- **Increase bandwidth** — ensure the network connection has enough capacity for the data volume.
+- **Optimize serialization** — use efficient formats to shrink the data being transmitted.
+- **Concurrency** — process data in parallel where possible.
+- **Batch processing** — batch records together to cut down on round trips.
+- **Caching** — cache frequently accessed data on the consumer side.
+- **Compression** — compress data before transmission.
+- **Optimize network routes** — use better network paths or a CDN to cut latency.
+- **Tune timeouts and buffers** — adjust network timeout and buffer size settings for the connection.
+</QuestionCard>
+
+<QuestionCard id="kafka-09" number={9} question="How can you achieve exactly-once messaging from Kafka during data production?" difficulty="hard" topic="Producers">
+1. **Enable idempotence** — set `enable.idempotence=true` on the producer so retries after network errors don't create duplicates.
+2. **Use the transactional API** — set `transactional.id` and wrap writes with `beginTransaction()`, `commitTransaction()`, and `abortTransaction()`. Either every message in the transaction is published, or none are.
+3. **Configure supporting settings** — set `acks=all` (or `-1`) so every in-sync replica acknowledges the write, tune `retries`, and set `max.in.flight.requests.per.connection=1` when using transactions to avoid reordering on retry.
+4. **Keep partitioning consistent** — if message order matters, use a stable partitioning strategy so retries don't shuffle messages across partitions.
+</QuestionCard>
+
+<QuestionCard id="kafka-10" number={10} question="What is In-Sync Replicas (ISR) in Apache Kafka?" difficulty="medium" topic="Replication">
+ISR is the set of replicas for a partition that are fully caught up with the leader. The **leader** replica handles all reads and writes for a partition; **follower** replicas replicate its log, and once a follower has replicated everything up to the leader's last acknowledged message, it's considered in-sync.
+
+The ISR is what makes failover safe — if the leader fails, Kafka elects a new leader only from the ISR, minimizing data loss and downtime.
+</QuestionCard>
+
+<QuestionCard id="kafka-11" number={11} question="How can you reduce churn (frequent changes) in the ISR?" difficulty="medium" topic="Replication">
+- **Optimize network configuration** — stable, sufficiently fast connections between brokers keep followers from falling behind and dropping out of the ISR.
+- **Adjust replica lag configuration** — `replica.lag.time.max.ms` controls how far behind a replica can fall before it's considered out of sync; tuning it changes how much slack followers get.
+- **Monitor and scale resources** — make sure every broker has enough CPU, memory, and disk I/O for its workload; overloaded brokers fall behind more easily.
+- **Use dedicated replication networks** — isolating replication traffic from other network load prevents it from being starved.
+</QuestionCard>
+
+<QuestionCard id="kafka-12" number={12} question="When does a broker leave the ISR?" difficulty="medium" topic="Replication">
+- **Falling behind** — if a replica lags the leader beyond the configured thresholds (`replica.lag.time.max.ms` or `replica.lag.max.messages`), it's removed from the ISR.
+- **Broker failure** — if a broker crashes or disconnects from the cluster, its replicas drop out of the ISR.
+- **Manual intervention** — an administrator can remove a replica manually, though this is uncommon and should be done carefully.
+</QuestionCard>
+
+<QuestionCard id="kafka-13" number={13} question="What does it indicate if a replica stays out of the ISR for a long time?" difficulty="medium" topic="Replication">
+It means the replica can't keep up with the leader's log updates — usually due to network issues, hardware problems, or high broker load. While it's out of the ISR, it can't participate in acknowledging writes and can't be elected leader if the current leader fails, so it becomes a risk to partition availability and durability until it catches back up.
+</QuestionCard>
+
+<QuestionCard id="kafka-14" number={14} question="What happens if the preferred replica is not in the ISR list?" difficulty="medium" topic="Replication">
+If the preferred (originally-assigned leader) replica isn't in the ISR, Kafka either waits for it to catch up (depending on the configured `acks` settings) or continues serving from another broker that is in the ISR — data integrity is preserved by only using fully up-to-date replicas. Consumers configured to read only from the preferred replica may see a delay in data availability until it rejoins the ISR.
+</QuestionCard>
+
+<QuestionCard id="kafka-15" number={15} question="What is the purpose of replication in Apache Kafka?" difficulty="easy" topic="Replication">
+Replication increases data availability and durability. By copying each partition's data across multiple brokers, Kafka ensures that a single broker failure doesn't lose data — it can still be read from the other replicas. This is fundamental to fault tolerance and high availability in production.
+</QuestionCard>
+
+<QuestionCard id="kafka-16" number={16} question="Is it possible to get the message offset after producing to a topic?" difficulty="easy" topic="Producers">
+Yes. When a producer sends a message, the producer API returns metadata about it, including the offset it was assigned within the topic partition — useful for tracking exactly where a given message landed.
+</QuestionCard>
+
+<QuestionCard id="kafka-17" number={17} question="What is the difference between Apache Kafka, Apache Storm, and Apache Flink?" difficulty="medium" topic="Ecosystem">
+All three are distributed systems for processing large volumes of data, but they serve different roles:
+
+- **Kafka** — primarily a distributed messaging/streaming platform focused on high-throughput, fault-tolerant storage and transport of streaming data. Often sits as the buffer between producers and consumers rather than doing the processing itself.
+- **Storm** — a real-time computation system built for record-by-record processing with very low latency, well suited to immediate-response use cases like real-time analytics.
+- **Flink** — a stream processing framework that also handles batch processing, known for event-time processing, stateful computation, and running complex computations at in-memory speed across common cluster environments.
+</QuestionCard>
+
+<QuestionCard id="kafka-18" number={18} question="What are the main components of Kafka?" difficulty="easy" topic="Fundamentals">
+- **Topic** — a stream of messages of the same type
+- **Producer** — publishes messages to a topic
+- **Broker** — a server that stores published messages
+- **Consumer** — subscribes to topics and pulls data from brokers
+</QuestionCard>
+
+<QuestionCard id="kafka-19" number={19} question="What is the role of the offset in Kafka?" difficulty="easy" topic="Fundamentals">
+The offset is a unique, monotonically increasing identifier for each record within a partition — its position in that partition's log. Consumers use offsets to track which records they've already read, enabling fault-tolerant, scalable consumption: a consumer can resume from its committed offset after a restart or failure, so messages are neither lost nor reprocessed unnecessarily.
+</QuestionCard>
+
+<QuestionCard id="kafka-20" number={20} question="Can you explain the concept of leader and follower in the Kafka ecosystem?" difficulty="easy" topic="Architecture">
+Every partition has one broker acting as its **leader** and zero or more brokers acting as **followers**:
+
+- **Leader** — handles all read and write requests for that partition. Produced messages are written to the leader first, which stores them in order.
+- **Follower** — continuously pulls messages from the leader to stay in sync, maintaining an exact copy of its data. If the leader broker fails, one of the in-sync followers is elected as the new leader, keeping the partition available.
+</QuestionCard>
+
+<QuestionCard id="kafka-21" number={21} question="How do you define a partitioning key?" difficulty="medium" topic="Producers">
+The partitioning key is supplied by the producer to determine which partition a message goes to. By default Kafka uses a hash-based partitioner on the key to pick the partition ID, but a custom `Partitioner` implementation can be supplied for other routing logic.
+</QuestionCard>
+
+<QuestionCard id="kafka-22" number={22} question="In the Producer, when does a QueueFullException occur?" difficulty="medium" topic="Producers">
+It occurs when the producer is trying to send messages faster than the broker can handle them. Since the producer doesn't block by default in this scenario, the fix is to add enough brokers/capacity to the cluster to absorb the increased load rather than let the send buffer overflow.
+</QuestionCard>
+
+<QuestionCard id="kafka-23" number={23} question="Can you explain the role of the Kafka Producer API?" difficulty="easy" topic="Producers">
+The Producer API lets applications send streams of records to one or more Kafka topics, handling the reliable and scalable distribution of that data across the cluster. Kafka historically exposed two producer types — `SyncProducer` and `AsyncProducer` — with the goal of surfacing all producer functionality through a single, unified client API.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Design a Kafka pipeline for order events feeding fraud detection, analytics, and notifications."** Talk through topic and partition design, one consumer group per downstream system so each gets its own full copy of the stream, and the tradeoffs of partitioning by `order_id` vs. `customer_id` (ordering guarantees vs. even load distribution).
+- **"A consumer group's lag keeps growing — how do you diagnose and fix it?"** Check partition count vs. consumer count (a group can't have more active consumers than partitions), per-message processing time, `poll()`/batch-size tuning, and whether scaling consumers up to the partition count resolves it.
+- **"How would you guarantee exactly-once processing from Kafka into a downstream database?"** Idempotent producers plus the transactional API on the write side, paired with idempotent writes downstream (upserts keyed on a dedup key, or storing the last-processed offset transactionally with the write).
+- **"How do you handle a broker failure in production without losing data?"** Replication factor, `min.insync.replicas`, `acks=all` on the producer, and leader election constrained to the ISR so a stale replica never becomes leader.
+
+---
+
+## Further Reading
+
+- [Flink](/level-3-technologies/streaming/flink/) — the stream processing engine most commonly paired with Kafka for stateful, event-time computation
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where Kafka fits into the broader curriculum
+- [Change Data Capture](/level-3-technologies/ingestion/cdc/) — a common source pattern for getting data into Kafka topics in the first place

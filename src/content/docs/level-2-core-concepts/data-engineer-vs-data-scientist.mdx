@@ -1,0 +1,98 @@
+---
+title: Data Engineer vs Data Scientist
+description: Interview questions on how data engineering and data science differ in focus, tools, goals, and output, and how the two roles collaborate day to day.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## Data Engineer vs Data Scientist: Roles, Tools, and Collaboration
+
+**Data engineering and data science are closely related but distinct disciplines — data engineers build the infrastructure that data scientists rely on, while data scientists extract insights and build models from that data.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The two roles split along a clear line: data engineers focus on **infrastructure and pipelines**, data scientists focus on **analysis and modeling**. That difference shows up in their tools (SQL, Python, Spark, and Airflow for engineers; Python, R, Jupyter, and ML libraries for scientists), their goals (reliable data flow vs. insights and predictions), and their output (clean, structured datasets vs. models, reports, and dashboards). Neither role is self-sufficient: data engineers provide the clean, reliable datasets data scientists need, and data scientists feed data requirements back to engineers, forming a feedback loop that turns raw data into business value. Understanding where one role's responsibility ends and the other's begins — and how they hand off work — is a common thread in interviews for either side.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Data Engineer vs Data Scientist" storagePrefix="data-engineer-vs-data-scientist">
+
+<QuestionCard id="devds-01" number={1} question="What's the fundamental difference between data engineering and data science?" difficulty="easy" topic="Fundamentals">
+They're closely related but distinct disciplines. Data engineers build the infrastructure that data scientists rely on — pipelines, storage, and processing systems. Data scientists extract insights and build models from that data — statistical analysis, machine learning, and experimentation. One makes data available and trustworthy; the other turns it into decisions.
+</QuestionCard>
+
+<QuestionCard id="devds-02" number={2} question="How do the tools used by data engineers and data scientists typically differ?" difficulty="easy" topic="Tools">
+Data engineers typically work with SQL, Python, Spark, and Airflow — tools built for moving and transforming data at scale. Data scientists typically work with Python, R, Jupyter notebooks, and ML libraries — tools built for exploration, statistical modeling, and experimentation. There's real overlap (both use SQL and Python heavily), but the surrounding toolchain diverges.
+</QuestionCard>
+
+<QuestionCard id="devds-03" number={3} question="How do the goals and outputs of each role differ?" difficulty="easy" topic="Fundamentals">
+A data engineer's goal is reliable data flow, and their output is clean, structured datasets. A data scientist's goal is insights and predictions, and their output is models, reports, and dashboards. In short: engineers optimize for the data being correct and available; scientists optimize for the data being useful for a specific decision.
+</QuestionCard>
+
+<QuestionCard id="devds-04" number={4} question="What is a data engineer's primary responsibility?" difficulty="easy" topic="Data Engineer">
+A data engineer's primary responsibility is to build and maintain data pipelines — systems that move data from source systems through transformation layers to make it available for analysis, reporting, and machine learning.
+</QuestionCard>
+
+<QuestionCard id="devds-05" number={5} question="What are the four core responsibility areas for a data engineer?" difficulty="medium" topic="Data Engineer">
+- **Data Infrastructure** — building reliable, scalable systems for data storage and processing
+- **Pipeline Architecture** — designing ETL/ELT workflows that handle data movement
+- **Data Quality** — ensuring accuracy, consistency, and reliability of data
+- **Performance Optimization** — making queries and transformations efficient at scale
+</QuestionCard>
+
+<QuestionCard id="devds-06" number={6} question="What does a data scientist focus on day to day?" difficulty="easy" topic="Data Scientist">
+A data scientist focuses on extracting insights, building statistical models, and applying machine learning to solve business problems. They rely on the clean, reliable data that data engineers provide, rather than building and maintaining that infrastructure themselves.
+</QuestionCard>
+
+<QuestionCard id="devds-07" number={7} question="What is exploratory data analysis, and why does a data scientist do it?" difficulty="easy" topic="Data Scientist">
+Exploratory analysis is the process of finding patterns and trends in data — understanding distributions, relationships, and anomalies before committing to a modeling approach. It's typically the first step in a data science workflow, since it shapes which hypotheses and models are worth pursuing.
+</QuestionCard>
+
+<QuestionCard id="devds-08" number={8} question="What does “modeling” mean in a data scientist's workflow?" difficulty="easy" topic="Data Scientist">
+Modeling means building predictive and prescriptive models — using statistical or machine learning techniques to predict outcomes or recommend actions based on data. It's the step that turns patterns found during exploratory analysis into something that generalizes to new data.
+</QuestionCard>
+
+<QuestionCard id="devds-09" number={9} question="What role does experimentation play for a data scientist?" difficulty="medium" topic="Data Scientist">
+Experimentation means designing and running controlled experiments, such as A/B tests, to validate whether a change actually causes an outcome rather than just correlating with it. It's how data scientists move from "this pattern looks interesting" to "this change reliably improves the metric."
+</QuestionCard>
+
+<QuestionCard id="devds-10" number={10} question="Why does communication matter as a data scientist skill?" difficulty="easy" topic="Data Scientist">
+Communication means translating findings into actionable business recommendations. A model or analysis only creates value once a stakeholder understands it well enough to act on it, so explaining results clearly is as much a part of the job as producing them.
+</QuestionCard>
+
+<QuestionCard id="devds-11" number={11} question="How do data engineers and data scientists collaborate in practice?" difficulty="medium" topic="Collaboration">
+Data engineers provide the clean, reliable datasets that data scientists need. Data scientists, in turn, communicate their data requirements back to engineers — what grain, freshness, or new sources they need. Together they form a feedback loop that turns raw data into business value, rather than working as two disconnected teams.
+</QuestionCard>
+
+<QuestionCard id="devds-12" number={12} question="Why do data scientists depend on data engineers rather than building their own pipelines?" difficulty="medium" topic="Collaboration">
+Because data engineers build the infrastructure — reliable storage, processing, and pipeline systems — that data scientists rely on. Without that foundation, data scientists would spend most of their time on data plumbing instead of analysis and modeling, which is a poor use of their specialized skills and duplicates work across a team.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A data scientist says the data is wrong — how do you figure out whose problem it is?"** Walk through checking whether the issue traces back to the pipeline (engineer's responsibility — infrastructure, transformation logic, freshness) or to how the data is being interpreted or modeled (scientist's responsibility).
+- **"How would you set up a working relationship between a data engineering team and a data science team?"** Talk through the feedback loop: engineers exposing clean, documented, conformed datasets, and scientists communicating requirements (grain, freshness, new fields) back, rather than each side working in isolation.
+- **"You're a data scientist and you need a new data source ingested — what do you do?"** Describe handing off clear requirements (schema, freshness, volume, intended use) to a data engineer rather than building an ad hoc pipeline yourself.
+
+---
+
+## Further Reading
+
+- [What is Data Engineering](/level-2-core-concepts/what-is-data-engineering/) — a deeper look at the data engineer's responsibilities, skills, and lifecycle
+- [Data Modeling](/level-2-core-concepts/data-modeling/) — the schema design work that sits at the handoff between engineering and analysis
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — the skills and tools data engineers use every day

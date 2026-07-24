@@ -1,0 +1,150 @@
+---
+title: Data Structures
+description: Data structure interview questions for data engineers — arrays, linked lists, stacks, and queues, and the trade-offs behind efficient pipeline code.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Data Structures: Interview Questions
+
+**Data structures are inherently coding-problem territory — understanding them well means writing efficient data processing code and choosing the right organization for a given problem.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Data structures matter to a data engineer for three reasons: writing efficient processing code, optimizing memory usage in pipelines, and choosing the right organization for a given problem. Arrays offer fast, indexed access but are expensive to resize; linked lists trade that random access for cheap insertion and deletion by chaining nodes with pointers; stacks and queues layer LIFO/FIFO ordering on top of either; and more complex structures (hash tables, trees, graphs) each trade off differently on lookup, insert, and memory cost. A recurring interview thread is memory management — how allocation, free pools, and garbage collection reclaim space, and what happens when code mismanages a pointer after freeing it. Understanding these trade-offs is less about memorizing definitions and more about being able to justify why a particular structure fits a particular pipeline problem.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Data Structures" storagePrefix="data-structure">
+
+<QuestionCard id="ds-01" number={1} question="What is a data structure?" difficulty="easy" topic="Fundamentals">
+A way of organizing data that considers not only the items stored, but also their relationship to each other. Knowing that relationship in advance allows designing efficient algorithms for manipulating the data.
+</QuestionCard>
+
+<QuestionCard id="ds-02" number={2} question="What are the goals of a data structure?" difficulty="easy" topic="Fundamentals">
+It must be rich enough in structure to reflect the actual relationships of data in the real world, while staying simple enough for efficient processing.
+</QuestionCard>
+
+<QuestionCard id="ds-03" number={3} question="What does abstract data type mean?" difficulty="medium" topic="ADTs">
+A data type is a collection of values plus a set of operations on those values. An abstract data type (ADT) is the mathematical concept defining a data type's logical properties, independent of implementation. An ADT has two parts: a **value definition** (e.g. the ADT `RATIONAL` consists of two integers, the second non-zero) and an **operation definition** (creation, addition, multiplication, equality test).
+</QuestionCard>
+
+<QuestionCard id="ds-04" number={4} question="What is the difference between a stack and an array?" difficulty="medium" topic="Stacks & Arrays">
+**Stack:** an ordered collection whose size changes dynamically as items are pushed/popped, may hold mixed types conceptually, and is typically implemented as a structure containing an array plus an integer tracking the current top.
+
+**Array:** an ordered, static collection — size is fixed at declaration, and it holds a single data type. An array can back a stack's implementation (declared large enough for the stack's maximum size).
+</QuestionCard>
+
+<QuestionCard id="ds-05" number={5} question="What do you mean by recursive definition?" difficulty="easy" topic="Recursion">
+A definition that defines an object in terms of simpler cases of itself.
+</QuestionCard>
+
+<QuestionCard id="ds-06" number={6} question="What is sequential search?" difficulty="easy" topic="Searching">
+Comparing each item in the array (or linked list) against the target until a match is found.
+</QuestionCard>
+
+<QuestionCard id="ds-07" number={7} question="What actions are performed when a function is called?" difficulty="medium" topic="Functions">
+Arguments are passed, local variables are allocated and initialized, and control transfers to the function.
+</QuestionCard>
+
+<QuestionCard id="ds-08" number={8} question="What actions are performed when a function returns?" difficulty="medium" topic="Functions">
+The return address is retrieved, the function's data area is freed, and execution branches back to the return address.
+</QuestionCard>
+
+<QuestionCard id="ds-09" number={9} question="What is a linked list?" difficulty="easy" topic="Linked Lists">
+A linear collection of nodes where order is given by pointers rather than physical placement. Each node stores the element's data plus the address of the next node.
+</QuestionCard>
+
+<QuestionCard id="ds-10" number={10} question="What are the advantages of a linked list over an array?" difficulty="medium" topic="Linked Lists">
+Arrays are expensive to insert into or delete from, and can't be resized without reallocating a new memory block. In a linked list, each element carries a pointer to the next, so successive elements need not occupy adjacent memory — insertion and deletion just rewire pointers.
+</QuestionCard>
+
+<QuestionCard id="ds-11" number={11} question="Why can't you apply binary search to a sorted linked list?" difficulty="medium" topic="Linked Lists">
+Binary search needs random access to the middle element by index; a linked list has no way to index directly to the middle, so binary search isn't applicable — a key drawback of using linked lists.
+</QuestionCard>
+
+<QuestionCard id="ds-12" number={12} question="What do you mean by a free pool?" difficulty="medium" topic="Memory Management">
+A list of unused memory cells, maintained with its own pointer, from which new nodes are allocated.
+</QuestionCard>
+
+<QuestionCard id="ds-13" number={13} question="What do you mean by garbage collection?" difficulty="medium" topic="Memory Management">
+An operating system technique that periodically reclaims deleted space back onto the free storage list — triggered when free space runs low or the CPU is idle. The alternative, immediately reinserting freed space into the list, is more time-consuming.
+</QuestionCard>
+
+<QuestionCard id="ds-14" number={14} question="What do you mean by overflow and underflow?" difficulty="easy" topic="Fundamentals">
+**Overflow:** inserting into a data structure when no space is available (the free storage list is empty).
+
+**Underflow:** attempting to delete from a data structure that is already empty.
+</QuestionCard>
+
+<QuestionCard id="ds-15" number={15} question="What are the disadvantages of an array implementation of a linked list?" difficulty="medium" topic="Linked Lists">
+The number of nodes needed can't be predicted at compile time, and the declared nodes remain allocated for the program's entire execution.
+</QuestionCard>
+
+<QuestionCard id="ds-16" number={16} question="What is a queue?" difficulty="easy" topic="Queues">
+An ordered collection where items are inserted at the rear and removed from the front — FIFO (first in, first out) — with no inherent limit on the number of elements.
+</QuestionCard>
+
+<QuestionCard id="ds-17" number={17} question="What is a priority queue?" difficulty="medium" topic="Queues">
+A data structure where the intrinsic ordering of elements determines removal order rather than insertion order.
+
+**Ascending priority queue:** smallest item is removed first. **Descending priority queue:** largest item is removed first.
+</QuestionCard>
+
+<QuestionCard id="ds-18" number={18} question="What are the disadvantages of sequential storage?" difficulty="medium" topic="Arrays">
+A fixed amount of storage stays allocated even when the structure holds fewer elements, and once that fixed allocation is exhausted, overflow occurs.
+</QuestionCard>
+
+<QuestionCard id="ds-19" number={19} question="What are the disadvantages of representing a stack or queue with a linked list?" difficulty="medium" topic="Linked Lists">
+Each node's info + next-pointer fields occupy more storage than the equivalent array element, and extra time is spent managing the available-node list.
+</QuestionCard>
+
+<QuestionCard id="ds-20" number={20} question="What is a dangling pointer, and how do you avoid it?" difficulty="hard" topic="Memory Management">
+After `free(p)`, a subsequent reference to `*p` is illegal — the storage is freed but `p`'s address value is unchanged, so it may still be dereferenced (with no way to detect the illegality). This is a dangling pointer. Avoid it by setting `p` to `NULL` immediately after `free(p)`.
+</QuestionCard>
+
+<QuestionCard id="ds-21" number={21} question="What are the disadvantages of a linear list?" difficulty="medium" topic="Linked Lists">
+You can't reach nodes preceding a given node `p`, and to traverse the list again, an external pointer to its head must be preserved.
+</QuestionCard>
+
+<QuestionCard id="ds-22" number={22} question="What is a circular list?" difficulty="medium" topic="Linked Lists">
+A linear list where the last node's next field, instead of holding a null pointer, points back to the first node. Advantage: from any point in the list, every other point is reachable.
+</QuestionCard>
+
+<QuestionCard id="ds-23" number={23} question="What are the disadvantages of a circular list?" difficulty="medium" topic="Linked Lists">
+You can't traverse it backward, and given only a pointer to a node, you can't delete that node (you'd need the predecessor).
+</QuestionCard>
+
+<QuestionCard id="ds-24" number={24} question="What is a doubly linked list?" difficulty="easy" topic="Linked Lists">
+A collection of nodes where each node has three parts: an info field holding the data, a left pointer to the previous node, and a right pointer to the next node.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Implement a queue using two stacks."** A classic coding prompt that tests whether you understand the amortized cost of shuffling elements between the two structures.
+- **"You need O(1) lookups but also need to preserve insertion order — what do you reach for?"** Tests whether the candidate knows the trade-offs behind ordered hash structures (e.g. Python's `dict`).
+- **"A pipeline job keeps running out of memory while reversing a huge linked list in place — how would you debug it?"** Probes understanding of pointer manipulation, free pools, and garbage collection under memory pressure.
+- **"Walk through what happens in memory when a recursive function calls itself too many times."** Tests understanding of stack frames and why deep recursion causes a stack overflow, tying back to what happens when a function is called.
+
+---
+
+## Further Reading
+
+- [SQL Interview Questions](/level-1-foundations/sql/) — the query-writing counterpart to these coding-structure problems
+- [Python Practice](/level-1-foundations/python/practice/) — coding exercises that build on these data structures
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where data structures fit into the broader curriculum

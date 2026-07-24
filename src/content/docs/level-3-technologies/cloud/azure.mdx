@@ -1,0 +1,284 @@
+---
+title: Azure
+description: Azure interview questions covering cloud service models, compute roles, autoscaling, blob/table/queue storage, deployment, and diagnostics for engineers.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Azure: Microsoft Cloud Platform Services
+
+**Windows Azure's platform-as-a-service model runs applications as Web, Worker, or VM roles inside cloud services — packaged, deployed, scaled, and monitored through a consistent set of tools and configuration files.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Azure's classic PaaS model organizes an application as a **cloud service** made up of one or more **roles** — a **Web Role** (a managed IIS web server for front-end applications), a **Worker Role** (for asynchronous, long-running background processing), or a **VM Role** (a fully customizable Windows Server image for workloads that need OS-level control). The **Fabric Controller** provisions and manages the underlying hardware, while the **compute emulator** lets you test locally before deploying. A cloud service is packaged as a **.cspkg** (service package, built by `cspack`) plus a **.csdef** (service definition — the role model) and **.cscfg** (service configuration — instance counts and settings), then deployed to a **staging** or **production** environment, which can be promoted via a **VIP swap** with no redeployment. Reliability and elasticity come from running **multiple role instances** (Azure's SLA requires at least two per role) and from **autoscaling**, which adds or removes instances based on load. For data, Azure offers **Blob storage** (Block Blobs for streaming/large objects, Page Blobs for random read/write), **Table storage** (a schemaless NoSQL store partitioned for fast, atomic access), and two queuing options — simple **Azure Queues** and the richer **Service Bus Queues**, which add publish/subscribe and dead-lettering.
+
+---
+
+## Interview Questions
+
+### Cloud Computing & Azure Platform Fundamentals
+
+<QuestionList topic="Azure Fundamentals" storagePrefix="azure-fundamentals">
+
+<QuestionCard id="azure-fundamentals-01" number={1} question="What are the three main components of the Windows Azure Platform?" difficulty="easy" topic="Fundamentals">
+- Compute
+- Storage
+- AppFabric
+</QuestionCard>
+
+<QuestionCard id="azure-fundamentals-02" number={2} question="What are the service models in cloud computing?" difficulty="easy" topic="Fundamentals">
+Cloud computing providers offer their services according to three fundamental models: Infrastructure as a Service (IaaS), Platform as a Service (PaaS), and Software as a Service (SaaS), where IaaS is the most basic and each higher model abstracts away more of the details of the lower models.
+
+- **IaaS examples**: Amazon CloudFormation (and underlying services like Amazon EC2), Rackspace Cloud, Terremark, Windows Azure Virtual Machines, Google Compute Engine, and Joyent.
+- **PaaS examples**: Amazon Elastic Beanstalk, Cloud Foundry, Heroku, Force.com, Engine Yard, Mendix, Google App Engine, Windows Azure Compute, and OrangeScape.
+- **SaaS examples**: Google Apps, Microsoft Office 365, and Onlive.
+</QuestionCard>
+
+<QuestionCard id="azure-fundamentals-03" number={3} question="How many types of deployment models are used in cloud computing?" difficulty="easy" topic="Fundamentals">
+There are four types of deployment models used in cloud computing:
+- Public cloud
+- Private cloud
+- Community cloud
+- Hybrid cloud
+</QuestionCard>
+
+<QuestionCard id="azure-fundamentals-04" number={4} question="What is the Windows Azure Platform?" difficulty="easy" topic="Fundamentals">
+It's a collective name for Microsoft's Platform as a Service (PaaS) offering, which provides a programming platform, a deployment vehicle, and a runtime environment for cloud computing hosted in Microsoft datacenters.
+</QuestionCard>
+
+<QuestionCard id="azure-fundamentals-05" number={5} question="What is the difference between the Windows Azure Platform and Windows Azure?" difficulty="medium" topic="Fundamentals">
+The former is Microsoft's overall PaaS offering, which includes Windows Azure, SQL Azure, and AppFabric. The latter — Windows Azure — is just one part of that offering: Microsoft's cloud operating system.
+</QuestionCard>
+
+<QuestionCard id="azure-fundamentals-06" number={6} question="What is the difference between public cloud and private cloud?" difficulty="easy" topic="Fundamentals">
+A public cloud is consumed as a service over the internet by many users. A private cloud, as the name implies, is deployed within certain boundaries — like firewall settings — and is completely managed and monitored by the users working on it within an organization.
+</QuestionCard>
+
+<QuestionCard id="azure-fundamentals-07" number={7} question="Besides the .NET Framework, name three other language frameworks that can be used to develop Windows Azure applications." difficulty="easy" topic="Fundamentals">
+PHP, Node.js, and Java.
+</QuestionCard>
+
+<QuestionCard id="azure-fundamentals-08" number={8} question="How would you categorize Windows Azure?" difficulty="easy" topic="Fundamentals">
+As PaaS (Platform as a Service).
+</QuestionCard>
+
+<QuestionCard id="azure-fundamentals-09" number={9} question="What is the Azure Service Level Agreement (SLA)?" difficulty="medium" topic="Fundamentals">
+The Azure Compute SLA guarantees that, when you deploy two or more role instances for every role, access to your cloud service will be maintained at least 99.95% of the time. It also guarantees that detection and corrective action will be initiated 99.9% of the time when a role instance's process is not running.
+</QuestionCard>
+
+</QuestionList>
+
+### Compute: Roles, Scaling & Instances
+
+<QuestionList topic="Azure Compute" storagePrefix="azure-compute">
+
+<QuestionCard id="azure-compute-01" number={10} question="What roles are available in Windows Azure?" difficulty="medium" topic="Compute">
+All three roles (Web, Worker, VM) are essentially Windows Server 2008 under the hood. Web and Worker roles are nearly identical: with Web and Worker roles, the OS and related patches are taken care of for you, so you build your app's components without having to manage a VM directly.
+</QuestionCard>
+
+<QuestionCard id="azure-compute-02" number={11} question="What are the three types of roles in the Compute component of Windows Azure?" difficulty="easy" topic="Compute">
+- Web
+- Worker
+- VM
+</QuestionCard>
+
+<QuestionCard id="azure-compute-03" number={12} question="What is the Windows Azure Compute Emulator?" difficulty="easy" topic="Compute">
+The compute emulator is a local emulator of Windows Azure that you can use to build and test your application before deploying it to Windows Azure.
+</QuestionCard>
+
+<QuestionCard id="azure-compute-04" number={13} question="What is Fabric (as distinct from the Fabric Controller)?" difficulty="medium" topic="Compute">
+In the Windows Azure cloud, "fabric" refers to the combination of many virtualized instances that together run a client application.
+</QuestionCard>
+
+<QuestionCard id="azure-compute-05" number={14} question="How many instances of a role should be deployed to satisfy the Azure SLA?" difficulty="medium" topic="Compute">
+Two. If you deploy two or more instances of a role, that role will have external connectivity at least 99.95% of the time.
+</QuestionCard>
+
+<QuestionCard id="azure-compute-06" number={15} question="What are the options to manage session state in Windows Azure?" difficulty="medium" topic="Compute">
+- Windows Azure Caching
+- SQL Azure
+- Azure Table
+</QuestionCard>
+
+<QuestionCard id="azure-compute-07" number={16} question="What is the Guest OS in Azure?" difficulty="medium" topic="Compute">
+The guest operating system is the operating system that runs on the virtual machine (role instance) that hosts an instance of a role. For a cloud service specifically, it's the OS installed on the role instances on which your application code runs.
+</QuestionCard>
+
+<QuestionCard id="azure-compute-08" number={17} question="How do you programmatically scale out Azure Worker Role instances?" difficulty="medium" topic="Compute">
+Using the AutoScaling Application Block.
+</QuestionCard>
+
+<QuestionCard id="azure-compute-09" number={18} question="What is a Web Role in Windows Azure?" difficulty="easy" topic="Compute">
+A Web Role is a special-purpose role that provides a dedicated Internet Information Services (IIS) web server, used for hosting front-end web applications. You can quickly and easily deploy web applications to Web Roles and then scale your compute capacity up or down to meet demand.
+</QuestionCard>
+
+<QuestionCard id="azure-compute-10" number={19} question="What are the instance sizes available in Azure?" difficulty="medium" topic="Compute">
+Windows Azure handles load balancing across all the instances you create. The VM sizes are as follows:
+
+| Size | CPU | Memory | Instance Storage | I/O Performance |
+|---|---|---|---|---|
+| Extra Small | 1.0 GHz | 768 MB | 20 GB | Low |
+| Small | 1.6 GHz | 1.75 GB | 225 GB | Moderate |
+| Medium | 2 x 1.6 GHz | 3.5 GB | 490 GB | High |
+| Large | 4 x 1.6 GHz | 7 GB | 1,000 GB | High |
+| Extra Large | 8 x 1.6 GHz | 14 GB | 2,040 GB | High |
+</QuestionCard>
+
+<QuestionCard id="azure-compute-11" number={20} question="What is the difference between Web and Worker Roles in Windows Azure?" difficulty="medium" topic="Compute">
+The main difference is that an instance of a Web Role runs IIS, while an instance of a Worker Role does not. Both are managed the same way, however, and it's common for an application to use both — for example, a Web Role instance might accept requests from users, then pass them to a Worker Role instance for processing.
+</QuestionCard>
+
+<QuestionCard id="azure-compute-12" number={21} question="What is the Azure Fabric Controller?" difficulty="medium" topic="Compute">
+The Windows Azure Fabric Controller is a resource provisioning and management layer that manages the hardware and provides resource allocation, deployment/upgrade, and management for cloud services on the Windows Azure platform.
+</QuestionCard>
+
+<QuestionCard id="azure-compute-13" number={22} question="What is autoscaling?" difficulty="medium" topic="Compute">
+Scaling by adding additional instances is often called scaling out. Windows Azure also supports scaling up, by using larger role instances instead of more role instances. By adding and removing role instances to your application while it's running, you balance performance against running costs. An autoscaling solution reduces the manual work involved in dynamically scaling an application.
+</QuestionCard>
+
+<QuestionCard id="azure-compute-14" number={23} question="What is a VM Role in Windows Azure?" difficulty="medium" topic="Compute">
+VM Roles let you deploy a custom Windows Server 2008 R2 (Enterprise or Standard) image to Windows Azure. You'd use a VM Role when your application requires a large number of server OS customizations that can't be automated. The VM Role gives you full control over your application environment and lets you migrate existing applications to the cloud.
+</QuestionCard>
+
+<QuestionCard id="azure-compute-15" number={24} question="What is Scale Cloud Service?" difficulty="medium" topic="Compute">
+A cloud service is scaled out by increasing the number of role instances (virtual machines) deployed for a role, and scaled in by decreasing role instances. In the management portal, you can also scale a linked SQL Database instance — by changing its edition and maximum size — at the same time you scale your service roles.
+</QuestionCard>
+
+<QuestionCard id="azure-compute-16" number={25} question="What is a Worker Role?" difficulty="easy" topic="Compute">
+Applications hosted within Worker Roles can run asynchronous, long-running, or perpetual tasks independent of user interaction or input.
+</QuestionCard>
+
+<QuestionCard id="azure-compute-17" number={26} question="What is a Role Instance?" difficulty="easy" topic="Compute">
+A role instance is a virtual machine on which the application code and role configuration run. A role can have multiple instances, defined in the service configuration file.
+</QuestionCard>
+
+</QuestionList>
+
+### Storage: Blobs, Tables & Queues
+
+<QuestionList topic="Azure Storage" storagePrefix="azure-storage">
+
+<QuestionCard id="azure-storage-01" number={27} question="What is Blob storage?" difficulty="easy" topic="Storage">
+BLOB stands for Binary Large Object — a file of any type and size. Azure Blob Storage offers two types of blobs: Block Blobs and Page Blobs. Blobs are addressable using a URL of the form `https://<account>.blob.core.windows.net/<container>/<blob>`.
+</QuestionCard>
+
+<QuestionCard id="azure-storage-02" number={28} question="What is the difference between Block Blobs and Page Blobs?" difficulty="medium" topic="Storage">
+Block blobs are made up of blocks, each identified by a block ID. You create or modify a block blob by uploading a set of blocks and committing them by their block IDs — if the blob is no more than 64 MB, you can also upload it in its entirety with a single Put Blob operation. Each block can be up to 4 MB, and the maximum size for a block blob (in the 2009-09-19 version) is 200 GB, or up to 50,000 blocks.
+
+Page blobs are a collection of pages. A page is a range of data identified by its offset from the start of the blob; you create a page blob by calling Put Blob and specifying its maximum size, up to 1 TB, and a single page write can be up to 1 TB.
+
+Use block blobs for streaming scenarios like video. Use page blobs when the application needs random read/write access.
+</QuestionCard>
+
+<QuestionCard id="azure-storage-03" number={29} question="What is the difference between Windows Azure Queues and Windows Azure Service Bus Queues?" difficulty="medium" topic="Storage">
+Windows Azure supports two queue mechanisms:
+- **Windows Azure Queues** — part of the Windows Azure storage infrastructure, featuring a simple REST-based Get/Put/Peek interface that provides reliable, persistent messaging within and between services.
+- **Service Bus Queues** — part of a broader Windows Azure messaging infrastructure that supports queuing as well as publish/subscribe, web service remoting, and integration patterns.
+</QuestionCard>
+
+<QuestionCard id="azure-storage-04" number={30} question="What is a Deadletter Queue?" difficulty="medium" topic="Storage">
+Messages are placed on the deadletter sub-queue by the messaging system in these scenarios:
+- when a message expires and deadlettering for expired messages is set to true on a queue or subscription
+- when the max delivery count for a message is exceeded on a queue or subscription
+- when a filter evaluation exception occurs in a subscription and deadlettering on filter evaluation exceptions is enabled
+</QuestionCard>
+
+<QuestionCard id="azure-storage-05" number={31} question="What is Table Storage in Windows Azure?" difficulty="medium" topic="Storage">
+Windows Azure Table storage stores large amounts of structured data. It's a NoSQL datastore that accepts authenticated calls from inside and outside the Windows Azure cloud, and it's ideal for storing structured, non-relational data.
+- **Table** — a collection of entities. Tables don't enforce a schema on entities, so a single table can contain entities with different sets of properties. An account can contain many tables.
+- **Entity** — a set of properties, similar to a database row. An entity can be up to 1 MB in size.
+- **Properties** — name/value pairs. Each entity can include up to 252 properties, plus 3 system properties that specify a partition key, a row key, and a timestamp.
+
+Entities with the same partition key can be queried more quickly, and inserted/updated in atomic operations. An entity's row key is its unique identifier within a partition.
+</QuestionCard>
+
+</QuestionList>
+
+### Cloud Service Packaging, Deployment & Diagnostics
+
+<QuestionList topic="Azure Deployment and Diagnostics" storagePrefix="azure-deployment">
+
+<QuestionCard id="azure-deployment-01" number={32} question="What is Cspack?" difficulty="medium" topic="Deployment">
+`cspack` is a command-line tool that generates a service package file (`.cspkg`) and prepares an application for deployment, either to Windows Azure or to the compute emulator.
+</QuestionCard>
+
+<QuestionCard id="azure-deployment-02" number={33} question="What is Csrun?" difficulty="medium" topic="Deployment">
+`csrun` is a command-line tool that deploys a packaged application to the Windows Azure compute emulator and manages the running service.
+</QuestionCard>
+
+<QuestionCard id="azure-deployment-03" number={34} question="What is Windows Azure Diagnostics?" difficulty="medium" topic="Diagnostics">
+Windows Azure Diagnostics is the API that enables you to collect diagnostic data from an application running in Windows Azure. You can use that data for debugging and troubleshooting, measuring performance, monitoring resource usage, traffic analysis and capacity planning, and auditing. Diagnostics must be enabled for cloud service roles in order for verbose monitoring to be turned on.
+</QuestionCard>
+
+<QuestionCard id="azure-deployment-04" number={35} question="What is an Azure Cloud Service?" difficulty="medium" topic="Deployment">
+By creating a cloud service, you can deploy a multi-tier web application in Azure, defining multiple roles to distribute processing and allow flexible scaling of your application. A cloud service consists of one or more Web Roles and/or Worker Roles, each with its own application files and configuration. (Azure Websites and Virtual Machines also enable web applications on Azure, but the main advantage of cloud services is their ability to support more complex multi-tier architectures.)
+</QuestionCard>
+
+<QuestionCard id="azure-deployment-05" number={36} question="What is a Cloud Service Role?" difficulty="easy" topic="Deployment">
+A cloud service role is comprised of application files and a configuration. A cloud service can have two types of role: Web and Worker.
+</QuestionCard>
+
+<QuestionCard id="azure-deployment-06" number={37} question="What is a Link Resource?" difficulty="medium" topic="Deployment">
+To show your cloud service's dependencies on other resources — like an Azure SQL Database instance — you can "link" the resource to the cloud service. In the management portal, you can view linked resources, see their status on the dashboard, and scale a linked SQL Database instance along with the service roles from the Scale page. Linking a resource doesn't connect it to the application automatically; you still have to configure the connection in your application code.
+</QuestionCard>
+
+<QuestionCard id="azure-deployment-07" number={38} question="What are the components of a Cloud Service?" difficulty="medium" topic="Deployment">
+Three components are required to deploy an application as a cloud service in Azure: the service package (`.cspkg`), the service definition file (`.csdef`), and the service configuration file (`.cscfg`).
+</QuestionCard>
+
+<QuestionCard id="azure-deployment-08" number={39} question="What are Deployment Environments in Azure?" difficulty="medium" topic="Deployment">
+Azure offers two deployment environments for cloud services: a staging environment, where you can test your deployment before promoting it to production. The two environments are distinguished only by the virtual IP addresses (VIPs) through which the cloud service is accessed. In staging, the cloud service's globally unique identifier (GUID) identifies it in URLs (`GUID.cloudapp.net`). In production, the URL is based on the friendlier DNS prefix assigned to the cloud service (for example, `myservice.cloudapp.net`).
+</QuestionCard>
+
+<QuestionCard id="azure-deployment-09" number={40} question="What is a Swap Deployment?" difficulty="medium" topic="Deployment">
+To promote a deployment from Azure's staging environment to production, you can "swap" the deployments — switching the VIPs through which the two deployments are accessed. After the swap, the DNS name for the cloud service points to the deployment that had been in staging.
+</QuestionCard>
+
+<QuestionCard id="azure-deployment-10" number={41} question="What is the difference between minimal and verbose monitoring?" difficulty="medium" topic="Diagnostics">
+Minimal monitoring, configured by default for a cloud service, uses performance counters gathered from the host operating systems for role instances. Verbose monitoring gathers additional metrics based on performance data collected within the role instances themselves, enabling closer analysis of issues that occur during application processing.
+</QuestionCard>
+
+<QuestionCard id="azure-deployment-11" number={42} question="What is a Service Definition File?" difficulty="medium" topic="Deployment">
+The cloud service definition file (`.csdef`) defines the service model, including the number of roles.
+</QuestionCard>
+
+<QuestionCard id="azure-deployment-12" number={43} question="What is a Service Configuration File?" difficulty="medium" topic="Deployment">
+The cloud service configuration file (`.cscfg`) provides configuration settings for the cloud service and its individual roles, including the number of role instances.
+</QuestionCard>
+
+<QuestionCard id="azure-deployment-13" number={44} question="What is a Service Package?" difficulty="medium" topic="Deployment">
+The service package (`.cspkg`) contains the application code and the service definition file.
+</QuestionCard>
+
+<QuestionCard id="azure-deployment-14" number={45} question="What is a Cloud Service Deployment?" difficulty="medium" topic="Deployment">
+A cloud service deployment is an instance of a cloud service deployed to the Azure staging or production environment. You can maintain deployments in both staging and production at the same time.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Design a multi-tier cloud service where a public-facing website hands off long-running work to a background processor."** Talk through a Web Role handling requests, a Worker Role picking up asynchronous jobs (often via a queue between them), and why splitting them lets you scale each tier independently.
+- **"How do you ship a new version of a cloud service with effectively zero downtime?"** Explain deploying the new version to staging, validating it there, then performing a VIP swap to promote it to production — and how to roll back by swapping again if something's wrong.
+- **"You need to store large video files with sequential writes, and separately, a dataset that needs random read/write access."** Walk through why Block Blobs fit the streaming/large-object case and Page Blobs fit the random-access case, tying it back to how each type is internally addressed (blocks vs. pages).
+- **"Your cloud service occasionally drops below Azure's availability guarantee — what would you check first?"** Confirm at least two instances are deployed per role (the SLA's baseline requirement), then look at whether verbose monitoring is enabled to diagnose what's actually failing at the instance level.
+
+---
+
+## Further Reading
+
+- [GCP](/level-3-technologies/cloud/gcp/) — Google's equivalent compute, storage, and IAM services for comparison
+- [AWS](/level-3-technologies/cloud/aws/) — the third major cloud platform, useful for cross-cloud interview comparisons
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where cloud platform knowledge fits into the broader curriculum

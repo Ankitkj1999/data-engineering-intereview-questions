@@ -1,0 +1,120 @@
+---
+title: DBT
+description: dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## DBT: Transform Data with SQL & DAGs
+
+**dbt (data build tool) lets you write transformations as SQL, then builds and runs them as a dependency-ordered DAG — turning raw warehouse tables into cleaned, tested, documented analytics tables.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A **dbt model** is just a `SELECT` statement saved as a `.sql` file; dbt compiles it, resolves dependencies via `ref()`, and materializes it in the warehouse as a **view**, **table**, or **incremental** table. Projects are typically layered into **staging** (light cleaning, close to sources), **intermediate** (reusable joins/transforms), and **marts** (business-facing fact/dimension tables) — a structure that keeps models testable and reusable. **Incremental models** avoid full rebuilds by processing only new/changed rows, which requires a well-designed `unique_key` and a deterministic "latest record" rule. dbt's **testing** layer (generic tests like `unique`/`not_null`/`relationships`, plus custom singular tests) and **sources** with freshness checks catch broken data early, while **snapshots** capture SCD2-style history from mutable source tables. **Macros** (Jinja functions) remove repetition, and **state selection** lets CI run only the models affected by a change instead of rebuilding the whole DAG. dbt itself only transforms — it's typically one step inside a broader pipeline orchestrated by a tool like Airflow.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="DBT" storagePrefix="dbt">
+
+<QuestionCard id="dbt-01" number={1} question="What is dbt?" difficulty="easy" topic="Fundamentals">
+dbt (data build tool) is a transformation framework where you write transformations as SQL (and Jinja-templated SQL), and dbt builds a DAG of models and runs them in the right order. It is commonly used to transform raw data into cleaned, documented, tested analytics tables in a warehouse/lakehouse.
+</QuestionCard>
+
+<QuestionCard id="dbt-02" number={2} question="How is dbt different from Airflow?" difficulty="easy" topic="Orchestration">
+Airflow is an orchestration system that schedules and coordinates tasks of any kind. dbt focuses specifically on SQL-based transformations and their dependency graph, plus testing and documentation. In practice, Airflow often runs dbt as one step of a larger pipeline (ingestion → transform → publish).
+</QuestionCard>
+
+<QuestionCard id="dbt-03" number={3} question="What is a dbt model?" difficulty="easy" topic="Models">
+A dbt model is a select query stored as a `.sql` file in the `models/` directory. dbt materializes the model into a relation in your warehouse (view/table/incremental) and manages dependencies between models.
+</QuestionCard>
+
+<QuestionCard id="dbt-04" number={4} question="What does ref() do?" difficulty="medium" topic="Models">
+`ref('model_name')` declares a dependency on another dbt model. dbt uses it to build the DAG, order execution, and resolve the correct schema/database per environment. It also enables features like automated lineage in dbt docs.
+</QuestionCard>
+
+<QuestionCard id="dbt-05" number={5} question="What are the typical layers in a dbt project?" difficulty="medium" topic="Project Structure">
+A common pattern is:
+- **staging** — light cleaning and renaming, close to sources
+- **intermediate** — reusable transformations and joins
+- **marts** — business-facing fact/dimension tables and metrics-ready datasets
+
+This makes models easier to test, reuse, and maintain.
+</QuestionCard>
+
+<QuestionCard id="dbt-06" number={6} question="What is a materialization in dbt?" difficulty="easy" topic="Materializations">
+A materialization defines how dbt builds a model in the warehouse (for example, as a view, table, or incremental table). It controls the build strategy and how changes are applied over time.
+</QuestionCard>
+
+<QuestionCard id="dbt-07" number={7} question="When would you use view vs. table materializations?" difficulty="medium" topic="Materializations">
+Views are useful for fast iteration and when compute cost per query is acceptable. Tables are useful when queries are expensive or many downstream queries reuse the same result. The trade-off is storage cost and the need to keep tables updated.
+</QuestionCard>
+
+<QuestionCard id="dbt-08" number={8} question="What is an incremental model and what problems does it solve?" difficulty="medium" topic="Incremental Models">
+An incremental model only processes new or changed data instead of rebuilding the entire table each run. It reduces runtime and cost for large datasets. It requires correct keys and logic to avoid duplicates and missed updates.
+</QuestionCard>
+
+<QuestionCard id="dbt-09" number={9} question="How do you design a reliable unique_key?" difficulty="hard" topic="Incremental Models">
+The `unique_key` should uniquely identify a record in the target table, usually a stable business key or a surrogate key derived from stable columns. If the source can update records, you also need a deterministic "latest record" rule (for example, using an `updated_at` column) so merges are correct.
+</QuestionCard>
+
+<QuestionCard id="dbt-10" number={10} question="What are dbt tests and what types exist?" difficulty="medium" topic="Testing">
+dbt supports:
+- **generic tests** (built-in or custom): `unique`, `not_null`, `accepted_values`, `relationships`
+- **singular tests**: custom SQL queries that should return zero failing rows
+
+Tests run as queries in the warehouse and fail the run if assertions are violated.
+</QuestionCard>
+
+<QuestionCard id="dbt-11" number={11} question="What are sources in dbt and how do you test them?" difficulty="medium" topic="Testing">
+Sources declare upstream tables and their metadata in `sources.yml`. You can test sources with freshness checks and column-level tests (like `not_null`) to detect broken ingestion or schema drift early.
+</QuestionCard>
+
+<QuestionCard id="dbt-12" number={12} question="What are snapshots in dbt and when would you use them?" difficulty="medium" topic="Snapshots">
+Snapshots capture slowly changing dimension history by tracking changes in source records over time. They are useful when you need point-in-time analysis or to implement SCD2-style history from mutable source tables.
+</QuestionCard>
+
+<QuestionCard id="dbt-13" number={13} question="What are macros in dbt and when should you use them?" difficulty="medium" topic="Macros">
+Macros are Jinja functions that generate SQL. Use them to avoid repetition (standardized column selection, reusable filters, dynamic SQL) and to keep business logic consistent across models. Overusing macros for complex logic can hurt readability and debugging.
+</QuestionCard>
+
+<QuestionCard id="dbt-14" number={14} question="What is dbt state selection?" difficulty="hard" topic="CI/CD">
+State selection runs only models that changed (and their dependents) compared to a previous artifact state. In CI, this reduces runtime by avoiding full rebuilds, while still validating that changes compile, run, and pass tests for affected parts of the DAG.
+</QuestionCard>
+
+<QuestionCard id="dbt-15" number={15} question="How do you approach CI/CD for dbt projects?" difficulty="medium" topic="CI/CD">
+A common approach is:
+- **in CI**: `dbt deps`, `dbt compile`, run selected models/tests (state-based or tags)
+- **in CD**: deploy artifacts and run scheduled jobs in production
+
+You usually also enforce code review, documentation, and data tests for critical marts.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A dbt model takes 40 minutes to build every night and it's only getting slower."** Talk through switching it from a table to an incremental materialization, choosing a reliable `unique_key`, and using state selection so CI doesn't rebuild the whole DAG on every PR.
+- **"How would you catch a broken upstream schema before it reaches your marts?"** Discuss declaring the table as a dbt source, adding freshness checks and column tests (`not_null`, `relationships`), and failing the run loudly rather than silently propagating bad data downstream.
+- **"You need point-in-time history for a dimension that only exists as a mutable table in the source system."** Explain dbt snapshots as the SCD2 mechanism, and how they differ from just re-running a model that always reflects "now."
+
+---
+
+## Further Reading
+
+- [Data Modeling](/level-2-core-concepts/data-modeling/) — the star schema and SCD concepts dbt marts and snapshots implement
+- [SQL Interview Questions](/level-1-foundations/sql/theory/) — the query patterns dbt models are built from
+- [Airflow](/level-3-technologies/orchestration/airflow/) — the orchestrator that commonly triggers dbt runs in production

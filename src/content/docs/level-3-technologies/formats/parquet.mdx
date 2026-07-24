@@ -1,0 +1,167 @@
+---
+title: Parquet
+description: Interview questions covering Parquet columnar storage, compression codecs, row groups, predicate pushdown, partitioning, and data lake optimization.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Parquet: Columnar Storage Format
+
+**Parquet is an open-source columnar storage format built for efficient analytics — it stores data by column rather than by row, which lets query engines read only what they need and compress it far better than row-oriented formats like CSV.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Parquet's core idea is **columnar storage**: values from the same column are stored contiguously, which enables strong **compression** (Snappy, Gzip, LZO, ZSTD, and others), **dictionary encoding** for low-cardinality columns, and reading only the columns a query actually touches. Physically, a file is organized into **row groups**, each holding a **column chunk** per column, with a **footer** carrying the schema and per-chunk statistics (including min/max values). Those statistics power **predicate pushdown** and row-group skipping, so engines like Spark can avoid scanning data that can't match a filter. Parquet also supports **schema evolution** and **nested/complex types** (arrays, maps, structs) via record shredding, which is why it's the default format for data lakes and Spark, and is commonly paired with **partitioning** (directory-based pruning) for further performance gains.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Parquet" storagePrefix="parquet">
+
+<QuestionCard id="parquet-01" number={1} question="What is Parquet?" difficulty="easy" topic="Fundamentals">
+Parquet is an open-source columnar storage format designed for efficient data analytics and storage. It's widely used in big data platforms for storing and processing large datasets.
+</QuestionCard>
+
+<QuestionCard id="parquet-02" number={2} question="What are the key benefits of Parquet?" difficulty="easy" topic="Benefits">
+Key benefits include efficient compression, faster query performance, reduced storage costs, excellent schema evolution support, and compatibility with multiple data processing frameworks.
+</QuestionCard>
+
+<QuestionCard id="parquet-03" number={3} question="What is columnar storage?" difficulty="easy" topic="Storage">
+Columnar storage stores data by columns instead of rows, allowing efficient compression and faster query performance when accessing specific columns.
+</QuestionCard>
+
+<QuestionCard id="parquet-04" number={4} question="How does Parquet compare to CSV?" difficulty="easy" topic="Comparison">
+Parquet is compressed (saves around 90% storage vs. raw text), faster to read (only reads needed columns), supports nested data, and has better data type preservation. CSV is text-based, uncompressed, row-oriented, and less efficient for analytical queries.
+</QuestionCard>
+
+<QuestionCard id="parquet-05" number={5} question="What is the structure of a Parquet file?" difficulty="medium" topic="File Structure">
+A Parquet file contains: magic bytes (header), one or more row groups, metadata, and a footer with schema and statistics information.
+</QuestionCard>
+
+<QuestionCard id="parquet-06" number={6} question="What compression algorithms does Parquet support?" difficulty="medium" topic="Compression">
+Parquet supports Snappy, Gzip, LZO, Brotli, LZ4, ZSTD, and uncompressed. Snappy is the default.
+</QuestionCard>
+
+<QuestionCard id="parquet-07" number={7} question="What is Snappy compression?" difficulty="easy" topic="Compression">
+Snappy is a fast compression algorithm that prioritizes speed over compression ratio, offering a good balance between compression and query performance.
+</QuestionCard>
+
+<QuestionCard id="parquet-08" number={8} question="What is Gzip compression?" difficulty="easy" topic="Compression">
+Gzip provides higher compression ratios than Snappy but is slower. It's suitable when storage cost matters more than query speed.
+</QuestionCard>
+
+<QuestionCard id="parquet-09" number={9} question="What is LZO compression?" difficulty="medium" topic="Compression">
+LZO provides fast compression/decompression with moderate compression ratios. It's useful for bandwidth-limited scenarios.
+</QuestionCard>
+
+<QuestionCard id="parquet-10" number={10} question="How does Parquet handle schema evolution?" difficulty="medium" topic="Schema">
+Parquet supports adding, removing, and reordering columns, allowing schema changes without rewriting entire files.
+</QuestionCard>
+
+<QuestionCard id="parquet-11" number={11} question="What is a Parquet footer?" difficulty="medium" topic="File Structure">
+The footer contains metadata about the file: schema, row group information, column statistics, and encoding information.
+</QuestionCard>
+
+<QuestionCard id="parquet-12" number={12} question="What is a row group in Parquet?" difficulty="medium" topic="File Structure">
+A row group is a collection of rows that are stored together. Each row group contains column chunks for each column.
+</QuestionCard>
+
+<QuestionCard id="parquet-13" number={13} question="What is a column chunk?" difficulty="medium" topic="File Structure">
+A column chunk is the data for a single column within a row group, stored in columnar format.
+</QuestionCard>
+
+<QuestionCard id="parquet-14" number={14} question="How do you read Parquet files?" difficulty="easy" topic="Reading">
+Use libraries like PySpark, Pandas, or PyArrow, or Spark SQL with `read.parquet()` or similar methods.
+</QuestionCard>
+
+<QuestionCard id="parquet-15" number={15} question="How do you write Parquet files?" difficulty="easy" topic="Writing">
+Use `write.parquet()` or `to_parquet()` methods in Spark, Pandas, or PyArrow, with optional compression and partitioning.
+</QuestionCard>
+
+<QuestionCard id="parquet-16" number={16} question="What is Parquet predicate pushdown?" difficulty="medium" topic="Performance">
+Predicate pushdown pushes filtering conditions down to the storage layer, reading only relevant column chunks instead of scanning entire files.
+</QuestionCard>
+
+<QuestionCard id="parquet-17" number={17} question="How does Parquet optimize query performance?" difficulty="medium" topic="Performance">
+Through columnar storage (read only needed columns), compression (less data transfer), predicate pushdown (skip irrelevant data), and statistics (skip whole row groups).
+</QuestionCard>
+
+<QuestionCard id="parquet-18" number={18} question="What is min-max statistics in Parquet?" difficulty="medium" topic="Statistics">
+Min-max statistics store the minimum and maximum values for each column chunk, enabling the query engine to skip row groups that can't match a filter condition.
+</QuestionCard>
+
+<QuestionCard id="parquet-19" number={19} question="How does Parquet handle missing values?" difficulty="easy" topic="Data Quality">
+Missing values are represented as NULL and tracked in the file metadata, maintaining data integrity.
+</QuestionCard>
+
+<QuestionCard id="parquet-20" number={20} question="What are the supported data types in Parquet?" difficulty="medium" topic="Data Types">
+Parquet supports: `INT32`, `INT64`, `INT96`, `FLOAT`, `DOUBLE`, `BYTE_ARRAY`, `FIXED_LEN_BYTE_ARRAY`, `BOOLEAN`, and decimal types.
+</QuestionCard>
+
+<QuestionCard id="parquet-21" number={21} question="Can Parquet store nested data structures?" difficulty="medium" topic="Nested Data">
+Yes, Parquet supports nested/complex types like arrays, maps, and structs through its record shredding and assembly algorithm.
+</QuestionCard>
+
+<QuestionCard id="parquet-22" number={22} question="What is the difference between Parquet and ORC?" difficulty="medium" topic="Comparison">
+Both are columnar formats, but Parquet is more universal (works virtually everywhere), while ORC is optimized for Hive and can provide better compression ratios in that ecosystem.
+</QuestionCard>
+
+<QuestionCard id="parquet-23" number={23} question="How is Parquet used in Apache Spark?" difficulty="easy" topic="Spark">
+Spark uses Parquet as its default storage format, reading/writing DataFrames in Parquet with built-in optimizations and compression support.
+</QuestionCard>
+
+<QuestionCard id="parquet-24" number={24} question="What is Parquet used for in data lakes?" difficulty="easy" topic="Data Lakes">
+Parquet is the standard format for data lakes because of its efficient storage, query performance, schema evolution support, and compatibility with a wide range of tools.
+</QuestionCard>
+
+<QuestionCard id="parquet-25" number={25} question="How do you partition Parquet files?" difficulty="medium" topic="Partitioning">
+Partition by adding directory structure (e.g., `/year=2024/month=06/`), which enables partition pruning for faster queries.
+</QuestionCard>
+
+<QuestionCard id="parquet-26" number={26} question="What is the impact of partitioning on query performance?" difficulty="medium" topic="Performance">
+Partitioning dramatically improves performance by reducing the amount of data scanned — queries only read the relevant partitions.
+</QuestionCard>
+
+<QuestionCard id="parquet-27" number={27} question="How do you optimize Parquet file size?" difficulty="medium" topic="Optimization">
+Use appropriate compression, set optimal row group sizes, choose suitable encoding, and remove unnecessary columns.
+</QuestionCard>
+
+<QuestionCard id="parquet-28" number={28} question="What is dictionary encoding in Parquet?" difficulty="medium" topic="Encoding">
+Dictionary encoding replaces repeated values with dictionary indices, reducing file size for low-cardinality columns.
+</QuestionCard>
+
+<QuestionCard id="parquet-29" number={29} question="How does Parquet handle data type conversion?" difficulty="medium" topic="Data Types">
+Parquet supports logical types that map to underlying physical types, allowing automatic conversion while maintaining data semantics.
+</QuestionCard>
+
+<QuestionCard id="parquet-30" number={30} question="What are common use cases for Parquet?" difficulty="easy" topic="Use Cases">
+Common uses include data lake storage, Spark/Hadoop processing, analytics queries, ETL pipelines, and cloud data warehouse integration.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Why would you choose Parquet over CSV for a data lake?"** Walk through compression ratio, columnar reads for wide tables, predicate pushdown via row-group statistics, and schema evolution — then contrast with CSV's lack of types, compression, and column pruning.
+- **"A query scanning a large Parquet dataset is slow — how do you speed it up?"** Talk through partitioning by a commonly filtered column, right-sizing row groups, choosing an appropriate compression codec, and confirming predicate pushdown is actually happening (filter on a partition/statistics-friendly column).
+- **"How does Parquet support schema evolution when new columns get added upstream?"** Explain that new/removed/reordered columns don't require rewriting existing files, and that readers reconcile the file's schema against the expected schema at read time.
+
+---
+
+## Further Reading
+
+- [Avro](/level-3-technologies/formats/avro/) — a row-oriented format with the same schema-evolution goals, better suited to write-heavy/streaming use cases
+- [Delta Lake](/level-3-technologies/formats/delta/) — adds ACID transactions and time travel on top of Parquet files
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where storage formats fit into the broader curriculum

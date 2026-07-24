@@ -1,0 +1,531 @@
+---
+title: Hive
+description: Apache Hive interview questions covering HiveQL, the metastore, partitioning and bucketing, file formats, joins, and performance optimization for data engineers.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Apache Hive: SQL Interface for Hadoop
+
+**Hive layers a SQL-like query language on top of data sitting in Hadoop, translating HiveQL into execution jobs so analysts can query huge datasets without writing MapReduce by hand.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Hive is **SQL-on-Hadoop**: it stores no data of its own, instead mapping schemas onto files sitting in HDFS (or S3 and similar) and translating **HiveQL** queries into execution jobs — historically MapReduce, though modern deployments typically run Hive on Tez or Spark instead. The **metastore** is the piece that makes this work: a relational database holding table definitions, column types, partition locations, and SerDe information, shared by every engine that wants a consistent view of the same data (Hive, Spark SQL, Presto/Trino). Because Hive is **schema-on-read** rather than schema-on-write, the same underlying files can be reinterpreted under different table definitions without rewriting anything. Performance in Hive comes down to a handful of levers used together: **partitioning** to prune irrelevant data before a scan even starts, **bucketing** to enable efficient sampling and map-side joins, and columnar file formats like **ORC** or **Parquet** to minimize I/O and support predicate pushdown. Hive's batch-oriented, high-latency nature also means it's a poor fit for OLTP — no row-level updates, no low-latency point lookups — but a strong fit for large-scale, append-heavy analytical workloads.
+
+---
+
+## Interview Questions
+
+### HiveQL Fundamentals & Architecture
+
+Core concepts, components, and how Hive fits into the Hadoop ecosystem.
+
+<QuestionList topic="HiveQL Fundamentals & Architecture" storagePrefix="hive-fund">
+
+<QuestionCard id="hive-fund-01" number={1} question="Why do we need Hive, and what is its use in the Hadoop ecosystem?" difficulty="easy" topic="Fundamentals">
+Hive gives users a SQL-like interface for organizing and querying data that lives in Hadoop, so teams can access and analyze big data using familiar SQL syntax instead of writing MapReduce code directly. Tables and their data can be created and queried through Hive, and under the hood Hive queries are converted into execution jobs. Hive also integrates with HBase for querying HBase tables. In short, it hides the complexity of writing and running distributed jobs by hand.
+</QuestionCard>
+
+<QuestionCard id="hive-fund-02" number={2} question="What are the main components of Hive?" difficulty="medium" topic="Architecture">
+- **Hive Driver** — receives queries from users, manages sessions, and exposes execute/fetch APIs similar to JDBC/ODBC.
+- **Metastore** — stores all metadata about tables and partitions, including columns, column types, and which serializers/deserializers are used to read and write the underlying HDFS files.
+- **Hive Compiler** — parses queries, performs semantic analysis on query blocks and expressions, and produces the execution plan for reading tables and partitions.
+- **Execution Engine** — runs the compiler's execution plan, managing dependencies between its stages and executing each stage on the relevant system components.
+- **User Interface (UI)** — how users submit queries and interact with the system.
+</QuestionCard>
+
+<QuestionCard id="hive-fund-03" number={3} question="What are the main components of the Query Processor in Apache Hive?" difficulty="hard" topic="Architecture">
+- Parse and semantic analysis (`ql/parse`)
+- Optimizer (`ql/optimizer`)
+- Plan components (`ql/plan`)
+- Metadata layer (`ql/metadata`)
+- Map/Reduce execution engine (`ql/exec`)
+- Sessions (`ql/session`)
+- Type interfaces (`ql/typeinfo`)
+- Hive function framework (`ql/udf`)
+- Tools (`ql/tools`)
+</QuestionCard>
+
+<QuestionCard id="hive-fund-04" number={4} question="Can we use Hive for Online Transaction Processing (OLTP) systems?" difficulty="easy" topic="Fundamentals">
+No. Hive does not support row-level insert and update, which OLTP systems need for modifying individual orders or rows. Hive is built for OLAP-style analytical workloads over large, mostly-append datasets — not for the fine-grained, low-latency writes OLTP requires.
+</QuestionCard>
+
+<QuestionCard id="hive-fund-05" number={5} question="What are the main limitations of Apache Hive?" difficulty="medium" topic="Fundamentals">
+- **OLTP** — no support for record-level update/insert, so it can't serve OLTP applications.
+- **Best fit** — designed for data warehouse applications on big data, not general-purpose transactional use.
+- **Latency** — higher query latency than a traditional RDBMS due to job start-up overhead.
+- **Batch-oriented** — optimized for batch use cases rather than interactive, low-latency queries.
+- **OLAP** — a reasonable fit for Online Analytical Processing, alongside options like HBase for other OLAP-style needs.
+</QuestionCard>
+
+<QuestionCard id="hive-fund-06" number={6} question="What is the difference between HBase and Hive?" difficulty="medium" topic="Fundamentals">
+HBase is a NoSQL database that supports record-level update, insert, and delete, but has no built-in SQL-like query language — Hive can be layered on top of HBase for querying. Hive itself runs its queries via an execution engine (traditionally MapReduce); HBase runs directly on HDFS. Put simply: Hive is a data warehousing and analytics framework, while HBase is a NoSQL database built on top of HDFS.
+</QuestionCard>
+
+<QuestionCard id="hive-fund-07" number={7} question="What are the different modes in which Hive can be run?" difficulty="medium" topic="Architecture">
+- **Local mode** — Hive's MapReduce jobs run locally on a single machine using the local file system. This is Hive's default mode.
+- **Distributed mode** — both Hive and Hadoop run fully distributed, with NameNode, DataNode, JobTracker, and TaskTracker (or their modern equivalents) spread across different machines.
+- **Pseudo-distributed mode** — all daemons run on a single machine, typically used by developers to test code against limited data before deploying to a real cluster.
+</QuestionCard>
+
+<QuestionCard id="hive-fund-08" number={8} question="What are the main use cases for using Hive?" difficulty="easy" topic="Fundamentals">
+Hive is mainly used for data warehouse applications, and because it runs on Hadoop's execution engines it works best where that trade-off is acceptable — namely:
+
+- Analysis of static, large ("big") datasets
+- Applications where a less-responsive (higher-latency) query time is acceptable
+- Analysis of data that doesn't change rapidly
+</QuestionCard>
+
+<QuestionCard id="hive-fund-09" number={9} question="What is ObjectInspector in Hive?" difficulty="hard" topic="Architecture">
+`ObjectInspector` is the interface Hive uses to look into the internal structure of a complex object. It's implemented by classes like `StandardListObjectInspector`, `StandardMapObjectInspector`, and `StandardSetObjectInspector`. Its main use is in the SerDe package, for serialization and deserialization — a SerDe can use an `ObjectInspector` to serialize an object that was created by a different SerDe. Implementations need to make sure the underlying object's `hashCode()` and `equals()` methods behave correctly through the inspector as well.
+</QuestionCard>
+
+<QuestionCard id="hive-fund-10" number={10} question="What are the options to connect an application to a Hive server?" difficulty="medium" topic="Architecture">
+- **JDBC Driver** — Java-based connectivity, supporting both embedded and remote access to HiveServer.
+- **Python Client** — a Python driver for connecting to the Hive server.
+- **Ruby Client** — a Ruby driver for connecting to the Hive server.
+- **Thrift Client** — connects over Thrift, typically via the Beeline command-line shell. This is the recommended option for production: it's secure, and it doesn't require granting users direct HDFS access.
+</QuestionCard>
+
+<QuestionCard id="hive-fund-11" number={11} question="What is the need for a custom SerDe?" difficulty="medium" topic="SerDe">
+Hive's built-in SerDes don't cover every possible data format. When the shape of the incoming data doesn't match what's available out of the box, users write their own SerDe implementation in Java to handle their specific format's serialization and deserialization requirements.
+</QuestionCard>
+
+<QuestionCard id="hive-fund-12" number={12} question="What are the different SerDe implementations in Hive?" difficulty="medium" topic="SerDe">
+Hive ships several built-in SerDe implementations, and custom ones can be written as needed. Common ones include:
+
+- `ByteStreamTypedSerDe`
+- `RegexSerDe`
+- `OpenCSVSerde`
+- `DelimitedJSONSerDe`
+</QuestionCard>
+
+<QuestionCard id="hive-fund-13" number={13} question="What is the use of HCatalog?" difficulty="medium" topic="Ecosystem">
+HCatalog is Hadoop's table and storage management layer. It lets different data processing tools — Pig, MapReduce, Hive, Streaming, and others — share a consistent, relational view of the same data and read/write it in any format for which a SerDe is available. Default formats supported include RCFile, CSV, JSON, and SequenceFile.
+</QuestionCard>
+
+<QuestionCard id="hive-fund-14" number={14} question="What is the data model of HCatalog?" difficulty="medium" topic="Ecosystem">
+HCatalog uses the same data types as Hive. Tables are created inside a database and can be partitioned on a hash; a partition can contain multiple dimensions and holds records, which in turn are divided into named, typed columns. Once a partition is created, records can't be added to or removed from it directly. Overall, the HCatalog data model closely mirrors the relational data model.
+</QuestionCard>
+
+<QuestionCard id="hive-fund-15" number={15} question="How can Hive avoid MapReduce?" difficulty="medium" topic="Performance">
+Setting `hive.exec.mode.local.auto` to `true` tells Hive to try fetching query results locally instead of launching a MapReduce job, which is useful for small queries where job start-up overhead would dominate the runtime.
+</QuestionCard>
+
+</QuestionList>
+
+### Metastore, Data Types & Data Model
+
+Metastore internals, Hive's type system, and how it represents tables under the hood.
+
+<QuestionList topic="Metastore, Data Types & Data Model" storagePrefix="hive-meta">
+
+<QuestionCard id="hive-meta-01" number={16} question="What is Metastore in Hive?" difficulty="medium" topic="Metastore">
+The metastore is a relational database that stores Hive's metadata: table definitions, column mappings, partitions, databases, and other schema information. It has two parts:
+
+- **Metastore Service** — the interface between Hive and users/processes.
+- **Metastore Database** — where table definitions, data mappings, and so on are actually stored (typically backed by an RDBMS supported by JPOX).
+
+By default, only one user can access the metastore at a time. In the default **Embedded Metastore** configuration it runs in the same JVM as the Hive driver (fine for dev/test); pointing it at an external database like MySQL instead is called a **Local Metastore** and is what production deployments use.
+</QuestionCard>
+
+<QuestionCard id="hive-meta-02" number={17} question="What is SerDe in Hive?" difficulty="medium" topic="Metastore">
+SerDe stands for Serializer/Deserializer — the interface Hive uses for input/output. Any time Hive reads or writes data, it goes through a SerDe. This lets Hive read data from a table and write it to HDFS in a custom format, and lets users implement custom SerDes for formats Hive doesn't understand natively. During map and reduce phases, Hive can use the serialize methods of `LazyBinarySerDe` and `BinarySortableSerDe`, and an `ObjectInspector` can be used so one SerDe can serialize an object produced by another.
+</QuestionCard>
+
+<QuestionCard id="hive-meta-03" number={18} question="What are the components in the Hive data model?" difficulty="medium" topic="Metastore">
+- **Tables** — similar to RDBMS tables: support filters, joins, and unions, with data stored in HDFS. Rows are organized into typed columns, much like a relational table.
+- **Partitions** — each table can specify partition keys that determine how data is physically split, so queries can scan only the relevant subset instead of the whole table.
+- **Buckets** — within a partition, data can be further divided into buckets based on the hash of a column, with each bucket stored as a separate file — useful for efficient sampling and joins.
+</QuestionCard>
+
+<QuestionCard id="hive-meta-04" number={19} question="What collection/complex data types are supported by Hive?" difficulty="medium" topic="Data Types">
+- **Map** — a collection of key-value pairs; access a value with `[key]`.
+- **Array** — an index-based ordered sequence of values; access an element with `[i]`.
+- **Struct** — a record type with named fields inside it, similar to a `struct` in C or an object in Java.
+- **Uniontype** — similar to a union in C. Support for this type has never been complete, so it's best avoided in practice.
+
+Hive also has a dedicated `TIMESTAMP` type (backed by `java.sql.Timestamp`) for date/time values.
+</QuestionCard>
+
+<QuestionCard id="hive-meta-05" number={20} question="What do you mean by schema-on-read?" difficulty="medium" topic="Data Types">
+Schema-on-read means the schema is validated against the data at query time, not enforced when the data is written. This is the opposite of a traditional RDBMS's schema-on-write model, and it's what lets Hive apply multiple, even conflicting, table definitions to the same underlying files.
+</QuestionCard>
+
+<QuestionCard id="hive-meta-06" number={21} question="Can we create multiple table schemas for the same data file?" difficulty="medium" topic="Metastore">
+Yes. Hive stores each table's schema in the metastore while the underlying data stays in the same file(s) in HDFS. Because different tables can define different schemas over the same data, querying through each table can surface different results from the same underlying dataset.
+</QuestionCard>
+
+<QuestionCard id="hive-meta-07" number={22} question="What are the default record and field delimiters used for Hive text files?" difficulty="easy" topic="Data Types">
+The default record delimiter is `\n` (newline), and the default field delimiters are `\001`, `\002`, `\003` (Ctrl-A, Ctrl-B, Ctrl-C).
+</QuestionCard>
+
+</QuestionList>
+
+### DDL, Tables, Views & Partitioning
+
+Creating, altering, and managing tables, views, partitions, and buckets.
+
+<QuestionList topic="DDL, Tables, Views & Partitioning" storagePrefix="hive-ddl">
+
+<QuestionCard id="hive-ddl-01" number={23} question="How do you change the data type of a column in Hive?" difficulty="medium" topic="DDL">
+Use the `ALTER TABLE ... REPLACE COLUMNS` statement:
+
+```sql
+ALTER TABLE tableName REPLACE COLUMNS (columnName newDataType);
+```
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-02" number={24} question="Can a table be renamed in Hive, and how would you rename one without using ALTER?" difficulty="medium" topic="DDL">
+Yes, a table can be renamed directly:
+
+```sql
+ALTER TABLE table_name RENAME TO new_name;
+```
+
+To rename a table **without** `ALTER`, export it and re-import it under a new name:
+
+```sql
+EXPORT TABLE tableName TO 'TEMP_LOCATION';
+IMPORT TABLE newTableName FROM 'TEMP_LOCATION';
+```
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-03" number={25} question="What is the use of the IF EXISTS clause in Hive statements, including when dropping a table?" difficulty="easy" topic="DDL">
+`IF EXISTS` is used with statements like `DROP TABLE` to avoid an error when the target doesn't actually exist. Without it, `DROP TABLE tableName` throws an error if the table isn't there; with `DROP TABLE IF EXISTS tableName`, the statement succeeds silently even if the table was never created — useful when a script can't be sure the table exists.
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-04" number={26} question="What is the use of PURGE in a Hive DROP statement?" difficulty="medium" topic="DDL">
+`PURGE` is used when you're certain you want to permanently delete a table's data:
+
+```sql
+DROP TABLE tableName PURGE;
+```
+
+With `PURGE`, the data skips the trash folder entirely, so it can't be recovered if the `DROP` turns out to have been accidental.
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-05" number={27} question="Can we use the same name for a TABLE and a VIEW in Hive?" difficulty="easy" topic="Views">
+No. A view's name must be unique across all tables and views in the same database, so you can't reuse a table name for a view (or vice versa).
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-06" number={28} question="Can we load data into a VIEW in Hive?" difficulty="easy" topic="Views">
+No — this is a common trick question. A view can never be the target of an `INSERT` or `LOAD` statement in Hive; data can only be loaded into an actual table.
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-07" number={29} question="What is bucketing in Hive?" difficulty="medium" topic="Bucketing">
+Bucketing divides a dataset into a fixed, manageable number of parts based on the hash of a column — conceptually similar to hashing. Unlike partitioning, the number of buckets stays fixed regardless of how much the underlying data grows, and bucketing also enables efficient map-side joins.
+
+For example, with `date` as a first-level partition and `user_id` as a second-level partition, millions of distinct `user_id` values would create millions of tiny partitions/files. Bucketing `user_id` instead uses a hash function to distribute users across a manageable, fixed number of buckets rather than creating a new partition per user.
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-08" number={30} question="What is the use of the CLUSTERED BY clause during table creation in Hive?" difficulty="medium" topic="Bucketing">
+`CLUSTERED BY` is Hive's mechanism for bucketing a table, and behaves like combining `DISTRIBUTE BY` and `SORT BY`: it first distributes rows across a set of reducers using a hash function, then sorts the data within each. It must be specified at table creation time, but its benefit shows up later, in more efficient querying.
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-09" number={31} question="What is a skewed table in Hive?" difficulty="hard" topic="Performance">
+A skewed table is a table where some values in a column occur far more often than others, producing a skewed distribution. Declaring a table `SKEWED` at creation time tells Hive to write the skewed values into separate files from the remaining values:
+
+```sql
+CREATE TABLE tableName (column1 STRING, column2 STRING)
+SKEWED BY (column1) ON (value1);
+```
+
+This isolation gives better query performance against tables that would otherwise have a few very "hot" values dominating processing time.
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-10" number={32} question="What is a managed table in Hive?" difficulty="medium" topic="Tables">
+A managed table is one whose files, metadata, and statistics are all controlled by Hive's internal processes — this is the default table type Hive creates. Dropping a managed table (or one of its partitions) deletes both its metadata and its underlying data. Managed tables are the right choice when you want Hive to own the table's full lifecycle, including for temporary tables. Running `DESCRIBE FORMATTED tableName` shows whether a table is `MANAGED_TABLE` or `EXTERNAL_TABLE`.
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-11" number={33} question="What are the different types of tables available in Hive?" difficulty="medium" topic="Tables">
+There are two types:
+
+- **Managed table** — both the data and the schema are under Hive's control; dropping the table deletes both.
+- **External table** — only the schema is under Hive's control; the data lives independently, and dropping the table leaves the underlying files untouched.
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-12" number={34} question="How does the OVERWRITE clause work in a Hive CREATE TABLE / LOAD statement, and what happens if it's omitted?" difficulty="medium" topic="DDL">
+`OVERWRITE` deletes the existing data in the target and replaces it with the new data being written — as the name suggests, it overwrites rather than appends.
+
+If `OVERWRITE` is **omitted** when loading data: new incoming files are simply added to the target directory, and any existing file whose name matches an incoming file is overwritten; files whose names don't match any incoming file are left alone. Adding `OVERWRITE` instead deletes all existing data in the directory before writing the new data.
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-13" number={35} question="How do you prevent data from being dropped or queried from a partition in Hive?" difficulty="hard" topic="Partitioning">
+- `ALTER TABLE table_name ENABLE NO_DROP` — prevents the partition from being dropped.
+- `ALTER TABLE table_name ENABLE OFFLINE` — prevents the partition from being queried (its metadata is still accessible while offline).
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-14" number={36} question="What is the use of TOUCH in an ALTER statement?" difficulty="medium" topic="Partitioning">
+`TOUCH` reads a partition's metadata and writes it back, which updates the partition's last-accessed time. It also triggers any POST and PRE hooks configured on that table partition. It can't be used to create a table or partition that doesn't already exist.
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-15" number={37} question="How do you check if a particular partition exists?" difficulty="medium" topic="Partitioning">
+```sql
+SHOW PARTITIONS table_name PARTITION(partitioned_column='partition_value');
+```
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-16" number={38} question="When you point a partition of a Hive table to a new directory, what happens to the data?" difficulty="medium" topic="Partitioning">
+The data itself stays in its old location — repointing the partition only updates the metastore's pointer to a new directory. Moving the actual data has to be done manually.
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-17" number={39} question="Write a query to insert a new column new_col of type INT into a Hive table at a position before an existing column x_col." difficulty="medium" topic="DDL">
+```sql
+ALTER TABLE table_name CHANGE COLUMN new_col new_col INT BEFORE x_col;
+```
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-18" number={40} question="What are the pros and cons of archiving a partition in Hive, and does it save space in HDFS?" difficulty="hard" topic="Partitioning">
+A partition can be archived to reduce the number of files Hive is managing for it.
+
+- **Advantage** — fewer files means less metadata for the NameNode to track, which helps NameNode scalability. Archived partitions can still be queried.
+- **Disadvantage** — queries against an archived partition become slower and less efficient.
+- **Space savings** — archiving does **not** save storage space in HDFS. It only reduces the number of files; the underlying data volume is unchanged.
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-19" number={41} question="What types of costs are associated with creating an index in Hive tables?" difficulty="medium" topic="Performance">
+An index consumes additional storage space, and there's a processing cost incurred while building and maintaining the sorted index structure over the indexed column's values.
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-20" number={42} question="How do you specify the table creator's name when creating a table in Hive?" difficulty="easy" topic="DDL">
+Use the `TBLPROPERTIES` clause:
+
+```sql
+TBLPROPERTIES ('creator' = 'Joan')
+```
+</QuestionCard>
+
+<QuestionCard id="hive-ddl-21" number={43} question="How can you delete a database property (DBPROPERTY) in Hive?" difficulty="medium" topic="DDL">
+You can't. Hive provides no way to delete a DBPROPERTY once it's set.
+</QuestionCard>
+
+</QuestionList>
+
+### HiveQL Queries, Functions & Joins
+
+Query syntax, string/table-generating functions, and join behavior.
+
+<QuestionList topic="HiveQL Queries, Functions & Joins" storagePrefix="hive-query">
+
+<QuestionCard id="hive-query-01" number={44} question="What is the difference between SORT BY and ORDER BY in Hive?" difficulty="medium" topic="Query Syntax">
+- **`SORT BY`** — sorts data within each reducer; multiple reducers can be used, so the result is only locally sorted per reducer, not globally.
+- **`ORDER BY`** — sorts all data through a single reducer, guaranteeing total (global) order in the output, at the cost of parallelism.
+</QuestionCard>
+
+<QuestionCard id="hive-query-02" number={45} question="How does the CONCAT function work in Hive?" difficulty="easy" topic="Functions">
+`CONCAT` concatenates a comma-separated list of input strings. Hive also provides `CONCAT_WS`, which takes a custom delimiter to insert between the concatenated strings.
+</QuestionCard>
+
+<QuestionCard id="hive-query-03" number={46} question="How do the TRIM and RPAD/LPAD functions work in Hive?" difficulty="easy" topic="Functions">
+- **`TRIM`** — removes leading and trailing spaces from a string, useful for cleaning up user input that may have stray whitespace. `LTRIM`/`RTRIM` do the same but only from the left or right side respectively. E.g. `TRIM('  Smith  ')` → `'Smith'`.
+- **`RPAD`** — pads a string with extra characters on the right so it reaches a target length; `LPAD` does the same on the left. Both accept an optional custom padding character. E.g. `LPAD('Hello', 8, ' ')` → `'   Hello'`.
+</QuestionCard>
+
+<QuestionCard id="hive-query-04" number={47} question="What is the RLIKE operator in Hive, and how does it differ from LIKE?" difficulty="medium" topic="Functions">
+`LIKE` matches simple SQL string patterns, e.g. `user_name LIKE '%Smith'`. `RLIKE` supports full Java regular expressions for more advanced pattern matching, e.g.:
+
+```sql
+user_name RLIKE '.*(Smith|Sam).*'
+```
+
+This returns rows where `user_name` contains either "Smith" or "Sam" anywhere in the string — something plain `LIKE` can't express in a single condition.
+</QuestionCard>
+
+<QuestionCard id="hive-query-05" number={48} question="What is a table-generating function in Hive?" difficulty="medium" topic="Functions">
+A table-generating function takes a single row (often a single column) and expands it into multiple rows or columns — the opposite of an aggregate function. Common examples:
+
+- `EXPLODE(array)` and `EXPLODE(map)` — expand each array/map element into its own row
+- `STACK()` — builds multiple rows from a flat list of values
+- `JSON_TUPLE()` — extracts multiple fields from a JSON string in a single call
+</QuestionCard>
+
+<QuestionCard id="hive-query-06" number={49} question="What does the STREAMTABLE hint do in Hive?" difficulty="hard" topic="Optimization">
+`STREAMTABLE` is a query hint used with `JOIN` to control which table is streamed (rather than fully buffered) during the map/reduce stage of the join — a query optimization technique:
+
+```sql
+SELECT /*+ STREAMTABLE(table1) */ table1.val, table2.val
+FROM table1 JOIN table2 ON (table1.key = table2.key);
+```
+
+If no `STREAMTABLE` hint is given, Hive streams the rightmost table in the `JOIN` by default.
+</QuestionCard>
+
+<QuestionCard id="hive-query-07" number={50} question="Is it possible to create a Cartesian join between two tables using Hive?" difficulty="medium" topic="Joins">
+No — a Cartesian (cross) join isn't supported in this context because it can't be implemented efficiently in a MapReduce-style execution model.
+</QuestionCard>
+
+<QuestionCard id="hive-query-08" number={51} question="As part of optimizing queries in Hive, what should be the order of table size in a JOIN query?" difficulty="medium" topic="Optimization">
+Put the smallest table first and the largest table last in the `JOIN` — Hive's join execution is optimized to stream the last (largest) table rather than buffer it in memory.
+</QuestionCard>
+
+<QuestionCard id="hive-query-09" number={52} question="How do you resolve an out-of-memory error while running a JOIN query?" difficulty="hard" topic="Optimization">
+A `JOIN` over large tables can hold too much data in memory and trigger an out-of-memory error. A simple mitigation is to switch a `RIGHT OUTER JOIN` to a `LEFT OUTER JOIN` and make sure the table with the largest number of rows is positioned rightmost in the join — consistent with Hive's general join-ordering guidance of smallest-to-largest, left-to-right.
+</QuestionCard>
+
+<QuestionCard id="hive-query-10" number={53} question="What is the usefulness of the DISTRIBUTE BY clause in Hive?" difficulty="medium" topic="Query Syntax">
+`DISTRIBUTE BY` controls how the map output is distributed among reducers (without necessarily sorting within each reducer, unlike `CLUSTERED BY`). It's particularly useful when working with streaming-style data, where you want related records routed to the same reducer.
+</QuestionCard>
+
+<QuestionCard id="hive-query-11" number={54} question="What is a Generic UDF in Hive?" difficulty="hard" topic="Functions">
+A Generic UDF is a user-defined function written in Java to cover functionality not available in Hive's built-in function set. Unlike a simple UDF, it can inspect the type of its input arguments programmatically at runtime and return an appropriately typed response, making it more flexible for polymorphic or complex-type inputs.
+</QuestionCard>
+
+<QuestionCard id="hive-query-12" number={55} question="How do you find all databases whose name starts with a given letter, e.g. 'P'?" difficulty="easy" topic="Query Syntax">
+```sql
+SHOW DATABASES LIKE 'p.*';
+```
+</QuestionCard>
+
+</QuestionList>
+
+### Configuration, Sessions & Operations
+
+CLI usage, session/config precedence, and day-to-day operational commands.
+
+<QuestionList topic="Configuration, Sessions & Operations" storagePrefix="hive-ops">
+
+<QuestionCard id="hive-ops-01" number={56} question="What is the use of the .hiverc file in Hive?" difficulty="easy" topic="Configuration">
+`.hiverc` is Hive's initialization file — it's loaded automatically whenever the Hive CLI starts, and it's the natural place to set initial parameter values or run startup commands, such as putting the session into strict mode by default.
+</QuestionCard>
+
+<QuestionCard id="hive-ops-02" number={57} question="How do you run Unix shell commands from Hive?" difficulty="easy" topic="Operations">
+Prefix the command with `!` in the Hive shell. For example, `!pwd` at the `hive>` prompt lists the current directory, and `!date` runs the `date` command.
+</QuestionCard>
+
+<QuestionCard id="hive-ops-03" number={58} question="What is the purpose of the USE command in Hive?" difficulty="easy" topic="Operations">
+`USE` sets the current/active database that subsequent Hive queries in the session will run against — `USE default` switches to the default database, or `USE database_name` switches to a specific one. It's typically called before running other queries so they resolve against the intended database.
+</QuestionCard>
+
+<QuestionCard id="hive-ops-04" number={59} question="What is the precedence order for Hive configuration properties?" difficulty="hard" topic="Configuration">
+From highest to lowest priority:
+
+1. Hive `SET` command (highest priority)
+2. `-hiveconf` option on the Hive command line
+3. `hive-site.xml`
+4. `hive-default.xml`
+5. `hadoop-site.xml`
+6. `hadoop-default.xml`
+</QuestionCard>
+
+<QuestionCard id="hive-ops-05" number={60} question="How do you display a header row with the results of a Hive query?" difficulty="easy" topic="Configuration">
+Set the `hive.cli.print.header` property:
+
+```sql
+set hive.cli.print.header=true;
+```
+</QuestionCard>
+
+<QuestionCard id="hive-ops-06" number={61} question="How do you change the settings of a Hive session?" difficulty="easy" topic="Configuration">
+Use the `SET` command — it can change session-level settings as well as settings for the underlying MapReduce job. Calling `SET` with just a property name returns its current value, and `SET -v` lists every property in the system, including Hadoop's defaults.
+</QuestionCard>
+
+<QuestionCard id="hive-ops-07" number={62} question="What is the use of strict mode in Hive?" difficulty="medium" topic="Performance">
+Strict mode guards against accidentally running a full table scan against a very large table. Setting `hive.mapred.mode=strict` puts Hive into this mode:
+
+```sql
+set hive.mapred.mode=strict;
+```
+
+In strict mode, any query that would require a full table scan throws an error instead of running — for example, a query against a partitioned table is rejected unless it includes a `WHERE` clause that lets Hive prune partitions. This helps avoid unexpectedly slow, expensive jobs.
+</QuestionCard>
+
+<QuestionCard id="hive-ops-08" number={63} question="How do you recursively access sub-directories in Hive?" difficulty="medium" topic="Configuration">
+Set both of the following to `true`:
+
+```sql
+set mapred.input.dir.recursive=true;
+set hive.mapred.supports.subdirectories=true;
+```
+
+Once set, Hive's MapReduce jobs will recursively read sub-directories of a given input directory.
+</QuestionCard>
+
+<QuestionCard id="hive-ops-09" number={64} question="What optimization can be done for a SELECT * query in Hive?" difficulty="medium" topic="Performance">
+Hive can convert certain `SELECT` queries into a single FETCH task instead of launching a full job, cutting query latency. This is controlled by `hive.fetch.task.conversion`, which accepts:
+
+- `0` — FETCH conversion disabled
+- `1` (minimal) — applies to `SELECT *`, filters on partition columns (`WHERE`/`HAVING`), and `LIMIT` only
+- `2` (more) — extends to general `SELECT`, `FILTER`, and `LIMIT` (including virtual columns), and can even handle UDF expressions in the `SELECT` clause
+</QuestionCard>
+
+<QuestionCard id="hive-ops-10" number={65} question="What is the use of ORC format tables in Hive?" difficulty="medium" topic="File Formats">
+ORC (Optimized Row Columnar) is a file format built for efficient storage, reading, writing, and processing in Hive. Benefits include:
+
+- A single output file per task, which reduces load on the NameNode.
+- Support for complex types — date/time, decimal, struct, map, and more.
+- Lightweight indexes stored within the file itself, enabling skip-scans.
+- Bounded memory usage during read/write.
+- Metadata stored with Protocol Buffers, which supports adding/removing fields over time.
+</QuestionCard>
+
+<QuestionCard id="hive-ops-11" number={66} question="How do you specify in a LOAD DATA statement that you're loading a file from HDFS rather than the local filesystem?" difficulty="easy" topic="Operations">
+Omit the `LOCAL` clause from the `LOAD DATA` statement — `LOAD DATA LOCAL INPATH ...` loads from the local filesystem, while `LOAD DATA INPATH ...` (no `LOCAL`) loads from HDFS.
+</QuestionCard>
+
+<QuestionCard id="hive-ops-12" number={67} question="Is there a Date data type in Hive?" difficulty="easy" topic="Data Types">
+Yes — the `TIMESTAMP` data type stores date/time values, backed by `java.sql.Timestamp` format.
+</QuestionCard>
+
+<QuestionCard id="hive-ops-13" number={68} question="What is a Hive variable?" difficulty="medium" topic="Configuration">
+A Hive variable is a variable created within the Hive environment that Hive scripts can reference. It's typically used to pass values into a query at the point the query starts executing, rather than hardcoding them.
+</QuestionCard>
+
+<QuestionCard id="hive-ops-14" number={69} question="Can Hive queries be executed from script files?" difficulty="easy" topic="Operations">
+Yes, using the `source` command:
+
+```sql
+hive> source /path/to/file/file_with_query.hql;
+```
+</QuestionCard>
+
+<QuestionCard id="hive-ops-15" number={70} question="Which Java classes handle record encoding for reading and writing Hive table files?" difficulty="hard" topic="Architecture">
+- **Input** (reading records that make up a table) — `org.apache.hadoop.mapred.TextInputFormat`
+- **Output** (writing records that result from Hive queries) — `org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat`
+</QuestionCard>
+
+<QuestionCard id="hive-ops-16" number={71} question="How would you improve the performance of a program in Hive?" difficulty="medium" topic="Performance">
+General good-practice principles apply on top of Hive-specific tuning (partitioning, bucketing, ORC/Parquet, strict mode):
+
+- **Data structure** — pick the right table layout and file format for the access pattern you actually need.
+- **Standard library** — prefer built-in Hive functions over hand-rolled UDF logic where possible; built-ins are typically much better optimized than custom implementations.
+- **Abstraction** — excessive layers of views/subqueries can hide inefficiency; simplify redundant indirection in a query.
+- **Algorithm** — choosing the right join strategy or aggregation approach for the data's shape (size, skew) makes the biggest difference of all.
+</QuestionCard>
+
+<QuestionCard id="hive-ops-17" number={72} question="What is the default location where Hive stores table data?" difficulty="easy" topic="Configuration">
+```
+hdfs://namenode_server/user/hive/warehouse
+```
+
+This is Hive's default warehouse directory in HDFS, configurable via `hive.metastore.warehouse.dir`.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A Hive query against a huge fact table is scanning the entire dataset — how do you speed it up?"** Walk through partitioning on the most common filter column (e.g. date), bucketing a high-cardinality join key, switching to ORC/Parquet for columnar pruning and predicate pushdown, and enabling strict mode so accidental full scans fail fast instead of running for hours.
+- **"Design a Hive table for clickstream data that's queried both by date range and by user."** Discuss partitioning by date (coarse, filters most queries immediately) combined with bucketing by `user_id` (fine-grained, keeps partition count sane and enables map-side joins against a user dimension).
+- **"Two teams query the same raw files but need different schemas — how would you support that in Hive?"** Explain schema-on-read: multiple Hive table definitions can point at the same underlying HDFS files, each interpreting the data through its own schema, without duplicating storage.
+- **"A JOIN between two large tables keeps running out of memory — what do you check first?"** Table ordering (smallest to largest, left to right), whether a `RIGHT OUTER JOIN` should become a `LEFT OUTER JOIN`, and whether a skew in the join key calls for a skewed table or a different join strategy.
+
+---
+
+## Further Reading
+
+- [Hadoop](/level-3-technologies/batch-processing/hadoop/) — the distributed storage and compute layer Hive is built on top of
+- [Spark](/level-3-technologies/batch-processing/spark/) — the engine that has largely replaced raw MapReduce as Hive's execution backend
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where Hive fits into the broader curriculum

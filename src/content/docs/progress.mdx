@@ -1,0 +1,216 @@
+---
+title: Overall Progress
+description: Your aggregated progress across every topic in this platform.
+---
+
+import ProgressOverview from '../../components/mdx/ProgressOverview.astro';
+
+A single view of where you stand across every topic that tracks per-question progress. Click a topic to see its own breakdown by section.
+
+<ProgressOverview sections={[
+  {
+    title: "Python",
+    anchor: "/level-1-foundations/python/progress/",
+    ids: ["py-fund-01","py-fund-02","py-fund-03","py-fund-04","py-fund-05","py-fn-01","py-fn-02","py-fn-03","py-oop-01","py-oop-02","py-conc-01","py-conc-02","py-test-01","py-test-02","py-prac-01","py-prac-02","py-prac-03","py-prac-04","py-prac-05","py-prac-06","py-prac-07","py-prac-08","py-prac-09","py-prac-10","py-prac-11","py-prac-12"],
+  },
+  {
+    title: "BigQuery",
+    anchor: "/level-3-technologies/data-warehouses/bigquery/#interview-questions",
+    ids: ["bq-fund-01","bq-fund-02","bq-fund-03","bq-fund-04","bq-fund-05","bq-fund-06","bq-fund-07","bq-fund-08","bq-fund-09","bq-fund-10","bq-fund-11","bq-fund-12","bq-fund-13","bq-fund-14","bq-fund-15","bq-fund-16","bq-fund-17","bq-ingest-01","bq-ingest-02","bq-ingest-03","bq-ingest-04","bq-ingest-05","bq-ingest-06","bq-ingest-07","bq-ingest-08","bq-ingest-09","bq-ingest-10","bq-ingest-11","bq-ingest-12","bq-ingest-13","bq-ingest-14","bq-ingest-15","bq-storage-01","bq-storage-02","bq-storage-03","bq-storage-04","bq-storage-05","bq-storage-06","bq-storage-07","bq-storage-08","bq-storage-09","bq-storage-10","bq-storage-11","bq-perf-01","bq-perf-02","bq-perf-03","bq-perf-04","bq-perf-05","bq-perf-06","bq-perf-07","bq-perf-08","bq-perf-09","bq-perf-10","bq-perf-11","bq-perf-12","bq-perf-13","bq-perf-14","bq-gov-01","bq-gov-02","bq-gov-03","bq-gov-04","bq-gov-05","bq-gov-06","bq-gov-07","bq-gov-08","bq-gov-09","bq-gov-10","bq-gov-11","bq-gov-12","bq-ml-01","bq-ml-02","bq-ml-03","bq-ml-04","bq-ml-05","bq-ml-06","bq-ml-07","bq-ml-08","bq-ml-09","bq-ml-10","bq-ml-11"],
+  },
+  {
+    title: "Redshift",
+    anchor: "/level-3-technologies/data-warehouses/redshift/#interview-questions",
+    ids: ["rs-fund-01","rs-fund-02","rs-fund-03","rs-fund-04","rs-fund-05","rs-fund-06","rs-fund-07","rs-fund-08","rs-fund-09","rs-fund-10","rs-fund-11","rs-fund-12","rs-fund-13","rs-fund-14","rs-fund-15","rs-fund-16","rs-fund-17","rs-fund-18","rs-storage-01","rs-storage-02","rs-storage-03","rs-storage-04","rs-storage-05","rs-storage-06","rs-storage-07","rs-storage-08","rs-storage-09","rs-storage-10","rs-storage-11","rs-storage-12","rs-storage-13","rs-storage-14","rs-storage-15","rs-storage-16","rs-storage-17","rs-storage-18","rs-perf-01","rs-perf-02","rs-perf-03","rs-perf-04","rs-perf-05","rs-perf-06","rs-perf-07","rs-perf-08","rs-perf-09","rs-perf-10","rs-perf-11","rs-perf-12","rs-perf-13","rs-perf-14","rs-perf-15","rs-perf-16","rs-load-01","rs-load-02","rs-load-03","rs-load-04","rs-load-05","rs-load-06","rs-load-07","rs-load-08","rs-load-09","rs-load-10","rs-load-11","rs-load-12","rs-load-13","rs-load-14","rs-load-15","rs-load-16","rs-sec-01","rs-sec-02","rs-sec-03","rs-sec-04","rs-sec-05","rs-sec-06","rs-sec-07","rs-sec-08","rs-sec-09","rs-sec-10","rs-sec-11","rs-sec-12","rs-sec-13","rs-sec-14","rs-aws-01","rs-aws-02","rs-aws-03","rs-aws-04","rs-aws-05","rs-aws-06","rs-aws-07","rs-aws-08","rs-aws-09","rs-aws-10","rs-aws-11","rs-aws-12","rs-aws-13","rs-aws-14","rs-aws-15","rs-aws-16","rs-aws-17","rs-aws-18"],
+  },
+  {
+    title: "Cassandra",
+    anchor: "/level-3-technologies/databases/cassandra/#interview-questions",
+    ids: ["cass-fund-01","cass-fund-02","cass-fund-03","cass-fund-04","cass-fund-05","cass-fund-06","cass-fund-07","cass-fund-08","cass-fund-09","cass-fund-10","cass-fund-11","cass-fund-12","cass-fund-13","cass-model-01","cass-model-02","cass-model-03","cass-model-04","cass-model-05","cass-model-06","cass-model-07","cass-model-08","cass-model-09","cass-model-10","cass-model-11","cass-model-12","cass-model-13","cass-model-14","cass-model-15","cass-consist-01","cass-consist-02","cass-consist-03","cass-consist-04","cass-consist-05","cass-consist-06","cass-consist-07","cass-consist-08","cass-consist-09","cass-consist-10","cass-consist-11","cass-consist-12","cass-consist-13","cass-consist-14","cass-consist-15","cass-write-01","cass-write-02","cass-write-03","cass-write-04","cass-write-05","cass-write-06","cass-write-07","cass-write-08","cass-write-09","cass-write-10","cass-write-11","cass-write-12","cass-write-13","cass-write-14","cass-write-15","cass-write-16","cass-write-17","cass-write-18","cass-tools-01","cass-tools-02","cass-tools-03","cass-tools-04","cass-tools-05","cass-tools-06","cass-tools-07","cass-tools-08","cass-tools-09","cass-tools-10","cass-tools-11","cass-tools-12","cass-tools-13","cass-tools-14","cass-tools-15","cass-tools-16","cass-tools-17"],
+  },
+  {
+    title: "Bigtable",
+    anchor: "/level-3-technologies/databases/bigtable/#interview-questions",
+    ids: ["bt-fund-01","bt-fund-02","bt-fund-03","bt-fund-04","bt-fund-05","bt-fund-06","bt-fund-07","bt-fund-08","bt-fund-09","bt-fund-10","bt-fund-11","bt-fund-12","bt-fund-13","bt-model-01","bt-model-02","bt-model-03","bt-model-04","bt-model-05","bt-model-06","bt-model-07","bt-model-08","bt-model-09","bt-model-10","bt-model-11","bt-model-12","bt-model-13","bt-model-14","bt-model-15","bt-model-16","bt-model-17","bt-model-18","bt-model-19","bt-model-20","bt-model-21","bt-model-22","bt-model-23","bt-model-24","bt-model-25","bt-perf-01","bt-perf-02","bt-perf-03","bt-perf-04","bt-perf-05","bt-perf-06","bt-perf-07","bt-perf-08","bt-perf-09","bt-perf-10","bt-perf-11","bt-perf-12","bt-perf-13","bt-perf-14","bt-perf-15","bt-perf-16","bt-perf-17","bt-perf-18","bt-perf-19","bt-perf-20","bt-perf-21","bt-perf-22","bt-perf-23","bt-perf-24","bt-perf-25","bt-perf-26","bt-replica-01","bt-replica-02","bt-replica-03","bt-replica-04","bt-replica-05","bt-replica-06","bt-replica-07","bt-replica-08","bt-replica-09","bt-replica-10","bt-replica-11","bt-replica-12","bt-replica-13","bt-replica-14","bt-replica-15","bt-replica-16","bt-sec-01","bt-sec-02","bt-sec-03","bt-sec-04","bt-sec-05","bt-sec-06","bt-sec-07","bt-sec-08","bt-eco-01","bt-eco-02","bt-eco-03","bt-eco-04","bt-eco-05","bt-eco-06","bt-eco-07","bt-eco-08","bt-eco-09","bt-eco-10","bt-eco-11","bt-eco-12"],
+  },
+  {
+    title: "Data Warehousing",
+    anchor: "/level-2-core-concepts/data-warehousing/#interview-questions",
+    ids: ["dwh-fund-01","dwh-fund-02","dwh-fund-03","dwh-fund-04","dwh-fund-05","dwh-fund-06","dwh-fund-07","dwh-fund-08","dwh-fund-09","dwh-fund-10","dwh-fund-11","dwh-fund-12","dwh-fund-13","dwh-fund-14","dwh-schema-01","dwh-schema-02","dwh-schema-03","dwh-schema-04","dwh-schema-05","dwh-schema-06","dwh-schema-07","dwh-schema-08","dwh-schema-09","dwh-schema-10","dwh-schema-11","dwh-schema-12","dwh-schema-13","dwh-schema-14","dwh-schema-15","dwh-schema-16","dwh-schema-17","dwh-dim-01","dwh-dim-02","dwh-dim-03","dwh-dim-04","dwh-dim-05","dwh-dim-06","dwh-dim-07","dwh-dim-08","dwh-dim-09","dwh-dim-10","dwh-dim-11","dwh-dim-12","dwh-dim-13","dwh-dim-14","dwh-dim-15","dwh-dim-16","dwh-dim-17","dwh-dim-18","dwh-dim-19","dwh-dim-20","dwh-dim-21","dwh-dim-22","dwh-dim-23","dwh-dim-24","dwh-dim-25","dwh-dim-26","dwh-dim-27","dwh-oltp-01","dwh-oltp-02","dwh-oltp-03","dwh-oltp-04","dwh-oltp-05","dwh-oltp-06","dwh-oltp-07","dwh-oltp-08","dwh-oltp-09","dwh-oltp-10","dwh-oltp-11","dwh-oltp-12","dwh-oltp-13","dwh-oltp-14","dwh-oltp-15","dwh-oltp-16","dwh-oltp-17","dwh-oltp-18","dwh-oltp-19","dwh-oltp-20","dwh-oltp-21","dwh-oltp-22","dwh-oltp-23","dwh-oltp-24","dwh-etl-01","dwh-etl-02","dwh-etl-03","dwh-etl-04","dwh-etl-05","dwh-etl-06","dwh-etl-07","dwh-etl-08","dwh-etl-09","dwh-etl-10","dwh-etl-11","dwh-etl-12","dwh-etl-13","dwh-etl-14","dwh-etl-15","dwh-etl-16","dwh-etl-17","dwh-etl-18","dwh-etl-19","dwh-etl-20","dwh-etl-21","dwh-etl-22","dwh-etl-23","dwh-etl-24","dwh-etl-25","dwh-etl-26","dwh-model-01","dwh-model-02","dwh-model-03","dwh-model-04","dwh-model-05","dwh-model-06","dwh-model-07","dwh-model-08","dwh-model-09","dwh-model-10","dwh-model-11","dwh-model-12","dwh-model-13","dwh-model-14","dwh-norm-01","dwh-norm-02","dwh-norm-03","dwh-norm-04","dwh-norm-05","dwh-norm-06","dwh-norm-07","dwh-norm-08","dwh-norm-09","dwh-norm-10","dwh-norm-11","dwh-norm-12","dwh-norm-13","dwh-norm-14","dwh-norm-15","dwh-norm-16","dwh-norm-17","dwh-norm-18","dwh-norm-19","dwh-rel-01","dwh-rel-02","dwh-rel-03","dwh-rel-04","dwh-rel-05","dwh-rel-06","dwh-rel-07","dwh-rel-08","dwh-rel-09","dwh-rel-10","dwh-rel-11","dwh-rel-12","dwh-rel-13","dwh-rel-14","dwh-rel-15","dwh-rel-16","dwh-rel-17","dwh-rel-18","dwh-rel-19","dwh-rel-20","dwh-rel-21","dwh-rel-22","dwh-obj-01","dwh-obj-02","dwh-obj-03","dwh-obj-04","dwh-obj-05","dwh-obj-06","dwh-obj-07","dwh-obj-08","dwh-obj-09","dwh-obj-10","dwh-obj-11","dwh-obj-12","dwh-obj-13","dwh-obj-14","dwh-obj-15","dwh-obj-16","dwh-obj-17","dwh-obj-18","dwh-obj-19","dwh-obj-20","dwh-obj-21","dwh-obj-22","dwh-obj-23","dwh-obj-24","dwh-obj-25","dwh-obj-26","dwh-admin-01","dwh-admin-02","dwh-admin-03","dwh-admin-04","dwh-admin-05","dwh-admin-06","dwh-admin-07","dwh-admin-08","dwh-admin-09","dwh-admin-10","dwh-admin-11","dwh-admin-12","dwh-admin-13","dwh-txn-01","dwh-txn-02","dwh-txn-03","dwh-txn-04","dwh-txn-05","dwh-txn-06","dwh-txn-07","dwh-txn-08","dwh-txn-09","dwh-txn-10","dwh-txn-11","dwh-txn-12","dwh-txn-13","dwh-txn-14","dwh-txn-15","dwh-txn-16","dwh-txn-17","dwh-txn-18","dwh-txn-19","dwh-txn-20","dwh-txn-21","dwh-txn-22","dwh-txn-23","dwh-txn-24","dwh-txn-25","dwh-txn-26","dwh-sql-01","dwh-sql-02","dwh-sql-03","dwh-sql-04","dwh-sql-05","dwh-sql-06","dwh-sql-07","dwh-sql-08","dwh-sql-09","dwh-sql-10","dwh-sql-11","dwh-sql-12","dwh-sql-13","dwh-sql-14","dwh-bi-01","dwh-bi-02","dwh-bi-03","dwh-bi-04","dwh-bi-05","dwh-bi-06","dwh-bi-07","dwh-bi-08","dwh-bi-09","dwh-bi-10","dwh-bi-11","dwh-bi-12","dwh-ent-01","dwh-ent-02","dwh-ent-03","dwh-ent-04","dwh-ent-05","dwh-ent-06","dwh-ent-07","dwh-ent-08","dwh-ent-09","dwh-ent-10","dwh-ent-11","dwh-ent-12","dwh-ent-13","dwh-ent-14","dwh-ent-15","dwh-ent-16","dwh-ent-17","dwh-ent-18","dwh-ent-19","dwh-ent-20"],
+  },
+  {
+    title: "Kafka",
+    anchor: "/level-3-technologies/streaming/kafka/#interview-questions",
+    ids: ["kafka-01","kafka-02","kafka-03","kafka-04","kafka-05","kafka-06","kafka-07","kafka-08","kafka-09","kafka-10","kafka-11","kafka-12","kafka-13","kafka-14","kafka-15","kafka-16","kafka-17","kafka-18","kafka-19","kafka-20","kafka-21","kafka-22","kafka-23"],
+  },
+  {
+    title: "Hive",
+    anchor: "/level-3-technologies/batch-processing/hive/#interview-questions",
+    ids: ["hive-fund-01","hive-fund-02","hive-fund-03","hive-fund-04","hive-fund-05","hive-fund-06","hive-fund-07","hive-fund-08","hive-fund-09","hive-fund-10","hive-fund-11","hive-fund-12","hive-fund-13","hive-fund-14","hive-fund-15","hive-meta-01","hive-meta-02","hive-meta-03","hive-meta-04","hive-meta-05","hive-meta-06","hive-meta-07","hive-ddl-01","hive-ddl-02","hive-ddl-03","hive-ddl-04","hive-ddl-05","hive-ddl-06","hive-ddl-07","hive-ddl-08","hive-ddl-09","hive-ddl-10","hive-ddl-11","hive-ddl-12","hive-ddl-13","hive-ddl-14","hive-ddl-15","hive-ddl-16","hive-ddl-17","hive-ddl-18","hive-ddl-19","hive-ddl-20","hive-ddl-21","hive-query-01","hive-query-02","hive-query-03","hive-query-04","hive-query-05","hive-query-06","hive-query-07","hive-query-08","hive-query-09","hive-query-10","hive-query-11","hive-query-12","hive-ops-01","hive-ops-02","hive-ops-03","hive-ops-04","hive-ops-05","hive-ops-06","hive-ops-07","hive-ops-08","hive-ops-09","hive-ops-10","hive-ops-11","hive-ops-12","hive-ops-13","hive-ops-14","hive-ops-15","hive-ops-16","hive-ops-17"],
+  },
+  {
+    title: "Flink",
+    anchor: "/level-3-technologies/streaming/flink/#interview-questions",
+    ids: ["flink-fund-01","flink-fund-02","flink-fund-03","flink-fund-04","flink-fund-05","flink-fund-06","flink-fund-07","flink-fund-08","flink-fund-09","flink-fund-10","flink-fund-11","flink-fund-12","flink-fund-13","flink-fund-14","flink-fund-15","flink-fund-16","flink-fund-17","flink-fund-18","flink-fund-19","flink-api-01","flink-api-02","flink-api-03","flink-api-04","flink-api-05","flink-api-06","flink-api-07","flink-api-08","flink-api-09","flink-api-10","flink-api-11","flink-api-12","flink-api-13","flink-api-14","flink-api-15","flink-api-16","flink-api-17","flink-api-18","flink-state-01","flink-state-02","flink-state-03","flink-state-04","flink-state-05","flink-state-06","flink-state-07","flink-state-08","flink-state-09","flink-state-10","flink-state-11","flink-state-12","flink-state-13","flink-state-14","flink-state-15","flink-state-16","flink-ops-01","flink-ops-02","flink-ops-03","flink-ops-04","flink-ops-05","flink-ops-06","flink-ops-07","flink-ops-08","flink-ops-09","flink-ops-10","flink-ops-11","flink-ops-12","flink-ops-13"],
+  },
+  {
+    title: "Hadoop",
+    anchor: "/level-3-technologies/batch-processing/hadoop/#interview-questions",
+    ids: ["hadoop-hdfs-01","hadoop-hdfs-02","hadoop-hdfs-03","hadoop-hdfs-04","hadoop-hdfs-05","hadoop-hdfs-06","hadoop-hdfs-07","hadoop-hdfs-08","hadoop-hdfs-09","hadoop-hdfs-10","hadoop-hdfs-11","hadoop-hdfs-12","hadoop-hdfs-13","hadoop-hdfs-14","hadoop-hdfs-15","hadoop-hdfs-16","hadoop-hdfs-17","hadoop-hdfs-18","hadoop-hdfs-19","hadoop-hdfs-20","hadoop-hdfs-21","hadoop-hdfs-22","hadoop-hdfs-23","hadoop-hdfs-24","hadoop-hdfs-25","hadoop-hdfs-26","hadoop-hdfs-27","hadoop-hdfs-28","hadoop-hdfs-29","hadoop-nn-01","hadoop-nn-02","hadoop-nn-03","hadoop-nn-04","hadoop-nn-05","hadoop-nn-06","hadoop-nn-07","hadoop-nn-08","hadoop-nn-09","hadoop-nn-10","hadoop-nn-11","hadoop-nn-12","hadoop-nn-13","hadoop-nn-14","hadoop-nn-15","hadoop-nn-16","hadoop-nn-17","hadoop-nn-18","hadoop-nn-19","hadoop-fault-01","hadoop-fault-02","hadoop-fault-03","hadoop-fault-04","hadoop-fault-05","hadoop-fault-06","hadoop-fault-07","hadoop-fault-08","hadoop-fault-09","hadoop-fault-10","hadoop-fault-11","hadoop-fault-12","hadoop-fault-13","hadoop-fault-14","hadoop-fault-15","hadoop-mr-01","hadoop-mr-02","hadoop-mr-03","hadoop-mr-04","hadoop-mr-05","hadoop-mr-06","hadoop-mr-07","hadoop-mr-08","hadoop-mr-09","hadoop-mr-10","hadoop-mr-11","hadoop-mr-12","hadoop-mr-13","hadoop-mr-14","hadoop-mr-15","hadoop-mr-16","hadoop-mr-17","hadoop-mr-18","hadoop-mr-19","hadoop-mr-20","hadoop-mr-21","hadoop-mr-22","hadoop-mr-23","hadoop-mr-24","hadoop-mr-25","hadoop-mr-26","hadoop-mr-27","hadoop-mr-28","hadoop-mr-29","hadoop-mapred-01","hadoop-mapred-02","hadoop-mapred-03","hadoop-mapred-04","hadoop-mapred-05","hadoop-mapred-06","hadoop-mapred-07","hadoop-mapred-08","hadoop-mapred-09","hadoop-mapred-10","hadoop-mapred-11","hadoop-mapred-12","hadoop-mapred-13","hadoop-mapred-14","hadoop-mapred-15","hadoop-mapred-16","hadoop-mapred-17","hadoop-mapred-18","hadoop-mapred-19","hadoop-part-01","hadoop-part-02","hadoop-part-03","hadoop-part-04","hadoop-part-05","hadoop-part-06","hadoop-part-07","hadoop-part-08","hadoop-part-09","hadoop-part-10","hadoop-part-11","hadoop-part-12","hadoop-part-13","hadoop-part-14","hadoop-part-15","hadoop-part-16","hadoop-part-17","hadoop-part-18","hadoop-part-19","hadoop-jt-01","hadoop-jt-02","hadoop-jt-03","hadoop-jt-04","hadoop-jt-05","hadoop-jt-06","hadoop-jt-07","hadoop-jt-08","hadoop-jt-09","hadoop-jt-10","hadoop-jt-11","hadoop-jt-12","hadoop-jt-13","hadoop-jt-14","hadoop-jt-15","hadoop-jt-16","hadoop-jt-17","hadoop-jt-18","hadoop-jt-19","hadoop-jt-20","hadoop-jt-21","hadoop-jt-22","hadoop-jt-23","hadoop-jt-24","hadoop-jt-25","hadoop-eco-01","hadoop-eco-02","hadoop-eco-03","hadoop-eco-04","hadoop-eco-05","hadoop-eco-06","hadoop-eco-07","hadoop-eco-08","hadoop-eco-09","hadoop-eco-10","hadoop-eco-11","hadoop-eco-12","hadoop-eco-13","hadoop-eco-14","hadoop-eco-15","hadoop-eco-16","hadoop-eco-17","hadoop-eco-18","hadoop-eco-19","hadoop-eco-20","hadoop-eco-21","hadoop-eco-22","hadoop-eco-23","hadoop-eco-24","hadoop-eco-25","hadoop-eco-26","hadoop-eco-27","hadoop-perf-01","hadoop-perf-02","hadoop-perf-03","hadoop-perf-04","hadoop-perf-05","hadoop-perf-06","hadoop-perf-07","hadoop-perf-08","hadoop-perf-09","hadoop-perf-10","hadoop-perf-11","hadoop-perf-12","hadoop-perf-13","hadoop-perf-14","hadoop-perf-15","hadoop-perf-16","hadoop-perf-17","hadoop-perf-18","hadoop-perf-19"],
+  },
+  {
+    title: "Spark",
+    anchor: "/level-3-technologies/batch-processing/spark/#interview-questions",
+    ids: ["spark-core-01","spark-core-02","spark-core-03","spark-core-04","spark-core-05","spark-core-06","spark-core-07","spark-core-08","spark-core-09","spark-core-10","spark-core-11","spark-core-12","spark-arch-01","spark-arch-02","spark-arch-03","spark-arch-04","spark-arch-05","spark-arch-06","spark-arch-07","spark-arch-08","spark-arch-09","spark-arch-10","spark-arch-11","spark-arch-12","spark-arch-13","spark-arch-14","spark-arch-15","spark-arch-16","spark-deploy-01","spark-deploy-02","spark-deploy-03","spark-deploy-04","spark-deploy-05","spark-deploy-06","spark-deploy-07","spark-deploy-08","spark-deploy-09","spark-deploy-10","spark-deploy-11","spark-deploy-12","spark-deploy-13","spark-deploy-14","spark-deploy-15","spark-deploy-16","spark-rdd-01","spark-rdd-02","spark-rdd-03","spark-rdd-04","spark-rdd-05","spark-rdd-06","spark-rdd-07","spark-rdd-08","spark-rdd-09","spark-rdd-10","spark-rdd-11","spark-rdd-12","spark-rdd-13","spark-rdd-14","spark-rdd-15","spark-rdd-16","spark-rdd-17","spark-rdd-18","spark-perf-01","spark-perf-02","spark-perf-03","spark-perf-04","spark-perf-05","spark-perf-06","spark-perf-07","spark-perf-08","spark-perf-09","spark-perf-10","spark-perf-11","spark-perf-12","spark-perf-13","spark-perf-14","spark-sql-01","spark-sql-02","spark-sql-03","spark-sql-04","spark-sql-05","spark-sql-06","spark-sql-07","spark-sql-08","spark-sql-09","spark-sql-10","spark-sql-11","spark-sql-12","spark-sql-13","spark-sql-14","spark-sql-15","spark-sql-16","spark-sql-17","spark-sql-18","spark-sql-19","spark-sql-20","spark-sql-21","spark-sql-22","spark-mem-01","spark-mem-02","spark-mem-03","spark-mem-04","spark-mem-05","spark-mem-06","spark-mem-07","spark-mem-08","spark-stream-01","spark-stream-02","spark-stream-03","spark-stream-04","spark-stream-05","spark-stream-06","spark-stream-07","spark-stream-08","spark-stream-09","spark-stream-10","spark-stream-11","spark-stream-12","spark-ml-01","spark-ml-02","spark-ml-03","spark-ml-04","spark-ml-05","spark-ml-06","spark-ml-07","spark-ml-08","spark-ml-09","spark-ml-10","spark-ml-11","spark-ml-12","spark-ml-13","spark-ml-14","spark-ml-15","spark-ml-16"],
+  },
+  {
+    title: "CDC",
+    anchor: "/level-3-technologies/ingestion/cdc/#interview-questions",
+    ids: ["cdc-01","cdc-02","cdc-03","cdc-04","cdc-05","cdc-06","cdc-07","cdc-08","cdc-09","cdc-10","cdc-11","cdc-12","cdc-13","cdc-14","cdc-15"],
+  },
+  {
+    title: "Flume",
+    anchor: "/level-3-technologies/ingestion/flume/#interview-questions",
+    ids: ["flume-core-01","flume-core-02","flume-core-03","flume-core-04","flume-core-05","flume-core-06","flume-core-07","flume-core-08","flume-reliability-01","flume-reliability-02","flume-reliability-03","flume-reliability-04","flume-reliability-05","flume-sinks-01","flume-sinks-02","flume-sinks-03","flume-sinks-04","flume-sinks-05","flume-sinks-06","flume-sinks-07","flume-sinks-08","flume-ecosystem-01","flume-ecosystem-02","flume-ecosystem-03","flume-ecosystem-04"],
+  },
+  {
+    title: "NiFi",
+    anchor: "/level-3-technologies/ingestion/nifi/#interview-questions",
+    ids: ["nifi-01","nifi-02","nifi-03","nifi-04","nifi-05","nifi-06","nifi-07","nifi-08","nifi-09","nifi-10","nifi-11","nifi-12","nifi-13","nifi-14","nifi-15"],
+  },
+  {
+    title: "DBT",
+    anchor: "/level-3-technologies/transformation/dbt/#interview-questions",
+    ids: ["dbt-01","dbt-02","dbt-03","dbt-04","dbt-05","dbt-06","dbt-07","dbt-08","dbt-09","dbt-10","dbt-11","dbt-12","dbt-13","dbt-14","dbt-15"],
+  },
+  {
+    title: "Azure",
+    anchor: "/level-3-technologies/cloud/azure/#interview-questions",
+    ids: ["azure-fundamentals-01","azure-fundamentals-02","azure-fundamentals-03","azure-fundamentals-04","azure-fundamentals-05","azure-fundamentals-06","azure-fundamentals-07","azure-fundamentals-08","azure-fundamentals-09","azure-compute-01","azure-compute-02","azure-compute-03","azure-compute-04","azure-compute-05","azure-compute-06","azure-compute-07","azure-compute-08","azure-compute-09","azure-compute-10","azure-compute-11","azure-compute-12","azure-compute-13","azure-compute-14","azure-compute-15","azure-compute-16","azure-compute-17","azure-storage-01","azure-storage-02","azure-storage-03","azure-storage-04","azure-storage-05","azure-deployment-01","azure-deployment-02","azure-deployment-03","azure-deployment-04","azure-deployment-05","azure-deployment-06","azure-deployment-07","azure-deployment-08","azure-deployment-09","azure-deployment-10","azure-deployment-11","azure-deployment-12","azure-deployment-13","azure-deployment-14"],
+  },
+  {
+    title: "GCP",
+    anchor: "/level-3-technologies/cloud/gcp/#interview-questions",
+    ids: ["gcp-core-01","gcp-core-02","gcp-core-03","gcp-core-04","gcp-core-05","gcp-core-06","gcp-core-07","gcp-core-08","gcp-core-09","gcp-core-10","gcp-core-11","gcp-core-12","gcp-processing-01","gcp-processing-02","gcp-processing-03","gcp-processing-04","gcp-processing-05","gcp-processing-06","gcp-processing-07","gcp-processing-08","gcp-processing-09","gcp-processing-10","gcp-processing-11","gcp-security-01","gcp-security-02","gcp-security-03","gcp-security-04","gcp-security-05","gcp-security-06","gcp-security-07","gcp-security-08","gcp-security-09","gcp-security-10","gcp-security-11","gcp-security-12","gcp-security-13","gcp-ops-01","gcp-ops-02","gcp-ops-03","gcp-ops-04","gcp-ops-05","gcp-ops-06","gcp-ops-07","gcp-ops-08","gcp-ops-09","gcp-ops-10","gcp-ops-11","gcp-ops-12"],
+  },
+  {
+    title: "AWS",
+    anchor: "/level-3-technologies/cloud/aws/#interview-questions",
+    ids: ["aws-compute-01","aws-compute-02","aws-compute-03","aws-compute-04","aws-compute-05","aws-compute-06","aws-compute-07","aws-compute-08","aws-compute-09","aws-compute-10","aws-compute-11","aws-compute-12","aws-compute-13","aws-compute-14","aws-compute-15","aws-compute-16","aws-compute-17","aws-network-01","aws-network-02","aws-network-03","aws-network-04","aws-network-05","aws-network-06","aws-network-07","aws-network-08","aws-network-09","aws-network-10","aws-network-11","aws-network-12","aws-network-13","aws-network-14","aws-db-01","aws-db-02","aws-db-03","aws-db-04","aws-db-05","aws-db-06","aws-db-07","aws-db-08","aws-db-09","aws-db-10","aws-db-11","aws-db-12","aws-db-13","aws-db-14","aws-db-15","aws-db-16","aws-db-17","aws-db-18","aws-db-19","aws-db-20","aws-db-21","aws-warehouse-01","aws-warehouse-02","aws-warehouse-03","aws-warehouse-04","aws-warehouse-05","aws-warehouse-06","aws-warehouse-07","aws-warehouse-08"],
+  },
+  {
+    title: "Tableau",
+    anchor: "/level-3-technologies/bi/tableau/#interview-questions",
+    ids: ["tableau-fund-01","tableau-fund-02","tableau-fund-03","tableau-fund-04","tableau-fund-05","tableau-fund-06","tableau-fund-07","tableau-data-01","tableau-data-02","tableau-data-03","tableau-data-04","tableau-data-05","tableau-data-06","tableau-data-07","tableau-data-08","tableau-calc-01","tableau-calc-02","tableau-calc-03","tableau-calc-04","tableau-calc-05","tableau-calc-06","tableau-calc-07","tableau-calc-08","tableau-calc-09","tableau-calc-10","tableau-calc-11","tableau-calc-12","tableau-dash-01","tableau-dash-02","tableau-dash-03","tableau-dash-04","tableau-dash-05","tableau-dash-06","tableau-dash-07","tableau-dash-08","tableau-dash-09","tableau-dash-10"],
+  },
+  {
+    title: "Looker",
+    anchor: "/level-3-technologies/bi/looker/#interview-questions",
+    ids: ["looker-fund-01","looker-fund-02","looker-fund-03","looker-fund-04","looker-fund-05","looker-fund-06","looker-fund-07","looker-fund-08","looker-fund-09","looker-fund-10","looker-fund-11","looker-fund-12","looker-fund-13","looker-fund-14","looker-fund-15","looker-fund-16","looker-lookml-01","looker-lookml-02","looker-lookml-03","looker-lookml-04","looker-lookml-05","looker-lookml-06","looker-lookml-07","looker-lookml-08","looker-lookml-09","looker-lookml-10","looker-lookml-11","looker-lookml-12","looker-lookml-13","looker-perf-01","looker-perf-02","looker-perf-03","looker-perf-04","looker-perf-05","looker-perf-06","looker-perf-07","looker-perf-08","looker-perf-09","looker-perf-10","looker-perf-11","looker-perf-12","looker-perf-13","looker-perf-14","looker-perf-15","looker-perf-16","looker-perf-17","looker-perf-18","looker-perf-19","looker-perf-20","looker-perf-21","looker-gov-01","looker-gov-02","looker-gov-03","looker-gov-04","looker-gov-05","looker-gov-06","looker-gov-07","looker-gov-08","looker-gov-09","looker-gov-10","looker-gov-11","looker-gov-12","looker-gov-13","looker-admin-01","looker-admin-02","looker-admin-03","looker-admin-04","looker-admin-05","looker-admin-06","looker-admin-07","looker-admin-08","looker-admin-09","looker-admin-10","looker-admin-11","looker-admin-12","looker-admin-13","looker-admin-14","looker-admin-15","looker-admin-16","looker-admin-17"],
+  },
+  {
+    title: "Superset",
+    anchor: "/level-3-technologies/bi/superset/#interview-questions",
+    ids: ["superset-fund-01","superset-fund-02","superset-fund-03","superset-fund-04","superset-fund-05","superset-fund-06","superset-fund-07","superset-fund-08","superset-fund-09","superset-fund-10","superset-fund-11","superset-fund-12","superset-fund-13","superset-fund-14","superset-fund-15","superset-fund-16","superset-fund-17","superset-fund-18","superset-sql-01","superset-sql-02","superset-sql-03","superset-sql-04","superset-sql-05","superset-sql-06","superset-sql-07","superset-sql-08","superset-sql-09","superset-sql-10","superset-sql-11","superset-dash-01","superset-dash-02","superset-dash-03","superset-dash-04","superset-dash-05","superset-dash-06","superset-dash-07","superset-dash-08","superset-dash-09","superset-dash-10","superset-dash-11","superset-dash-12","superset-dash-13","superset-dash-14","superset-dash-15","superset-dash-16","superset-dash-17","superset-dash-18","superset-dash-19","superset-perf-01","superset-perf-02","superset-perf-03","superset-perf-04","superset-perf-05","superset-perf-06","superset-perf-07","superset-perf-08","superset-perf-09","superset-sec-01","superset-sec-02","superset-sec-03","superset-sec-04","superset-sec-05","superset-sec-06","superset-sec-07","superset-sec-08","superset-sec-09","superset-sec-10","superset-sec-11","superset-sec-12","superset-sec-13","superset-sec-14","superset-sec-15"],
+  },
+  {
+    title: "Snowflake",
+    anchor: "/level-3-technologies/data-warehouses/snowflake/#interview-questions",
+    ids: ["snow-arch-01","snow-arch-02","snow-arch-03","snow-arch-04","snow-arch-05","snow-arch-06","snow-arch-07","snow-arch-08","snow-arch-09","snow-arch-10","snow-arch-11","snow-arch-12","snow-arch-13","snow-arch-14","snow-arch-15","snow-arch-16","snow-arch-17","snow-arch-18","snow-perf-01","snow-perf-02","snow-perf-03","snow-perf-04","snow-perf-05","snow-perf-06","snow-perf-07","snow-perf-08","snow-perf-09","snow-sec-01","snow-sec-02","snow-sec-03","snow-sec-04","snow-sec-05","snow-sec-06","snow-sec-07","snow-sec-08","snow-sec-09","snow-sec-10","snow-sec-11","snow-sec-12","snow-sec-13","snow-sec-14"],
+  },
+  {
+    title: "Databricks",
+    anchor: "/level-3-technologies/data-warehouses/databricks/#interview-questions",
+    ids: ["dbx-lake-01","dbx-lake-02","dbx-lake-03","dbx-lake-04","dbx-lake-05","dbx-lake-06","dbx-lake-07","dbx-lake-08","dbx-lake-09","dbx-lake-10","dbx-lake-11","dbx-lake-12","dbx-lake-13","dbx-lake-14","dbx-lake-15","dbx-lake-16","dbx-cluster-01","dbx-cluster-02","dbx-cluster-03","dbx-cluster-04","dbx-cluster-05","dbx-cluster-06","dbx-cluster-07","dbx-cluster-08","dbx-cluster-09","dbx-cluster-10","dbx-cluster-11","dbx-cluster-12","dbx-cluster-13","dbx-cluster-14","dbx-cluster-15","dbx-cluster-16","dbx-gov-01","dbx-gov-02","dbx-gov-03","dbx-gov-04","dbx-gov-05","dbx-gov-06","dbx-gov-07","dbx-gov-08","dbx-gov-09","dbx-gov-10","dbx-gov-11","dbx-gov-12"],
+  },
+  {
+    title: "MongoDB",
+    anchor: "/level-3-technologies/databases/mongodb/#interview-questions",
+    ids: ["mongo-core-01","mongo-core-02","mongo-core-03","mongo-core-04","mongo-core-05","mongo-core-06","mongo-core-07","mongo-core-08","mongo-core-09","mongo-core-10","mongo-core-11","mongo-core-12","mongo-ops-01","mongo-ops-02","mongo-ops-03","mongo-ops-04","mongo-ops-05","mongo-ops-06","mongo-ops-07","mongo-ops-08","mongo-ops-09","mongo-ops-10","mongo-ops-11","mongo-ops-12","mongo-ops-13","mongo-ops-14","mongo-ops-15","mongo-ops-16","mongo-ops-17"],
+  },
+  {
+    title: "DynamoDB",
+    anchor: "/level-3-technologies/databases/dynamodb/#interview-questions",
+    ids: ["ddb-core-01","ddb-core-02","ddb-core-03","ddb-core-04","ddb-core-05","ddb-core-06","ddb-core-07","ddb-core-08","ddb-core-09","ddb-core-10","ddb-core-11","ddb-core-12","ddb-core-13","ddb-core-14","ddb-core-15","ddb-query-01","ddb-query-02","ddb-query-03","ddb-query-04","ddb-query-05","ddb-query-06","ddb-query-07","ddb-query-08","ddb-query-09","ddb-query-10","ddb-query-11","ddb-query-12","ddb-query-13","ddb-query-14","ddb-query-15"],
+  },
+  {
+    title: "Airflow",
+    anchor: "/level-3-technologies/orchestration/airflow/#interview-questions",
+    ids: ["af-01","af-02","af-03","af-04","af-05","af-06","af-07","af-08","af-09","af-10","af-11","af-12","af-13","af-14","af-15","af-16","af-17"],
+  },
+  {
+    title: "Kubernetes",
+    anchor: "/level-3-technologies/orchestration/kubernetes/#interview-questions",
+    ids: ["k8s-01","k8s-02","k8s-03","k8s-04","k8s-05","k8s-06","k8s-07","k8s-08","k8s-09","k8s-10","k8s-11","k8s-12","k8s-13","k8s-14","k8s-15","k8s-16","k8s-17","k8s-18","k8s-19","k8s-20","k8s-21","k8s-22","k8s-23","k8s-24","k8s-25"],
+  },
+  {
+    title: "Parquet",
+    anchor: "/level-3-technologies/formats/parquet/#interview-questions",
+    ids: ["parquet-01","parquet-02","parquet-03","parquet-04","parquet-05","parquet-06","parquet-07","parquet-08","parquet-09","parquet-10","parquet-11","parquet-12","parquet-13","parquet-14","parquet-15","parquet-16","parquet-17","parquet-18","parquet-19","parquet-20","parquet-21","parquet-22","parquet-23","parquet-24","parquet-25","parquet-26","parquet-27","parquet-28","parquet-29","parquet-30"],
+  },
+  {
+    title: "Avro",
+    anchor: "/level-3-technologies/formats/avro/#interview-questions",
+    ids: ["avro-01","avro-02","avro-03","avro-04","avro-05","avro-06","avro-07","avro-08","avro-09","avro-10","avro-11","avro-12","avro-13","avro-14","avro-15","avro-16","avro-17","avro-18","avro-19","avro-20","avro-21","avro-22","avro-23","avro-24"],
+  },
+  {
+    title: "Delta Lake",
+    anchor: "/level-3-technologies/formats/delta/#interview-questions",
+    ids: ["delta-01","delta-02","delta-03","delta-04","delta-05","delta-06","delta-07","delta-08","delta-09","delta-10","delta-11","delta-12","delta-13","delta-14","delta-15","delta-16","delta-17","delta-18","delta-19","delta-20","delta-21","delta-22","delta-23","delta-24","delta-25","delta-26","delta-27","delta-28","delta-29","delta-30"],
+  },
+  {
+    title: "Iceberg",
+    anchor: "/level-3-technologies/formats/iceberg/#interview-questions",
+    ids: ["iceberg-01","iceberg-02","iceberg-03","iceberg-04","iceberg-05","iceberg-06","iceberg-07","iceberg-08","iceberg-09","iceberg-10","iceberg-11","iceberg-12","iceberg-13","iceberg-14","iceberg-15"],
+  },
+  {
+    title: "What is Data Engineering",
+    anchor: "/level-2-core-concepts/what-is-data-engineering/#interview-questions",
+    ids: ["wde-01","wde-02","wde-03","wde-04","wde-05","wde-06","wde-07","wde-08","wde-09","wde-10","wde-11"],
+  },
+  {
+    title: "Data Engineer vs Data Scientist",
+    anchor: "/level-2-core-concepts/data-engineer-vs-data-scientist/#interview-questions",
+    ids: ["devds-01","devds-02","devds-03","devds-04","devds-05","devds-06","devds-07","devds-08","devds-09","devds-10","devds-11","devds-12"],
+  },
+  {
+    title: "System Design",
+    anchor: "/level-4-advanced/system-design/#interview-questions",
+    ids: ["sysdesign-01","sysdesign-02","sysdesign-03","sysdesign-04","sysdesign-05","sysdesign-06","sysdesign-07","sysdesign-08","sysdesign-09","sysdesign-10","sysdesign-11"],
+  },
+  {
+    title: "Cost Optimization",
+    anchor: "/level-4-advanced/cost-optimization/#interview-questions",
+    ids: ["cost-01","cost-02","cost-03","cost-04","cost-05","cost-06","cost-07","cost-08","cost-09","cost-10","cost-11","cost-12"],
+  },
+  {
+    title: "Data Structures",
+    anchor: "/level-1-foundations/data-structure/#interview-questions",
+    ids: ["ds-01","ds-02","ds-03","ds-04","ds-05","ds-06","ds-07","ds-08","ds-09","ds-10","ds-11","ds-12","ds-13","ds-14","ds-15","ds-16","ds-17","ds-18","ds-19","ds-20","ds-21","ds-22","ds-23","ds-24"],
+  },
+  {
+    title: "Data Quality",
+    anchor: "/level-2-core-concepts/data-quality/#interview-questions",
+    ids: ["dq-01","dq-02","dq-03","dq-04","dq-05","dq-06","dq-07","dq-08","dq-09","dq-10","dq-11","dq-12","dq-13","dq-14","dq-15"],
+  },
+  {
+    title: "Data Governance",
+    anchor: "/level-2-core-concepts/data-governance/#interview-questions",
+    ids: ["dg-01","dg-02","dg-03","dg-04","dg-05","dg-06","dg-07","dg-08","dg-09","dg-10","dg-11","dg-12"],
+  },
+  {
+    title: "Observability",
+    anchor: "/level-4-advanced/observability/#interview-questions",
+    ids: ["obs-01","obs-02","obs-03","obs-04","obs-05","obs-06","obs-07","obs-08","obs-09","obs-10","obs-11","obs-12"],
+  },
+  {
+    title: "Data Modeling",
+    anchor: "/level-2-core-concepts/data-modeling/#interview-questions",
+    ids: ["dm-01","dm-02","dm-03","dm-04","dm-05","dm-06","dm-07","dm-08","dm-09","dm-10","dm-11","dm-12","dm-13","dm-14","dm-15"],
+  },
+  {
+    title: "SQL",
+    anchor: "/level-1-foundations/sql/progress/",
+    ids: ["sql-fund-01","sql-fund-02","sql-fund-03","sql-fund-04","sql-fund-05","sql-fund-06","sql-fund-07","sql-fund-08","sql-fund-09","sql-fund-10","sql-fund-11","sql-fund-12","sql-fund-13","sql-fund-14","sql-fund-15","sql-fund-16","sql-fund-17","sql-fund-18","sql-fund-19","sql-fund-20","sql-types-01","sql-types-02","sql-types-03","sql-types-04","sql-types-05","sql-types-06","sql-types-07","sql-types-08","sql-types-09","sql-types-10","sql-adv-01","sql-adv-02","sql-adv-03","sql-adv-04","sql-adv-05","sql-adv-06","sql-adv-07","sql-adv-08","sql-adv-09","sql-adv-10","sql-design-01","sql-design-02","sql-design-03","sql-design-04","sql-design-05","sql-design-06","sql-design-07","sql-design-08","sql-design-09","sql-design-10","sql-opt-01","sql-opt-02","sql-opt-03","sql-opt-04","sql-opt-05","sql-opt-06","sql-opt-07","sql-sec-01","sql-sec-02","sql-sec-03","sql-func-01","sql-func-02","sql-func-03","sql-func-04","sql-txn-01","sql-txn-02","sql-txn-03","sql-txn-04","sql-txn-05","sql-eco-01","sql-eco-02","sql-eco-03","sql-eco-04","sql-eco-05","sql-best-01","sql-best-02","sql-best-03","sql-best-04","sql-best-05","sql-analytic-01","sql-analytic-02","sql-analytic-03","sql-analytic-04","sql-analytic-05","sql-analytic-06","sql-etl-01","sql-etl-02","sql-etl-03","sql-etl-04","sql-etl-05","sql-domain-01","sql-domain-02","sql-domain-03","sql-domain-04","sql-domain-05","sql-debug-01","sql-debug-02","sql-debug-03","sql-debug-04","sql-prac-rank-01","sql-prac-rank-02","sql-prac-rank-03","sql-prac-rank-04","sql-prac-filter-01","sql-prac-filter-02","sql-prac-filter-03","sql-prac-filter-04","sql-prac-filter-05","sql-prac-filter-06","sql-prac-dates-01","sql-prac-dates-02","sql-prac-dates-03","sql-prac-dates-04","sql-prac-dates-05"],
+  },
+]} />

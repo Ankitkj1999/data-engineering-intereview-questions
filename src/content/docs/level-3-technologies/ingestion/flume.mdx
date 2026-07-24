@@ -1,0 +1,185 @@
+---
+title: Flume
+description: Apache Flume interview questions covering agents, channels, sinks, reliability, interceptors, and how Flume compares to Kafka for log ingestion pipelines.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Flume: Distributed Log Collection for Hadoop
+
+**Apache Flume is a distributed service for collecting, aggregating, and moving large volumes of log data into Hadoop, built around a simple agent pipeline of sources, channels, and sinks.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A Flume **Agent** is a JVM process hosting the three core components of every flow: a **Source** (receives events from an external system), a **Channel** (a temporary store that holds events until a sink consumes them), and a **Sink** (removes events from the channel and forwards them to a destination like HDFS or another agent). The **Channel** you pick is a reliability/throughput trade-off — MEMORY is fastest but can lose data, FILE is the most durable because it persists to disk before acknowledging, and JDBC stores events in an embedded Derby database. **Channel Selectors** (replicating or multiplexing) decide whether an event goes to one channel or is fanned out to several, and **Interceptors** sit between source/channel or channel/sink to filter or enrich events in flight. Reliability comes from channel-based **transactions**: an event only moves to the next hop once both the sending and receiving agent commit their transaction, giving Flume end-to-end guaranteed delivery. Multi-hop topologies are wired together with the **Avro RPC** mechanism, and agent behavior is entirely driven by local configuration files defining each agent's sources, channels, and sinks.
+
+---
+
+## Interview Questions
+
+### Core Architecture & Components
+
+<QuestionList topic="Flume Core Architecture" storagePrefix="flume-core">
+
+<QuestionCard id="flume-core-01" number={1} question="What is Apache Flume?" difficulty="easy" topic="Fundamentals">
+Apache Flume is a distributed, reliable, and available service for efficiently collecting, aggregating, and moving large amounts of log data from many different sources to a centralized data store — most commonly Hadoop. It has a simple, flexible architecture based on streaming data flows, is robust and fault-tolerant with tunable reliability mechanisms and failover/recovery mechanisms, and uses a simple extensible data model that supports online analytic applications.
+
+Flume is fundamentally a framework for populating Hadoop with data: agents are deployed throughout an organization's IT infrastructure — inside web servers, application servers, and mobile devices, for example — to collect data and integrate it into Hadoop.
+</QuestionCard>
+
+<QuestionCard id="flume-core-02" number={2} question="What is an Agent?" difficulty="easy" topic="Architecture">
+An Agent is a process that hosts Flume components such as sources, channels, and sinks, and thus has the ability to receive, store, and forward events to their destination.
+</QuestionCard>
+
+<QuestionCard id="flume-core-03" number={3} question="What is a Channel?" difficulty="easy" topic="Architecture">
+A Channel stores events. Events are delivered to the channel via sources operating within the agent, and an event stays in the channel until a sink removes it for further transport.
+</QuestionCard>
+
+<QuestionCard id="flume-core-04" number={4} question="What are Flume's core components?" difficulty="easy" topic="Architecture">
+Source, Channel, and Sink are the core components in Apache Flume. When a Flume source receives an event from an external source, it stores the event in one or multiple channels. The channel temporarily stores and holds the event until it's consumed by the sink — acting as Flume's repository. The sink then removes the event from the channel and puts it into an external repository like HDFS, or moves it on to the next Flume hop.
+</QuestionCard>
+
+<QuestionCard id="flume-core-05" number={5} question="What is a Flume Event?" difficulty="medium" topic="Architecture">
+A Flume Event is a unit of data with a set of string attributes. An external source, like a web server, sends events to the source. Internally, Flume has built-in functionality to understand the source's format — each log file is typically considered an event. Each event has a header and a value section: the header holds header information, and the value is the appropriate content assigned to that header.
+</QuestionCard>
+
+<QuestionCard id="flume-core-06" number={6} question="Why Flume?" difficulty="medium" topic="Use Cases">
+Flume isn't limited to collecting logs from distributed systems — it's capable of other use cases too, such as:
+- collecting readings from an array of sensors
+- collecting impressions from custom apps for an ad network
+- collecting readings from network devices in order to monitor their performance
+
+Flume is designed to preserve reliability, scalability, manageability, and extensibility while serving a maximum number of clients with higher quality of service (QoS).
+</QuestionCard>
+
+<QuestionCard id="flume-core-07" number={7} question="Why are we using Flume?" difficulty="easy" topic="Use Cases">
+Hadoop developers most often use this tool to get data from social media sites. It was developed by Cloudera for aggregating and moving very large amounts of data. Its primary use is to gather log files from different sources and asynchronously persist them into a Hadoop cluster.
+</QuestionCard>
+
+<QuestionCard id="flume-core-08" number={8} question="Name two features of Flume." difficulty="easy" topic="Fundamentals">
+Flume collects data efficiently, and aggregates and moves large amounts of log data from many different sources into a centralized data store. It's also not restricted to log data aggregation — it can transport massive quantities of event data including, but not limited to, network traffic data, social-media-generated data, email messages, and pretty much any other data source.
+</QuestionCard>
+
+</QuestionList>
+
+### Channels, Reliability & Failure Handling
+
+<QuestionList topic="Flume Reliability" storagePrefix="flume-reliability">
+
+<QuestionCard id="flume-reliability-01" number={9} question="Which is the reliable channel in Flume to ensure there is no data loss?" difficulty="medium" topic="Channels">
+The FILE channel is the most reliable channel among the three (JDBC, FILE, and MEMORY), because it writes events to disk before acknowledging them.
+</QuestionCard>
+
+<QuestionCard id="flume-reliability-02" number={10} question="Explain the different channel types in Flume, and which channel type is faster?" difficulty="medium" topic="Channels">
+The three built-in channel types available in Flume are:
+- **MEMORY Channel** — events are read from the source into memory and passed to the sink
+- **JDBC Channel** — stores events in an embedded Derby database
+- **FILE Channel** — writes the contents to a file on the file system after reading the event from a source; the file is deleted only after the contents are successfully delivered to the sink
+
+MEMORY Channel is the fastest of the three, but carries the risk of data loss. The channel you choose depends entirely on the nature of the big data application and the value of each event.
+</QuestionCard>
+
+<QuestionCard id="flume-reliability-03" number={11} question="Does Flume provide 100% reliability to the data flow?" difficulty="medium" topic="Reliability">
+Yes — Apache Flume provides end-to-end reliability because of its transactional approach to data flow.
+</QuestionCard>
+
+<QuestionCard id="flume-reliability-04" number={12} question="Explain reliability and failure handling in Apache Flume." difficulty="hard" topic="Reliability">
+Flume NG uses channel-based transactions to guarantee reliable message delivery. When a message moves from one agent to another, two transactions are started: one on the agent that delivers the event, and one on the agent that receives it. For the sending agent to commit its transaction, it must receive a success indication from the receiving agent. The receiving agent only returns a success indication once its own transaction commits properly first. This guarantees delivery semantics between every hop the flow makes.
+</QuestionCard>
+
+<QuestionCard id="flume-reliability-05" number={13} question="Explain the replication and multiplexing selectors in Flume." difficulty="hard" topic="Channels">
+Channel Selectors are used to handle multiple channels. Based on the Flume header value, an event can be written to just a single channel or to multiple channels. If a channel selector isn't specified for a source, the default is the Replicating selector, which writes the same event to all the channels in the source's channel list. The Multiplexing channel selector is used when the application needs to send different events to different channels.
+</QuestionCard>
+
+</QuestionList>
+
+### Sinks, Integrations & Data Flow
+
+<QuestionList topic="Flume Sinks and Integrations" storagePrefix="flume-sinks">
+
+<QuestionCard id="flume-sinks-01" number={14} question="How can Flume be used with HBase?" difficulty="hard" topic="Sinks">
+Apache Flume can be used with HBase using one of two HBase sinks:
+- **HBaseSink** (`org.apache.flume.sink.hbase.HBaseSink`) supports secure HBase clusters and also the newer HBase IPC introduced in HBase 0.96.
+- **AsyncHBaseSink** (`org.apache.flume.sink.hbase.AsyncHBaseSink`) has better performance than HBaseSink, since it can make non-blocking calls to HBase.
+
+**HBaseSink** converts a Flume Event into HBase Increments or Puts: a serializer implements `HBaseEventSerializer`, which is instantiated when the sink starts. For every event, the sink calls the serializer's `initialize` method, which translates the Flume Event into the HBase increments and puts sent to the HBase cluster.
+
+**AsyncHBaseSink** implements `AsyncHBaseEventSerializer`. Its `initialize` method is called only once, when the sink starts. The sink invokes `setEvent` and then calls `getIncrements` and `getActions`, similar to HBaseSink. When the sink stops, the serializer's `cleanUp` method is called.
+</QuestionCard>
+
+<QuestionCard id="flume-sinks-02" number={15} question="Differentiate between FileSink and FileRollSink." difficulty="medium" topic="Sinks">
+The major difference is where the events end up: HDFS FileSink writes events into the Hadoop Distributed File System (HDFS), whereas FileRollSink stores events into the local file system.
+</QuestionCard>
+
+<QuestionCard id="flume-sinks-03" number={16} question="Does Apache Flume provide support for third-party plugins?" difficulty="easy" topic="Extensibility">
+Yes — most data analysts rely on Apache Flume's plug-in-based architecture, since it can load data from external sources and transfer it to external destinations.
+</QuestionCard>
+
+<QuestionCard id="flume-sinks-04" number={17} question="Can Flume distribute data to multiple destinations?" difficulty="medium" topic="Data Flow">
+Yes. It supports multiplexing flows — an event can flow from one source to multiple channels and multiple destinations. This is achieved by defining a flow multiplexer.
+</QuestionCard>
+
+<QuestionCard id="flume-sinks-05" number={18} question="How can a multi-hop agent be set up in Flume?" difficulty="medium" topic="Data Flow">
+The Avro RPC Bridge mechanism is used to set up a multi-hop agent in Apache Flume.
+</QuestionCard>
+
+<QuestionCard id="flume-sinks-06" number={19} question="Can you explain configuration files in Flume?" difficulty="easy" topic="Configuration">
+The agent's configuration is stored in a local configuration file. It comprises each agent's source, sink, and channel information.
+</QuestionCard>
+
+<QuestionCard id="flume-sinks-07" number={20} question="What are Interceptors?" difficulty="medium" topic="Data Flow">
+Interceptors are used to filter events between a source and channel, or between a channel and sink. These interceptors can filter out unnecessary or targeted log entries. You can chain as many interceptors as your requirements need.
+</QuestionCard>
+
+<QuestionCard id="flume-sinks-08" number={21} question="Is it possible to leverage real-time analysis on the big data collected by Flume directly?" difficulty="medium" topic="Integrations">
+Yes — data from Flume can be extracted, transformed, and loaded in real time into Apache Solr servers using the `MorphlineSolrSink`.
+</QuestionCard>
+
+</QuestionList>
+
+### Flume in the Hadoop Ecosystem
+
+<QuestionList topic="Flume Ecosystem" storagePrefix="flume-ecosystem">
+
+<QuestionCard id="flume-ecosystem-01" number={22} question="What is Flume-NG?" difficulty="easy" topic="Ecosystem">
+Flume-NG is a real-time loader for streaming data into Hadoop. It stores data in HDFS and HBase. It's the successor to the original Flume and the version you'll want to get started with, since it improves substantially on the original.
+</QuestionCard>
+
+<QuestionCard id="flume-ecosystem-02" number={23} question="What are the complicated steps in Flume configuration?" difficulty="medium" topic="Configuration">
+Flume processes streaming data, so once started there is no stop/end to the process — it asynchronously flows data from source to HDFS via an agent. First, the agent needs to know how its individual components are connected to load data, so configuration is what triggers loading of streaming data. For example, `consumerKey`, `consumerSecret`, `accessToken`, and `accessTokenSecret` are the key factors needed to download data from Twitter.
+</QuestionCard>
+
+<QuestionCard id="flume-ecosystem-03" number={24} question="What are the data extraction tools in Hadoop?" difficulty="easy" topic="Ecosystem">
+Sqoop can be used to transfer data between RDBMS and HDFS. Flume can be used to extract streaming data from social media, web logs, and similar sources, and store it on HDFS.
+</QuestionCard>
+
+<QuestionCard id="flume-ecosystem-04" number={25} question="What are the similarities and differences between Apache Flume and Apache Kafka?" difficulty="medium" topic="Ecosystem">
+Flume pushes messages to their destination via its Sinks. With Kafka, you instead need to consume messages from the Kafka Broker using a Kafka Consumer API — Kafka is pull-based rather than push-based. Both move large volumes of event data, but Flume is purpose-built for ingesting data into Hadoop-ecosystem sinks, while Kafka is a general-purpose distributed log that many different consumers can read from independently.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Design a Flume agent that ships web server logs into HDFS without losing data during a downstream outage."** Talk through choosing the FILE channel over MEMORY for durability, how channel-based transactions guarantee each hop only advances after a commit, and where backpressure builds up if HDFS becomes slow.
+- **"You need the same event stream to go to both HDFS for archival and Solr for real-time search."** Explain the Replicating channel selector for fan-out, versus Multiplexing when different event types need to go to different channels, and mention `MorphlineSolrSink` for the real-time path.
+- **"How would you decide between Flume and Kafka for a new ingestion pipeline?"** Walk through the push vs. pull distinction, Flume's built-in Hadoop-ecosystem sinks vs. Kafka's general-purpose consumer model, and when you might use both together (Flume as a Kafka producer, for example).
+
+---
+
+## Further Reading
+
+- [CDC](/level-3-technologies/ingestion/cdc/) — a database-change-focused alternative to log-file ingestion
+- [NiFi](/level-3-technologies/ingestion/nifi/) — a more general-purpose, UI-driven dataflow tool covering similar ground
+- [Kafka](/level-3-technologies/streaming/kafka/) — the distributed log Flume is most often compared against

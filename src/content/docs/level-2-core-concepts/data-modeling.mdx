@@ -1,0 +1,131 @@
+---
+title: Data Modeling
+description: Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## Data Modeling: Schema Design for Analytics
+
+**Data modeling is how you structure data so it can be queried reliably and efficiently — the difference between a warehouse that answers business questions cleanly and one that produces inconsistent metrics and slow, confusing joins.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Everything in analytical data modeling starts with **grain** — the level of detail a table represents (one row per order line, one row per user per day). Get grain wrong and every downstream join or aggregation is suspect. From there, the **star schema** (a central fact table surrounded by dimension tables) is the default shape for analytics: facts hold measurable events and foreign keys, dimensions hold descriptive context. **Slowly Changing Dimensions (SCD)** define how you handle attribute changes over time, and patterns like **conformed dimensions**, **bridge tables**, and **degenerate dimensions** solve for consistency, many-to-many relationships, and drill-through respectively.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Data Modeling" storagePrefix="data-modeling">
+
+<QuestionCard id="dm-01" number={1} question="What is data modeling in analytics and why does it matter?" difficulty="easy" topic="Fundamentals">
+Data modeling in analytics is the process of structuring data so it can be queried reliably and efficiently for business questions. A good model makes metrics consistent, reduces complexity for consumers, and improves performance by aligning storage with query patterns. A bad model leads to inconsistent KPIs, confusing joins, and expensive queries.
+</QuestionCard>
+
+<QuestionCard id="dm-02" number={2} question="What is grain and why is it the first question to answer?" difficulty="easy" topic="Fundamentals">
+Grain is the level of detail of a table — for example "one row per order line" or "one row per user per day." It determines which metrics are additive, how joins behave, and what can be uniquely identified. If grain is unclear, you get duplicates, incorrect aggregations, and ambiguous keys.
+</QuestionCard>
+
+<QuestionCard id="dm-03" number={3} question="What is the difference between fact and dimension tables?" difficulty="easy" topic="Star Schema">
+Facts store measurable events (orders, payments, clicks) and typically contain foreign keys to dimensions. Dimensions store descriptive attributes (user, product, date) that provide context for slicing and filtering. Facts answer "what happened," dimensions answer "who/what/where/when."
+</QuestionCard>
+
+<QuestionCard id="dm-04" number={4} question="What is a star schema and what are its benefits?" difficulty="easy" topic="Star Schema">
+A star schema has a central fact table connected to multiple dimension tables. Benefits include simpler queries, clear join paths, and good performance because joins are typically fact-to-dimension (many-to-one). It also encourages consistent definitions of metrics and attributes.
+</QuestionCard>
+
+<QuestionCard id="dm-05" number={5} question="Star schema vs snowflake schema: what are the trade-offs?" difficulty="medium" topic="Star Schema">
+A snowflake schema normalizes dimensions into multiple related tables. It can reduce redundancy and improve dimension maintainability, but it increases join complexity and can hurt performance. Star schemas are usually preferred for BI and ad-hoc analytics because they're easier for users and tools to work with.
+</QuestionCard>
+
+<QuestionCard id="dm-06" number={6} question="What are the main types of fact tables?" difficulty="medium" topic="Fact Tables">
+- **Transactional** — one row per business event (order, payment)
+- **Periodic snapshot** — one row per entity per period (daily account balance)
+- **Accumulating snapshot** — one row that gets updated as a process progresses (order lifecycle)
+
+Choosing the right type depends on the questions you need to answer.
+</QuestionCard>
+
+<QuestionCard id="dm-07" number={7} question="What is a surrogate key and when should you use it?" difficulty="medium" topic="Keys">
+A surrogate key is a synthetic identifier used instead of a natural key. It's useful when natural keys aren't stable, when you need SCD history, or when integrating multiple sources with different key systems. Surrogate keys also allow consistent joins even if source keys change.
+</QuestionCard>
+
+<QuestionCard id="dm-08" number={8} question="What is a conformed dimension?" difficulty="medium" topic="Dimensions">
+A conformed dimension is a dimension shared consistently across multiple fact tables or data marts — for example, the same "customer" dimension used for orders and support tickets. Conformed dimensions enable consistent reporting and cross-domain analysis.
+</QuestionCard>
+
+<QuestionCard id="dm-09" number={9} question="What is SCD (Slowly Changing Dimension)?" difficulty="medium" topic="SCD">
+SCD describes how you handle changes in dimension attributes over time (for example, a user changing address).
+
+- **Type 1** — overwrites history
+- **Type 2** — tracks history with multiple rows and effective dates
+- **Type 3** — keeps limited history in additional columns
+
+The choice depends on whether "as-of" reporting is required.
+</QuestionCard>
+
+<QuestionCard id="dm-10" number={10} question="How do you implement SCD Type 2?" difficulty="hard" topic="SCD">
+SCD2 typically stores:
+
+- a surrogate key
+- the natural/business key
+- `effective_start` and `effective_end` timestamps (or `end_date`)
+- a `current_flag`
+
+On change, you "close" the previous record and insert a new version. You must define how to detect changes and handle late-arriving updates.
+</QuestionCard>
+
+<QuestionCard id="dm-11" number={11} question="What is a factless fact table?" difficulty="medium" topic="Fact Tables">
+A factless fact table records events that don't have numeric measures — for example, "student attended class" or "user is eligible for campaign." The fact itself can be counted, and the table is useful for coverage, eligibility, and relationship tracking.
+</QuestionCard>
+
+<QuestionCard id="dm-12" number={12} question="What is a bridge table and when do you need it?" difficulty="hard" topic="Dimensions">
+A bridge table resolves many-to-many relationships — for example, products belonging to multiple categories, or users having multiple roles. It can also store weights for allocation (for example, revenue split). Without a bridge table, joins can explode row counts and break aggregations.
+</QuestionCard>
+
+<QuestionCard id="dm-13" number={13} question="What are degenerate dimensions?" difficulty="medium" topic="Dimensions">
+Degenerate dimensions are identifiers stored directly in the fact table without a separate dimension table, such as `order_id` or `invoice_number`. They're useful for drill-through and filtering while avoiding unnecessary dimension tables.
+</QuestionCard>
+
+<QuestionCard id="dm-14" number={14} question="How do you prevent double counting in analytical models?" difficulty="hard" topic="Data Quality">
+You prevent double counting by enforcing correct grain, using proper join keys (many-to-one), and avoiding many-to-many joins without a bridge table. You also define metric rules (sum vs. distinct count vs. last value) and test them with reconciliation queries.
+</QuestionCard>
+
+<QuestionCard id="dm-15" number={15} question="How do you validate a data model after changes?" difficulty="medium" topic="Data Quality">
+Typical validation includes:
+
+- row count and key uniqueness checks at each layer
+- reconciliation of totals against source systems
+- sampling and drill-through checks on known entities
+- regression tests for key business metrics
+
+This catches subtle issues like join duplication or missing late data.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Design a fact table for e-commerce orders."** Start by nailing down grain (order? order line?), then identify dimensions (customer, product, date, promotion) and decide how to handle returns or cancellations — usually a separate fact or a status dimension rather than mutating the original row.
+- **"Our revenue metric doesn't match between two dashboards."** This is almost always a grain or join-fan-out problem. Walk through checking for many-to-many joins without a bridge table, duplicate rows from a non-conformed dimension, or inconsistent aggregation rules (sum vs. distinct count) between the two queries.
+- **"A dimension's attributes change over time — how do you model it?"** Identify whether the business needs point-in-time history (SCD Type 2) or only the current value (SCD Type 1), then talk through the surrogate key, effective-dating, and how late-arriving changes get handled.
+
+---
+
+## Further Reading
+
+- [Data Warehousing](/level-2-core-concepts/data-warehousing/) — how these models get deployed at the platform level
+- [SQL Interview Questions](/level-1-foundations/sql/theory/) — the query patterns (joins, window functions) used to work with these schemas
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where data modeling fits into the broader curriculum

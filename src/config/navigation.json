@@ -1,5 +1,6 @@
 {
   "sidebar": [
+    { "label": "Overall Progress", "link": "/progress/" },
     {
       "label": "Roadmaps",
       "items": [

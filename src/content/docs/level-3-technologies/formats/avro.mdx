@@ -1,0 +1,204 @@
+---
+title: Avro
+description: Apache Avro interview questions covering JSON-based schemas, serialization, schema resolution, data types, and RPC use cases in the Hadoop ecosystem.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Apache Avro: Row-Based Data Serialization
+
+**Apache Avro is a data serialization and RPC framework from the Hadoop ecosystem that pairs a JSON-defined schema with a compact binary encoding — making it a common choice for streaming pipelines (like Kafka) that need compact messages and strong schema evolution.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Avro stores every record alongside a **JSON schema**, but the data itself is written in a **compact binary format**, which keeps files small and serialization fast. Because the schema always travels with (or is resolvable alongside) the data, Avro supports strong **schema resolution** — a reader can use a different, compatible schema version than the writer used, which is the foundation of its **schema evolution** story. Avro defines a fixed set of **primitive types** (null, boolean, int, long, float, double, bytes, string) and **complex types** (record, enum, array, map, union, fixed). Unlike Thrift or Protocol Buffers, Avro supports both dynamic and static typing without requiring an Interface Definition Language (IDL) or manually-assigned field IDs, and it's used for two main purposes: **data serialization** for storage (compact, splittable, and compressible) and **RPC** (remote procedure calls) between systems.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Avro" storagePrefix="avro">
+
+<QuestionCard id="avro-01" number={1} question="What is Apache Avro?" difficulty="easy" topic="Fundamentals">
+Apache Avro is an open-source project that offers data serialization as well as data exchange services for Apache Hadoop. These services can be used together or independently. Programs can efficiently serialize data into files or messages using the serialization service. Data storage is very compact and efficient in Avro because the data definition is written in JSON while the data itself is stored in binary format, making it compact and efficient.
+</QuestionCard>
+
+<QuestionCard id="avro-02" number={2} question="What are some key points about Apache Avro?" difficulty="easy" topic="Fundamentals">
+- Avro is a data serialization system.
+- It uses JSON-based schemas.
+- To send data, it uses RPC calls.
+- During data exchange, the schema is sent along with the data.
+</QuestionCard>
+
+<QuestionCard id="avro-03" number={3} question="What does Avro offer?" difficulty="easy" topic="Fundamentals">
+- Rich data structures.
+- A compact, fast, binary data format.
+- A container file for storing persistent data.
+- Remote procedure calls (RPC).
+</QuestionCard>
+
+<QuestionCard id="avro-04" number={4} question="Who is the intended audience for learning Avro?" difficulty="easy" topic="Fundamentals">
+People who want to learn the basics of big data analytics using the Hadoop framework, and those who aspire to become a Hadoop developer, are good candidates to learn Avro. Aspirants who want to use Avro specifically for data serialization and deserialization can also learn it.
+</QuestionCard>
+
+<QuestionCard id="avro-05" number={5} question="What are the prerequisites to learn Avro?" difficulty="easy" topic="Fundamentals">
+Before learning Avro, you should know Hadoop's architecture and APIs, and have experience with Java, since writing basic applications typically requires it before going for Avro.
+</QuestionCard>
+
+<QuestionCard id="avro-06" number={6} question="Explain Avro schemas." difficulty="medium" topic="Schemas">
+Avro heavily depends on its schema — it permits data to be written without prior knowledge of the schema by the reader. Avro serialization is fast, and the data resulting from serialization is small in size because the schema travels with (or is resolvable against) the data.
+</QuestionCard>
+
+<QuestionCard id="avro-07" number={7} question="How does Avro compare to Thrift and Protocol Buffers?" difficulty="medium" topic="Comparison">
+The most comparable libraries to Avro are Thrift and Protocol Buffers. The key differences:
+
+- As needed, Avro supports both dynamic and static types, while Protocol Buffers and Thrift use Interface Definition Languages (IDLs) to specify schemas and their types.
+- Avro is built into the Hadoop ecosystem, whereas Thrift and Protocol Buffers are not.
+</QuestionCard>
+
+<QuestionCard id="avro-08" number={8} question="Why Avro?" difficulty="medium" topic="Fundamentals">
+Some features where Avro differs from other systems:
+
+- Dynamic typing.
+- Untagged data.
+- No manually-assigned field IDs.
+</QuestionCard>
+
+<QuestionCard id="avro-09" number={9} question="How do you use Avro?" difficulty="medium" topic="Workflow">
+The typical workflow: first create schemas, then read those schemas into your program — which is possible in two ways, either by generating a class corresponding to the schema or by using the parser library directly. Then perform serialization using the Avro serialization API, and deserialization using the Avro deserialization API.
+</QuestionCard>
+
+<QuestionCard id="avro-10" number={10} question="What primitive data types does Avro support?" difficulty="easy" topic="Data Types">
+Avro supports a range of primitive data types:
+
+- `null` — no value
+- `boolean` — a binary value
+- `int` — 32-bit signed integer
+- `long` — 64-bit signed integer
+- `float` — single precision (32-bit) IEEE 754 floating-point number
+- `double` — double precision (64-bit) IEEE 754 floating-point number
+- `bytes` — a sequence of 8-bit unsigned bytes
+- `string` — a Unicode character sequence
+</QuestionCard>
+
+<QuestionCard id="avro-11" number={11} question="What complex data types does Avro support?" difficulty="easy" topic="Data Types">
+Avro supports six kinds of complex types:
+
+- Records
+- Enums
+- Arrays
+- Maps
+- Unions
+- Fixed
+</QuestionCard>
+
+<QuestionCard id="avro-12" number={12} question="What are the best features of Apache Avro?" difficulty="medium" topic="Fundamentals">
+- Schema evolution
+- Untagged data
+- Language support
+- Transparent compression
+- Dynamic typing
+- Native support in MapReduce
+- Rich data structures
+</QuestionCard>
+
+<QuestionCard id="avro-13" number={13} question="What are the advantages of Avro?" difficulty="medium" topic="Trade-offs">
+- Smallest serialized size among comparable formats.
+- Compresses one block at a time; the resulting file is splittable.
+- Maintains object structure.
+- Supports reading old data with a new schema.
+</QuestionCard>
+
+<QuestionCard id="avro-14" number={14} question="What are the disadvantages of Avro?" difficulty="medium" topic="Trade-offs">
+- The C# implementation requires .NET 4.5 to make the best use of it.
+- Serialization can be potentially slower compared to some alternatives.
+- A schema is required in order to read or write data.
+</QuestionCard>
+
+<QuestionCard id="avro-15" number={15} question="What do you mean by schema declaration?" difficulty="medium" topic="Schemas">
+In JSON, a schema is represented by one of:
+
+- A JSON string
+- A JSON object, e.g. `{"type": "typename", ...attributes...}`
+- A JSON array
+</QuestionCard>
+
+<QuestionCard id="avro-16" number={16} question="Explain the term serialization." difficulty="easy" topic="Fundamentals">
+Serialization is the process of translating data structures or object state into binary or textual form, in order to transport the data over a network or store it on persistent storage. Serialization is also known as marshaling, and deserialization is known as unmarshalling.
+</QuestionCard>
+
+<QuestionCard id="avro-17" number={17} question="What do you mean by schema resolution?" difficulty="medium" topic="Schemas">
+A reader of Avro data — whether from an RPC call or a file — can always parse that data since its schema is available alongside it. But the reader's expected schema may not be exactly the schema the data was written with, so Avro uses schema resolution to reconcile the two.
+</QuestionCard>
+
+<QuestionCard id="avro-18" number={18} question="Explain the Avro SASL profile." difficulty="hard" topic="Security">
+SASL (Simple Authentication and Security Layer) offers a framework for authentication and security of network protocols. Avro also uses a SASL profile for authentication and security purposes, particularly around its RPC mechanism.
+</QuestionCard>
+
+<QuestionCard id="avro-19" number={19} question="What are the ways of creating Avro schemas?" difficulty="medium" topic="Schemas">
+Avro schemas are created in the "lightweight text-based data interchange" format, JSON (JavaScript Object Notation). They can be created in several ways:
+
+- As a JSON string
+- As a JSON object
+- As a JSON array
+</QuestionCard>
+
+<QuestionCard id="avro-20" number={20} question="Name some Avro reference APIs." difficulty="medium" topic="APIs">
+Classes and methods commonly used in the serialization and deserialization of Avro schemas:
+
+- `SpecificDatumWriter`
+- `SpecificDatumReader`
+- `DataFileWriter`
+- `DataFileReader`
+- `Schema.Parser`
+- `GenericRecord` (interface)
+- `GenericData.Record`
+</QuestionCard>
+
+<QuestionCard id="avro-21" number={21} question="When should you use Avro?" difficulty="medium" topic="Use Cases">
+Avro is mainly used for two purposes:
+
+- Data serialization
+- RPC (remote procedure call) protocol
+
+Some key points: Avro lets applications written in languages other than Java or the JVM read data from disk. It also lets you transfer data across a remote system without the overhead of Java serialization. Use Avro when you need to store a large set of data on disk, since it conserves space, and use it for RPC when you want more efficient remote data transfer.
+</QuestionCard>
+
+<QuestionCard id="avro-22" number={22} question="Explain sort order in Avro." difficulty="hard" topic="Fundamentals">
+Avro defines a standard sort order for data, which allows data written by one system to be efficiently sorted by another system. Since sort order comparisons are often the most frequent per-object operation, this can be an important performance optimization.
+</QuestionCard>
+
+<QuestionCard id="avro-23" number={23} question="What is the advantage of Hadoop's Writable serialization over Java serialization?" difficulty="medium" topic="Comparison">
+With the help of `Writable` objects, Hadoop's Writable-based serialization reduces object-creation overhead, which isn't possible with Java's native serialization framework — which is why using Hadoop's approach is advantageous for performance.
+</QuestionCard>
+
+<QuestionCard id="avro-24" number={24} question="What are the disadvantages of Hadoop's Writable serialization?" difficulty="medium" topic="Comparison">
+The main disadvantage is that `Writable` and Sequence Files only have a Java API. Avro was created in part to solve this problem, since it supports multiple languages.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Why would you pick Avro over Parquet for a Kafka pipeline?"** Talk through Avro being row-oriented (good for record-at-a-time streaming and write-heavy workloads), its compact binary encoding, and how the schema travels with the data (or lives in a schema registry) to support producer/consumer evolution.
+- **"A downstream consumer needs to read data written with an older schema version — how does that work?"** Explain schema resolution: the reader schema and writer schema don't need to be identical, only compatible, so Avro can reconcile added/removed/renamed fields at read time.
+- **"How would you evolve a schema without breaking existing consumers?"** Discuss safe changes (adding a field with a default, for instance) versus breaking ones, and how that maps to Avro's schema resolution rules.
+
+---
+
+## Further Reading
+
+- [Parquet](/level-3-technologies/formats/parquet/) — the columnar counterpart, better suited to analytical scans than Avro's row-oriented layout
+- [Delta Lake](/level-3-technologies/formats/delta/) — adds ACID transactions and time travel on top of a columnar format
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where storage formats fit into the broader curriculum

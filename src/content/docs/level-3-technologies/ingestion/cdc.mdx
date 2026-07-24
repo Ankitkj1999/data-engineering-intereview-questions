@@ -1,0 +1,131 @@
+---
+title: CDC
+description: Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## CDC: Capturing and Streaming Database Changes
+
+**Change Data Capture (CDC) streams row-level inserts, updates, and deletes out of a source system in near real time, replacing expensive full-table batch scans with a continuous, ordered log of what changed.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+CDC captures row-level changes (inserts, updates, deletes) from a source system and streams them downstream, most commonly by reading the database's transaction log (WAL/binlog) rather than repeatedly scanning full tables. A production CDC pipeline almost always needs both a **snapshot** (a consistent baseline of existing rows) and **incremental** capture (an ongoing stream of changes from a log position/offset onward). Correctness hinges on a handful of hard problems: **delivery semantics** (at-least-once is the realistic default, made safe with idempotent writes), **ordering** (per-key or per-partition, since events can arrive out of order or be retried), **offset/watermark management** (durably tracking how far you've processed), **schema evolution**, and **delete handling** (hard delete, soft delete, or full history). Patterns like the **outbox pattern** sidestep dual-write problems by writing business events to a table CDC can capture in the same transaction as the application write. Because of all this, mature teams treat CDC pipelines as production software — with lag monitoring, safe backfill strategies, and strong observability — rather than a "just wire it up" integration.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="CDC" storagePrefix="cdc">
+
+<QuestionCard id="cdc-01" number={1} question="What is CDC (Change Data Capture)?" difficulty="easy" topic="Fundamentals">
+CDC is a technique to capture row-level changes (inserts, updates, deletes) from a source system and stream them downstream. In databases, CDC is commonly log-based (reading the WAL/binlog) so it can capture changes without repeatedly scanning full tables. CDC pipelines often feed event logs (append-only) and/or materialized current-state tables.
+</QuestionCard>
+
+<QuestionCard id="cdc-02" number={2} question="When would you choose CDC over batch ingestion?" difficulty="easy" topic="Fundamentals">
+Choose CDC when you need low-latency updates, continuous incremental processing, or a reliable change history. CDC is also useful when full-table scans are too expensive because the source is large or changes frequently. Batch ingestion is often simpler when latency requirements are relaxed and operational complexity should be minimized.
+</QuestionCard>
+
+<QuestionCard id="cdc-03" number={3} question="What are common CDC sources (WAL/binlog/triggers) and their trade-offs?" difficulty="medium" topic="Sources">
+Common sources are:
+- **Database logs (WAL/binlog)** — low overhead and high fidelity, but requires elevated privileges and careful offset handling
+- **Triggers** — can work without log access, but adds write overhead and is easy to break
+- **Timestamp-based queries** — simple but can miss updates or create duplicates if clocks/transactions behave unexpectedly
+
+Log-based CDC is usually preferred for production at scale.
+</QuestionCard>
+
+<QuestionCard id="cdc-04" number={4} question="What is the difference between snapshot and incremental CDC?" difficulty="medium" topic="Snapshotting">
+A snapshot reads an initial consistent baseline of existing rows. Incremental CDC then streams changes after that baseline using a log position/offset. Many systems require both: snapshot for bootstrap, incremental for ongoing updates.
+</QuestionCard>
+
+<QuestionCard id="cdc-05" number={5} question="What delivery semantics exist (at-most-once/at-least-once/exactly-once)?" difficulty="medium" topic="Semantics">
+At-most-once can lose messages but avoids duplicates. At-least-once avoids loss but can produce duplicates on retries. Exactly-once is hard to achieve end-to-end; many systems instead implement "effectively once" by combining at-least-once delivery with idempotent writes and deterministic merge logic.
+</QuestionCard>
+
+<QuestionCard id="cdc-06" number={6} question="How do you make CDC ingestion idempotent?" difficulty="hard" topic="Idempotency">
+You make downstream writes idempotent by using stable keys (primary key + source LSN/transaction id) and applying deterministic upsert/merge logic. A common pattern is to load changes into an append-only raw log, then build current-state tables using "latest per key" logic. Idempotency must hold across retries and replays.
+</QuestionCard>
+
+<QuestionCard id="cdc-07" number={7} question="How do you handle deletes in CDC pipelines?" difficulty="medium" topic="Deletes">
+Deletes may appear as explicit delete events, tombstones, or a "before image" without an "after image." Downstream you can:
+- apply hard deletes (remove the row)
+- apply soft deletes (an `is_deleted` flag with `deleted_at`)
+- keep full history (append-only) and compute current state with delete logic
+
+The choice depends on compliance requirements, analytics needs, and downstream consumers.
+</QuestionCard>
+
+<QuestionCard id="cdc-08" number={8} question="How do you handle updates when the source does not provide full row images?" difficulty="hard" topic="Updates">
+If updates are partial (only changed columns), you often need to reconstruct the full row by joining against previous state. Some CDC tools can be configured to emit before/after images; if not, current-state reconstruction becomes part of your pipeline. You must also handle out-of-order updates carefully.
+</QuestionCard>
+
+<QuestionCard id="cdc-09" number={9} question="What is ordering and why is it hard in CDC?" difficulty="hard" topic="Ordering">
+Ordering means applying changes in the same order they happened in the source. It is hard because events can be partitioned (across multiple tables/partitions), delivered out of order, or retried. Correctness often requires per-key ordering (or per-partition ordering) using source transaction metadata.
+</QuestionCard>
+
+<QuestionCard id="cdc-10" number={10} question="What is a watermark/offset and where should it be stored?" difficulty="medium" topic="Offsets">
+An offset (watermark) is the position in the source log (or stream) up to which changes have been processed. It should be stored durably in the ingestion system's connector state store and, for reliability, often also in your platform (for example, a control table) so you can audit and recover. Offsets must be updated atomically with downstream writes to avoid gaps or duplicates.
+</QuestionCard>
+
+<QuestionCard id="cdc-11" number={11} question="How do you handle schema evolution with CDC?" difficulty="medium" topic="Schema Evolution">
+You need a strategy for compatible changes (additive columns) and breaking changes (renames, type changes). Common tools include schema registries and compatibility policies, plus strict validation in CI. Downstream tables should tolerate additive fields, and pipelines should alert on breaking changes before production data is corrupted.
+</QuestionCard>
+
+<QuestionCard id="cdc-12" number={12} question="What is the outbox pattern and why is it useful?" difficulty="medium" topic="Patterns">
+The outbox pattern writes business events into an "outbox" table in the same transaction as the application write. CDC then captures the outbox changes and publishes them reliably. This avoids dual-write problems where the database update succeeds but the event publish fails (or vice versa).
+</QuestionCard>
+
+<QuestionCard id="cdc-13" number={13} question="How do you monitor CDC lag and where can lag come from?" difficulty="medium" topic="Monitoring">
+Lag can come from several layers:
+- **source** — heavy write load, log retention limits
+- **connector** — slow polling, backpressure, failures
+- **broker/stream** — throughput limits, partition hotspots
+- **downstream** — slow merges/compaction, expensive transformations
+
+You monitor lag using source LSN vs. processed LSN, consumer offsets, and end-to-end freshness in target tables.
+</QuestionCard>
+
+<QuestionCard id="cdc-14" number={14} question="How do you design a safe backfill/reprocessing strategy for CDC?" difficulty="hard" topic="Backfill">
+A safe strategy usually separates raw change storage from derived tables. You keep the raw CDC log (immutable) and rebuild derived current-state/marts from it when needed. For backfills, you often run in a separate environment or commit to new snapshots/versions, then switch consumers over after validation.
+</QuestionCard>
+
+<QuestionCard id="cdc-15" number={15} question="What are the most common failure modes in CDC pipelines?" difficulty="medium" topic="Reliability">
+Common issues include:
+- duplicates due to retries/rebalances
+- missed events due to offset mismanagement or log retention
+- schema drift/breaking changes
+- incorrect delete handling
+- out-of-order application of updates
+
+Good pipelines treat CDC as "production software" with strong observability and tests.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Design a CDC pipeline from Postgres into a warehouse that must stay under 1 minute of freshness lag."** Talk through log-based capture (WAL), a snapshot-then-incremental bootstrap, idempotent merge on primary key + LSN, and how you'd monitor end-to-end lag.
+- **"Two teams built two CDC consumers off the same stream and their row counts disagree."** Walk through duplicate causes (retries/rebalances without idempotent writes), out-of-order updates being applied non-deterministically, and inconsistent delete handling between the two consumers.
+- **"The source database just underwent a breaking schema change mid-stream — what happens to your pipeline?"** Discuss schema registries, compatibility policies, why downstream tables should tolerate additive changes, and how you'd alert on breaking changes before they corrupt production data.
+- **"How would you avoid the dual-write problem when an application needs to update its database and publish an event?"** This is the outbox pattern — walk through why writing the event to a table in the same transaction, then letting CDC capture and publish it, is safer than writing to the database and a message queue separately.
+
+---
+
+## Further Reading
+
+- [Flume](/level-3-technologies/ingestion/flume/) — a log-collection alternative to CDC for streaming ingestion
+- [NiFi](/level-3-technologies/ingestion/nifi/) — a flow-based tool often used to route and transform CDC streams
+- [Kafka](/level-3-technologies/streaming/kafka/) — the most common transport layer for CDC event streams

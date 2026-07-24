@@ -1,0 +1,344 @@
+---
+title: Kubernetes
+description: Kubernetes interview questions covering pods, resource limits, networking, ingress, security, namespaces, operators, and cluster troubleshooting.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Kubernetes: Container Orchestration Platform
+
+**Kubernetes is the container orchestration platform that schedules, scales, and heals containerized workloads across a cluster of nodes — and for data engineers it's most often the substrate that runs Airflow's `KubernetesExecutor`, Spark-on-Kubernetes, or other per-task isolated workloads.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Kubernetes schedules **pods** (one or more containers) onto **nodes**, using **requests** and **limits** to control resource usage and the scheduler's placement decisions. **Services** and **Ingress** solve networking: a Service gives a stable address for a set of pods (via a label selector), while Ingress handles L7 HTTP routing and TLS termination from outside the cluster into services. **Namespaces** partition a cluster for multi-team or multi-environment isolation, and **RBAC**, network policies, and admission control are the main security levers. Day-2 operations lean on constructs like **PodDisruptionBudgets** (safe draining), **init containers** (pre-work before the main container starts), **node affinity/nodeSelector** (pod placement), and **Operators** (custom controllers that encode operational knowledge for stateful applications). Monitoring and logging typically layer Prometheus and an EFK/ELK-style pipeline on top of the cluster.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Kubernetes" storagePrefix="kubernetes">
+
+<QuestionCard id="k8s-01" number={1} question="How do you perform maintenance activity on a K8s node?" difficulty="medium" topic="Cluster Ops">
+Whenever security patches are available, the Kubernetes administrator has to apply them to the running containers to prevent vulnerabilities — an unavoidable part of administration. Two commands are used to safely drain a K8s node:
+
+```bash
+kubectl cordon <node-name>
+kubectl drain <node-name> --ignore-daemonsets
+```
+
+`cordon` moves the node into maintenance mode (marks it unschedulable), and `drain` then evicts the pods from the node. Once `drain` succeeds, you can perform maintenance.
+
+Note: if you only need to inspect nodes first, use `kubectl get nodes` to list all nodes, then `kubectl drain <node-name>` to drain a particular one.
+</QuestionCard>
+
+<QuestionCard id="k8s-02" number={2} question="How do you control the resource usage of a pod?" difficulty="medium" topic="Resource Management">
+Resource usage of a pod is controlled with `requests` and `limits`:
+
+- **Request** — the amount of resources requested for a container. If a container exceeds its request, it can be throttled back down to that request.
+- **Limit** — an upper cap on the resources a single container can use. If it tries to exceed this limit, it can be terminated if Kubernetes decides another container needs those resources. If you're sensitive to pod restarts, it makes sense to keep the sum of all container resource limits at or below your cluster's total resource capacity.
+
+Example:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: demo
+spec:
+  containers:
+    - name: example1
+      image: example/example1
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "250m"
+        limits:
+          memory: "512Mi"
+          cpu: "500m"
+```
+</QuestionCard>
+
+<QuestionCard id="k8s-03" number={3} question="What are the various K8s services running on nodes, and what is the role of each?" difficulty="medium" topic="Architecture">
+A K8s cluster mainly consists of two types of nodes: executor (worker) nodes and the master (control plane).
+
+**Executor node services:**
+- **kube-proxy** — runs on every node and handles communication of pods within the cluster and to the outside network, maintaining network protocols as pods communicate.
+- **kubelet** — a running service on each node that keeps the node in sync with its configuration (YAML/JSON). Note: kubelet only manages containers created by Kubernetes.
+
+**Master (control plane) services:**
+- **kube-apiserver** — the master API service that acts as the entry point to the K8s cluster.
+- **kube-scheduler** — schedules pods according to available resources on executor nodes.
+- **kube-controller-manager** — a control loop that watches the shared state of the cluster through the API server and makes changes attempting to move the current state toward the desired state.
+</QuestionCard>
+
+<QuestionCard id="k8s-04" number={4} question="What is a PDB (Pod Disruption Budget)?" difficulty="medium" topic="Availability">
+A Kubernetes administrator can create a `PodDisruptionBudget` for high availability of an application. It ensures that the minimum number of running pods is respected, as defined by the `minAvailable` field. This is useful during a drain: the drain will halt until the PDB is respected, ensuring the application's high availability. The following spec shows `minAvailable: 2`, meaning at least 2 pods must remain available even during a voluntary disruption:
+
+```yaml
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: zk-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: zookeeper
+```
+</QuestionCard>
+
+<QuestionCard id="k8s-05" number={5} question="What's an init container, and when can it be used?" difficulty="easy" topic="Init Containers">
+Init containers set the stage for you before the actual pod's main container(s) start running. Common uses:
+
+- Wait for some condition before starting the app container, with a command like `sleep 60`.
+- Clone a git repository into a volume so the main container can use it.
+</QuestionCard>
+
+<QuestionCard id="k8s-06" number={6} question="What is the role of a load balancer in Kubernetes?" difficulty="easy" topic="Networking">
+Load balancing distributes incoming traffic across multiple backend servers, which helps ensure the application stays available to users. In Kubernetes, all incoming traffic lands on a single IP address on the load balancer — a way to expose your service outside the cluster — which then routes traffic to a particular pod (via a Service) using an algorithm like round-robin. If a pod goes down, the load balancer is notified so traffic isn't routed to that unavailable pod. Load balancers in Kubernetes are therefore responsible for distributing incoming traffic across the pods behind a service.
+</QuestionCard>
+
+<QuestionCard id="k8s-07" number={7} question="What can be done to increase Kubernetes security?" difficulty="medium" topic="Security">
+- By default, any pod can communicate with any other pod — set up **network policies** to limit this communication between pods.
+- Use **RBAC** (role-based access control) to narrow down permissions.
+- Use **namespaces** to establish security boundaries.
+- Set **admission control policies** to avoid running privileged containers.
+- Turn on **audit logging**.
+</QuestionCard>
+
+<QuestionCard id="k8s-08" number={8} question="How do you monitor a Kubernetes cluster?" difficulty="easy" topic="Monitoring">
+Prometheus is commonly used for Kubernetes monitoring. The Prometheus ecosystem consists of multiple components:
+
+- The Prometheus server, which scrapes and stores time-series data.
+- Client libraries for instrumenting application code.
+- A push gateway for supporting short-lived jobs.
+- Special-purpose exporters for services like StatsD, HAProxy, Graphite, etc.
+- An alertmanager to handle alerts across various support tools.
+</QuestionCard>
+
+<QuestionCard id="k8s-09" number={9} question="How do you get centralized logs from pods?" difficulty="medium" topic="Logging">
+This depends on the application and several other factors. Common logging patterns include:
+
+- Node-level logging agent.
+- Streaming sidecar container.
+- Sidecar container with a dedicated logging agent.
+- Exporting logs directly from the application.
+
+One common setup: `journalbeat` and `filebeat` run as a DaemonSet, dumping collected logs to a Kafka topic, which is eventually written into the ELK stack. The same result can be achieved with an EFK stack and `fluent-bit`.
+</QuestionCard>
+
+<QuestionCard id="k8s-10" number={10} question="How would you turn the following Service into an externally accessible one, and what would the Ingress equivalent look like?" difficulty="hard" topic="Services">
+Starting Service (internal only, no external access):
+
+```yaml
+spec:
+  selector:
+    app: some-app
+  ports:
+    - protocol: UDP
+      port: 8080
+      targetPort: 8080
+```
+
+**Option 1 — expose via a LoadBalancer Service.** Add `type: LoadBalancer` and a `nodePort`:
+
+```yaml
+spec:
+  selector:
+    app: some-app
+  type: LoadBalancer
+  ports:
+    - protocol: UDP
+      port: 8080
+      targetPort: 8080
+      nodePort: 32412
+```
+
+**Option 2 — expose via Ingress.** One of several ways to write it:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: someapp-ingress
+spec:
+  rules:
+    - host: my.host
+      http:
+        paths:
+          - backend:
+              serviceName: someapp-internal-service
+              servicePort: 8080
+```
+</QuestionCard>
+
+<QuestionCard id="k8s-11" number={11} question="How do you configure TLS with Ingress?" difficulty="medium" topic="Ingress">
+Add `tls` and `secretName` entries to the Ingress spec:
+
+```yaml
+spec:
+  tls:
+    - hosts:
+        - some_app.com
+      secretName: someapp-secret-tls
+```
+</QuestionCard>
+
+<QuestionCard id="k8s-12" number={12} question="Why use namespaces? What is the problem with using only the default namespace?" difficulty="medium" topic="Namespaces">
+Using only the default namespace makes it hard, over time, to get an overview of all the applications you manage in your cluster. Namespaces make it easier to organize applications into groups that make sense — for example, a namespace for all monitoring applications and a namespace for all security applications.
+
+Namespaces are also useful for managing Blue/Green environments, where each namespace can hold a different version of an app while still sharing resources in other namespaces (logging, monitoring, etc.).
+
+Another use case is a single cluster shared by multiple teams. Without namespaces, teams can end up stepping on each other — for example, if two teams create an app with the same name, one overrides the other, since there can't be two apps with the same name in the same namespace.
+</QuestionCard>
+
+<QuestionCard id="k8s-13" number={13} question="In the following ConfigMap, which service and namespace is being referred to?" difficulty="medium" topic="Namespaces">
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: some-configmap
+data:
+  some_url: silicon.chip
+```
+
+This value follows the in-cluster DNS pattern `<service>.<namespace>`, so it's referencing the service **"silicon"** in the namespace called **"chip"**.
+</QuestionCard>
+
+<QuestionCard id="k8s-14" number={14} question="What is an Operator?" difficulty="medium" topic="Operators">
+Operators are software extensions to Kubernetes that make use of custom resources to manage applications and their components. Operators follow Kubernetes principles, notably the control loop.
+</QuestionCard>
+
+<QuestionCard id="k8s-15" number={15} question="Why do we need Operators?" difficulty="medium" topic="Operators">
+Managing applications in Kubernetes isn't as straightforward for stateful applications as it is for stateless ones, where reaching the desired state and performing upgrades is handled the same way for every replica. In stateful applications, upgrading each replica might require different handling since each replica can be in a different state — traditionally requiring a human operator. A Kubernetes Operator is meant to assist with this, encoding that operational knowledge into software. This also helps automate a standard process across multiple Kubernetes clusters.
+</QuestionCard>
+
+<QuestionCard id="k8s-16" number={16} question="What is GKE?" difficulty="easy" topic="Cloud">
+GKE is Google Kubernetes Engine, a managed service for managing and orchestrating Docker containers. With the help of Google Cloud, it also handles orchestrating the underlying container cluster infrastructure for you.
+</QuestionCard>
+
+<QuestionCard id="k8s-17" number={17} question="What is an Ingress default backend?" difficulty="medium" topic="Ingress">
+It specifies what to do with an incoming request to the Kubernetes cluster that isn't mapped to any backend — i.e., what happens when no rule matches the incoming HTTP request. If a default backend service isn't defined, it's recommended to define one so users see a meaningful message instead of an unclear error.
+</QuestionCard>
+
+<QuestionCard id="k8s-18" number={18} question="How do you run Kubernetes locally?" difficulty="easy" topic="Local Dev">
+Kubernetes can be set up locally using Minikube. It runs a single-node cluster in a VM on your computer, making it a good way for users who are just starting to learn Kubernetes.
+</QuestionCard>
+
+<QuestionCard id="k8s-19" number={19} question="What is Kubernetes load balancing?" difficulty="easy" topic="Load Balancing">
+Load balancing is one of the most common and standard ways of exposing services. There are two types in K8s:
+
+- **Internal load balancer** — automatically balances load and allocates pods for internal, in-cluster traffic.
+- **External load balancer** — directs traffic from external sources to backend pods.
+</QuestionCard>
+
+<QuestionCard id="k8s-20" number={20} question="What does the following Deployment configuration snippet mean?" difficulty="medium" topic="Secrets">
+```yaml
+spec:
+  containers:
+    - name: my-app
+      env:
+        - name: USER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: some-secret
+              key: password
+```
+
+The `USER_PASSWORD` environment variable will store the value from the `password` key in the Secret called `some-secret`. In other words, you're referencing a value from a Kubernetes Secret rather than hardcoding it.
+</QuestionCard>
+
+<QuestionCard id="k8s-21" number={21} question="What is the difference between Docker Swarm and Kubernetes?" difficulty="medium" topic="Comparison">
+- The installation procedure for Kubernetes is more complicated, but once installed, the cluster is robust. Docker Swarm's installation is much simpler, but the resulting cluster isn't as robust.
+- Kubernetes can handle auto-scaling of pods based on incoming load; Docker Swarm cannot.
+- Kubernetes is a full-fledged framework — since it maintains cluster state more consistently, its autoscaling reacts less quickly than Docker Swarm's.
+</QuestionCard>
+
+<QuestionCard id="k8s-22" number={22} question="How do you troubleshoot a pod that isn't getting scheduled?" difficulty="medium" topic="Troubleshooting">
+The K8s scheduler is responsible for placing pods onto nodes. Many factors can lead to an unschedulable pod, the most common being running out of resources. Use `kubectl describe <pod> -n <namespace>` to see the reason the pod isn't starting, and keep an eye on `kubectl get events` to see all events coming from the cluster.
+</QuestionCard>
+
+<QuestionCard id="k8s-23" number={23} question="How do you run a pod on a particular node?" difficulty="medium" topic="Scheduling">
+Several methods are available:
+
+- **`nodeName`** — specify the name of a node directly in the pod spec; it will try to run the pod on that specific node.
+- **`nodeSelector`** — assign a specific label to a node with special resources, and use the same label in the pod spec so the pod only runs on nodes with that label.
+- **Node affinity** — `requiredDuringSchedulingIgnoredDuringExecution` and `preferredDuringSchedulingIgnoredDuringExecution` express hard and soft requirements for running a pod on specific nodes, based on node labels. This is intended to eventually replace `nodeSelector`.
+</QuestionCard>
+
+<QuestionCard id="k8s-24" number={24} question="What are the different ways to provide external network connectivity to K8s?" difficulty="medium" topic="Networking">
+By default, a pod can reach the external network, but the reverse requires some setup. Options for connecting to a pod from outside the cluster:
+
+- **NodePort** — exposes one port on each node to communicate with the service.
+- **Load balancers** — operate at L4 (TCP/IP).
+- **Ingress** — operates at L7 (HTTP).
+- **kube-proxy** — can expose a service that only has a cluster IP on the local system's port:
+
+```bash
+kubectl proxy --port=8080
+```
+
+Then access the service via:
+
+```
+http://localhost:8080/api/v1/namespaces/<namespace>/services/<service-name>:<port>/proxy/
+```
+</QuestionCard>
+
+<QuestionCard id="k8s-25" number={25} question="How would you forward a request from container port 8080, to service port 8080, to ingress port 8080, to the browser on port 80?" difficulty="hard" topic="Networking">
+The Ingress exposes port 80 externally for the browser to access, and connects to a Service that listens on 8080. The Ingress listens on port 80 by default. An "Ingress controller" is a pod that receives external traffic, handles the Ingress, and is configured by an Ingress resource — for this to work you need to configure the Ingress controller's selector; if no Ingress controller selector matches, no controller will manage the Ingress.
+
+A simple Ingress config looks like:
+
+```yaml
+spec:
+  rules:
+    - host: abc.org
+      http:
+        paths:
+          - backend:
+              serviceName: abc-service
+              servicePort: 8080
+```
+
+And the corresponding Service:
+
+```yaml
+kind: Service
+apiVersion: v1
+metadata:
+  name: abc-service
+spec:
+  ports:
+    - protocol: TCP
+      port: 8080       # port the service listens on
+      targetPort: 8080 # port forwarded to the container
+```
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A pod won't start — walk me through how you'd debug it."** Talk through `kubectl describe pod` for events (scheduling failures, resource pressure, image pull errors) and `kubectl get events` for cluster-wide context, then narrow down to resource requests/limits or node affinity constraints.
+- **"How would you expose a service running in your cluster to the internet, with TLS?"** Compare NodePort, LoadBalancer, and Ingress, then walk through adding a `tls` block with a `secretName` referencing a TLS secret on the Ingress resource.
+- **"We're running Airflow's KubernetesExecutor and getting a flood of small pods — how do you keep that under control?"** Discuss resource requests/limits per task pod, namespaces for isolation, PodDisruptionBudgets during node maintenance, and centralized logging so per-task pod logs remain accessible after the pod is gone.
+
+---
+
+## Further Reading
+
+- [Airflow](/level-3-technologies/orchestration/airflow/) — the orchestration layer that commonly runs tasks as Kubernetes pods
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where orchestration and infrastructure fit into the broader curriculum

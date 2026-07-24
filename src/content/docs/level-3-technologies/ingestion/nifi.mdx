@@ -1,0 +1,113 @@
+---
+title: NiFi
+description: Apache NiFi interview questions covering FlowFiles, processors, relationships, backpressure, templates, and clustering for data engineering interviews.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## NiFi: Flow-Based Dataflow Automation
+
+**Apache NiFi automates the movement and light transformation of data between systems through a visual, flow-based programming model built around FlowFiles, processors, and connections.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Everything in NiFi revolves around the **FlowFile** — a unit of data made up of **content** (the actual bytes, stored separately in a content repository and only referenced by the FlowFile) and **attributes** (key/value metadata describing it). **Processors** are the workhorses that create, route, transform, and move FlowFiles; when a processor finishes with a FlowFile it emits a **relationship** (success, failure, or a custom outcome) that determines where the FlowFile goes next. Connections between processors have configurable **backpressure** limits (by count or size) so a fast producer can't overwhelm a slow consumer. Operationally, NiFi supports **templates** for reusable flows, **bulletins** for surfacing warnings/errors in the UI, a **variable registry** for externalizing configuration, and a **zero-master clustering** model coordinated by ZooKeeper (a Cluster Coordinator and a Primary Node are elected, and failover is automatic).
+
+---
+
+## Interview Questions
+
+<QuestionList topic="NiFi" storagePrefix="nifi">
+
+<QuestionCard id="nifi-01" number={1} question="What is Apache NiFi?" difficulty="easy" topic="Fundamentals">
+NiFi is helpful in creating DataFlows. It means you can transfer data from one system to another system, as well as process the data in between.
+</QuestionCard>
+
+<QuestionCard id="nifi-02" number={2} question="What is a NiFi FlowFile?" difficulty="easy" topic="FlowFiles">
+A FlowFile is a message, event, or piece of user data that is pushed or created in NiFi. A FlowFile has two main parts attached to it: its content (the actual payload — a stream of bytes) and its attributes (key/value pairs attached to the content, essentially metadata for the content).
+</QuestionCard>
+
+<QuestionCard id="nifi-03" number={3} question="What is a Relationship in a NiFi DataFlow?" difficulty="easy" topic="Processors">
+When a processor finishes processing a FlowFile, it can result in a Failure, a Success, or another relationship. Based on this relationship, you can route data to a downstream/next processor or otherwise mediate it accordingly.
+</QuestionCard>
+
+<QuestionCard id="nifi-04" number={4} question="What is a Reporting Task?" difficulty="medium" topic="Monitoring">
+A Reporting Task is a NiFi extension point capable of reporting and analyzing NiFi's internal metrics, in order to provide that information to external resources or report status information as bulletins that appear directly in the NiFi User Interface.
+</QuestionCard>
+
+<QuestionCard id="nifi-05" number={5} question="What is a NiFi Processor?" difficulty="easy" topic="Processors">
+The Processor is the main component in NiFi that actually works on the FlowFile content, helping create, send, receive, transform, route, split, merge, and otherwise process FlowFiles.
+</QuestionCard>
+
+<QuestionCard id="nifi-06" number={6} question="Is there a programming language that Apache NiFi supports?" difficulty="medium" topic="Extensibility">
+NiFi is implemented in the Java programming language and allows extensions (processors, controller services, and reporting tasks) to be implemented in Java. In addition, NiFi supports processors that execute scripts written in Groovy, Jython, and several other popular scripting languages.
+</QuestionCard>
+
+<QuestionCard id="nifi-07" number={7} question="How do you define the NiFi Content Repository?" difficulty="medium" topic="Architecture">
+Contents are not stored in the FlowFile itself. They are stored in the content repository and referenced by the FlowFile. This allows the contents of FlowFiles to be stored independently and efficiently, based on the underlying storage mechanism.
+</QuestionCard>
+
+<QuestionCard id="nifi-08" number={8} question="What is Backpressure in the NiFi system?" difficulty="medium" topic="Flow Control">
+Sometimes a producer system is faster than the consumer system, so messages are consumed more slowly than they're produced. All the messages (FlowFiles) that aren't yet processed remain in the connection's buffer. You can limit the connection's backpressure size either by number of FlowFiles or by data size. Once that limit is reached, the connection applies backpressure to the producer processor so it stops running — no more FlowFiles are generated until the backpressure is reduced.
+</QuestionCard>
+
+<QuestionCard id="nifi-09" number={9} question="What is a template in NiFi?" difficulty="easy" topic="Templates">
+A template is a re-usable workflow that you can import and export within the same or different NiFi instances. It can save a lot of time versus recreating a flow again and again each time. A template is created as an XML file.
+</QuestionCard>
+
+<QuestionCard id="nifi-10" number={10} question="What is bulleting and how does it help in NiFi?" difficulty="medium" topic="Monitoring">
+Rather than checking logs for anything interesting, it's much more convenient to have notifications pop up directly on screen. If a Processor logs anything as a WARNING or ERROR, a "Bulletin Indicator" shows up in the top-right-hand corner of the Processor. This indicator looks like a sticky note and is shown for five minutes after the event occurs. Hovering over the bulletin shows what happened, so the user doesn't have to sift through log messages to find it. In a cluster, the bulletin also indicates which node emitted it. You can also change the log level at which bulletins occur in the Settings tab of a Processor's Configure dialog.
+</QuestionCard>
+
+<QuestionCard id="nifi-11" number={11} question="Do attributes get added to content (the actual data) when data is pulled by NiFi?" difficulty="medium" topic="FlowFiles">
+You can certainly add attributes to your FlowFiles at any time — that's the whole point of separating metadata from the actual data. Essentially, one FlowFile represents an object or message moving through NiFi. Each FlowFile contains a piece of content (the actual bytes); you can extract attributes from the content and store them in memory, then operate against those attributes without touching the content. This saves a lot of I/O overhead, making the whole flow management process extremely efficient.
+</QuestionCard>
+
+<QuestionCard id="nifi-12" number={12} question="What happens if you have stored a password in a dataflow and create a template out of it?" difficulty="medium" topic="Security">
+Password is a sensitive property. So while exporting the DataFlow as a template, the password is dropped — as soon as you import the template into the same or a different NiFi system, the password will need to be re-entered.
+</QuestionCard>
+
+<QuestionCard id="nifi-13" number={13} question="How does NiFi support huge volumes of payload in a DataFlow?" difficulty="medium" topic="Architecture">
+Huge volumes of data can transit through a DataFlow because, as data moves through NiFi, only a pointer to the data is passed around (referred to as a FlowFile). The content of the FlowFile is only accessed as needed.
+</QuestionCard>
+
+<QuestionCard id="nifi-14" number={14} question="What is a NiFi custom properties registry?" difficulty="hard" topic="Configuration">
+To load custom key/value pairs, you can use a custom properties registry, configured in `nifi.properties`:
+
+```properties
+nifi.variable.registry.properties=/conf/nifi_registry
+```
+
+You put key/value pairs in that file and can then reference them in your NiFi processors using expression language, for example `${OS}`, if you've configured that property in the registry file.
+</QuestionCard>
+
+<QuestionCard id="nifi-15" number={15} question="Does NiFi work as a Master-Slave architecture?" difficulty="hard" topic="Clustering">
+No — from NiFi 1.0 onward, a zero-master philosophy is used, and every node in a NiFi cluster is the same. The NiFi cluster is managed by ZooKeeper: Apache ZooKeeper elects a single node as the Cluster Coordinator, and failover is handled automatically by ZooKeeper. All cluster nodes report heartbeat and status information to the Cluster Coordinator, which is responsible for disconnecting and connecting nodes. Additionally, every cluster has one Primary Node, also elected by ZooKeeper.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Design a NiFi flow that ingests files from an SFTP server, validates them, and loads them into a warehouse."** Talk through the processor chain, how relationships (success/failure) route FlowFiles, and where you'd apply backpressure to protect a slower downstream system.
+- **"A NiFi flow is silently falling behind — how do you find out why?"** Discuss checking connection queues for backpressure being applied, bulletins for WARN/ERROR events on specific processors, and reviewing reporting tasks for internal metrics.
+- **"How would you move a tested dataflow from a dev NiFi cluster to production without leaking credentials?"** Explain templates as the export/import mechanism, and why sensitive properties like passwords are dropped on export and must be reconfigured in the target environment.
+
+---
+
+## Further Reading
+
+- [CDC](/level-3-technologies/ingestion/cdc/) — a complementary ingestion pattern for capturing database changes that NiFi flows often consume
+- [Flume](/level-3-technologies/ingestion/flume/) — a narrower, log-focused alternative to NiFi's general-purpose dataflow model
+- [Kafka](/level-3-technologies/streaming/kafka/) — a common source/sink for NiFi processors in streaming architectures

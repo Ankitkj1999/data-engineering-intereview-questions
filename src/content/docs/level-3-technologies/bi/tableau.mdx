@@ -1,0 +1,294 @@
+---
+title: Tableau
+description: Tableau interview questions covering data visualization, calculated fields, LOD expressions, joins vs. blending, dashboards, and server administration.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Tableau: Enterprise BI & Visualization
+
+**Tableau is a drag-and-drop business intelligence platform built around fast, associative in-memory querying — the interview bar is less about syntax and more about knowing when to use a calculated field vs. an LOD expression, a join vs. a blend, and a live connection vs. an extract.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Tableau organizes every data source into **measures** (numeric values to aggregate) and **dimensions** (qualitative attributes to slice by), and every field as **continuous** (plotted on an axis) or **discrete** (plotted as a header). Getting data in happens two ways: a **live connection** queries the source directly for up-to-date results, while an **extract** snapshots the data into Tableau's own fast columnar engine (`.hyper`/`.tde`) for speed and offline use. Combining multiple tables is either a **join** (same data source) or a **blend** (across data sources, via a common field). On top of that foundation sit three tiers of calculation — basic calculated fields, **Level of Detail (LOD)** expressions for granularity that doesn't match the view, and **table calculations** that operate only on what's already rendered — plus **sets**, **groups**, and **parameters** for reshaping how data is filtered and categorized. Interviewers use these building blocks to probe whether you understand *why* a number in a viz looks wrong, not just how to build the viz.
+
+---
+
+## Interview Questions
+
+### Fundamentals & Product Landscape
+
+<QuestionList topic="Tableau Fundamentals" storagePrefix="tableau-fund">
+
+<QuestionCard id="tableau-fund-01" number={1} question="What is data visualization in Tableau?" difficulty="easy" topic="Fundamentals">
+Data visualization is a way to represent data that's visually appealing and interactive. As business intelligence tools have matured, they've made it easier for users to understand data, data sets, and data points through charts and graphs — letting people focus on the impact of the data rather than the mechanics of the tool itself.
+</QuestionCard>
+
+<QuestionCard id="tableau-fund-02" number={2} question="What is the difference between traditional BI tools and Tableau?" difficulty="medium" topic="Fundamentals">
+- Traditional BI tools have hardware-driven architecture limitations; Tableau has no such dependency.
+- Traditional BI tools rely on complex underlying technology; Tableau uses a simple associative search model that makes exploration dynamic.
+- Traditional BI tools generally don't support multi-thread, in-memory, or multi-core computing; Tableau supports all three.
+- Traditional BI tools present a pre-defined data view; Tableau supports more predictive, exploratory analysis.
+</QuestionCard>
+
+<QuestionCard id="tableau-fund-03" number={3} question="What are the different Tableau products?" difficulty="easy" topic="Fundamentals">
+- **Tableau Desktop** — the authoring tool. Connects to data from various sources into its data engine and builds interactive dashboards from optimized, code-free queries.
+- **Tableau Server** — shares dashboards published from Desktop across an organization. An enterprise feature installed on Windows or Linux.
+- **Tableau Reader** — a free desktop app for opening and viewing visualizations. You can filter or drill down but can't edit formulas or take actions on the data.
+- **Tableau Online** — a paid, hosted service (no installation required) for sharing published dashboards anywhere.
+- **Tableau Public** — a free product for publishing visualizations as worksheets/workbooks on a public Tableau Server.
+</QuestionCard>
+
+<QuestionCard id="tableau-fund-04" number={4} question="What are shelves in Tableau?" difficulty="easy" topic="Workspace">
+Tableau worksheets contain named areas — Columns, Rows, Marks, Filters, Pages, and more — called shelves. You place fields on shelves to build visualizations, add levels of detail, or bring extra context into the view.
+</QuestionCard>
+
+<QuestionCard id="tableau-fund-05" number={5} question="Why would someone choose not to use Tableau?" difficulty="medium" topic="Fundamentals">
+- **Cost** — Tableau isn't the cheapest data visualization tool once you factor in software upgrades, deployment, maintenance, and training.
+- **Security gaps** — Tableau lacks centralized, data-level security; it leans on row-level security and per-user accounts instead, which increases exposure.
+- **Limited BI depth** — Tableau isn't built for large-scale reporting, static layouts, or building data tables. Result-sharing is limited, email notifications are admin-only, and there's no support for trigger-based notifications.
+</QuestionCard>
+
+<QuestionCard id="tableau-fund-06" number={6} question="What is the DRIVE program methodology?" difficulty="medium" topic="Methodology">
+DRIVE is a structured, iterative methodology for rolling out data analytics across an enterprise deployment. It borrows from agile practices to make adoption faster and more effective than a big-bang rollout.
+</QuestionCard>
+
+<QuestionCard id="tableau-fund-07" number={7} question="What is the difference between Tableau and similar tools like QlikView or IBM Cognos?" difficulty="medium" topic="Fundamentals">
+Tableau is an intuitive visualization tool that simplifies storytelling through drag-and-drop. QlikView and Cognos instead convert data into metadata so users can explore data relationships more deeply. If your priority is presenting data in aesthetically strong visualizations, Tableau tends to win; if you need a full BI platform with deeper relationship exploration, Cognos or QlikView may fit better. Tableau is also generally easier to hand to non-technical users — a salesperson can read a Tableau view and draw insight, whereas Cognos tends to reward users with deeper tool expertise.
+</QuestionCard>
+
+</QuestionList>
+
+### Data Connections, Joins & Files
+
+<QuestionList topic="Tableau Data Connections" storagePrefix="tableau-data">
+
+<QuestionCard id="tableau-data-01" number={8} question="What are the different types of joins in Tableau?" difficulty="medium" topic="Joins">
+Tableau's join types mirror SQL:
+
+- **Left Outer Join** — all records from the left table plus matching rows from the right
+- **Right Outer Join** — all records from the right table plus matching rows from the left
+- **Full Outer Join** — all records from both tables, with `NULL` where there's no match
+- **Inner Join** — only records that match in both tables
+</QuestionCard>
+
+<QuestionCard id="tableau-data-02" number={9} question="What are the different connection types you can make with a dataset?" difficulty="medium" topic="Connections">
+- **Live** — a dynamic connection that queries the data source directly in real time; Tableau builds and runs queries against the database and returns results into the workbook.
+- **Extract** — a static snapshot of the data (a `.hyper`/`.tde` file) taken from a source like a relational database or an Excel spreadsheet. Extracts can be refreshed on a schedule via Tableau Server and don't require a live connection to the database once created.
+</QuestionCard>
+
+<QuestionCard id="tableau-data-03" number={10} question="Tell me about data blending in Tableau." difficulty="medium" topic="Blending">
+Data blending lets you view and analyze data from multiple data sources in one place. It involves a **primary** data source and one or more **secondary** data sources, joined on common fields at query time rather than at the row level.
+</QuestionCard>
+
+<QuestionCard id="tableau-data-04" number={11} question="When would you use joins vs. blending in Tableau?" difficulty="medium" topic="Blending">
+Use a **join** to combine two or more tables that live within the *same* data source. Use **blending** to combine data across *different* data sources — for example, Oracle, Excel, and SQL Server data in one view.
+</QuestionCard>
+
+<QuestionCard id="tableau-data-05" number={12} question="What file extensions does Tableau support?" difficulty="medium" topic="Files">
+- **Tableau Workbook (`.twb`)** — worksheets, story points, dashboards, and more
+- **Tableau Data Source (`.tds`)** — connection information and metadata about a data source
+- **Tableau Data Extract (`.tde`)** — data extracted from other data sources
+- **Tableau Packaged Workbook (`.twbx`)** — a workbook plus its connection data, metadata, and the extracted data itself, zipped for sharing
+- **Tableau Packaged Data Source (`.tdsx`)** — a bundle of related connection files
+- **Tableau Bookmark (`.tbm`)** — a bookmark to a specific worksheet
+</QuestionCard>
+
+<QuestionCard id="tableau-data-06" number={13} question="What is a TDE file?" difficulty="easy" topic="Files">
+A `.tde` (Tableau Data Extract) file points to data pulled from an external source such as Excel, Access, or CSV files. TDEs make it faster to analyze and explore data since Tableau's engine can query them locally rather than round-tripping to the source.
+</QuestionCard>
+
+<QuestionCard id="tableau-data-07" number={14} question="What are the different types of Tableau files?" difficulty="easy" topic="Files">
+- **Workbooks** — contain one or more worksheets and dashboard elements
+- **Bookmarks** — a single worksheet, packaged for easy sharing
+- **Packaged Workbooks** — a workbook plus supporting local file data and background images
+- **Data Extraction Files** — extracted files containing a subset of data
+- **Data Connection Files** — small XML files holding connection information
+</QuestionCard>
+
+<QuestionCard id="tableau-data-08" number={15} question="What is the difference between published and embedded data sources in Tableau?" difficulty="medium" topic="Connections">
+A **published data source** contains connection information that's independent of any single workbook, so it can be reused and shared. An **embedded data source** contains connection information tied to one specific workbook.
+</QuestionCard>
+
+</QuestionList>
+
+### Data Modeling & Calculations
+
+<QuestionList topic="Tableau Calculations" storagePrefix="tableau-calc">
+
+<QuestionCard id="tableau-calc-01" number={16} question="What is a parameter in Tableau?" difficulty="medium" topic="Parameters">
+A parameter is a variable — a number, string, or date — created to replace a constant value used in a calculation, filter, or reference line. For example, instead of hard-coding a field that flags sales above 30,000, you'd create a parameter so that threshold can be changed dynamically. Parameters accept values as:
+
+- **All** — a free-text field
+- **List** — a predefined list of selectable values
+- **Range** — values constrained to a specified range
+</QuestionCard>
+
+<QuestionCard id="tableau-calc-02" number={17} question="Tell me about measures and dimensions in Tableau." difficulty="easy" topic="Data Modeling">
+When you connect a new data source, every field is mapped as either a measure or a dimension, each with a data type (integer, string, and so on) and a role (discrete dimension or continuous measure). **Measures** hold numeric values you aggregate and analyze against a dimension. **Dimensions** hold qualitative values — names, dates, geography — that define the attributes used to categorize, segment, and add detail to the data.
+</QuestionCard>
+
+<QuestionCard id="tableau-calc-03" number={18} question="What are continuous and discrete field types?" difficulty="medium" topic="Data Modeling">
+Continuous and discrete are mathematical terms: continuous means unbroken, discrete means individually separate values. Tableau color-codes them — **blue** for discrete, **green** for continuous. A discrete field renders as a header you can sort; a continuous field defines an axis on the graph and can't be sorted the same way.
+</QuestionCard>
+
+<QuestionCard id="tableau-calc-04" number={19} question="What is aggregation and disaggregation of data?" difficulty="medium" topic="Data Modeling">
+**Aggregation** displays measures and dimensions in summarized form, using functions like:
+
+- `SUM(expression)` — adds all values (numeric only)
+- `AVG(expression)` — averages all values (numeric only)
+- `MEDIAN(expression)` — computes the median (numeric only)
+- `COUNT(expression)` — counts non-null values
+- `COUNT(DISTINCT expression)` — counts unique values
+
+Tableau also lets you change the aggregation type applied to a view. **Disaggregation**, by contrast, shows every individual data record rather than a summarized value.
+</QuestionCard>
+
+<QuestionCard id="tableau-calc-05" number={20} question="What data types does Tableau support?" difficulty="easy" topic="Data Modeling">
+| Data Type | Example |
+|---|---|
+| Boolean | `True` / `False` |
+| Date | December 28, 2016 |
+| Date & Time | December 28, 2016, 06:00:00 PM |
+| Geographical | Beijing, Mumbai |
+| Text/String | Any string value |
+| Number (Decimal) | 8.00 |
+| Number (Whole) | 5 |
+</QuestionCard>
+
+<QuestionCard id="tableau-calc-06" number={21} question="What are sets in Tableau?" difficulty="medium" topic="Sets">
+Sets are custom fields that define a subset of data in your workbook. They can be computed dynamically based on a condition, or created manually from the dimensions in your data source. For example, you could define a set of customers whose revenue exceeds some threshold — a computed set updates automatically as the underlying data changes.
+</QuestionCard>
+
+<QuestionCard id="tableau-calc-07" number={22} question="What are groups in Tableau?" difficulty="easy" topic="Groups">
+Groups combine related members of a dimension into a larger category for analysis. You define a group's own field values to categorize members of that specific dimension however makes sense for the report.
+</QuestionCard>
+
+<QuestionCard id="tableau-calc-08" number={23} question="How do you use groups in a calculated field?" difficulty="medium" topic="Groups">
+- You can reference a saved group directly inside a calculation, but **not** an ad-hoc group created on the fly in the view.
+- When blending across data sources, only a group created in the *secondary* source's calculated field can be used in the blend.
+- To reuse a group in another workbook, copy the calculation that defines it and paste it into the new workbook.
+</QuestionCard>
+
+<QuestionCard id="tableau-calc-09" number={24} question="What are the various types of filters in Tableau?" difficulty="medium" topic="Filters">
+Tableau has 6 filter types:
+
+- **Extract Filter** — retrieves only a subset of the source data
+- **Dimension Filter** — filters non-aggregated (discrete) data
+- **Data Source Filter** — hides sensitive information at the source connection level, reducing what's fed into the workbook
+- **Context Filter** — a preset filter that other filters are applied on top of
+- **Measure Filter** — filters based on aggregate operations like sum, median, or average
+- **Table Calculation Filter** — applied after the view has already been constructed
+</QuestionCard>
+
+<QuestionCard id="tableau-calc-10" number={25} question="What is a Calculated Field, and how do you create one?" difficulty="medium" topic="Calculated Fields">
+A calculated field is a new field derived via a formula built on top of other fields — it doesn't exist in the source data until you define it. Common uses:
+
+- Segmenting data
+- Converting a field's data type (e.g., string to date)
+- Aggregating data
+- Filtering results
+- Calculating ratios
+
+There are three main calculation types:
+
+- **Basic Calculations** — transform field values at the source level
+- **Level of Detail (LOD) Expressions** — also transform values at the source level, but at a more granular level of control than basic calculations
+- **Table Calculations** — transform values only at the visualization level, based on what's already in the view
+
+To create one: go to **Analysis > Create Calculated Field**, enter your formula in the calculation editor, and save.
+</QuestionCard>
+
+<QuestionCard id="tableau-calc-11" number={26} question="How can you display the top five and bottom five sales in the same view?" difficulty="hard" topic="Calculated Fields">
+1. Drag **Customer Name** to Rows and **Sales** to Columns.
+2. Sort `SUM(Sales)` in descending order.
+3. Create a calculated field for the **Rank of Sales**, then filter or combine two rank-based calculations (top N and bottom N) into the same view.
+</QuestionCard>
+
+<QuestionCard id="tableau-calc-12" number={27} question="What is the Rank function in Tableau?" difficulty="medium" topic="Functions">
+`RANK` assigns positions to values in a measure. Tableau offers several variants:
+
+- **`RANK`** — takes an aggregated measure and an optional sort order (default descending)
+- **`RANK_DENSE`** — assigns the same rank to equal values but keeps incrementing the next rank without gaps: `10, 20, 20, 30` ranks as `1, 2, 2, 3`
+- **`RANK_MODIFIED`** — assigns the same rank to equal values, similar to dense rank but with different gap behavior
+- **`RANK_UNIQUE`** — assigns a distinct rank to every value, even ties: `10, 20, 20, 30` ranks as `1, 2, 3, 4`
+</QuestionCard>
+
+</QuestionList>
+
+### Visualization, Dashboards & Performance
+
+<QuestionList topic="Tableau Dashboards & Performance" storagePrefix="tableau-dash">
+
+<QuestionCard id="tableau-dash-01" number={28} question="What are dual axes?" difficulty="medium" topic="Visualization">
+Dual axes let you analyze two different measures at two different scales on the same graph, comparing multiple attributes with two independent axes layered on top of each other. To add a measure as a dual axis, drag the field to the right edge of the view until a black dashed line appears — or right-click the measure on the Columns/Rows shelf and choose **Dual Axis**.
+</QuestionCard>
+
+<QuestionCard id="tableau-dash-02" number={29} question="What is the difference between a treemap and a heat map?" difficulty="medium" topic="Visualization">
+Both help analyze data, but differently. A **heat map** visualizes measures against dimensions using color intensity, similar to a text table where values are color-coded instead of numeric. A **treemap** visualizes a hierarchy as nested rectangles, with hierarchy levels shown from larger rectangles down to smaller ones — for example, aggregated sales totals broken out across product categories.
+</QuestionCard>
+
+<QuestionCard id="tableau-dash-03" number={30} question="What components make up a dashboard?" difficulty="easy" topic="Dashboards">
+- **Horizontal** — combines worksheets and dashboard elements left to right, and lets you edit element height
+- **Vertical** — combines worksheets and dashboard elements top to bottom, and lets you edit element width
+- **Text** — textual/label fields
+- **Image Extract** — extracts and saves an image into the workbook as XML
+- **Web URL** — a hyperlink to a web page, file, or external resource outside Tableau
+</QuestionCard>
+
+<QuestionCard id="tableau-dash-04" number={31} question="What is a story in Tableau?" difficulty="easy" topic="Dashboards">
+A story combines a sequence of worksheets to walk viewers through a narrative built from your visualizations. To build one: click **New Story** on the dashboard, choose a story size (or a custom one), double-click a sheet to add it as a story point, and add captions via **Add a caption**. You can update highlights from the toolbar, adjust layout, format the story, or fit it to your dashboard size.
+</QuestionCard>
+
+<QuestionCard id="tableau-dash-05" number={32} question="How do you embed views into webpages?" difficulty="medium" topic="Publishing">
+Interactive views from Tableau Server or Tableau Online can be embedded into webpages, blogs, web apps, or portals. Viewers typically need a Tableau Server account to see the embedded content. To embed a view, click **Share** at the top of the view and copy the embed code onto the target page — you can also customize the embed code or use the Tableau JavaScript API for more control.
+</QuestionCard>
+
+<QuestionCard id="tableau-dash-06" number={33} question="What is the Tableau Data Engine?" difficulty="medium" topic="Performance">
+The Tableau data engine is an analytical database that computes near-instant query responses and handles predictive analysis and integrated data. It's used whenever you create, refresh, or query extracts, and it can also perform cross-database joins.
+</QuestionCard>
+
+<QuestionCard id="tableau-dash-07" number={34} question="What are extracts and schedules in Tableau Server?" difficulty="medium" topic="Administration">
+**Extracts** are subsets of data pulled from a data source into Tableau's fast engine. **Schedules** are recurring refreshes applied to those extracts after the workbook is published, keeping the data current — and they're strictly managed by server administrators.
+</QuestionCard>
+
+<QuestionCard id="tableau-dash-08" number={35} question='What is "Assume Referential Integrity"?' difficulty="hard" topic="Performance">
+Selecting **Assume Referential Integrity** (from the Data menu) can improve query performance: with it enabled, Tableau only includes a joined table in the generated query if it's actually referenced by fields used in the current view, skipping unnecessary joins.
+</QuestionCard>
+
+<QuestionCard id="tableau-dash-09" number={36} question="What is the maximum number of rows Tableau can utilize at one time?" difficulty="easy" topic="Performance">
+There's no hard practical limit — even though a data source might contain petabytes of data, Tableau intelligently pulls only the rows and columns actually needed for the current analysis.
+</QuestionCard>
+
+<QuestionCard id="tableau-dash-10" number={37} question="How do you generally perform load testing in Tableau?" difficulty="hard" topic="Administration">
+Load testing checks a Tableau Server's capacity against its real environment, data, workload, and usage patterns. It's best run 3-4 times a year, since usage, data volume, and workload shift with every new user, upgrade, or piece of authored content. Tableau's own **TabJolt** tool was built for point-and-run load and performance testing of Tableau Server specifically — it automates user-specified load generation, removes the need to write or maintain test scripts, and scales linearly as you add more nodes to the test cluster.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Two sheets built from the same data source show different totals — why?"** Walk through checking for a blend vs. join mismatch, differing filter contexts (extract filter vs. dimension filter), or a table calculation scoped differently between the two views.
+- **"Design a sales dashboard with a top-5/bottom-5 view and a drill-down by region."** Talk through rank calculated fields, using sets or parameters to make the "top N" dynamic, and dashboard actions for the drill-down.
+- **"A dashboard connected live to a large warehouse table is slow — how do you speed it up?"** Cover extracts vs. live connections, Assume Referential Integrity, reducing marks/context filters, and aggregating at the source instead of in Tableau.
+- **"When would you blend data instead of joining it?"** Explain the primary/secondary data source model, when a join isn't possible (separate databases), and the granularity limitations blending introduces.
+
+---
+
+## Further Reading
+
+- [Looker Interview Questions](/level-3-technologies/bi/looker/) — a modeling-first alternative to Tableau's visual-first approach
+- [Superset Interview Questions](/level-3-technologies/bi/superset/) — the open-source BI alternative
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where BI tools fit into the broader data stack

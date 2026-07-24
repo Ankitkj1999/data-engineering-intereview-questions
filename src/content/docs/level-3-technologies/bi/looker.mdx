@@ -1,0 +1,401 @@
+---
+title: Looker
+description: Looker interview questions covering LookML modeling, Explores, PDTs, caching and performance, governance, and data lineage for BI and analytics roles.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Looker: Business Intelligence & Exploration
+
+**Looker is a modeling-first BI platform: instead of pulling data into its own engine, it defines reusable metrics and relationships in LookML and pushes queries down to the warehouse — which shapes almost every answer about performance, governance, and real-time capability.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Looker's defining trait is that it doesn't store or move data — it's a semantic layer written in **LookML** that defines dimensions, measures, and relationships between tables, then compiles user interactions in an **Explore** into SQL run directly against the underlying warehouse. That "push-down" architecture explains most of Looker's trade-offs: it inherits the warehouse's scalability and real-time limits rather than imposing its own, relies on the warehouse (or **PDTs** — Persistent Derived Tables — materialized back into it) for performance, and depends on the warehouse's own security and partitioning features rather than reinventing them. Governance in Looker is mostly about **access control** (roles, Explore permissions, row-level filters) and **change management** (LookML in Git, Development Mode for safe iteration), since the modeling logic — not the data itself — is what Looker actually owns. Most interview questions boil down to: what does Looker do itself, and what does it delegate to the connected database?
+
+---
+
+## Interview Questions
+
+### Fundamentals & Core Concepts
+
+<QuestionList topic="Looker Fundamentals" storagePrefix="looker-fund">
+
+<QuestionCard id="looker-fund-01" number={1} question="What is Looker?" difficulty="easy" topic="Fundamentals">
+Looker is a business intelligence (BI) and data visualization platform that lets users explore, analyze, and share data insights, built around a modeling layer (LookML) rather than its own data engine.
+</QuestionCard>
+
+<QuestionCard id="looker-fund-02" number={2} question="How does Looker handle data integration?" difficulty="easy" topic="Fundamentals">
+Looker connects to various data sources using database dialects and APIs, letting it integrate with different data platforms — SQL databases, cloud storage, and data warehouses — without moving the data into Looker itself.
+</QuestionCard>
+
+<QuestionCard id="looker-fund-03" number={3} question="Can you explain the concept of a LookML model in Looker?" difficulty="medium" topic="LookML">
+LookML is Looker's modeling language. It defines the relationships between data tables and creates reusable dimensions and measures. A LookML model is a collection of files describing the structure and logic of your data — the single source of truth that every Explore and dashboard is built on top of.
+</QuestionCard>
+
+<QuestionCard id="looker-fund-04" number={4} question="What is a dimension in Looker?" difficulty="easy" topic="LookML">
+A dimension represents a field or attribute in your data. It adds descriptive, qualitative context to your analysis — the counterpart to a measure, which holds the numeric values you aggregate.
+</QuestionCard>
+
+<QuestionCard id="looker-fund-05" number={5} question="How can you create a calculated field in Looker?" difficulty="medium" topic="LookML">
+Calculated fields can be created either in LookML or directly in the Explore interface. LookML-based calculations support more advanced logic and are reusable across every Explore built on that model, while Explore-level calculations are quicker but scoped to a single query.
+</QuestionCard>
+
+<QuestionCard id="looker-fund-06" number={6} question="What is a Looker Explore?" difficulty="easy" topic="Explores">
+A Looker Explore is the interface that lets users interactively explore and analyze data through a graphical, point-and-click UI, built on top of the relationships and fields defined in LookML.
+</QuestionCard>
+
+<QuestionCard id="looker-fund-07" number={7} question="What is the purpose of a Looker dashboard?" difficulty="easy" topic="Dashboards">
+A Looker dashboard is a customizable collection of visualizations and reports that gives a consolidated view of key metrics and data insights, typically built from one or more Explores.
+</QuestionCard>
+
+<QuestionCard id="looker-fund-08" number={8} question="What is the purpose of a Looker filter?" difficulty="easy" topic="Explores">
+A Looker filter lets users dynamically limit the data shown in a report or visualization based on specific criteria, without needing to rebuild the underlying query by hand.
+</QuestionCard>
+
+<QuestionCard id="looker-fund-09" number={9} question="What is the difference between Looker's Explore and join types?" difficulty="medium" topic="Explores">
+An **Explore** defines a specific, queryable view of your data — the starting point and set of fields available to a user. **Join types** determine how the multiple underlying tables referenced by that Explore are combined (e.g., inner, left outer) to produce the consolidated result set.
+</QuestionCard>
+
+<QuestionCard id="looker-fund-10" number={10} question="Can you explain Looker's data modeling best practices?" difficulty="medium" topic="LookML">
+- Use views and Explores deliberately — keep views focused on a single table/concept, and Explores focused on a specific analytical use case.
+- Create reusable dimensions and measures rather than duplicating logic across models.
+- Organize files and folders in LookML clearly, so models stay navigable as they grow.
+- Apply consistent naming conventions across dimensions, measures, and Explores.
+</QuestionCard>
+
+<QuestionCard id="looker-fund-11" number={11} question="How does Looker handle data modeling for complex data structures?" difficulty="medium" topic="LookML">
+LookML's flexibility handles complex data structures by letting you explicitly define relationships, joins, and transformations across files — so even deeply nested or multi-table structures can be modeled as a coherent set of Explores.
+</QuestionCard>
+
+<QuestionCard id="looker-fund-12" number={12} question="What are some advantages of using Looker compared to traditional BI tools?" difficulty="medium" topic="Fundamentals">
+Looker offers a more agile, self-service approach to data analysis — users can explore data and build reports without heavy reliance on IT — while LookML provides centralized, powerful modeling capabilities that keep metric definitions consistent across the organization.
+</QuestionCard>
+
+<QuestionCard id="looker-fund-13" number={13} question="What are some limitations of Looker?" difficulty="medium" topic="Fundamentals">
+Looker is fundamentally built around batch processing, so real-time capability is limited. It also depends entirely on the underlying data infrastructure (a data warehouse or database) rather than storing data itself, which means Looker's performance and scalability are only as good as what it's connected to.
+</QuestionCard>
+
+<QuestionCard id="looker-fund-14" number={14} question="Can Looker be integrated with other BI tools or data visualization platforms?" difficulty="medium" topic="Ecosystem">
+Yes. Looker provides APIs and integrations that let it connect to other BI tools, visualization platforms, or custom applications, rather than functioning only as a closed system.
+</QuestionCard>
+
+<QuestionCard id="looker-fund-15" number={15} question="What are some advanced analytical capabilities offered by Looker?" difficulty="medium" topic="Fundamentals">
+Advanced calculations, flexible data modeling, advanced filtering, derived tables (including PDTs), and support for custom visualizations for cases the built-in chart library doesn't cover.
+</QuestionCard>
+
+<QuestionCard id="looker-fund-16" number={16} question="Can Looker perform predictive analytics or machine learning?" difficulty="medium" topic="Fundamentals">
+Not natively — Looker itself doesn't provide built-in predictive analytics or machine learning capabilities. It can, however, integrate with external tools or platforms that do, surfacing their output through Explores and dashboards.
+</QuestionCard>
+
+</QuestionList>
+
+### LookML, PDTs & Development Workflow
+
+<QuestionList topic="Looker LookML & PDTs" storagePrefix="looker-lookml">
+
+<QuestionCard id="looker-lookml-01" number={17} question="Can you explain the concept of Looker PDTs (Persistent Derived Tables)?" difficulty="medium" topic="PDTs">
+PDTs are precomputed tables that Looker builds back into the connected database to improve query performance. They're especially useful for complex or resource-intensive calculations that would otherwise be recomputed on every query.
+</QuestionCard>
+
+<QuestionCard id="looker-lookml-02" number={18} question="What is the purpose of Looker's PDT Events feature?" difficulty="medium" topic="PDTs">
+PDT Events lets you schedule PDT builds at specific intervals, or trigger a rebuild based on specific events or upstream data changes, rather than relying purely on a fixed refresh schedule.
+</QuestionCard>
+
+<QuestionCard id="looker-lookml-03" number={19} question="What is the purpose of Looker's PDT Performance Optimization features?" difficulty="hard" topic="PDTs">
+These features let you manage PDT builds and refresh schedules more efficiently, so PDTs improve query performance without themselves becoming a source of unnecessary database load.
+</QuestionCard>
+
+<QuestionCard id="looker-lookml-04" number={20} question="What is the purpose of Looker's Liquid syntax in LookML?" difficulty="hard" topic="LookML">
+Liquid syntax is used inside LookML to dynamically generate SQL, or to control the behavior of dimensions, measures, or filters based on conditions or user inputs — effectively templating logic that would otherwise require duplicating LookML.
+</QuestionCard>
+
+<QuestionCard id="looker-lookml-05" number={21} question="What is the purpose of Looker's Development Mode?" difficulty="medium" topic="Administration">
+Development Mode lets developers change LookML models without affecting the production environment, giving them a safe space to test changes before deploying them live.
+</QuestionCard>
+
+<QuestionCard id="looker-lookml-06" number={22} question="How can you create a custom visualization in Looker?" difficulty="medium" topic="Visualization">
+Looker supports custom visualizations built with custom JavaScript or HTML — you can build your own from scratch or adapt third-party visualization libraries for cases the built-in chart types don't cover.
+</QuestionCard>
+
+<QuestionCard id="looker-lookml-07" number={23} question="What is the purpose of Looker's SQL Runner?" difficulty="medium" topic="SQL Runner">
+SQL Runner provides a SQL interface directly inside Looker, letting users write and execute custom SQL queries against connected data sources without going through LookML or an Explore.
+</QuestionCard>
+
+<QuestionCard id="looker-lookml-08" number={24} question={"What is the purpose of Looker's \"Always Use SQL Runner\" option?"} difficulty="medium" topic="SQL Runner">
+This option lets users bypass LookML entirely and directly write/execute custom SQL through the SQL Runner interface — useful for ad-hoc investigation, at the cost of losing LookML's reusable modeling layer for that query.
+</QuestionCard>
+
+<QuestionCard id="looker-lookml-09" number={25} question="Can you explain Looker's dynamic time frame filters?" difficulty="medium" topic="Explores">
+Dynamic time frame filters let users select relative, time-based periods — such as "last month" or "last year" — that are evaluated dynamically based on the current date, rather than a fixed date range.
+</QuestionCard>
+
+<QuestionCard id="looker-lookml-10" number={26} question="How does Looker handle data versioning and change management for LookML models?" difficulty="medium" topic="Version Control">
+Looker integrates with Git (or other version control systems) so LookML models can be version-controlled like any other codebase. This lets teams track changes, compare versions, revert to a previous version of a model, and manage changes through a standard review process rather than editing production models directly.
+</QuestionCard>
+
+<QuestionCard id="looker-lookml-11" number={27} question="What is Looker's Explore API used for?" difficulty="medium" topic="API">
+The Explore API lets developers programmatically query and retrieve data from Looker Explores, enabling integration with external applications that need Looker-modeled data without going through the UI.
+</QuestionCard>
+
+<QuestionCard id="looker-lookml-12" number={28} question="What is Looker's Explore Embed feature used for?" difficulty="medium" topic="Embedding">
+Explore Embed lets developers embed Looker's Explore functionality directly into external applications, giving end users a full data-exploration experience inside a product they're already using rather than a separate Looker login.
+</QuestionCard>
+
+<QuestionCard id="looker-lookml-13" number={29} question="What are the advantages of using Looker's embedded analytics feature?" difficulty="medium" topic="Embedding">
+Embedded analytics lets you embed Looker dashboards and reports directly into external applications, giving users seamless access to data insights inside your own product rather than requiring them to switch to a separate BI tool.
+</QuestionCard>
+
+</QuestionList>
+
+### Performance, Scale & Data Integration
+
+<QuestionList topic="Looker Performance & Integration" storagePrefix="looker-perf">
+
+<QuestionCard id="looker-perf-01" number={30} question="How does Looker handle data caching?" difficulty="medium" topic="Performance">
+Looker intelligently caches query results to improve performance, and the caching strategy can be customized based on how frequently and how much the underlying data actually changes.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-02" number={31} question="What are some ways to optimize Looker performance?" difficulty="medium" topic="Performance">
+- Optimize the underlying SQL queries that LookML generates
+- Use caching effectively rather than hitting the warehouse on every request
+- Use PDTs strategically for expensive or frequently reused calculations
+- Reduce the number of queries a dashboard actually issues
+- Organize LookML models efficiently, and tune the underlying database's own performance
+</QuestionCard>
+
+<QuestionCard id="looker-perf-03" number={32} question="Can Looker handle large-scale data processing?" difficulty="medium" topic="Scalability">
+Yes — Looker is designed to handle large-scale data processing by leveraging the computing power and scalability of the modern data warehouse or database it's connected to, rather than processing data itself.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-04" number={33} question="How does Looker handle data storage and scalability?" difficulty="medium" topic="Scalability">
+Looker doesn't handle data storage directly. It relies entirely on the underlying data infrastructure — a data warehouse or database — for both storage and scalability.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-05" number={34} question="How does Looker handle data partitioning and sharding?" difficulty="medium" topic="Scalability">
+Looker relies on the data warehouse or database's own partitioning and sharding capabilities. LookML models can leverage whatever partitioning/sharding is configured at the database level, but Looker doesn't implement it itself.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-06" number={35} question="Can Looker handle incremental data loads?" difficulty="medium" topic="Data Integration">
+Looker relies on the underlying data infrastructure to handle incremental data loads — proper configuration and modeling on the warehouse side is required to support incremental updates cleanly.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-07" number={36} question="Can Looker handle real-time data?" difficulty="medium" topic="Real-Time">
+Looker primarily works with batch data processing and isn't designed for true real-time data analysis. You can, however, set up frequent scheduled data refreshes to get near real-time insights.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-08" number={37} question="Can Looker handle near real-time data analysis?" difficulty="medium" topic="Real-Time">
+Looker can approach near real-time analysis by setting up frequent data refresh schedules, or by combining it with streaming data sources and appropriate data modeling techniques.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-09" number={38} question="Can Looker handle data visualization in real-time dashboards?" difficulty="medium" topic="Real-Time">
+Looker is primarily designed for batch data processing, so it may not be well suited to strictly real-time dashboards. With appropriate data modeling and frequent refresh schedules, though, it can deliver near real-time insights.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-10" number={39} question="Can Looker handle streaming data sources?" difficulty="medium" topic="Real-Time">
+Looker is primarily designed for batch data processing, but it can leverage streaming data sources through appropriate integrations and data modeling techniques rather than consuming a stream natively.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-11" number={40} question="Can Looker connect to non-SQL data sources?" difficulty="medium" topic="Data Integration">
+Yes — Looker can connect to non-SQL data sources through database dialects, APIs, and custom data connectors.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-12" number={41} question="Can Looker connect to cloud-based data warehouses like Amazon Redshift or Google BigQuery?" difficulty="easy" topic="Data Integration">
+Yes — Looker can connect to cloud-based data warehouses including Amazon Redshift, Google BigQuery, and other popular cloud platforms.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-13" number={42} question="Can Looker be integrated with data lake platforms like Hadoop or Amazon S3?" difficulty="medium" topic="Data Integration">
+Yes — Looker can integrate with data lake platforms like Hadoop or Amazon S3 through appropriate connectors or APIs, letting users access and analyze data stored in those platforms.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-14" number={43} question="Can Looker handle unstructured or semi-structured data?" difficulty="medium" topic="Data Integration">
+Looker is primarily designed for structured data analysis. With appropriate data modeling and upstream transformations, though, it can also work with certain types of unstructured or semi-structured data.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-15" number={44} question="Can Looker handle data exploration on semi-structured data formats like JSON or XML?" difficulty="medium" topic="Data Integration">
+Yes, through appropriate data modeling and transformations in LookML — Looker can support exploration of semi-structured formats like JSON or XML once they're modeled as queryable fields.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-16" number={45} question="How does Looker handle data virtualization?" difficulty="medium" topic="Data Integration">
+Looker doesn't provide native data virtualization capabilities. It can connect to already-virtualized data sources through appropriate connectors or APIs, but the virtualization layer itself sits outside Looker.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-17" number={46} question="How does Looker handle data replication and synchronization?" difficulty="medium" topic="Data Integration">
+Looker doesn't handle data replication or synchronization directly — it relies on the underlying data infrastructure (warehouses or databases) to manage those processes.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-18" number={47} question="How does Looker handle data replication for disaster recovery purposes?" difficulty="medium" topic="Data Integration">
+Looker relies on the underlying data infrastructure for replication and disaster recovery. Backup and replication strategies need to be implemented at the database or data warehouse level, not within Looker itself.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-19" number={48} question="Can Looker be used for data transformation and ETL processes?" difficulty="medium" topic="ETL">
+Looker is primarily focused on data visualization and exploration. It offers some transformation capability within LookML, but it isn't a dedicated ETL tool.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-20" number={49} question="How can Looker integrate with data orchestration tools like Apache Airflow?" difficulty="medium" topic="ETL">
+Looker can be integrated with orchestration tools like Apache Airflow through custom scripts, or by using Looker's API to trigger data processes or update Looker models as part of an Airflow-managed pipeline.
+</QuestionCard>
+
+<QuestionCard id="looker-perf-21" number={50} question="How does Looker handle data quality and cleansing?" difficulty="medium" topic="Data Quality">
+Looker focuses on data analysis and visualization rather than data quality and cleansing. Cleansing is expected to happen upstream, via SQL transformations or data preparation processes, before the data reaches Looker.
+</QuestionCard>
+
+</QuestionList>
+
+### Governance, Security & Access Control
+
+<QuestionList topic="Looker Governance & Security" storagePrefix="looker-gov">
+
+<QuestionCard id="looker-gov-01" number={51} question="How does Looker handle data security?" difficulty="medium" topic="Security">
+Looker offers user access controls, data encryption, and integration with identity providers for authentication and authorization — layering its own permission model on top of whatever security the underlying warehouse already provides.
+</QuestionCard>
+
+<QuestionCard id="looker-gov-02" number={52} question="How does Looker handle data security in a cloud-based environment?" difficulty="medium" topic="Security">
+Looker implements encryption of data in transit and at rest, compliance with relevant industry standards, and access controls suited to a cloud-based deployment.
+</QuestionCard>
+
+<QuestionCard id="looker-gov-03" number={53} question="How does Looker handle data privacy and compliance requirements?" difficulty="medium" topic="Compliance">
+Looker provides data encryption, access controls, and features supporting compliance with regulations like GDPR and HIPAA, helping organizations meet industry-specific privacy requirements.
+</QuestionCard>
+
+<QuestionCard id="looker-gov-04" number={54} question="How does Looker handle data governance and compliance?" difficulty="medium" topic="Compliance">
+Looker offers data access controls, auditing, and compliance support for regulations like GDPR and HIPAA. Administrators can manage user permissions and track data usage through the platform.
+</QuestionCard>
+
+<QuestionCard id="looker-gov-05" number={55} question="How does Looker handle data governance in a self-service environment?" difficulty="medium" topic="Compliance">
+Administrators implement governance policies by managing user access controls, setting data permissions, and monitoring usage through audit logs — balancing self-service exploration against the need for oversight.
+</QuestionCard>
+
+<QuestionCard id="looker-gov-06" number={56} question="How can Looker integrate with data governance tools?" difficulty="medium" topic="Governance">
+Looker can integrate with external data governance tools through custom scripts, APIs, or data connectors, to enforce governance policies and support compliance beyond what Looker's own controls cover.
+</QuestionCard>
+
+<QuestionCard id="looker-gov-07" number={57} question="Can you explain Looker's data permissions and access controls?" difficulty="medium" topic="Access Control">
+Looker's data permissions and access controls let administrators control which users or groups can access specific data sources, tables, or fields within Looker, down to a fairly granular level.
+</QuestionCard>
+
+<QuestionCard id="looker-gov-08" number={58} question="What is Looker's Explore Permissions feature?" difficulty="medium" topic="Access Control">
+Explore Permissions lets administrators control which users or groups can access specific data sources, tables, or fields within a given Explore.
+</QuestionCard>
+
+<QuestionCard id="looker-gov-09" number={59} question="How does Looker handle user access controls in a multi-tenant environment?" difficulty="hard" topic="Access Control">
+Looker provides granular user access controls, letting administrators define permissions and restrictions per user or group within a multi-tenant deployment, so different tenants only see their own data.
+</QuestionCard>
+
+<QuestionCard id="looker-gov-10" number={60} question="Can Looker handle multi-tenant data environments?" difficulty="medium" topic="Access Control">
+Yes — Looker supports multi-tenant data environments, letting different users or groups securely access and analyze their own datasets within the same Looker instance.
+</QuestionCard>
+
+<QuestionCard id="looker-gov-11" number={61} question="Can Looker integrate with external authentication providers?" difficulty="medium" topic="Authentication">
+Yes — Looker can integrate with external authentication providers such as LDAP, SAML, or OAuth to enable single sign-on (SSO) and centralized user management.
+</QuestionCard>
+
+<QuestionCard id="looker-gov-12" number={62} question="Can you explain Looker's dynamic data masking feature?" difficulty="medium" topic="Security">
+Looker doesn't provide native dynamic data masking. Masking needs to be implemented at the database or data source level before that data ever reaches Looker.
+</QuestionCard>
+
+<QuestionCard id="looker-gov-13" number={63} question="Can Looker be deployed on-premises or is it only available as a cloud-based solution?" difficulty="easy" topic="Deployment">
+Looker can be deployed both on-premises and as a cloud-based solution, giving organizations flexibility based on their existing infrastructure and requirements.
+</QuestionCard>
+
+</QuestionList>
+
+### Lineage, Collaboration & Platform Administration
+
+<QuestionList topic="Looker Lineage & Administration" storagePrefix="looker-admin">
+
+<QuestionCard id="looker-admin-01" number={64} question="How does Looker handle data lineage and documentation?" difficulty="medium" topic="Lineage">
+Looker lets you document the logic and definitions of your data models directly in LookML, and provides options to track data lineage and maintain documentation within the platform itself.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-02" number={65} question="How does Looker handle data lineage and impact analysis?" difficulty="medium" topic="Lineage">
+Looker tracks data lineage and supports impact analysis by examining the relationships between LookML models, Explores, views, and the underlying data tables — so you can see what breaks downstream before you change something upstream.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-03" number={66} question="How can Looker handle data lineage in a complex data ecosystem?" difficulty="hard" topic="Lineage">
+Looker traces lineage by mapping relationships between LookML models, Explores, views, and the underlying data tables, letting users understand how data flows and what transformations are applied along the way.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-04" number={67} question="How does Looker handle data lineage for derived or calculated fields?" difficulty="medium" topic="Lineage">
+Looker traces lineage for derived or calculated fields back to the underlying data tables and the specific transformations applied to them in LookML.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-05" number={68} question="How does Looker handle data lineage for transformations applied outside of Looker?" difficulty="hard" topic="Lineage">
+Looker can track lineage for transformations applied outside itself by integrating with the tools or databases that capture and document those transformation steps — it isn't blind to upstream changes, but it depends on that upstream system exposing the information.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-06" number={69} question="What is the purpose of Looker's content validation feature?" difficulty="medium" topic="Administration">
+Content validation lets users validate the accuracy of data displayed across dashboards, reports, and visualizations — catching broken references (like a renamed field) before they silently break a report.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-07" number={70} question="How does Looker support collaboration among team members?" difficulty="easy" topic="Collaboration">
+Looker provides features for sharing, commenting, and collaborating on reports, dashboards, and data models, and integrates with communication tools like Slack and email to keep teams in the loop.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-08" number={71} question="What is the purpose of Looker's Data Actions?" difficulty="medium" topic="Data Actions">
+Data Actions let users take action directly from their data — updating records, creating tasks, or triggering external processes — without leaving the Looker interface.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-09" number={72} question="What is the purpose of Looker's Action Hub?" difficulty="medium" topic="Data Actions">
+Action Hub is a centralized platform for configuring and managing Data Actions, giving administrators one place to control which actions users can trigger directly from their data.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-10" number={73} question="Can Looker generate alerts or notifications based on predefined conditions?" difficulty="medium" topic="Alerting">
+Yes — Looker can generate alerts or notifications based on predefined conditions through its scheduling and alerting features, so users are proactively notified when a metric crosses a threshold.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-11" number={74} question="What is Looker's scheduling and alerting capability?" difficulty="medium" topic="Alerting">
+Looker's scheduling and alerting features let you schedule reports, dashboards, and data deliveries at set intervals, and set up alerts based on predefined thresholds or conditions.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-12" number={75} question="How can you schedule data deliveries in Looker?" difficulty="easy" topic="Alerting">
+Looker provides scheduling options that automate the delivery of reports and dashboards via email, Slack, or other destinations, on whatever cadence you configure.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-13" number={76} question="What is the purpose of Looker's Advanced Scheduling options?" difficulty="medium" topic="Alerting">
+Advanced Scheduling lets you define more complex, customizable schedules for report deliveries — including custom intervals and specific calendar dates — beyond simple fixed-interval refreshes.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-14" number={77} question="Can Looker handle geospatial data analysis?" difficulty="medium" topic="Visualization">
+Yes — Looker supports geospatial data analysis through visualization options including maps and geographic charts.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-15" number={78} question="Can Looker handle data anomaly detection?" difficulty="medium" topic="Fundamentals">
+Not natively — Looker isn't specifically built for anomaly detection, but it can integrate with external tools or platforms that specialize in it, and surface the results.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-16" number={79} question="Can Looker handle multi-language support for international users?" difficulty="easy" topic="Administration">
+Yes — Looker supports multi-language translations, letting users view the interface and content in their preferred language.
+</QuestionCard>
+
+<QuestionCard id="looker-admin-17" number={80} question="Can Looker integrate with data cataloging tools?" difficulty="medium" topic="Governance">
+Yes — Looker can integrate with data cataloging tools through APIs or connectors, enabling data discovery and cataloging across the organization alongside whatever catalog system is already in use.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A dashboard is slow — where do you look first?"** Reason through whether the underlying SQL is inefficient, whether a PDT should be materializing the expensive part, whether caching is configured sensibly, and whether the bottleneck is actually the warehouse rather than Looker itself.
+- **"The business wants near-real-time dashboards — is that realistic in Looker?"** Explain Looker's batch-first architecture, and how frequent refresh schedules or a streaming-fed warehouse table can get close without claiming true real-time.
+- **"Two teams need to see the same metric defined identically — how do you enforce that in Looker?"** Talk through centralizing the definition as a LookML measure, Git-managed model changes, and Development Mode so nobody edits the production definition directly.
+- **"How would you restrict a reseller's users to only their own data in a shared Looker instance?"** Cover Explore permissions, row-level access controls, and the multi-tenant access-control model.
+
+---
+
+## Further Reading
+
+- [Tableau Interview Questions](/level-3-technologies/bi/tableau/) — a visualization-first alternative to Looker's modeling-first approach
+- [Superset Interview Questions](/level-3-technologies/bi/superset/) — the open-source BI alternative
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where BI tools fit into the broader data stack

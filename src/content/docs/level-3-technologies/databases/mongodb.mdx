@@ -1,0 +1,310 @@
+---
+title: MongoDB
+description: Interview questions covering MongoDB's document model, sharding, replica sets, indexing strategy, transactions, and schema design for data engineers.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## MongoDB: Document Database at Scale
+
+**MongoDB is a document database that trades the rigid, normalized schema of RDBMS for flexible, JSON-like documents — a design that shapes everything from how you model data to how the database scales, replicates, and stays consistent.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+MongoDB stores records as **documents** (compressed BSON, retrievable as JSON) grouped into **collections** — the rough analogs of RDBMS rows and tables, but with a dynamic schema: fields can vary document-to-document, and related data is often **embedded** in a single document rather than joined across tables. Scaling happens two ways: **replica sets** (a primary plus secondaries) provide high availability and read scaling through replication and automatic failover, while **sharding** distributes collections horizontally across multiple replica sets using a shard key, coordinated by `mongos` query routers and config servers. Consistency is tunable rather than fixed — **write concern** and **read preference** let you trade strict consistency for availability/latency, which is why MongoDB is often described as CP-by-default but AP-capable. Around this core sit an **aggregation pipeline** for multi-stage data processing, **indexes** (chosen with the ESR rule: Equality, Sort, Range) for query performance, and multi-document **transactions** for the cases where single-document atomicity isn't enough.
+---
+
+## Interview Questions
+
+### Document Model & Core Concepts
+
+<QuestionList topic="MongoDB Fundamentals" storagePrefix="mongodb-fundamentals">
+
+<QuestionCard id="mongo-core-01" number={1} question="What is MongoDB?" difficulty="easy" topic="Fundamentals">
+MongoDB is a document database built on a horizontal scale-out architecture that uses a flexible schema for storing data. Founded in 2007, it has a large developer community and is one of the most widely used NoSQL databases.
+</QuestionCard>
+
+<QuestionCard id="mongo-core-02" number={2} question="Why use MongoDB?" difficulty="easy" topic="Fundamentals">
+As a document database, MongoDB makes it easy to store structured or unstructured data using a JSON-like format. That format directly maps to native objects in most modern programming languages, so developers don't have to think as much about normalizing data. MongoDB can also handle high volume, scaling both vertically and horizontally to accommodate large data loads.
+</QuestionCard>
+
+<QuestionCard id="mongo-core-03" number={3} question="What are the advantages of MongoDB?" difficulty="easy" topic="Fundamentals">
+- A powerful, document-oriented database
+- Strong developer experience (documents map naturally to application objects)
+- Scalability and transactionality (horizontal scaling plus multi-document transactions)
+- Platform and ecosystem maturity (drivers, tooling, Atlas)
+</QuestionCard>
+
+<QuestionCard id="mongo-core-04" number={4} question="When should you use MongoDB?" difficulty="medium" topic="Fundamentals">
+- Integrating large amounts of diverse data
+- Describing complex data structures that evolve over time
+- Delivering data in high-performance applications
+- Supporting hybrid and multi-cloud applications
+- Supporting agile development and collaboration, where the schema isn't fully known upfront
+</QuestionCard>
+
+<QuestionCard id="mongo-core-05" number={5} question="How does MongoDB store data?" difficulty="easy" topic="Data Model">
+Records are stored as documents in compressed BSON files. The documents can be retrieved directly in JSON format, which has several benefits:
+
+- It's a natural, human-readable form to store data
+- Structured and unstructured information can live in the same document
+- You can nest JSON to store complex data objects
+- JSON has a flexible, dynamic schema, so adding or omitting a field isn't a problem
+- Documents map to objects in most popular programming languages
+
+Most developers find JSON easy to work with because it's a simple and powerful way to describe and store data.
+</QuestionCard>
+
+<QuestionCard id="mongo-core-06" number={6} question="MongoDB vs. RDBMS: what are the differences?" difficulty="easy" topic="Fundamentals">
+The main difference is that RDBMS is relational while MongoDB is non-relational. Most RDBMS systems use SQL to manage stored data, while MongoDB uses BSON. RDBMS uses tables and rows; MongoDB uses collections and documents — a table (equivalent to a MongoDB collection) stores data as columns and rows, a row (equivalent to a document) stores structured data items, and a column (equivalent to a field) denotes a set of data values.
+</QuestionCard>
+
+<QuestionCard id="mongo-core-07" number={7} question="What is an aggregation pipeline in MongoDB?" difficulty="medium" topic="Aggregation">
+An aggregation pipeline consists of one or more stages that process documents:
+
+- Each stage performs an operation on the input documents — for example, filtering, grouping, or calculating values
+- The documents output from one stage are passed to the next
+- A pipeline can return results for groups of documents — for example, the total, average, maximum, and minimum values per group
+</QuestionCard>
+
+<QuestionCard id="mongo-core-08" number={8} question="How does MongoDB manage schema design and changes?" difficulty="medium" topic="Schema Design">
+MongoDB uses a flexible, document-based model for schema design:
+
+- **Schemaless** — collections don't enforce document structure by default
+- **Dynamic schema** — documents in the same collection can have different fields
+- **Schema validation** — optional rules can be set to enforce document structure
+- **Indexing** — supports various index types to optimize query performance
+
+For schema changes: add fields by simply writing documents with new fields, remove fields by deleting them or using `$unset` in updates, change field types by rewriting documents with new data types, and handle large-scale changes programmatically or with tools like Mongoose for Node.js.
+</QuestionCard>
+
+<QuestionCard id="mongo-core-09" number={9} question="What are the limitations or disadvantages of MongoDB?" difficulty="medium" topic="Trade-offs">
+- Limited JOIN functionality compared to relational databases
+- Document size limit of 16MB
+- Lack of built-in data integrity constraints (like foreign key constraints)
+- Higher storage space requirements due to data duplication in denormalized models
+- Steeper learning curve for those accustomed to relational databases
+- Less mature ecosystem compared to some traditional RDBMSs
+</QuestionCard>
+
+<QuestionCard id="mongo-core-10" number={10} question="How do you perform migrations from RDBMS to MongoDB?" difficulty="hard" topic="Migration">
+Migrating from RDBMS to MongoDB typically involves:
+
+1. Analyzing the relational schema and designing a document model
+2. Mapping relational tables to MongoDB collections
+3. Converting relational data to JSON format
+4. Using tools like `mongoimport` or custom scripts to import data
+5. Verifying data integrity after migration
+6. Updating application code to work with MongoDB instead of SQL
+7. Testing thoroughly to ensure functionality and performance
+
+Helpful tools include MongoDB Compass for visualizing and manipulating data, official MongoDB connectors for various languages, and third-party ETL tools.
+</QuestionCard>
+
+<QuestionCard id="mongo-core-11" number={11} question="What are the best practices for designing a MongoDB schema?" difficulty="hard" topic="Schema Design">
+- Embed related data in a single document when possible for faster reads
+- Use references when data is used in multiple places or for very large datasets
+- Design schema based on application query patterns, not on normalization habits
+- Avoid deeply nested documents (keep nesting to 2-3 levels for better performance)
+- Use appropriate data types for fields
+- Create indexes to support common queries
+- Consider document growth when designing schemas
+- Use schema versioning for easier updates and migrations
+- Normalize data only when necessary (e.g., for consistency across multiple collections)
+- Use array fields for one-to-many relationships within reasonable limits
+</QuestionCard>
+
+<QuestionCard id="mongo-core-12" number={12} question="How does MongoDB handle geographic data and geospatial queries?" difficulty="hard" topic="Geospatial">
+MongoDB provides robust support for geographic data and geospatial queries:
+
+- **Geospatial indexes** — `2d` and `2dsphere` indexes for efficient geospatial queries
+- **GeoJSON objects** — store location data using the standard GeoJSON format
+- **Geospatial queries** — proximity (find documents near a point), intersection (geometries that intersect a given geometry), and within (geometries contained inside a given geometry)
+- **Aggregation pipeline** — geospatial stages like `$geoNear` for complex geo-based analytics
+- **Coordinate systems** — support for both legacy coordinate pairs and GeoJSON objects
+- **Geospatial operators** — `$near`, `$geoWithin`, `$geoIntersects`, etc., for flexible querying
+- **Spherical geometry** — the `2dsphere` index supports queries on an Earth-like sphere
+</QuestionCard>
+
+</QuestionList>
+
+### Scaling, Performance & Operations
+
+<QuestionList topic="MongoDB Operations" storagePrefix="mongodb-operations">
+
+<QuestionCard id="mongo-ops-01" number={13} question="How does MongoDB scale?" difficulty="easy" topic="Scaling">
+MongoDB scales the same way any distributed application would: throw more resources at a single machine (**vertical scaling**) or distribute the data across multiple physical servers or nodes (**horizontal scaling**).
+
+- **Vertical scaling** — increasing the capacity of a single server (more CPU, RAM, or storage)
+- **Horizontal scaling** — dividing the dataset and load across multiple servers, adding more as needed
+
+While a single machine's overall speed or capacity may not be high, each machine handles a subset of the overall workload, which can be more efficient than one very large, very fast server.
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-02" number={14} question="How does MongoDB scale horizontally?" difficulty="medium" topic="Sharding">
+MongoDB supports horizontal scaling through sharding — a method for distributing data across multiple machines, used for deployments with very large datasets and high throughput. A sharded cluster consists of:
+
+- **Shard** — each shard holds a subset of the sharded data, and each shard is itself deployed as a replica set
+- **`mongos`** — a query router that provides the interface between client applications and the sharded cluster, and can support hedged reads to minimize latency
+- **Config servers** — store metadata and configuration settings for the cluster, and (since MongoDB 3.4) must themselves be deployed as a replica set (CSRS)
+
+MongoDB shards data at the collection level, distributing a collection's data across the shards in the cluster.
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-03" number={15} question="What are the advantages of sharding?" difficulty="medium" topic="Sharding">
+- **Reads/writes** — MongoDB distributes read and write workload across shards, letting each shard process a subset of operations; both can be scaled horizontally by adding more shards. Queries that include the shard key (or a prefix of a compound shard key) can be targeted at a specific shard instead of broadcast to all of them, which is far more efficient. `mongos` can also use hedged reads to minimize latency.
+- **Storage capacity** — sharding distributes data across shards so each holds a subset of the total dataset; adding shards increases total cluster capacity as data grows.
+- **High availability** — because config servers and shards are deployed as replica sets, the cluster stays available even if one or more shard replica sets become unavailable: reads/writes to the unavailable shard fail, but the rest of the cluster keeps serving.
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-04" number={16} question="What methods can be used for sharding in MongoDB?" difficulty="medium" topic="Sharding">
+MongoDB supports two sharding strategies:
+
+- **Hashed sharding** — computes a hash of the shard key field's value; each chunk is assigned a range based on the hashed values, which spreads writes evenly but sacrifices efficient range queries.
+- **Ranged sharding** — divides data into ranges based on the shard key values directly; each chunk is assigned a range based on those values, which supports efficient range queries but risks uneven ("hot") distribution if the key isn't chosen carefully.
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-05" number={17} question="How do atomicity and transactions work in MongoDB?" difficulty="hard" topic="Transactions">
+A write operation is atomic at the level of a single document, even if it modifies multiple embedded documents within that one document. When a single write operation (e.g., `updateMany()`) modifies multiple documents, the modification of each document is atomic, but the operation as a whole is not. For situations that require atomicity of reads and writes across multiple documents (in a single collection or across collections), MongoDB supports distributed transactions, including on replica sets and sharded clusters.
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-06" number={18} question="Where should you use an index in MongoDB?" difficulty="medium" topic="Indexing">
+If your application repeatedly runs queries on the same fields, create an index on those fields to improve performance. Indexes improve query performance but have a negative impact on write operations — for collections with a high write-to-read ratio, indexes are expensive because every insert must also update each index.
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-07" number={19} question="How would you choose an indexing strategy in MongoDB, and what should you consider?" difficulty="hard" topic="Indexing">
+The best indexes for an application depend on the kinds of queries you expect, the ratio of reads to writes, and available memory. The best overall strategy is to profile a variety of index configurations against data sets similar to production to see which performs best, and to periodically inspect existing indexes to confirm they still support current and planned queries — dropping any that are no longer used. Key considerations:
+
+- **Use the ESR (Equality, Sort, Range) rule** — a guide to ordering compound index fields so they support queries efficiently
+- **Create indexes to support your queries** — an index supports a query when it contains all the fields the query scans
+- **Use indexes to sort query results** — order and direction of index fields matters for supporting efficient sorts
+- **Ensure indexes fit in RAM** — when an index fits in memory, MongoDB avoids reading it from disk, which is much faster
+- **Create indexes for query selectivity** — selectivity is an index's ability to narrow results; higher selectivity lets MongoDB use the index for more of the work
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-08" number={20} question="How does MongoDB ensure data consistency and reliability?" difficulty="medium" topic="Reliability">
+- **Write concern** — lets you specify the level of acknowledgment required from MongoDB for write operations
+- **Replica sets** — provide data redundancy and high availability
+- **Journaling** — ensures data durability by writing operations to a journal before applying them to the data files
+- **Data validation** — lets you enforce document structure
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-09" number={21} question="What are MongoDB's backup and restore options?" difficulty="medium" topic="Backup">
+- **`mongodump` / `mongorestore`** — command-line tools for creating binary exports of database contents and restoring them
+- **Filesystem snapshots** — point-in-time snapshots of the underlying data
+- **MongoDB Atlas Backup** — continuous backups and point-in-time recovery for cloud-hosted databases
+- **MongoDB Ops Manager** — for on-premises deployments, offering backup automation and point-in-time recovery
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-10" number={22} question="How does MongoDB handle concurrency?" difficulty="medium" topic="Concurrency">
+- **Document-level locking** — allows multiple clients to read and write different documents simultaneously
+- **WiredTiger storage engine** — provides document-level concurrency control and compression
+- **Multi-version concurrency control (MVCC)** — lets readers see a consistent view of data without blocking writers
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-11" number={23} question="What security features does MongoDB offer?" difficulty="medium" topic="Security">
+- **Authentication** — supports various mechanisms (SCRAM, x.509 certificates, LDAP, Kerberos)
+- **Authorization** — role-based access control (RBAC) for fine-grained access control
+- **Encryption** — supports encryption at rest and in transit (TLS/SSL)
+- **Auditing** — tracks system and user activity
+- **Network isolation** — supports IP allow-listing and VPC peering
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-12" number={24} question="What is MongoDB Atlas and what benefits does it provide?" difficulty="easy" topic="Atlas">
+MongoDB Atlas is the cloud-hosted database-as-a-service (DBaaS) platform for MongoDB. Benefits include:
+
+- Automated deployment and scaling of MongoDB clusters
+- Multi-cloud and multi-region deployment options
+- Built-in security features (network isolation, encryption, access controls)
+- Automated backups and point-in-time recovery
+- Performance monitoring and optimization tools
+- Easy integration with other cloud services
+- Reduced operational overhead for database management
+- Automatic updates and patches for the database software
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-13" number={25} question="How can you monitor and optimize MongoDB performance?" difficulty="medium" topic="Monitoring">
+**Monitoring:**
+
+- Use MongoDB's built-in tools like `mongotop` and `mongostat`
+- Leverage MongoDB Compass for visual performance insights
+- Use MongoDB Atlas monitoring for cloud deployments
+- Use third-party monitoring tools like Prometheus with a MongoDB exporter
+
+**Optimization:**
+
+- Analyze and optimize slow queries using the `explain()` method
+- Create appropriate indexes based on query patterns
+- Use proper schema design to minimize data duplication
+- Configure appropriate write concern and read preferences
+- Optimize server and storage configuration
+- Use appropriate shard keys for distributed systems
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-14" number={26} question="What is a replica set in MongoDB and how does it work?" difficulty="medium" topic="Replication">
+A replica set is a group of `mongod` processes that maintain the same data set. It provides:
+
+- **High availability** — if the primary node fails, an election chooses a new primary from the secondary nodes
+- **Data redundancy** — data is replicated across multiple nodes
+- **Read scaling** — secondary nodes can handle read operations
+
+How it works: one primary node accepts all write operations, multiple secondary nodes replicate data from the primary, optional arbiter nodes participate in elections but don't hold data, and automatic failover occurs if the primary becomes unavailable.
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-15" number={27} question="How do you handle data integrity in MongoDB?" difficulty="medium" topic="Data Integrity">
+MongoDB doesn't have built-in referential integrity like relational databases, but you can maintain data integrity through:
+
+- **Schema validation** — define a JSON Schema to enforce document structure
+- **Application-level checks** — implement integrity checks in application code
+- **Atomic operations** — use multi-document transactions for operations that must succeed or fail as a unit
+- **Unique indexes** — ensure uniqueness of certain fields
+- **Data validation** — use the `$jsonSchema` operator to define validation rules
+- **Consistent data modeling** — design schemas to minimize the need for complex integrity constraints
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-16" number={28} question="How does MongoDB fit into the CAP theorem?" difficulty="hard" topic="Consistency">
+The CAP theorem states that a distributed system can only fully provide two of three guarantees: Consistency, Availability, and Partition tolerance. MongoDB is designed to handle network partitions (Partition Tolerance), and lets you tune the balance between Consistency and Availability:
+
+- With default settings, MongoDB leans toward **CP** (Consistency and Partition Tolerance)
+- By adjusting write concern and read preferences, you can shift toward **AP** (Availability and Partition Tolerance)
+
+In practice: use majority write concern and read preference for strong consistency, or lower write concerns / reads from secondaries for higher availability at the cost of potential staleness.
+</QuestionCard>
+
+<QuestionCard id="mongo-ops-17" number={29} question="How do you handle large data volumes in MongoDB?" difficulty="medium" topic="Scaling">
+- **Sharding** — distribute data across multiple machines to handle large datasets and high throughput
+- **Indexing** — create appropriate indexes to improve query performance on large collections
+- **Aggregation pipeline** — efficient data processing and analysis on large datasets
+- **GridFS** — store and retrieve large files efficiently
+- **Data compression** — the WiredTiger storage engine compresses data to reduce storage requirements
+- **Capped collections** — for high-volume data that doesn't require long-term storage
+- **Time series collections** — optimized storage and querying for time series data
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Design a schema for an e-commerce order system in MongoDB."** Talk through when to embed (order line items inside the order document) versus reference (a customer document referenced by ID), grounded in query patterns and document growth rather than normalization habits.
+- **"A collection's queries are slow despite having what looks like the right indexes."** Walk through `explain()`, the ESR rule for compound index field order, whether the working index set fits in RAM, and whether write concern/read preference settings are adding unexpected latency.
+- **"How would you shard a multi-tenant collection that's grown to billions of documents?"** Discuss shard key selection (avoiding hot shards), hashed vs. ranged sharding trade-offs, and how `mongos` targets queries that do or don't include the shard key.
+- **"Explain how MongoDB behaves during a network partition, and how a client would configure around it."** Use this to walk through the CAP theorem trade-off, replica set elections/failover, and how write concern and read preference tune consistency vs. availability.
+
+---
+
+## Further Reading
+
+- [DynamoDB](/level-3-technologies/databases/dynamodb/) and [Cassandra](/level-3-technologies/databases/cassandra/) — other horizontally-scaled NoSQL databases with different consistency and modeling trade-offs
+- [Bigtable](/level-3-technologies/databases/bigtable/) — a wide-column NoSQL database built for extreme scale
+- [Data Modeling](/level-2-core-concepts/data-modeling/) — the schema design principles that inform MongoDB's embed-vs-reference decisions

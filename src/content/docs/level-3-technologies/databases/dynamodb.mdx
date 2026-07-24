@@ -1,0 +1,176 @@
+---
+title: DynamoDB
+description: Interview questions covering DynamoDB tables, partition and sort keys, capacity modes, secondary indexes, consistency, and access-pattern-first query design.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## DynamoDB: Managed NoSQL Database
+
+**DynamoDB is AWS's fully managed, serverless NoSQL database — its entire design (keys, indexes, capacity, consistency) is built around one constraint: you must know your access patterns before you model your data, not after.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Every DynamoDB table is built around a **primary key** — either a simple partition key, or a composite key combining a **partition key** (which determines physical data distribution via hashing) with a **sort key** (which orders items within a partition and enables range queries). This key design is the single most consequential modeling decision in DynamoDB, because unlike a relational database you can't easily bolt on new access patterns later — you address that with **secondary indexes**: Local Secondary Indexes (alternate sort keys within the same partition) and Global Secondary Indexes (alternate partition/sort keys across the whole table, with their own capacity). Reads come in two flavors, **`Query`** (efficient, targets a specific partition via its key) and **`Scan`** (reads every item, inefficient at scale), and in two consistency levels, **eventually consistent** (cheaper, may briefly return stale data) and **strongly consistent** (costs more, always current). Capacity is either **provisioned** (reserved throughput, cost-predictable) or **on-demand** (pay-per-request, better for spiky/unpredictable workloads), and both are vulnerable to **hot partitions** if the partition key doesn't distribute traffic evenly.
+
+---
+
+## Interview Questions
+
+### Tables, Keys & Capacity Model
+
+<QuestionList topic="DynamoDB Data Model" storagePrefix="dynamodb-data-model">
+
+<QuestionCard id="ddb-core-01" number={1} question="What is DynamoDB?" difficulty="easy" topic="Fundamentals">
+DynamoDB is a fully managed, serverless NoSQL database service provided by AWS that handles large-scale, high-performance distributed workloads.
+</QuestionCard>
+
+<QuestionCard id="ddb-core-02" number={2} question="What are the key characteristics of DynamoDB?" difficulty="easy" topic="Fundamentals">
+Serverless, fully managed, highly scalable, low latency, built-in replication across availability zones, automatic backup, and pay-per-request pricing.
+</QuestionCard>
+
+<QuestionCard id="ddb-core-03" number={3} question="What is the difference between DynamoDB and relational databases?" difficulty="easy" topic="Fundamentals">
+DynamoDB is NoSQL — flexible schema, horizontal scaling by design — while relational databases use a fixed schema and traditionally scale vertically. DynamoDB also requires you to design around known access patterns upfront, rather than querying flexibly with joins after the fact.
+</QuestionCard>
+
+<QuestionCard id="ddb-core-04" number={4} question="What is a DynamoDB table?" difficulty="easy" topic="Fundamentals">
+A DynamoDB table is a collection of items (records) with attributes (columns), identified by a unique primary key.
+</QuestionCard>
+
+<QuestionCard id="ddb-core-05" number={5} question="What is a partition key in DynamoDB?" difficulty="easy" topic="Keys">
+The partition key (hash key) determines which physical partition stores an item, based on a hash of the key's value. It's the primary lever for how evenly data and traffic spread across DynamoDB's underlying storage.
+</QuestionCard>
+
+<QuestionCard id="ddb-core-06" number={6} question="What is a sort key in DynamoDB?" difficulty="easy" topic="Keys">
+The sort key (range key) orders items within a partition, allowing range queries (e.g., "all orders for this customer between two dates") on items that share the same partition key.
+</QuestionCard>
+
+<QuestionCard id="ddb-core-07" number={7} question="What is the difference between partition key and sort key?" difficulty="easy" topic="Keys">
+The partition key distributes data across partitions; the sort key orders data within a single partition. Together they form a composite key that supports both distribution and rich per-partition querying.
+</QuestionCard>
+
+<QuestionCard id="ddb-core-08" number={8} question="What is a composite key in DynamoDB?" difficulty="medium" topic="Keys">
+A composite key combines a partition key and a sort key, enabling efficient queries on both dimensions — items are distributed by partition key, then queryable and orderable by sort key within that partition.
+</QuestionCard>
+
+<QuestionCard id="ddb-core-09" number={9} question="What is throughput in DynamoDB?" difficulty="easy" topic="Capacity">
+Throughput measures a table's read/write capacity — how many read and write operations per second the table can handle, expressed in read and write capacity units.
+</QuestionCard>
+
+<QuestionCard id="ddb-core-10" number={10} question="What is a read capacity unit in DynamoDB?" difficulty="medium" topic="Capacity">
+One RCU (read capacity unit) equals one strongly consistent read per second, or two eventually consistent reads per second, for items up to 4KB. Larger items consume proportionally more RCUs.
+</QuestionCard>
+
+<QuestionCard id="ddb-core-11" number={11} question="What is a write capacity unit in DynamoDB?" difficulty="medium" topic="Capacity">
+One WCU (write capacity unit) equals one write per second for items up to 1KB. Larger items consume proportionally more WCUs.
+</QuestionCard>
+
+<QuestionCard id="ddb-core-12" number={12} question="What is on-demand billing in DynamoDB?" difficulty="easy" topic="Capacity">
+A pay-per-request pricing model: you pay for actual reads/writes performed, without provisioning capacity upfront — well suited to unpredictable or spiky traffic.
+</QuestionCard>
+
+<QuestionCard id="ddb-core-13" number={13} question="What is provisioned billing in DynamoDB?" difficulty="easy" topic="Capacity">
+You reserve read/write capacity upfront and pay a fixed rate for it. Better for predictable, steady workloads where you can forecast throughput and want lower, stable costs.
+</QuestionCard>
+
+<QuestionCard id="ddb-core-14" number={14} question="How do you handle hot partitions in DynamoDB?" difficulty="hard" topic="Performance">
+Use better partition key design (higher-cardinality, evenly-distributed keys, possibly with a random or calculated suffix to spread "hot" items), implement DynamoDB Accelerator (DAX) as an in-memory cache to absorb read pressure, or switch to on-demand billing so the table can adapt to spikes automatically.
+</QuestionCard>
+
+<QuestionCard id="ddb-core-15" number={15} question="What is auto scaling in DynamoDB?" difficulty="medium" topic="Capacity">
+Auto scaling automatically adjusts provisioned capacity up or down based on actual traffic patterns, within limits you configure — it keeps provisioned mode responsive to changing load without manual intervention.
+</QuestionCard>
+
+</QuestionList>
+
+### Indexes, Queries & Advanced Features
+
+<QuestionList topic="DynamoDB Queries" storagePrefix="dynamodb-queries">
+
+<QuestionCard id="ddb-query-01" number={16} question="What are secondary indexes in DynamoDB?" difficulty="medium" topic="Indexes">
+Secondary indexes let you query on non-key attributes, providing flexible access patterns beyond what the table's primary key alone supports — DynamoDB offers two kinds: Local Secondary Indexes and Global Secondary Indexes.
+</QuestionCard>
+
+<QuestionCard id="ddb-query-02" number={17} question="What is a Global Secondary Index?" difficulty="medium" topic="Indexes">
+A GSI lets you query on a different partition key (and optional sort key) than the base table, across the entire table, with its own provisioned throughput independent of the base table's capacity.
+</QuestionCard>
+
+<QuestionCard id="ddb-query-03" number={18} question="What is a Local Secondary Index?" difficulty="medium" topic="Indexes">
+An LSI lets you query using an alternate sort key while keeping the same partition key as the base table, sharing that partition's throughput. It's limited to 10GB of data per partition key value.
+</QuestionCard>
+
+<QuestionCard id="ddb-query-04" number={19} question="What is eventual consistency in DynamoDB?" difficulty="medium" topic="Consistency">
+Eventually consistent reads return the most recent write in milliseconds in the common case, but might briefly return stale data if a read hits a replica that hasn't yet received the latest write. It's the default and cheaper read type.
+</QuestionCard>
+
+<QuestionCard id="ddb-query-05" number={20} question="What is strong consistency in DynamoDB?" difficulty="medium" topic="Consistency">
+Strongly consistent reads always return the most recent successful write, but consume twice the read capacity of an eventually consistent read and aren't supported on Global Secondary Indexes.
+</QuestionCard>
+
+<QuestionCard id="ddb-query-06" number={21} question="How do you query DynamoDB?" difficulty="medium" topic="Querying">
+Use the `Query` API to retrieve items matching a specific partition key value, with optional sort key conditions to narrow the range — this is the efficient, key-driven way to read from DynamoDB.
+</QuestionCard>
+
+<QuestionCard id="ddb-query-07" number={22} question="What is a scan operation in DynamoDB?" difficulty="medium" topic="Querying">
+`Scan` reads every item in a table (or index), which is useful for full-table operations but inefficient and expensive at scale since it consumes capacity for every item read, not just matches.
+</QuestionCard>
+
+<QuestionCard id="ddb-query-08" number={23} question="What is the difference between query and scan?" difficulty="medium" topic="Querying">
+`Query` uses key conditions to target a specific partition (efficient); `Scan` reads every item in the table or index (inefficient but flexible when you don't know the key upfront).
+</QuestionCard>
+
+<QuestionCard id="ddb-query-09" number={24} question="What is projection in DynamoDB?" difficulty="easy" topic="Querying">
+Projection specifies which attributes to return in query or scan results, reducing data transfer and, for indexes, controlling which attributes are copied into the index in the first place.
+</QuestionCard>
+
+<QuestionCard id="ddb-query-10" number={25} question="What is filtering in DynamoDB?" difficulty="medium" topic="Querying">
+A filter expression applies conditions to items *after* DynamoDB retrieves them (post key-condition evaluation), reducing the result set size — but it doesn't reduce the read capacity consumed, since filtering happens after the read.
+</QuestionCard>
+
+<QuestionCard id="ddb-query-11" number={26} question="How do you handle transactions in DynamoDB?" difficulty="hard" topic="Transactions">
+Use `TransactWriteItems` for multiple atomic writes across one or more tables, or `TransactGetItems` for atomic reads — both succeed or fail as a unit, giving you ACID guarantees for the specific items involved.
+</QuestionCard>
+
+<QuestionCard id="ddb-query-12" number={27} question="What is batch processing in DynamoDB?" difficulty="medium" topic="Batch Operations">
+`BatchGetItem` reads multiple items (potentially across multiple tables) in one request, and `BatchWriteItem` writes or deletes multiple items in one request — both are more efficient than issuing many individual requests, though neither is atomic across items the way transactions are.
+</QuestionCard>
+
+<QuestionCard id="ddb-query-13" number={28} question="What is TTL in DynamoDB?" difficulty="easy" topic="TTL">
+TTL (Time To Live) automatically deletes items after a specified expiration timestamp attribute is reached, useful for managing data expiration (session data, temporary caches) without writing cleanup jobs.
+</QuestionCard>
+
+<QuestionCard id="ddb-query-14" number={29} question="What is DynamoDB Streams?" difficulty="medium" topic="Streams">
+Streams capture item-level modifications (inserts, updates, deletes) as an ordered, time-limited log, enabling real-time processing with AWS Lambda or other consumers — commonly used for change data capture, replication, or triggering downstream workflows.
+</QuestionCard>
+
+<QuestionCard id="ddb-query-15" number={30} question="How do you design DynamoDB tables?" difficulty="hard" topic="Data Modeling">
+Plan access patterns upfront (this is the step relational modeling doesn't force you to do), choose partition keys that distribute traffic evenly, use secondary indexes for alternate access patterns you didn't design the base table's key around, and optimize the overall data model — including denormalizing and using single-table design where appropriate — for the specific queries the application needs.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Design a DynamoDB table for an e-commerce order history feature."** Walk through identifying access patterns first (get all orders for a customer, get a specific order by ID), then choosing `customer_id` as the partition key and `order_date#order_id` as a composite sort key to support both patterns, and where a GSI would be needed for a third pattern like "look up an order by ID alone."
+- **"One partition is getting throttled while the rest of the table is idle — what's happening and how do you fix it?"** This is a hot partition. Diagnose via CloudWatch partition-level metrics, then discuss redesigning the partition key for higher cardinality, adding a random/calculated suffix to spread a naturally hot key, or introducing DAX as a caching layer.
+- **"When would you reach for a GSI versus an LSI?"** Cover that LSIs must be created at table creation time and share the base table's partition and throughput, while GSIs can be added later, use their own partition key, and have independent capacity — making GSIs the more common choice for genuinely new access patterns.
+- **"How would you keep a search index or analytics store in sync with a DynamoDB table in near-real time?"** Talk through DynamoDB Streams feeding a Lambda function that writes to OpenSearch, Kinesis, or a downstream data pipeline.
+
+---
+
+## Further Reading
+
+- [MongoDB](/level-3-technologies/databases/mongodb/) and [Cassandra](/level-3-technologies/databases/cassandra/) — other NoSQL databases with different key, consistency, and modeling trade-offs
+- [Bigtable](/level-3-technologies/databases/bigtable/) — Google Cloud's wide-column counterpart to DynamoDB
+- [Data Modeling](/level-2-core-concepts/data-modeling/) — the access-pattern-first modeling approach DynamoDB design questions build on

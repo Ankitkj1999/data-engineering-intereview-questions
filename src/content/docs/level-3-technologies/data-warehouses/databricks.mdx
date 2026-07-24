@@ -1,0 +1,238 @@
+---
+title: Databricks
+description: Interview questions covering the Databricks lakehouse, Delta Lake internals, clusters and jobs, Unity Catalog, Photon, and Structured Streaming for engineers.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Databricks: The Lakehouse Platform
+
+**Databricks is a unified platform built on Apache Spark that layers ACID transactions, governance, and warehouse-grade SQL performance on top of data lake storage — the "lakehouse" pitch that most interview questions probe from different angles.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The lakehouse idea is that **Delta Lake** — an open storage format built on Parquet — adds a transaction log, ACID guarantees, schema enforcement/evolution, and time travel directly on top of cheap object storage, closing the gap with traditional warehouses without giving up data lake flexibility. Compute is organized around **clusters** (all-purpose for interactive work, job clusters for scheduled runs, SQL warehouses for BI) and **Photon**, a native execution engine that accelerates SQL and DataFrame workloads. **Unity Catalog** provides the governance layer — a three-level namespace (catalog.schema.table), centralized access control, and lineage — spanning multiple workspaces. Operational maintenance revolves around Delta table housekeeping: `OPTIMIZE` compacts small files, `VACUUM` removes stale ones, and the transaction log is what makes both time travel and reliable concurrent writes possible. **Structured Streaming** unifies batch and streaming under the same DataFrame API, and **Workflows/Jobs** provide orchestration on top of all of it.
+
+---
+
+## Interview Questions
+
+### Lakehouse & Delta Lake
+
+<QuestionList topic="Databricks Lakehouse" storagePrefix="databricks-lakehouse">
+
+<QuestionCard id="dbx-lake-01" number={1} question="What is Databricks?" difficulty="easy" topic="Fundamentals">
+Databricks is a unified analytics platform that combines data warehousing, data engineering, and machine learning capabilities on top of Apache Spark, offered as a managed service across AWS, Azure, and GCP.
+</QuestionCard>
+
+<QuestionCard id="dbx-lake-02" number={2} question="What is the Databricks Lakehouse?" difficulty="easy" topic="Lakehouse">
+The Databricks Lakehouse is a unified data platform that combines the best features of data lakes and data warehouses, providing ACID transactions, structured data storage, and powerful analytics — all directly on top of low-cost object storage instead of a separate proprietary warehouse format.
+</QuestionCard>
+
+<QuestionCard id="dbx-lake-03" number={3} question="What is Delta Lake?" difficulty="easy" topic="Delta Lake">
+Delta Lake is an open-source storage format that brings ACID transactions to Apache Spark, enabling reliable and efficient data storage and processing on top of Parquet files plus a transaction log.
+</QuestionCard>
+
+<QuestionCard id="dbx-lake-04" number={4} question="What are the benefits of Delta Lake?" difficulty="medium" topic="Delta Lake">
+Benefits include ACID transactions, schema enforcement, time travel capabilities, unified batch and streaming reads/writes on the same table, and improved performance through data skipping using file-level statistics.
+</QuestionCard>
+
+<QuestionCard id="dbx-lake-05" number={5} question="What is the difference between Delta Lake and Parquet?" difficulty="medium" topic="Delta Lake">
+Delta Lake includes ACID transactions, schema evolution, data versioning, and a transaction log on top of Parquet, while plain Parquet is just a columnar storage format without these features — Delta tables are physically Parquet files plus a `_delta_log` directory that tracks every change.
+</QuestionCard>
+
+<QuestionCard id="dbx-lake-06" number={6} question="How do you create a table in Databricks?" difficulty="easy" topic="Tables">
+Tables can be created using SQL `CREATE TABLE` statements, the Python DataFrame API (`df.write.saveAsTable(...)`), or by reading external data sources and registering them in the metastore/Unity Catalog.
+</QuestionCard>
+
+<QuestionCard id="dbx-lake-07" number={7} question="What is the difference between managed and external tables?" difficulty="medium" topic="Tables">
+Managed tables store data in the Databricks-managed storage location and are dropped (data and all) when the table is dropped, while external tables reference data stored elsewhere and only remove the metadata reference when dropped — the underlying files remain.
+</QuestionCard>
+
+<QuestionCard id="dbx-lake-08" number={8} question="What are the data formats supported by Databricks?" difficulty="easy" topic="Data Formats">
+Supported formats include Parquet, CSV, JSON, ORC, Delta Lake, and various other formats through connectors and Spark's pluggable data source API.
+</QuestionCard>
+
+<QuestionCard id="dbx-lake-09" number={9} question="How does Databricks handle schema evolution?" difficulty="medium" topic="Delta Lake">
+Delta Lake supports schema evolution, allowing you to add new columns or modify existing schema (with `mergeSchema` or `ALTER TABLE`) without rewriting the entire dataset — new files can carry the new schema while old files remain readable.
+</QuestionCard>
+
+<QuestionCard id="dbx-lake-10" number={10} question="What is schema enforcement in Delta Lake?" difficulty="medium" topic="Delta Lake">
+Schema enforcement ensures that data written to a Delta table matches the table's existing schema, rejecting writes that don't conform (unless schema evolution is explicitly enabled) — preventing silent data quality issues from mismatched columns or types.
+</QuestionCard>
+
+<QuestionCard id="dbx-lake-11" number={11} question="What is the purpose of the Delta transaction log?" difficulty="medium" topic="Delta Lake">
+The Delta transaction log (`_delta_log`) tracks every change to a Delta table as an ordered sequence of JSON commits, enabling ACID transactions, time travel, and data recovery — it's the single source of truth for which Parquet files currently make up the table.
+</QuestionCard>
+
+<QuestionCard id="dbx-lake-12" number={12} question="How does Databricks integrate with cloud storage?" difficulty="medium" topic="Storage">
+Databricks integrates with AWS S3, Azure Data Lake Storage, and Google Cloud Storage through cloud-specific connectors and credential configurations, with Unity Catalog providing a governed layer of external locations and storage credentials on top.
+</QuestionCard>
+
+<QuestionCard id="dbx-lake-13" number={13} question="What is table optimization in Databricks?" difficulty="medium" topic="Maintenance">
+Table optimization involves reorganizing data layout, removing delete markers left by row-level deletes/updates, and compacting small files for improved query performance — primarily done through the `OPTIMIZE` command.
+</QuestionCard>
+
+<QuestionCard id="dbx-lake-14" number={14} question="What is the VACUUM command in Delta Lake?" difficulty="medium" topic="Maintenance">
+`VACUUM` removes old, no-longer-referenced data files from Delta tables (beyond a retention threshold, default 7 days), reducing storage costs while still preserving enough history for recent time travel queries.
+</QuestionCard>
+
+<QuestionCard id="dbx-lake-15" number={15} question="What is the OPTIMIZE command in Delta Lake?" difficulty="medium" topic="Maintenance">
+`OPTIMIZE` consolidates small files into larger ones (bin-packing), improving query performance and reducing file count — it can also be combined with `ZORDER BY` to co-locate related data for better data skipping.
+</QuestionCard>
+
+<QuestionCard id="dbx-lake-16" number={16} question="How do you enable change data capture in Databricks?" difficulty="hard" topic="CDC">
+Change Data Capture can be enabled using Delta Lake's Change Data Feed (CDF) feature, which records row-level inserts, updates, and deletes for a table, or through external CDC tools like Debezium feeding into Delta tables.
+</QuestionCard>
+
+</QuestionList>
+
+### Clusters, Jobs & Performance
+
+<QuestionList topic="Databricks Compute" storagePrefix="databricks-compute">
+
+<QuestionCard id="dbx-cluster-01" number={17} question="What is a Databricks cluster?" difficulty="easy" topic="Clusters">
+A Databricks cluster is a set of computational resources and configurations on which you run data engineering, analytics, and machine learning workloads — essentially a managed Spark cluster.
+</QuestionCard>
+
+<QuestionCard id="dbx-cluster-02" number={18} question="What are the types of Databricks clusters?" difficulty="medium" topic="Clusters">
+Databricks supports all-purpose clusters (for collaborative, interactive analysis), job clusters (spun up automatically for a single automated workload and torn down after), and SQL warehouses (for SQL analytics via Databricks SQL).
+</QuestionCard>
+
+<QuestionCard id="dbx-cluster-03" number={19} question="What is autoscaling in Databricks?" difficulty="easy" topic="Clusters">
+Autoscaling automatically adjusts the number of workers in a cluster based on workload demands, optimizing performance and cost by scaling out during heavy processing and scaling back in when idle.
+</QuestionCard>
+
+<QuestionCard id="dbx-cluster-04" number={20} question="How do you optimize cluster configuration?" difficulty="medium" topic="Clusters">
+Optimization involves selecting appropriate instance types for the workload (memory-optimized vs. compute-optimized), enabling autoscaling, right-sizing cluster sizes, using instance pools to reduce startup latency, and monitoring utilization to catch over- or under-provisioning.
+</QuestionCard>
+
+<QuestionCard id="dbx-cluster-05" number={21} question="What is Databricks SQL?" difficulty="easy" topic="SQL Warehouses">
+Databricks SQL is a serverless SQL analytics engine that allows you to query your data lake using standard SQL without managing clusters directly — it runs on SQL warehouses, purpose-built for BI-style query patterns.
+</QuestionCard>
+
+<QuestionCard id="dbx-cluster-06" number={22} question="What is the difference between Databricks SQL and Apache Spark SQL?" difficulty="medium" topic="SQL Warehouses">
+Databricks SQL offers serverless execution, interactive query optimization, and tight integration with Databricks features (dashboards, alerts, Unity Catalog), while raw Spark SQL runs on general-purpose clusters that require more manual cluster management.
+</QuestionCard>
+
+<QuestionCard id="dbx-cluster-07" number={23} question="What is Databricks Jobs?" difficulty="easy" topic="Jobs">
+Databricks Jobs lets you orchestrate and schedule automated workflows, including Spark jobs, notebooks, and Python scripts, running on ephemeral job clusters by default.
+</QuestionCard>
+
+<QuestionCard id="dbx-cluster-08" number={24} question="How do you schedule a Databricks job?" difficulty="easy" topic="Jobs">
+Jobs can be scheduled using cron expressions through the Databricks UI, REST API, or Terraform for infrastructure as code, with configurable retry policies and alerting on failure.
+</QuestionCard>
+
+<QuestionCard id="dbx-cluster-09" number={25} question="What is the purpose of Databricks Workflows?" difficulty="medium" topic="Jobs">
+Databricks Workflows enable you to create complex, multi-step data pipelines with task dependencies, conditional logic, error handling, and automatic retries/recovery — essentially built-in orchestration without a separate scheduler.
+</QuestionCard>
+
+<QuestionCard id="dbx-cluster-10" number={26} question="What is the Databricks REST API?" difficulty="easy" topic="Integration">
+The Databricks REST API allows you to programmatically interact with Databricks services, including cluster management, job execution, and workspace operations — the basis for most CI/CD and infrastructure-as-code integrations.
+</QuestionCard>
+
+<QuestionCard id="dbx-cluster-11" number={27} question="How do you connect to Databricks?" difficulty="easy" topic="Integration">
+Connections can be made via notebooks, JDBC/ODBC drivers (for BI tools), Python libraries (`databricks-connect`), the Databricks CLI, or the REST API.
+</QuestionCard>
+
+<QuestionCard id="dbx-cluster-12" number={28} question="How do you optimize Databricks queries?" difficulty="medium" topic="Performance">
+Query optimization involves using appropriate data formats (Delta over raw Parquet/CSV), partitioning and Z-ordering data for the actual query patterns, caching frequently accessed tables, and analyzing query plans/Spark UI to find skew or shuffle bottlenecks.
+</QuestionCard>
+
+<QuestionCard id="dbx-cluster-13" number={29} question="What is Databricks Photon?" difficulty="medium" topic="Performance">
+Databricks Photon is a high-performance, vectorized execution engine (written in C++) that accelerates Spark SQL and DataFrame queries, reducing query latency compared to the standard JVM-based Spark execution engine.
+</QuestionCard>
+
+<QuestionCard id="dbx-cluster-14" number={30} question="What are the benefits of using Photon?" difficulty="easy" topic="Performance">
+Benefits include faster query execution, lower latency, reduced compute costs (queries finish sooner), and improved performance specifically for SQL and DataFrame workloads without requiring code changes.
+</QuestionCard>
+
+<QuestionCard id="dbx-cluster-15" number={31} question="How do you monitor Databricks jobs?" difficulty="easy" topic="Monitoring">
+Job monitoring can be done through the Databricks UI (job run history, task-level logs), the REST API, cluster logging, and cloud-native monitoring integrations like CloudWatch (AWS) or Azure Monitor.
+</QuestionCard>
+
+<QuestionCard id="dbx-cluster-16" number={32} question="What is the purpose of the Databricks Workspace?" difficulty="easy" topic="Workspace">
+The Databricks Workspace is a collaborative environment where teams can share notebooks, collaborate on projects, browse data via the catalog, and manage clusters and jobs — the main UI surface for the platform.
+</QuestionCard>
+
+</QuestionList>
+
+### Governance, Security & Advanced Features
+
+<QuestionList topic="Databricks Governance" storagePrefix="databricks-governance">
+
+<QuestionCard id="dbx-gov-01" number={33} question="How does Databricks handle data security?" difficulty="medium" topic="Security">
+Databricks provides encryption at rest and in transit, role-based access control, network security (VPC/VNet injection, private link), audit logging, and integration with cloud IAM systems for identity and credential management.
+</QuestionCard>
+
+<QuestionCard id="dbx-gov-02" number={34} question="What is Unity Catalog?" difficulty="medium" topic="Unity Catalog">
+Unity Catalog is a unified data governance solution that provides centralized access control, data discovery, and lineage tracking across Databricks workspaces — a single governance layer instead of per-workspace metastores.
+</QuestionCard>
+
+<QuestionCard id="dbx-gov-03" number={35} question="What are the benefits of Unity Catalog?" difficulty="easy" topic="Unity Catalog">
+Benefits include centralized access control across workspaces, unified data discovery, automatic data lineage, cross-workspace data sharing, and simplified compliance management.
+</QuestionCard>
+
+<QuestionCard id="dbx-gov-04" number={36} question="How do you handle data quality in Databricks?" difficulty="medium" topic="Data Quality">
+Data quality can be managed using Delta Lake constraints (`CHECK`, `NOT NULL`), Delta Live Tables expectations, third-party frameworks like Great Expectations, and general data profiling/validation pipelines.
+</QuestionCard>
+
+<QuestionCard id="dbx-gov-05" number={37} question="What is Unity Catalog's three-level namespace?" difficulty="medium" topic="Unity Catalog">
+Unity Catalog organizes data using a three-level namespace — `catalog.schema.table` — for organizing and managing data across Databricks workspaces. The catalog is the top-level container (often mapped to an environment or business unit), schemas group related tables within it, and this structure is what Unity Catalog's access control and lineage are defined against.
+</QuestionCard>
+
+<QuestionCard id="dbx-gov-06" number={38} question="What is the purpose of Databricks notebooks?" difficulty="easy" topic="Notebooks">
+Databricks notebooks provide an interactive environment for data analysis, visualization, and collaboration, combining code, text, and visualizations in a single shareable document.
+</QuestionCard>
+
+<QuestionCard id="dbx-gov-07" number={39} question="What programming languages does Databricks support?" difficulty="easy" topic="Languages">
+Databricks supports Python, Scala, SQL, and R within the same notebook environment, allowing polyglot data engineering and analysis — including mixing languages across cells in a single notebook.
+</QuestionCard>
+
+<QuestionCard id="dbx-gov-08" number={40} question="How do you handle data lineage in Databricks?" difficulty="medium" topic="Governance">
+Data lineage is tracked automatically through Unity Catalog (column- and table-level lineage captured from query execution) and can integrate with OpenLineage, providing end-to-end visibility into how data flows and transforms across pipelines.
+</QuestionCard>
+
+<QuestionCard id="dbx-gov-09" number={41} question="What is the purpose of the Databricks Feature Store?" difficulty="medium" topic="ML">
+The Feature Store provides centralized management of ML features, enabling version control, feature reuse across teams/models, and consistent feature engineering between training and serving.
+</QuestionCard>
+
+<QuestionCard id="dbx-gov-10" number={42} question="How does Databricks handle streaming data?" difficulty="medium" topic="Streaming">
+Databricks supports streaming data through Structured Streaming, enabling real-time processing and continuous data pipelines that use the same DataFrame API as batch jobs.
+</QuestionCard>
+
+<QuestionCard id="dbx-gov-11" number={43} question="What is Structured Streaming in Databricks?" difficulty="medium" topic="Streaming">
+Structured Streaming is a scalable and fault-tolerant stream processing engine built on Apache Spark for continuous data processing, modeling a stream as an unbounded table that's incrementally updated — the same DataFrame/SQL operations used in batch apply directly to streams.
+</QuestionCard>
+
+<QuestionCard id="dbx-gov-12" number={44} question="How do you implement role-based access control in Databricks?" difficulty="medium" topic="Security">
+RBAC is implemented through Unity Catalog grants (on catalogs, schemas, tables, and other securable objects), workspace-level permissions (for notebooks, jobs, clusters), and integration with cloud IAM systems for authentication.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A Delta table has thousands of tiny files and queries have gotten slow — what do you do?"** Walk through running `OPTIMIZE` (with `ZORDER BY` on common filter columns) to compact files, then `VACUUM` to clean up the old files it superseded, and discuss why the small-file problem tends to build up from frequent low-volume streaming writes or `MERGE` operations.
+- **"Design a pipeline that needs both a nightly batch load and a near-real-time stream into the same table."** Use this to talk through Structured Streaming's unification of batch and streaming under one API, and how a single Delta table can safely accept both `writeStream` and batch `MERGE`/`INSERT` writes because of the transaction log.
+- **"How would you set up governance so that analysts in Team A can't see Team B's raw customer table but can see an aggregated view of it?"** Discuss Unity Catalog's three-level namespace, granting SELECT on a derived view instead of the base table, and how lineage would show the dependency.
+- **"Explain the trade-off between an all-purpose cluster and a job cluster for a scheduled ETL pipeline."** Job clusters are cheaper (no idle time, torn down after the run) and isolate workloads, at the cost of a cold-start delay each run; all-purpose clusters stay warm for interactive/shared use but cost more if left running.
+
+---
+
+## Further Reading
+
+- [Snowflake](/level-3-technologies/data-warehouses/snowflake/) — the warehouse-first architecture most often compared against the lakehouse
+- [BigQuery](/level-3-technologies/data-warehouses/bigquery/) and [Redshift](/level-3-technologies/data-warehouses/redshift/) — other major cloud data warehouse platforms
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where Spark and lakehouse platforms fit into the broader curriculum

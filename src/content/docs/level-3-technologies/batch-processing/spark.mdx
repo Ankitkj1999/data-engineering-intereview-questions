@@ -1,0 +1,871 @@
+---
+title: Apache Spark
+description: Apache Spark interview questions covering RDDs, DataFrames, Spark SQL, partitioning, shuffling, memory management, streaming, MLlib, GraphX, and deployment.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Apache Spark: Unified Engine for Big Data Processing
+
+**Apache Spark is a unified, in-memory analytics engine for large-scale data processing — combining batch, SQL, streaming, machine learning, and graph workloads on a single fault-tolerant execution model built around RDDs and DataFrames.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Spark's foundational abstraction is the **RDD (Resilient Distributed Dataset)** — an immutable, partitioned collection of records spread across a cluster that can be rebuilt from its **lineage** (the graph of transformations that produced it) if a partition is lost, instead of relying on replication like Hadoop. **DataFrames** and **Datasets** sit on top of RDDs, adding schema and a Catalyst-optimized execution plan, which is why they usually outperform raw RDDs for structured data.
+
+Every operation on an RDD/DataFrame is either a **transformation** (map, filter, join — lazy, returns a new dataset) or an **action** (count, collect, save — triggers execution). Because of **lazy evaluation**, Spark doesn't run anything until an action forces it to, which lets the engine build a DAG of the whole computation and optimize it before running a single task. That DAG is split into **stages** at shuffle boundaries and scheduled by the **driver**, which runs the user's `main()`, tracks RDD lineage, and hands tasks to **executors** — worker processes that actually run computations and cache data, coordinated through a **cluster manager** (Standalone, YARN, or Mesos).
+
+Data is split into **partitions**, the unit of parallelism; operations that need to regroup data by key (`groupByKey`, `join`, `reduceByKey`) trigger a **shuffle** — an expensive all-to-all redistribution of data across the network — which is usually the first thing to look at when tuning a slow Spark job.
+
+---
+
+## Interview Questions
+
+### Core Concepts & Fundamentals
+
+<QuestionList topic="Spark Fundamentals" storagePrefix="spark-core">
+
+<QuestionCard id="spark-core-01" number={1} question="What is Apache Spark?" difficulty="easy" topic="Fundamentals">
+Apache Spark is a fast, general-purpose, open-source engine for large-scale distributed data processing. It has an advanced DAG execution engine that supports in-memory computing and cyclic data flow, and it can run standalone, on Hadoop YARN, on Mesos, or in the cloud — accessing diverse data sources such as HDFS, HBase, Cassandra, and S3.
+</QuestionCard>
+
+<QuestionCard id="spark-core-02" number={2} question="What are the main/key features of Apache Spark?" difficulty="easy" topic="Fundamentals">
+- **Speed** — runs up to 100x faster than Hadoop MapReduce in memory (10x on disk) through controlled partitioning and in-memory computation.
+- **Polyglot** — high-level APIs in Scala, Java, Python, and R, plus interactive Scala/Python shells (`spark-shell`, `pyspark`).
+- **Multiple formats** — pluggable Data Sources API supports Parquet, JSON, Hive, Cassandra, and more.
+- **Lazy evaluation** — transformations are added to a DAG and only executed once an action is called, which is one of the keys to its speed.
+- **Real-time computation** — low latency thanks to in-memory processing, scaling to production clusters with thousands of nodes.
+- **Hadoop integration** — can replace or run alongside MapReduce, and run on top of an existing Hadoop cluster via YARN.
+- **Integrated solution** — SQL, streaming, ML (MLlib), and graph processing (GraphX) all on one engine instead of separate tools.
+</QuestionCard>
+
+<QuestionCard id="spark-core-03" number={3} question="What are the main libraries/ecosystem components of Apache Spark?" difficulty="easy" topic="Ecosystem">
+- **Spark SQL** (historically "Shark") — SQL and DataFrame-based structured data processing.
+- **Spark Streaming / Structured Streaming** — processing of live data streams.
+- **MLlib** — scalable machine learning library (classification, regression, clustering, collaborative filtering, pipelines).
+- **GraphX** — graph abstraction and graph-parallel computation (subgraph, joinVertices, and similar operators).
+- **SparkR** — lets R users work with Spark DataFrames and `dplyr`-style operations, including from RStudio.
+</QuestionCard>
+
+<QuestionCard id="spark-core-04" number={4} question="What are the benefits of Spark over Hadoop MapReduce?" difficulty="medium" topic="vs Hadoop">
+- **Speed** — in-memory processing makes Spark roughly 10-100x faster than MapReduce, which persists to disk after every step.
+- **Unified engine** — batch, streaming, ML, and interactive SQL all run on the same core, instead of needing separate tools.
+- **Iterative computation** — Spark can efficiently reuse a cached dataset across multiple passes (critical for ML), where MapReduce has no native iterative model.
+- **Caching** — in-memory data storage vs. Hadoop's disk-dependent model.
+</QuestionCard>
+
+<QuestionCard id="spark-core-05" number={5} question="What is the difference between Apache Spark and Apache Hadoop MapReduce?" difficulty="medium" topic="vs Hadoop">
+- **Speed** — Spark is 10x-100x faster due to in-memory processing.
+- **Memory model** — Spark stores data in memory where possible; MapReduce writes to disk between stages.
+- **Fault tolerance** — Spark uses RDD lineage to recompute only lost partitions; Hadoop relies on replicating data across multiple copies.
+- **Streaming** — Spark supports real-time stream processing with far less administrative overhead.
+- **API** — Spark's API is more versatile, spanning multiple languages and data sources.
+</QuestionCard>
+
+<QuestionCard id="spark-core-06" number={6} question="Compare Hadoop and Spark in depth." difficulty="hard" topic="vs Hadoop">
+- **Cost** — Hadoop needs large server/storage clusters for replication, making it more expensive to run; Spark is comparatively cost-efficient.
+- **Performance** — Spark processes data in memory (spilling to disk only when needed), so it's 10x-100x faster than Hadoop's disk-based batch model, and its micro-batching also makes it much better suited to near-real-time workloads.
+- **Ease of development** — Spark Core is a single distributed execution engine with SQL, streaming, ML, and graph libraries built on top, all usable from one application; Hadoop supports similar workloads but typically requires stitching together separate tools (Pig, Hive, etc.).
+- **Failure recovery** — Hadoop writes to disk after every operation; Spark recovers via RDD lineage instead, without needing full replication.
+- **File management** — Hadoop ships its own filesystem (HDFS); Spark has none and must integrate with HDFS or another storage layer.
+- **Computation model** — Hadoop is pure batch; Spark's micro-batching also supports near-real-time processing.
+- **Codebase size** — Hadoop is roughly 2.3M lines of code vs. Spark's ~20K, reflecting Spark's more concise, higher-level API.
+- **Caching & scheduling** — Spark caches partial results in memory for low-latency computation and acts as its own flow scheduler; MapReduce has no caching and typically needs an external scheduler like Oozie or Azkaban for complex flows.
+- **DAG support** — Spark supports a full DAG (including cycles used by iterative ML algorithms); Hadoop's MapReduce data flow is a simple non-cyclic chain.
+- **Memory management** — Spark manages memory automatically; Hadoop's memory management is more manual/static.
+- **Ease of use** — Hadoop MapReduce requires Java (eased somewhat by Pig/Hive, which still have their own learning curve); Spark offers interactive APIs in Java, Python, or Scala plus Spark SQL, making it comparatively easier to pick up.
+</QuestionCard>
+
+<QuestionCard id="spark-core-07" number={7} question="Is there still a benefit to learning MapReduce, and which should you pick for a project — Hadoop MapReduce or Spark?" difficulty="medium" topic="vs Hadoop">
+Yes — MapReduce is a paradigm used by many big data tools, and tools like Pig and Hive still convert their queries into MapReduce-style phases internally, so understanding it remains useful as data volume grows. Which to pick for a given project depends on budget and workload: Spark needs a large amount of RAM and often a dedicated cluster to deliver its performance advantage, so the choice comes down to the organization's infrastructure budget and whether the workload benefits from in-memory/iterative processing.
+</QuestionCard>
+
+<QuestionCard id="spark-core-08" number={8} question="What are the popular use cases of Apache Spark?" difficulty="easy" topic="Fundamentals">
+- Stream processing (fraud detection, website monitoring, IoT sensor data)
+- Machine learning (iterative training via MLlib)
+- Interactive data analytics and ad-hoc querying
+- Sensor/IoT and "fog computing" workloads
+</QuestionCard>
+
+<QuestionCard id="spark-core-09" number={9} question="What are the limitations/demerits of Apache Spark?" difficulty="medium" topic="Trade-offs">
+- **No native storage engine** — Spark has to integrate with Hadoop, cloud object storage, or another platform for durable storage.
+- **In-memory bottleneck** — the in-memory model that makes Spark fast can also become a cost bottleneck for very large, cost-sensitive workloads, and memory consumption isn't always handled gracefully.
+- **Small-files problem** — a large number of small (e.g., gzipped) files forces Spark to decompress them into memory/network before it can partition and shuffle them into a usable format, which hurts performance.
+- **Weak multi-user concurrency** — Spark isn't designed to handle many concurrent users well.
+- **MLlib gaps** — MLlib lacks some algorithms available in more specialized ML libraries (e.g., Tanimoto distance).
+</QuestionCard>
+
+<QuestionCard id="spark-core-10" number={10} question="What are common mistakes developers make when running Spark applications?" difficulty="medium" topic="Trade-offs">
+- Hitting an external web service repeatedly from multiple executors/clusters instead of batching or caching the calls.
+- Running everything on a single/local node instead of properly distributing the work across the cluster.
+- Not being careful with memory, since Spark leans heavily on in-memory processing.
+</QuestionCard>
+
+<QuestionCard id="spark-core-11" number={11} question="What are the main languages supported by Apache Spark, and why is JDBC popular with it?" difficulty="medium" topic="Ecosystem">
+Spark supports four languages — **Scala, Java, Python, and R** — plus SQL, with Scala being the most widely used since Spark itself is written in Scala. **JDBC (Java Database Connectivity)** is a popular way to connect to data because Spark runs on the JVM, and Hadoop, Hive, and MySQL all interface easily with Spark clusters over it. JDBC also lets Spark's Catalyst optimizer push predicates (the `WHERE` clause) down into the source database, so filtering happens before data ever crosses the network — less data transferred, and fewer records for Spark to process.
+</QuestionCard>
+
+<QuestionCard id="spark-core-12" number={12} question="What are the security options in Apache Spark?" difficulty="medium" topic="Security">
+- **Encryption** — SSL support for encrypted data transfer (HTTPS), configured via `spark.ssl` parameters.
+- **Authentication** — shared-secret authentication configured via `spark.authenticate`.
+- **Event logging** — access control is enforced by setting permissions on the directory where event logs are stored.
+</QuestionCard>
+
+</QuestionList>
+
+### Architecture & Execution Model
+
+<QuestionList topic="Spark Architecture" storagePrefix="spark-arch">
+
+<QuestionCard id="spark-arch-01" number={13} question="What is Spark Core, and what functions does it perform?" difficulty="easy" topic="Architecture">
+Spark Core is the base engine for large-scale parallel and distributed data processing — the distributed execution engine underlying the Java, Scala, and Python APIs. It's responsible for:
+- Memory management and storage-system interaction
+- Fault recovery
+- Job scheduling, distribution, and monitoring
+- Basic I/O functions
+
+All the additional libraries (SQL, Streaming, MLlib, GraphX) are built on top of Spark Core.
+</QuestionCard>
+
+<QuestionCard id="spark-arch-02" number={14} question="What does the Spark Engine do?" difficulty="easy" topic="Architecture">
+The Spark Engine is responsible for scheduling, distributing, and monitoring the data application across the cluster.
+</QuestionCard>
+
+<QuestionCard id="spark-arch-03" number={15} question="What is a Spark Driver?" difficulty="easy" topic="Architecture">
+The Spark Driver is the process that runs on the master/client machine and executes the application's `main()` method. It creates the `SparkContext`/`SparkSession`, declares all transformations and actions on RDDs, and splits the application into tasks that it schedules on executors via the cluster manager. Launching the Spark Shell effectively creates a driver program; when the driver terminates, the application finishes.
+</QuestionCard>
+
+<QuestionCard id="spark-arch-04" number={16} question="What is a Spark Executor?" difficulty="easy" topic="Architecture">
+When `SparkContext` connects to a cluster manager, it acquires executors on the cluster's nodes. Executors are the processes that run computations and hold data (in memory or on disk) for a Spark application; the driver sends them the final tasks for execution and they report results back.
+</QuestionCard>
+
+<QuestionCard id="spark-arch-05" number={17} question="What is a worker node?" difficulty="easy" topic="Architecture">
+A worker node is any cluster node that can run Spark application code. A worker node can run more than one worker process, configured via the `SPARK_WORKER_INSTANCES` property in `spark-env.sh` (only one worker starts if it isn't set). Worker nodes do the actual data processing and report resource usage back to the master, which decides how to allocate and schedule work across them.
+</QuestionCard>
+
+<QuestionCard id="spark-arch-06" number={18} question="What are the core components of a distributed Spark application?" difficulty="medium" topic="Architecture">
+- **Driver** — runs the `main()` method, creates RDDs, and performs transformations/actions on them.
+- **Cluster Manager** — a pluggable component (Standalone, YARN, or Mesos) responsible for launching drivers and executors across nodes.
+- **Executor** — a worker-node process that runs individual tasks and provides in-memory/disk storage for cached RDDs.
+</QuestionCard>
+
+<QuestionCard id="spark-arch-07" number={19} question="Explain the runtime/working architecture of Spark." difficulty="medium" topic="Architecture">
+Spark applications run as independent processes coordinated by the driver through a `SparkSession`. The cluster/resource manager assigns tasks to worker nodes on a one-task-per-partition basis. Iterative algorithms repeatedly apply the same operations to data, so Spark caches datasets across iterations where possible. Each task applies its unit of work to the data in its own partition, producing a new partitioned dataset; results are sent back to the driver for further processing or persisted to disk.
+</QuestionCard>
+
+<QuestionCard id="spark-arch-08" number={20} question="What is the working of a DAG in Spark?" difficulty="hard" topic="Architecture">
+DAG stands for **Directed Acyclic Graph** — a set of vertices (RDDs) and edges (the operations applied to them, in sequence).
+
+1. The interpreter (e.g., the Scala interpreter for Scala code) parses the code entered in the Spark console.
+2. Spark builds an **operator graph** as the code is entered.
+3. When an action is called on an RDD, that operator graph is submitted to the **DAG Scheduler**.
+4. The DAG Scheduler splits the graph into **stages** of tasks based on the transformations involved, pipelining operators together within a stage.
+5. Stages are handed to the **Task Scheduler**, which launches tasks via the cluster manager; stages without dependencies between them can run independently.
+6. **Worker nodes** execute the tasks.
+
+Each RDD keeps a pointer back to its parent RDD(s) and its relationship to them — for example, `val childB = parentA.map()` gives `childB` a reference back to `parentA` — and this chain is the RDD's **lineage**.
+</QuestionCard>
+
+<QuestionCard id="spark-arch-09" number={21} question="What is the use of SparkContext in Apache Spark?" difficulty="easy" topic="Architecture">
+`SparkContext` is the central, entry-point object that coordinates a Spark application and connects it to a cluster manager, which in turn allocates resources to the application. It's created from a `SparkConf` object holding the application's configuration, and it's what you use to create RDDs. The Spark Shell provides a default `SparkContext` automatically.
+</QuestionCard>
+
+<QuestionCard id="spark-arch-10" number={22} question="How will you monitor Apache Spark?" difficulty="easy" topic="Operations">
+- The **Web UI** provided by `SparkContext`, available on port `4040` by default, showing scheduler stages/tasks, RDD sizes and memory usage, environment info, and executor details.
+- The **Metrics library**, which can push Spark runtime information to HTTP endpoints, JMX, CSV files, or another monitoring dashboard.
+- In **standalone mode**, Spark also has a web UI for cluster/job statistics, and per-job logs are written to each worker node's work directory.
+</QuestionCard>
+
+<QuestionCard id="spark-arch-11" number={23} question="What is the use of Akka in Apache Spark?" difficulty="easy" topic="Architecture">
+Akka was historically used internally by Spark for scheduling, and for messaging between workers and the master/driver.
+</QuestionCard>
+
+<QuestionCard id="spark-arch-12" number={24} question="Which internal daemons does Apache Spark use?" difficulty="medium" topic="Architecture">
+Some important internal daemons include: `BlockManager`, `MemoryStore`, `DAGScheduler`, `Driver`, `Worker`, `Executor`, and `Tasks`.
+</QuestionCard>
+
+<QuestionCard id="spark-arch-13" number={25} question="Do we need HDFS to run a Spark application?" difficulty="easy" topic="Architecture">
+No — this is a bit of a trick question. Spark supports multiple filesystems (HDFS, HBase, local filesystem, S3, Cassandra, and more), so HDFS is just one option, not a requirement.
+</QuestionCard>
+
+<QuestionCard id="spark-arch-14" number={26} question="What filesystems does Spark support?" difficulty="easy" topic="Architecture">
+Some of the popular filesystems Spark can read from and write to: HDFS, Amazon S3, the local filesystem, Cassandra, OpenStack Swift, and the MapR filesystem.
+</QuestionCard>
+
+<QuestionCard id="spark-arch-15" number={27} question="What is the way Spark stores data?" difficulty="easy" topic="Architecture">
+Apache Spark itself is an analytics/processing engine with no built-in storage engine — it retrieves and persists data via other storage systems, such as HDFS or S3.
+</QuestionCard>
+
+<QuestionCard id="spark-arch-16" number={28} question="What is the use of the FileSystem API in Apache Spark?" difficulty="easy" topic="Architecture">
+The FileSystem API is what Spark uses to read data from various storage backends, such as HDFS, S3, or the local filesystem.
+</QuestionCard>
+
+</QuestionList>
+
+### Cluster Management & Deployment
+
+<QuestionList topic="Cluster Management" storagePrefix="spark-deploy">
+
+<QuestionCard id="spark-deploy-01" number={29} question="What are the different Cluster Managers / deployment modes in Apache Spark?" difficulty="medium" topic="Deployment">
+- **Standalone** — the simple cluster manager bundled with Spark; you start it manually.
+- **YARN (Hadoop NextGen)** — Hadoop's resource manager. In *cluster mode* the Spark driver runs inside a YARN-managed master process on the cluster; in *client mode* the driver runs in the client process and an application master requests resources from YARN.
+- **Mesos** — the Mesos master replaces the Spark master as cluster manager; when the driver creates a job, Mesos decides which machine handles each task.
+- **Cloud (e.g., Amazon EC2)** — deploying and running a Spark cluster on cloud infrastructure.
+</QuestionCard>
+
+<QuestionCard id="spark-deploy-02" number={30} question="What is YARN, and what role does it play for Spark?" difficulty="easy" topic="Deployment">
+YARN is Hadoop's central resource-management platform for delivering scalable operations across a cluster — a distributed container manager, similar in role to Mesos. Spark is a data-processing tool that can run *on top of* YARN the same way Hadoop MapReduce does; doing so requires a Spark binary distribution built with YARN support.
+</QuestionCard>
+
+<QuestionCard id="spark-deploy-03" number={31} question="Do you need to install Spark on all nodes of a YARN cluster?" difficulty="easy" topic="Deployment">
+No — Spark runs on top of YARN and doesn't need to be installed on every cluster node; it runs independently of its installation location. Spark exposes YARN-specific options for dispatching jobs rather than using its own built-in manager or Mesos, including `master`, `deploy-mode`, `driver-memory`, `executor-memory`, `executor-cores`, and `queue`.
+</QuestionCard>
+
+<QuestionCard id="spark-deploy-04" number={32} question="Is it possible to run Apache Spark on Apache Mesos?" difficulty="easy" topic="Deployment">
+Yes — Spark can run on hardware clusters managed by Mesos.
+</QuestionCard>
+
+<QuestionCard id="spark-deploy-05" number={33} question="How can you connect Spark to Apache Mesos?" difficulty="medium" topic="Deployment">
+1. Configure the Spark driver program to connect to Mesos.
+2. Set a path/location for the Spark binary package so it's accessible by Mesos.
+3. Install Apache Spark in the same location on each machine as Apache Mesos, and configure `spark.mesos.executor.home` to point to that install location.
+</QuestionCard>
+
+<QuestionCard id="spark-deploy-06" number={34} question="What are the benefits of using Spark with Apache Mesos?" difficulty="easy" topic="Deployment">
+Mesos provides scalable partitioning among multiple Spark instances, and dynamic partitioning between Spark and other big-data frameworks sharing the same cluster.
+</QuestionCard>
+
+<QuestionCard id="spark-deploy-07" number={35} question="Can Apache Spark be used along with Hadoop? If so, how?" difficulty="medium" topic="vs Hadoop">
+Yes — Hadoop compatibility is one of Spark's core strengths, letting you combine Spark's processing speed with Hadoop's YARN and HDFS. Common integration patterns:
+- **HDFS** — Spark runs on top of HDFS to use its distributed, replicated storage.
+- **MapReduce** — Spark can run alongside MapReduce in the same or a different processing framework/cluster, e.g. Spark for real-time and MapReduce for batch.
+- **YARN** — Spark applications run under YARN as the cluster management framework.
+</QuestionCard>
+
+<QuestionCard id="spark-deploy-08" number={36} question="Hadoop uses replication to achieve fault tolerance — how does Spark achieve it?" difficulty="medium" topic="Fault Tolerance">
+Spark's data storage model is built on RDDs, which achieve fault tolerance through **lineage** rather than replication. An RDD always knows how it was built from other datasets, so if a partition is lost to a failure, Spark uses the lineage graph to rebuild only that lost partition instead of restoring the whole dataset from a replica.
+</QuestionCard>
+
+<QuestionCard id="spark-deploy-09" number={37} question="How can you achieve High Availability in Apache Spark?" difficulty="medium" topic="Fault Tolerance">
+- Single-node recovery using the local filesystem.
+- Standby masters coordinated via Apache ZooKeeper.
+</QuestionCard>
+
+<QuestionCard id="spark-deploy-10" number={38} question="Does Apache Spark provide checkpointing?" difficulty="medium" topic="Fault Tolerance">
+Lineage graphs are always useful for recovering RDDs after a failure, but recomputation gets expensive if the lineage chain is long. Spark provides a checkpointing API — a `REPLICATE` flag passed to `persist()` — that lets you save an RDD to reliable storage. The decision of what to checkpoint is left to the user; it's most valuable for long lineage chains with wide dependencies.
+</QuestionCard>
+
+<QuestionCard id="spark-deploy-11" number={39} question="How can you launch Spark jobs inside Hadoop MapReduce?" difficulty="medium" topic="Deployment">
+Using **SIMR** (Spark in MapReduce), you can run any Spark job inside MapReduce without needing admin rights on the cluster.
+</QuestionCard>
+
+<QuestionCard id="spark-deploy-12" number={40} question="What do you understand by speculative execution in Apache Spark?" difficulty="hard" topic="Fault Tolerance">
+A speculative task is a health-check mechanism for stragglers — a task running noticeably slower than the median of already-completed tasks in the same stage. Spark submits a duplicate copy of that task to another worker and runs it in parallel rather than waiting on (or killing) the slow original. In cluster mode this is driven by a `TaskSchedulerImpl` thread, enabled via `spark.speculation`, checking periodically at intervals set by `spark.speculation.interval`.
+</QuestionCard>
+
+<QuestionCard id="spark-deploy-13" number={41} question="Which Spark library allows reliable file sharing at memory speed across different cluster frameworks?" difficulty="easy" topic="Ecosystem">
+**Tachyon** — it provides reliable, memory-speed file sharing across different cluster computing frameworks.
+</QuestionCard>
+
+<QuestionCard id="spark-deploy-14" number={42} question="Why is BlinkDB used?" difficulty="medium" topic="Ecosystem">
+BlinkDB is a query engine for running interactive SQL queries on huge volumes of data. It trades a small amount of accuracy for much lower latency, returning results annotated with meaningful error bars so users can balance query accuracy against response time.
+</QuestionCard>
+
+<QuestionCard id="spark-deploy-15" number={43} question="How does Spark compare to Hadoop in terms of ease of use?" difficulty="easy" topic="vs Hadoop">
+Hadoop MapReduce requires programming directly in Java, which is difficult — Pig and Hive make it easier, but learning their syntax still takes time. Spark offers interactive APIs in Java, Python, and Scala, plus Spark SQL (originally "Shark") for SQL users, making it comparatively easier to pick up than Hadoop.
+</QuestionCard>
+
+<QuestionCard id="spark-deploy-16" number={44} question="Under what scenarios do you use Client mode vs. Cluster mode for deployment?" difficulty="medium" topic="Deployment">
+Use **Cluster mode** when the client machine isn't close to the cluster — it avoids the network latency that Client mode would incur between executors and a distant driver, and the job survives even if the client machine goes offline (since the driver runs on the cluster). Use **Client mode** when the client machine is already inside the cluster — there's no added network latency, and since the cluster is already maintained, there's less to worry about on failure.
+</QuestionCard>
+
+</QuestionList>
+
+### RDDs: Transformations & Actions
+
+<QuestionList topic="RDDs" storagePrefix="spark-rdd">
+
+<QuestionCard id="spark-rdd-01" number={45} question="What is an RDD (Resilient Distributed Dataset)?" difficulty="easy" topic="RDD">
+An RDD is a fault-tolerant collection of operational elements that run in parallel — a distributed and resilient collection of records spread across many partitions.
+- **Distributed** — data lives across multiple nodes.
+- **Resilient** — fault-tolerant; on node failure, Spark recomputes lost data from lineage instead of losing it.
+- **Dataset** — a collection of data, similar to a Scala collection.
+- **Immutable** — data in an RDD can't be modified after creation, only transformed into a new RDD.
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-02" number={46} question="What are the different types of RDD?" difficulty="easy" topic="RDD">
+Primarily two: **parallelized collections** (an existing collection parallelized from the driver program) and **Hadoop datasets** (RDDs built by running a function on each record in a file stored in HDFS or another storage system).
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-03" number={47} question="What are the methods/ways of creating RDDs in Spark?" difficulty="easy" topic="RDD">
+- **Parallelizing a collection** in the driver program, using `SparkContext`'s `parallelize` method.
+- **Loading an external dataset** from external storage such as HDFS, HBase, or a shared filesystem.
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-04" number={48} question="What operations does an RDD support?" difficulty="easy" topic="RDD">
+An RDD is Spark's main logical data unit — a distributed, immutable (read-only) collection split across partitions, each of which can live in memory or on disk on a different cluster machine. You can't mutate an RDD, only transform it into a new one. RDDs support two kinds of operations:
+- **Transformations** — create a new RDD from an existing one (e.g. `map`, `filter`, `reduceByKey`); computed lazily, on demand.
+- **Actions** — return the final result of an RDD computation, triggering execution of the lineage graph (loading data, running intermediate transformations) and returning results to the driver or writing them to a filesystem.
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-05" number={49} question="What is a Transformation in Apache Spark?" difficulty="easy" topic="RDD">
+A transformation is a function applied to an RDD whose output is another RDD. It's a lazy operation — it doesn't execute until an action is called — and it never modifies the input RDD. You can chain multiple transformations into a pipeline to build a larger data flow:
+
+```scala
+val rawData = sc.textFile("path/to/movies.txt")
+val moviesData = rawData.map(x => x.split("  "))
+```
+
+Here, `rawData` is transformed into `moviesData`, and neither transformation actually runs until an action is triggered.
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-06" number={50} question="What are some common Transformations in Apache Spark?" difficulty="medium" topic="RDD">
+- **`map(func)`** — returns a new dataset by passing each element through `func`.
+- **`filter(func)`** — returns a new dataset of only the elements for which `func` returns true.
+- **`union(otherDataset)`** — combines two datasets into their union.
+- **`intersection(otherDataset)`** — returns only the elements common to both datasets.
+- **`pipe(command, [envVars])`** — pipes each partition of the dataset through an external shell command.
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-07" number={51} question="What are Actions in Spark?" difficulty="easy" topic="RDD">
+An action brings data back from an RDD to the driver/local machine. Executing an action triggers the lineage graph — loading the original data and running every intermediate transformation — and returns the final result to the driver or writes it to a filesystem. `reduce()`, for example, repeatedly applies a function until a single value is left, while `take()` pulls a set of values back to the driver.
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-08" number={52} question="What are some common Actions in Apache Spark?" difficulty="medium" topic="RDD">
+- **`reduce(func)`** — aggregates all elements using `func`.
+- **`count()`** — total number of elements in the dataset.
+- **`collect()`** — returns all elements as an array to the driver.
+- **`first()`** — returns the first element.
+- **`take(n)`** — returns the first `n` elements.
+- **`foreach(func)`** — runs `func` on every element.
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-09" number={53} question="What is RDD Lineage (a Lineage Graph)?" difficulty="medium" topic="RDD">
+RDD lineage is the graph of all the parent RDDs that a given RDD depends on. Since Spark doesn't replicate data across the cluster, a lost partition would otherwise mean lost data — lineage lets Spark reconstruct exactly the lost data by replaying the transformations that produced it, rather than restarting the whole computation. This is central to both Spark's fault tolerance and its performance.
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-10" number={54} question="What do you understand by a Pair RDD?" difficulty="medium" topic="RDD">
+Special operations can be performed on RDDs of key/value pairs — these are called Pair RDDs (`PairRDDFunctions[K, V]`). They let you access each key in parallel, and provide methods like `reduceByKey()` (aggregates data per key) and `join()` (combines two RDDs by matching keys).
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-11" number={55} question="What is the difference between RDD and Distributed Shared Memory (DSM)?" difficulty="hard" topic="RDD">
+| Aspect | RDD | Distributed Shared Memory |
+|---|---|---|
+| **Read** | Coarse-grained or fine-grained — coarse-grained transforms a whole dataset at once, fine-grained transforms individual elements | Fine-grained only |
+| **Write** | Coarse-grained | Fine-grained |
+| **Consistency** | Trivially consistent — RDDs are immutable, so changes can't be rolled back and are always permanent | Consistent only if the programmer follows the memory model's rules; results of memory operations are predictable |
+| **Fault recovery** | Uses the lineage graph to find and rebuild lost data at any point | Uses checkpointing — applications roll back to the last checkpoint rather than restarting |
+| **Straggler mitigation** | Possible, via backup tasks | Difficult to achieve |
+| **Behavior when RAM is full** | Spills excess RDD data to disk | Performance degrades as RAM runs out |
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-12" number={56} question="Explain the first() operation in Apache Spark RDD." difficulty="easy" topic="RDD">
+`first()` is an action that returns the first element of the RDD.
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-13" number={57} question="Describe the join operation. How is outer join supported?" difficulty="hard" topic="RDD">
+`join()` is a transformation, defined in `org.apache.spark.rdd.PairRDDFunctions`:
+
+```scala
+def join[W](other: RDD[(K, W)]): RDD[(K, (V, W))]
+```
+
+Called on datasets of type `(K, V)` and `(K, W)`, it returns a dataset of `(K, (V, W))` pairs — one pair per matching key across both RDDs — implemented as a hash join across the cluster. Outer joins are supported through separate methods: `leftOuterJoin`, `rightOuterJoin`, and `fullOuterJoin`.
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-14" number={58} question="How can you remove the elements with a key present in any other RDD?" difficulty="easy" topic="RDD">
+Use the `subtractByKey()` function.
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-15" number={59} question="What do you understand by piping in Spark?" difficulty="medium" topic="RDD">
+Spark's `pipe()` method on RDDs lets you compose a transformation that runs an external UNIX command — in any language — as part of the RDD pipeline, per the UNIX standard-streams convention. It reads each RDD element as a `String`, hands it to the piped command, and returns the command's output, also as a `String`.
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-16" number={60} question="How will you pass functions to Apache Spark?" difficulty="easy" topic="RDD">
+- **Anonymous function syntax** — for passing short pieces of code inline.
+- **Static methods on a singleton object** — define the function as a static method of a single-instance object, and pass that object (with its methods) to the cluster nodes.
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-17" number={61} question="What do you understand by the map() transformation in Spark?" difficulty="easy" topic="RDD">
+`map()` is a transformation that applies a function to every element of an RDD, DataFrame, or Dataset, and returns a new RDD/DataFrame/Dataset with the results.
+</QuestionCard>
+
+<QuestionCard id="spark-rdd-18" number={62} question="What are the different output methods to get a result from Spark?" difficulty="easy" topic="RDD">
+`collect()`, `show()`, `take()`, and `foreach(println)`.
+</QuestionCard>
+
+</QuestionList>
+
+### Partitioning, Shuffling & Performance
+
+<QuestionList topic="Performance" storagePrefix="spark-perf">
+
+<QuestionCard id="spark-perf-01" number={63} question="Define partitions in Apache Spark." difficulty="easy" topic="Partitioning">
+A partition is a smaller, logical division of data, similar to a split in MapReduce — a logical chunk of a large distributed dataset. Partitioning derives these logical units to speed up processing; everything in Spark is, in effect, a partitioned RDD. By default, Spark tries to read data into an RDD from nodes close to it, and creates one partition per HDFS block unless told otherwise.
+</QuestionCard>
+
+<QuestionCard id="spark-perf-02" number={64} question="Describe Partition and Partitioner in Apache Spark." difficulty="hard" topic="Partitioning">
+A **partition** is the basic unit of parallelism — a logical division of data stored on a cluster node, similar to an HDFS split; RDDs are collections of partitions, and Spark launches one task per partition when an action runs. If `spark.default.parallelism` is set, Spark uses that value; otherwise it uses the max number of upstream partitions (or matches the largest upstream RDD), which is least likely to cause out-of-memory errors.
+
+A **partitioner** is an object that defines how key-value pairs are distributed across partitions — it maps each key to a partition ID between `0` and `numPartitions - 1`, and its contract guarantees that all records for a given key live on a single partition. This lets the scheduler optimize downstream operations. Spark has three kinds:
+- **Hash Partitioner** — spreads data evenly across partitions based on a hash of the key.
+- **Range Partitioner** — keys within the same range land on the same partition.
+- **Custom Partitioner** — user-defined partitioning logic.
+
+You can set one explicitly via `partitionBy()`, or get one implicitly from a transformation that preserves partitioning. For cogroup-like operations, Spark prefers an existing partitioner on one of the RDDs, falling back to a default `HashPartitioner` otherwise.
+</QuestionCard>
+
+<QuestionCard id="spark-perf-03" number={65} question="How can you manually partition an RDD?" difficulty="medium" topic="Partitioning">
+By default, Spark creates one partition per HDFS block — a 1280 MB file with 128 MB blocks becomes 10 partitions:
+
+```scala
+val data = context.textFile("/user/dataflair/file-name")
+```
+
+To request more partitions than there are blocks, pass a partition count explicitly:
+
+```scala
+val data = context.textFile("/user/dataflair/file-name", 20)
+```
+
+This creates 20 partitions (2 per block, in this example). Having somewhat more partitions than blocks is generally recommended for better performance.
+</QuestionCard>
+
+<QuestionCard id="spark-perf-04" number={66} question="What is the difference between repartition and coalesce?" difficulty="medium" topic="Partitioning">
+- **`repartition`** — can both increase and decrease the number of partitions; it creates entirely new partitions and does a full shuffle to evenly redistribute the data. It internally calls `coalesce` with the shuffle flag set, which makes it slower than `coalesce`.
+- **`coalesce`** — can only *reduce* the number of partitions; it reuses existing partitions to minimize (though not eliminate) the amount of data shuffled. It's generally faster than `repartition`, though speed can suffer if the input partitions are very unevenly sized.
+</QuestionCard>
+
+<QuestionCard id="spark-perf-05" number={67} question="Describe the coalesce operation. When can you coalesce to a larger number of partitions?" difficulty="hard" topic="Partitioning">
+`coalesce` is a transformation, in `org.apache.spark.rdd.ShuffledRDD`, that returns a new RDD reduced to `numPartitions` partitions:
+
+```scala
+def coalesce(numPartitions: Int, shuffle: Boolean = false): RDD[T]
+```
+
+Going from, say, 1000 partitions to 100 creates a **narrow dependency** — no shuffle occurs, since each of the 100 new partitions simply claims 10 of the existing ones. But a drastic coalesce (e.g., down to `numPartitions = 1`) can leave your computation running on far fewer nodes than you'd like. Passing `shuffle = true` adds a shuffle step so the current upstream partitions still run in parallel.
+
+With `shuffle = true`, you can actually coalesce *up* to a larger number of partitions too — useful if you have a small number of partitions (say 100), some of which are abnormally large: `coalesce(1000, shuffle = true)` redistributes the data across 1000 partitions using a hash partitioner. `coalesce` is generally an optimized `repartition` for the specific case of reducing partition count, and runs more efficiently after filtering has shrunk a large dataset.
+</QuestionCard>
+
+<QuestionCard id="spark-perf-06" number={68} question="What is a shuffle operation in Spark, and when does it occur?" difficulty="medium" topic="Shuffling">
+Shuffling is the redistribution of data across partitions — an all-to-all operation that may or may not move data between JVM processes/executors on different machines. Spark has no control over exactly which partition a given record ends up on. It's costly because, unlike most Spark tasks (which operate on one partition), a shuffle has to touch every partition. Shuffles are triggered by operations like `join`, `groupByKey`, and `reduceByKey`. Two configuration parameters affect shuffle compression: `spark.shuffle.compress` (whether to compress shuffle map output) and `spark.shuffle.spill.compress` (whether to compress intermediate spill files).
+</QuestionCard>
+
+<QuestionCard id="spark-perf-07" number={69} question="What operations can cause a shuffle in Spark?" difficulty="easy" topic="Shuffling">
+`repartition`, `coalesce` (with `shuffle = true`), `groupByKey`, `reduceByKey`, `cogroup`, and `join`.
+</QuestionCard>
+
+<QuestionCard id="spark-perf-08" number={70} question="How will you minimize data transfer while working with Apache Spark?" difficulty="medium" topic="Optimization">
+- **Broadcast variables** — cache a read-only variable on every machine instead of shipping a copy with every task; improves the efficiency of joins between a large and a small RDD, and reduces communication cost via Spark's broadcast algorithm.
+- **Accumulators** — update a shared variable's value in parallel across executors (e.g. counters/sums) without shuffling data around to do it.
+- **Avoid `ByKey` operations, `repartition`, and other shuffle-triggering calls** where they aren't necessary.
+- **Enable shuffle compression** — set `spark.shuffle.compress = true` to reduce the volume of data transferred when a shuffle is unavoidable.
+</QuestionCard>
+
+<QuestionCard id="spark-perf-09" number={71} question="What is the default level of parallelism in Apache Spark?" difficulty="easy" topic="Optimization">
+When not explicitly configured, the default level of parallelism is simply the number of partitions in the RDD being operated on.
+</QuestionCard>
+
+<QuestionCard id="spark-perf-10" number={72} question="What is lazy evaluation in Apache Spark?" difficulty="easy" topic="Optimization">
+Lazy evaluation ("call-by-need") delays execution until a result is actually required. Transformations on an RDD aren't run when they're called — Spark just records what has to happen, building a DAG of pending work. Only when an action is called does Spark execute that DAG. This means data isn't loaded until it's actually needed, and Spark gets the chance to optimize the whole pipeline before running any of it.
+</QuestionCard>
+
+<QuestionCard id="spark-perf-11" number={73} question="What are the benefits of lazy evaluation?" difficulty="medium" topic="Optimization">
+- Increases the manageability of the program by letting Spark reason about the whole computation graph at once.
+- Reduces computation overhead and increases overall system speed.
+- Reduces time and space complexity.
+- Enables optimization by reducing the number of passes/queries needed over the data.
+</QuestionCard>
+
+<QuestionCard id="spark-perf-12" number={74} question="What is a Broadcast variable in Spark, and why do we need it?" difficulty="medium" topic="Optimization">
+A broadcast variable lets you keep a read-only value cached on every machine, instead of shipping a fresh copy of it with every task — created via `SparkContext.broadcast(v)` and read via `.value`. Spark distributes it using an efficient broadcast algorithm to reduce communication cost. It's especially useful in shuffle operations that need the same reference data everywhere (e.g. join keys), and is recommended over a plain closure variable whenever the same data is needed by many tasks running on a cluster. The data is serialized before distribution and deserialized before use.
+</QuestionCard>
+
+<QuestionCard id="spark-perf-13" number={75} question="What is an Accumulator in Apache Spark?" difficulty="medium" topic="Optimization">
+An accumulator is a variable that can only be updated through an associative and commutative operation, making it safe to add to in parallel across executors — commonly used to implement counters or running sums. Workers only ever write to it; the driver reads the final value. Spark provides numeric accumulators out of the box (`SparkContext.longAccumulator()`, `SparkContext.doubleAccumulator()`), and accumulators can be named or unnamed.
+</QuestionCard>
+
+<QuestionCard id="spark-perf-14" number={76} question="How are automatic clean-ups triggered in Spark to handle accumulated metadata?" difficulty="medium" topic="Optimization">
+Clean-up can be triggered automatically by setting the `spark.cleaner.ttl` parameter (a periodic cleaner; the default is infinite, meaning metadata is remembered indefinitely). Metadata older than the configured duration is dropped, which is what lets long-running Spark applications keep running for many hours without accumulating unbounded metadata. Alternatively, you can batch-divide long-running jobs and write intermediary results to disk periodically.
+</QuestionCard>
+
+</QuestionList>
+
+### DataFrames, Datasets & Spark SQL
+
+<QuestionList topic="Spark SQL" storagePrefix="spark-sql">
+
+<QuestionCard id="spark-sql-01" number={77} question="What is the purpose of Spark SQL?" difficulty="easy" topic="Spark SQL">
+Spark SQL is Spark's module for running SQL queries and for interacting with structured data through the Dataset API — both use the same underlying computation engine, which gives Spark visibility into both the structure of the data and the computation being performed. It can also read data from an existing Hive installation, and it can be accessed via the JDBC/ODBC API or the command line, not just from within a Spark program.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-02" number={78} question="What are the functions/capabilities of Spark SQL?" difficulty="medium" topic="Spark SQL">
+- Loading data from a wide range of structured sources.
+- Querying data using SQL, both from inside a Spark program and from external tools that connect over JDBC/ODBC (e.g. BI tools like Tableau).
+- Rich integration between SQL and regular Python/Java/Scala code — joining RDDs with SQL tables, exposing custom functions (UDFs) to SQL, and more.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-03" number={79} question="What module is used for implementing SQL in Apache Spark, and what are its libraries?" difficulty="medium" topic="Spark SQL">
+The **Spark SQL** module combines relational data processing with the power of Spark's functional programming API, and supports both SQL and Hive Query Language. It's made up of four main libraries:
+- **Data Source API**
+- **DataFrame API**
+- **Interpreter & Catalyst Optimizer**
+- **SQL Service**
+
+It's the recommended way to load data, query it from within Spark applications, and write results out to a destination.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-04" number={80} question="What is Hive on Spark?" difficulty="medium" topic="Spark SQL">
+Hive has significant built-in support for running its execution engine on Spark instead of MapReduce/Tez:
+
+```sql
+hive> set spark.home=/location/to/sparkHome;
+hive> set hive.execution.engine=spark;
+```
+
+More broadly, Spark's commonly-used ecosystem components include **Spark SQL** (originally "Shark") for developers, **Spark Streaming** for live data, **GraphX** for graph computation, **MLlib** for machine learning algorithms, and **SparkR** to work with Spark from R.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-05" number={81} question="What is a DataFrame in Spark SQL?" difficulty="easy" topic="DataFrames">
+A DataFrame is a Dataset organized into named columns — conceptually similar to a table in a relational database, or a data frame in R/Python, but with richer optimization under the hood. In Java and Scala, a DataFrame is represented as a `Dataset` of `Row` objects. You can build one from an existing RDD, a Hive table, structured data files, or another Spark data source, and like RDDs, DataFrames are evaluated lazily.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-06" number={82} question="What are the advantages of DataFrame (over RDD)?" difficulty="medium" topic="DataFrames">
+- Imposes structure on a distributed collection of data, enabling higher-level abstractions and easier large-dataset processing.
+- Space- and performance-efficient compared to raw RDDs.
+- Supports both structured and unstructured formats (Avro, CSV, JSON, Parquet, etc.) and storage systems (HDFS, Hive, MySQL, and more).
+- APIs available across Java, Scala, Python, and R.
+- Provides Hive compatibility, so unmodified Hive queries can run against an existing Hive warehouse.
+- Uses the **Catalyst optimizer**, which transforms a query through four phases: analyzing the logical plan to resolve references, logical plan optimization, physical planning, and code generation (compiling part of the query to JVM bytecode).
+- Scales from kilobytes of data on a laptop to petabytes on a large cluster.
+
+DataFrames can be created from Hive tables, structured data files, or other Spark data sources.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-07" number={83} question="What is a Dataset in Spark?" difficulty="medium" topic="Datasets">
+Introduced in Spark 1.6, a Dataset is a typed extension of the DataFrame API that gives you an object-oriented interface and compile-time type safety on top of DataFrame's Catalyst/Tungsten-optimized execution. Internally, a Dataset represents a logical plan describing the computation needed to produce the data; once that plan is analyzed and resolved, Spark builds a physical query plan to execute it. **Encoders** handle translation between JVM objects and Spark's internal binary format, enabling on-demand access to individual fields without fully deserializing an object, and Spark's built-in encoders are advanced enough to generate bytecode for interacting with off-heap data directly. Datasets are interconvertible with DataFrames via `toDS(): Dataset[T]` and `toDF(): DataFrame`.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-08" number={84} question="What are the advantages of Datasets?" difficulty="medium" topic="Datasets">
+- **Compile-time type safety** — syntax errors surface at compile time, unlike RDDs, DataFrames, or plain SQL queries.
+- **Fast in-memory encoding** via Tungsten, plus optimized queries via the Catalyst optimizer.
+- **Less memory used** — because Spark knows the dataset's structure ahead of time, it can build an optimal in-memory layout while caching.
+- **Object-oriented interface** with a custom view over structured and semi-structured data, and a rich set of domain-specific operations.
+- **Combines the strengths of RDDs and DataFrames** — RDD's convenience and static (Scala) type safety, plus DataFrame's performance optimization.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-09" number={85} question="On what basis can you differentiate RDD, DataFrame, and Dataset?" difficulty="hard" topic="Comparison">
+| Criteria | RDD | DataFrame | Dataset |
+|---|---|---|---|
+| **Representation** | Distributed collection of data with no schema | Distributed collection organized into named columns | Combines DataFrame and RDD — static type safety plus an object-oriented interface |
+| **Optimization** | No built-in optimizer | Uses the Catalyst optimizer | Also uses the Catalyst optimizer |
+| **Schema** | Must be defined manually | Discovered automatically | Discovered automatically via the SQL engine |
+| **Aggregation speed** | Slowest of the three, even for simple grouping | Fastest, thanks to easy, powerful APIs | Faster than RDD, slightly slower than DataFrame |
+</QuestionCard>
+
+<QuestionCard id="spark-sql-10" number={86} question="What is the Catalyst framework/optimizer?" difficulty="medium" topic="Optimization">
+Catalyst is Spark SQL's optimization framework — it represents and manipulates a data-flow graph made up of relational operators and expressions. It has three main pieces: a **TreeNode library** for transforming trees (expressed as Scala case classes), a **logical plan representation** for relational operators, and an **expression library**. It supports both rule-based optimization (apply a fixed set of rules to decide how to execute a query) and cost-based optimization (generate multiple candidate plans via rules, then pick the cheapest), and leans on Scala language features like pattern matching internally.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-11" number={87} question="What do you understand by SchemaRDD?" difficulty="easy" topic="Spark SQL">
+SchemaRDD — the predecessor to DataFrame — is an RDD made up of `Row` objects (wrappers around basic string/integer arrays) along with schema information describing each column's data type. It was designed to make debugging code and unit-testing the SparkSQL module easier, and provides relational query interfaces on top of the standard RDD functionality. For example, given an RDD of `Person` records with `name` and `age` fields, the SchemaRDD captures that column structure.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-12" number={88} question="Explain the createOrReplaceTempView API." difficulty="easy" topic="Spark SQL">
+`createOrReplaceTempView` is a Dataset method (`org.apache.spark.sql`) that registers a temporary SQL view over a DataFrame/Dataset:
+
+```scala
+def createOrReplaceTempView(viewName: String): Unit
+
+df.createOrReplaceTempView("titanicdata")
+```
+
+Once registered, you can run SQL queries directly against `titanicdata`.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-13" number={89} question="Is it possible to do real-time processing directly with SparkSQL?" difficulty="medium" topic="Spark SQL">
+Not directly — SparkSQL itself isn't a real-time engine. The common approach is to register the existing RDD as a SQL table and run SQL queries against it on demand; for genuine real-time stream processing on top of the SQL engine, use Structured Streaming instead.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-14" number={90} question="What are the various data sources available in Spark SQL?" difficulty="easy" topic="Spark SQL">
+The three most commonly cited built-in sources are **Parquet files**, **JSON datasets**, and **Hive tables** — Spark SQL's Data Source API also extends to CSV, Avro, JDBC-connected databases, and other third-party formats.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-15" number={91} question="What data formats does Spark support for reading and processing?" difficulty="easy" topic="Data Formats">
+Spark supports both raw and structured file formats for efficient reading and processing, including Parquet, JSON, XML, CSV, RC, Avro, and TSV.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-16" number={92} question="What is a Parquet file, and why use it in Spark?" difficulty="easy" topic="Data Formats">
+Apache Parquet is a columnar storage format available to any project in the Hadoop ecosystem — any processing framework, data model, or language can use it. It's compressed and efficiently encoded, and it's a strong choice specifically for storing large volumes of data long-term for analytics. Spark SQL supports both reading and writing Parquet natively, performs both scan and write operations directly against it, and automatically preserves the schema of the original data (writing all columns as nullable by default).
+</QuestionCard>
+
+<QuestionCard id="spark-sql-17" number={93} question="What are the advantages of using a Parquet file?" difficulty="easy" topic="Data Formats">
+- Lets you fetch only the specific columns you need for access.
+- Consumes less storage space than row-based formats.
+- Uses type-specific encoding.
+- Supports (and limits) I/O to only what's required, reducing I/O operations overall.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-18" number={94} question="What are the two ways to attain a schema from data?" difficulty="medium" topic="Data Formats">
+Let Spark **infer** the schema from your data, or supply your own **user-defined schema**. Schema inference is the recommended starting point, but a user-defined schema typically increases performance by 2-3x (depending on cluster size), since Spark doesn't have to scan all the data to infer types — and, correspondingly, fewer jobs are needed, since Spark no longer needs one inference job per data partition.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-19" number={95} question="Why should you define your own schema?" difficulty="medium" topic="Data Formats">
+- Avoids the extra scan of your data that schema inference requires.
+- Lets you specify alternative data types than what would otherwise be inferred.
+- Lets you parse only the fields you actually need.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-20" number={96} question="Why is JSON a common format in big data pipelines?" difficulty="easy" topic="Data Formats">
+JSON is semi-structured, which suits hierarchical data and schemas that need to evolve over time, and it natively supports composite data types such as arrays and maps.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-21" number={97} question="By default, how are corrupt records handled by spark.read.json()?" difficulty="easy" topic="Data Formats">
+They're routed into a column called `_corrupt_record` — this captures the records Spark can't parse, for example when characters are missing from a JSON string.
+</QuestionCard>
+
+<QuestionCard id="spark-sql-22" number={98} question="How do you parse XML data, and what class would you use in Java?" difficulty="medium" topic="Data Formats">
+In Java, a common approach is the **JDOM** library — download it and import it into your project. Scala has built-in XML parsing support via its `scala-xml` library (check for the current version for your Scala release).
+</QuestionCard>
+
+</QuestionList>
+
+### Memory Management & Persistence
+
+<QuestionList topic="Memory Management" storagePrefix="spark-mem">
+
+<QuestionCard id="spark-mem-01" number={99} question="How will you do memory tuning in Spark?" difficulty="hard" topic="Memory">
+Memory tuning has to account for the amount of memory objects consume, the cost of accessing them, and garbage-collection overhead. Since Spark caches objects in memory, start by measuring usage: cache a representative RDD and check its size on the Storage page of the Web UI, then estimate memory needs from there. To reduce usage where needed:
+- Prefer arrays of primitives/objects over linked lists or `HashMap`s — the `fastutil` library provides convenient primitive-friendly collection classes for Java.
+- Reduce nested data structures with many small objects and pointers (a linked list, for example, carries a pointer per node).
+- Use numeric IDs instead of Strings for keys where possible.
+- Pass the JVM flag `-XX:+UseCompressedOops` to shrink pointers from eight bytes to four.
+</QuestionCard>
+
+<QuestionCard id="spark-mem-02" number={100} question="What is the difference between cache() and persist()?" difficulty="easy" topic="Persistence">
+Both persist an RDD in memory across operations. The difference is that `persist()` lets you choose the storage level explicitly, while `cache()` always uses the default storage level, `MEMORY_ONLY`.
+</QuestionCard>
+
+<QuestionCard id="spark-mem-03" number={101} question="How will you remove data from cache in Apache Spark?" difficulty="easy" topic="Persistence">
+Spark automatically evicts unused cached objects using a Least Recently Used (LRU) policy, and it monitors cache usage on each node to do this. To forcibly remove an object from cache yourself, call `RDD.unpersist()`.
+</QuestionCard>
+
+<QuestionCard id="spark-mem-04" number={102} question="What are the different Persistence/Storage levels in Apache Spark?" difficulty="medium" topic="Persistence">
+- **`MEMORY_ONLY`** — stores the RDD as deserialized Java objects in the JVM; if it doesn't fit in memory, it's recomputed on demand.
+- **`MEMORY_AND_DISK`** — deserialized in the JVM; spills to disk if it doesn't fit in memory.
+- **`MEMORY_ONLY_SER`** — stores the RDD as serialized Java objects, more space-efficient than the deserialized form.
+- **`MEMORY_AND_DISK_SER`** — serialized in the JVM; spills to disk if it doesn't fit in memory.
+- **`DISK_ONLY`** — stored only on disk.
+</QuestionCard>
+
+<QuestionCard id="spark-mem-05" number={103} question="How will you select the storage level in Apache Spark?" difficulty="medium" topic="Persistence">
+The choice is a trade-off between CPU efficiency and memory usage. If your RDD fits comfortably in memory, use `MEMORY_ONLY` for the best performance. If it doesn't fit, try `MEMORY_ONLY_SER` with a compact serialization library — still fast, with real space savings. If there's a big gap between available memory and total object size, fall back to `MEMORY_AND_DISK`. Where fast fault recovery matters, replicate objects across multiple partitions.
+</QuestionCard>
+
+<QuestionCard id="spark-mem-06" number={104} question="What do you mean by Persistence in Spark?" difficulty="medium" topic="Persistence">
+RDD persistence is an optimization technique that saves the result of evaluating an RDD so it can be reused, avoiding recomputation and reducing overall computation overhead. It's implemented via `cache()` and `persist()`, and is a key tool for iterative algorithms: once persisted, each node keeps in memory whatever partitions of the RDD it computed, ready for reuse — which can speed up subsequent computations by roughly 10x.
+</QuestionCard>
+
+<QuestionCard id="spark-mem-07" number={105} question="What is Executor Memory in a Spark application, and how do you calculate it?" difficulty="hard" topic="Memory">
+Every Spark application has a fixed heap size and fixed core count per executor — the heap size is the **executor memory**, controlled by the `spark.executor.memory` property (or the `--executor-memory` flag), and each worker node runs one executor per application. It's effectively a measure of how much of a worker node's memory the application is allowed to use.
+
+**Worked example** — given 10 nodes, 15 cores per node, and 61 GB RAM per node, with a rule-of-thumb target of 5 concurrent tasks per executor:
+
+```text
+Number of executors per node = cores per node / concurrent tasks = 15 / 5 = 3
+Total executors for the job   = nodes × executors per node = 10 × 3 = 30
+```
+</QuestionCard>
+
+<QuestionCard id="spark-mem-08" number={106} question="What is spark.executor.memory in a Spark application?" difficulty="easy" topic="Memory">
+`spark.executor.memory` sets the amount of memory used per executor process; its default value is 1 GB.
+</QuestionCard>
+
+</QuestionList>
+
+### Spark Streaming
+
+<QuestionList topic="Spark Streaming" storagePrefix="spark-stream">
+
+<QuestionCard id="spark-stream-01" number={107} question="What is Spark Streaming?" difficulty="easy" topic="Streaming">
+Spark Streaming is an extension of the core Spark API for processing live data streams with high throughput and fault tolerance. It ingests data from sources like Kafka, Kinesis, and Flume, lets you apply familiar Spark functions (`map`, `reduce`, `join`, etc.) to the incoming data, and writes the processed results to a filesystem, a database, or a live dashboard.
+</QuestionCard>
+
+<QuestionCard id="spark-stream-02" number={108} question="How does Spark Streaming work internally?" difficulty="medium" topic="Streaming">
+Spark Streaming listens to live data streams from various sources and, as data arrives, divides it into small batches the Spark engine can handle. Internally, this uses an abstraction called a **DStream** (discretized stream) — a continuous stream of data that is, under the hood, simply a sequence of RDDs. Spark applies the usual transformations and actions to that sequence of RDDs to produce a resulting output stream.
+</QuestionCard>
+
+<QuestionCard id="spark-stream-03" number={109} question="What is a DStream (Discretized Stream)?" difficulty="easy" topic="Streaming">
+A DStream is the high-level abstraction Spark Streaming uses to represent a continuous stream of data — internally, just a sequence of RDDs. You can create a DStream either from a source like Kafka, Flume, or Kinesis, or by applying transformations to another DStream.
+</QuestionCard>
+
+<QuestionCard id="spark-stream-04" number={110} question="What are the different types of transformations on DStreams?" difficulty="medium" topic="Streaming">
+- **Stateless transformations** — processing of the current batch doesn't depend on the output of the previous batch. Examples: `map()`, `filter()`, `reduceByKey()`.
+- **Stateful transformations** — processing depends on the intermediary results of the previous batch, such as transformations built on sliding windows.
+</QuestionCard>
+
+<QuestionCard id="spark-stream-05" number={111} question="What are receivers in Apache Spark Streaming?" difficulty="medium" topic="Streaming">
+Receivers consume data from external sources and hand it off to Spark for processing. They're created as long-running tasks scheduled by the streaming context in a round-robin fashion across executors, with each receiver using a single core. There are two kinds:
+- **Reliable receivers** — send an acknowledgment back to the data source once the data has been received and replicated in Spark's storage.
+- **Unreliable receivers** — send no acknowledgment.
+</QuestionCard>
+
+<QuestionCard id="spark-stream-06" number={112} question="What is Structured Streaming in Apache Spark?" difficulty="medium" topic="Streaming">
+Introduced in Spark 2.1, Structured Streaming is a scalable, fault-tolerant stream-processing engine built directly on the Spark SQL engine. You express streaming aggregations, event-time windows, and similar logic using the Dataset/DataFrame API, and the computation runs on the same optimized Spark SQL execution engine used for batch queries.
+</QuestionCard>
+
+<QuestionCard id="spark-stream-07" number={113} question="What is Checkpointing in Spark Streaming?" difficulty="hard" topic="Streaming">
+Checkpointing adds resiliency to a streaming application so it can recover after a failure. There are two types:
+- **Metadata checkpointing** — saves the configuration and other information that defines the streaming application (configuration, DStream operations, incomplete batches), used to recover the driver after a failure.
+- **Data checkpointing** — saves RDDs themselves to reliable storage; useful for stateful transformations where a generated RDD depends on the RDD from the previous batch, since that dependency chain can otherwise grow very long. Checkpointing intermediate RDDs bounds the recovery time.
+</QuestionCard>
+
+<QuestionCard id="spark-stream-08" number={114} question="What is Write-Ahead Logging (WAL) / journaling in Spark Streaming?" difficulty="hard" topic="Streaming">
+There are two kinds of failure in a Spark job: driver failure and worker failure. When a **worker** fails, its executor processes are killed and their scheduled tasks are automatically moved to other running worker nodes. When the **driver** fails, every associated executor is killed along with whatever data was sitting in its memory — in a streaming application, that data hasn't necessarily been persisted anywhere yet, so it can be lost for good, unlike batch jobs reading from a reliable filesystem like HDFS (where zero data loss is guaranteed since the data can always be re-read).
+
+**Write-Ahead Logging**, introduced in Spark 1.2, solves this: the intent of every operation is first written to a log file, so if the driver fails and restarts, it can replay the logged operations against the data. For streaming sources like Kafka or Flume, receivers also write the data they receive into these log files, not just into executor memory. Enable it with:
+1. `streamingContext.checkpoint(path)` — sets the checkpoint directory.
+2. `spark.stream.receiver.WriteAheadLog.enable = true` — enables WAL logging.
+</QuestionCard>
+
+<QuestionCard id="spark-stream-09" number={115} question="How is caching relevant in Spark Streaming?" difficulty="medium" topic="Streaming">
+Spark Streaming divides a data stream into DStream batches, and those batches can be cached in memory — very useful when the same DStream feeds multiple downstream computations. Caching uses `cache()` or `persist(StorageLevel)`:
+
+```scala
+val cacheDf   = dframe.cache()
+val persistDf = dframe.persist(StorageLevel.MEMORY_ONLY)
+```
+
+For network-based input streams (Kafka, Flume, etc.), the default persistence level replicates data to 2 nodes for fault tolerance. Caching's main advantages: cost efficiency (avoids recomputation), time efficiency, and more jobs completed per unit of time since worker nodes spend less time recomputing.
+</QuestionCard>
+
+<QuestionCard id="spark-stream-10" number={116} question="What is the significance of the Sliding Window operation?" difficulty="medium" topic="Streaming">
+Spark Streaming's windowed computations apply transformations over a sliding window of RDDs rather than a single batch. As the window slides, the RDDs that fall inside it are combined and processed together, producing new RDDs for the windowed DStream — useful for aggregations that need to look back over a recent time span rather than just the latest micro-batch.
+</QuestionCard>
+
+<QuestionCard id="spark-stream-11" number={117} question="Explain the level of parallelism in Spark Streaming." difficulty="medium" topic="Streaming">
+To reduce processing time, you generally need to increase parallelism, in one of three ways:
+- **Increase the number of receivers** — if a single receiver can't read and distribute records fast enough, it becomes a bottleneck; add more receivers as the scenario demands.
+- **Re-partition the received data** — if you can't add more receivers, redistribute the data you already have by re-partitioning it.
+- **Increase parallelism in aggregation** — raise the parallelism of the aggregation stage itself.
+</QuestionCard>
+
+<QuestionCard id="spark-stream-12" number={118} question="Which companies use Spark Streaming?" difficulty="easy" topic="Streaming">
+Well-known adopters include Uber, Netflix, and Pinterest.
+</QuestionCard>
+
+</QuestionList>
+
+### MLlib & GraphX
+
+<QuestionList topic="MLlib & GraphX" storagePrefix="spark-ml">
+
+<QuestionCard id="spark-ml-01" number={119} question="What is the main use of MLlib in Apache Spark?" difficulty="easy" topic="MLlib">
+MLlib is Spark's machine-learning library, delivering both speed (up to 100x faster than MapReduce for some workloads) and a broad set of algorithms usable from Java, Scala, or Python as part of a larger Spark workflow:
+- **ML Algorithms** — classification, regression, clustering, collaborative filtering.
+- **Featurization** — feature extraction, transformation, dimensionality reduction, and selection.
+- **Pipelines** — tools for constructing, evaluating, and tuning ML pipelines.
+- **Persistence** — saving and loading algorithms, models, and pipelines.
+- **Utilities** — linear algebra, statistics, and data-handling helpers.
+</QuestionCard>
+
+<QuestionCard id="spark-ml-02" number={120} question="List some commonly used Machine Learning algorithms available via MLlib." difficulty="easy" topic="MLlib">
+Machine learning algorithms broadly fall into three categories: **supervised**, **unsupervised**, and **reinforcement learning**. Commonly used algorithms in MLlib and the wider Spark ML ecosystem include Linear Regression, Logistic Regression, Decision Trees, K-Means, KNN, SVM, Random Forest, Naive Bayes, dimensionality-reduction algorithms, and gradient boosting/AdaBoost.
+</QuestionCard>
+
+<QuestionCard id="spark-ml-03" number={121} question="How is machine learning implemented in Apache Spark?" difficulty="easy" topic="MLlib">
+Through **MLlib**, Spark's scalable machine-learning library, which aims to make common ML algorithms and workflows (classification, clustering, regression, dimensionality reduction, and more) both easy to use and scalable across a cluster.
+</QuestionCard>
+
+<QuestionCard id="spark-ml-04" number={122} question="Is Apache Spark a good fit for reinforcement learning?" difficulty="medium" topic="MLlib">
+Not really — Spark works best for comparatively simple machine learning algorithms like clustering, regression, and classification; reinforcement learning's sequential, stateful nature doesn't map cleanly onto Spark's execution model.
+</QuestionCard>
+
+<QuestionCard id="spark-ml-05" number={123} question="What is a Pipeline in Apache Spark (ML)?" difficulty="medium" topic="MLlib">
+A Pipeline is a machine-learning concept representing a sequence of algorithms — one or more stages — executed in order to process and learn from data, similar to a workflow. A DataFrame is passed in as input and is progressively transformed as it moves through each stage; Spark typically performs runtime checks on the DataFrame as it flows through the pipeline. Pipelines can also be saved to disk and reloaded later.
+</QuestionCard>
+
+<QuestionCard id="spark-ml-06" number={124} question="What is the difference between a Transformer and an Estimator in Apache Spark?" difficulty="medium" topic="MLlib">
+A **Transformer** is an abstraction for a feature transformer or a learned model — it implements `transform()`, converting one DataFrame into another (typically by appending one or more new columns). An **Estimator** is an abstraction for a learning algorithm that fits/trains on data — it implements `fit()`, which takes a DataFrame as input and produces a Model (itself a Transformer).
+</QuestionCard>
+
+<QuestionCard id="spark-ml-07" number={125} question="What are the two main types of Vector in Spark, and how do dense and sparse vectors differ?" difficulty="medium" topic="MLlib">
+- **Dense Vector** — backed by a plain array of `double` values holding every entry, e.g. a vector like `(1.0, 0.0, 3.0)`.
+- **Sparse Vector** — backed by two parallel arrays, one for indices and one for values, storing only the non-zero entries to save space.
+
+```scala
+val sparseVec: Vector = Vectors.sparse(5, Array(0, 4), Array(1.0, 2.0))
+val denseVec: Vector  = Vectors.dense(4405d, 260100d, 400d, 5.0, 4.0, 198.0, 9070d, 1.0, 1.0, 2.0, 0.0)
+```
+
+`sparseVec` above is a size-5 vector with non-zero values only at indices 0 and 4. Sparse vectors are worthwhile when most entries are zero; used on data with only a few zero values, they actually hurt performance, since the extra index bookkeeping adds overhead without saving meaningful space. Either representation gives identical calculation results — the difference is purely about memory and speed.
+</QuestionCard>
+
+<QuestionCard id="spark-ml-08" number={126} question="What is GraphX, and is there an API for implementing graphs in Spark?" difficulty="easy" topic="GraphX">
+GraphX is Spark's API for graphs and graph-parallel computation. It extends the Spark RDD abstraction with a **Resilient Distributed Property Graph** — a directed multigraph that can have multiple parallel edges, with user-defined properties attached to every vertex and edge. To support graph computation, GraphX exposes operators such as `subgraph`, `joinVertices`, and `mapReduceTriplets`, along with an optimized variant of the Pregel API, plus a growing collection of graph algorithms and builders for common analytics tasks.
+</QuestionCard>
+
+<QuestionCard id="spark-ml-09" number={127} question="What is a Property Graph?" difficulty="medium" topic="GraphX">
+A Property Graph is a directed multigraph, where you can attach an object (properties) to every vertex and edge. Because it's a multigraph, it allows multiple parallel edges sharing the same source and destination — useful for modeling more than one relationship between the same pair of vertices at once (e.g., two people who are both "boss" and "mentor" to each other).
+</QuestionCard>
+
+<QuestionCard id="spark-ml-10" number={128} question="What are the options in Spark to create a Graph?" difficulty="easy" topic="GraphX">
+- **`Graph.apply`** — the simplest option; builds a graph from RDDs of vertices and edges.
+- **`Graph.fromEdges`** — builds a graph from just an RDD of edges; vertices are created automatically with a default value.
+- **`Graph.fromEdgeTuples`** — builds a graph from an RDD of tuples alone.
+</QuestionCard>
+
+<QuestionCard id="spark-ml-11" number={129} question="What are the basic Graph operators in Spark GraphX?" difficulty="easy" topic="GraphX">
+`numEdges`, `numVertices`, `inDegrees`, `outDegrees`, `degrees`, `vertices`, `edges`, `persist`, `cache`, `unpersistVertices`, and `partitionBy`.
+</QuestionCard>
+
+<QuestionCard id="spark-ml-12" number={130} question="What partitioning approach does GraphX use?" difficulty="hard" topic="GraphX">
+GraphX uses a **vertex-cut** approach to distributed graph partitioning: instead of splitting a graph along its edges, it partitions along vertices, which can then span multiple machines. Edges are assigned to partitions according to whichever partition strategy is selected. This reduces communication and storage overhead compared to edge-cut partitioning.
+</QuestionCard>
+
+<QuestionCard id="spark-ml-13" number={131} question="What is Neighborhood Aggregation in Spark GraphX?" difficulty="hard" topic="GraphX">
+Neighborhood Aggregation is the task of aggregating information about each vertex's local neighborhood — for example, counting how many books a given book references, or how many times a tweet has been retweeted. It's a building block for iterative graph algorithms like PageRank and shortest-path, implemented in GraphX via the `aggregateMessages[]` and `mergeMsg[]` operations.
+</QuestionCard>
+
+<QuestionCard id="spark-ml-14" number={132} question="What is PageRank in GraphX?" difficulty="medium" topic="GraphX">
+PageRank measures the importance of each vertex in a graph, treating an edge from `u` to `v` as `u` endorsing `v`'s importance — a Twitter user followed by many others ends up ranked highly, for instance. GraphX ships both a **static** implementation (runs for a fixed number of iterations) and a **dynamic** one (runs until ranks converge within a tolerance) as methods on the PageRank object, and `GraphOps` lets you call either directly as a method on a `Graph`.
+</QuestionCard>
+
+<QuestionCard id="spark-ml-15" number={133} question="What makes Apache Spark well-suited to low-latency workloads like graph processing and machine learning?" difficulty="medium" topic="MLlib">
+Spark keeps data in memory, which speeds up both model building/training and graph traversal — machine learning algorithms typically need multiple iterations to converge on an optimal model, and graph algorithms need to traverse all nodes and edges, often repeatedly. Workloads that require many iterations benefit the most from Spark's in-memory model: less disk access and more controlled network traffic make a large difference once there's a meaningful amount of data to process.
+</QuestionCard>
+
+<QuestionCard id="spark-ml-16" number={134} question="Is it possible to use Spark to access and analyze data stored in Cassandra databases?" difficulty="easy" topic="Ecosystem">
+Yes — Spark can access and analyze data in Cassandra using the Cassandra Connector.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Walk me through what happens when I call `.count()` on a chain of `.filter()` and `.map()` calls."** Trace the lazy-evaluation story: nothing runs until `count()` (an action) is called, at which point Spark builds a DAG, the DAG Scheduler splits it into stages at shuffle boundaries, and the Task Scheduler dispatches tasks to executors — one task per partition.
+- **"A join in my Spark job is taking forever and spilling to disk — how do you debug it?"** Talk through checking for data skew across partitions, whether a shuffle is unavoidable given the join keys, whether a broadcast join would work if one side is small enough, and whether `repartition`/`coalesce` are being used appropriately before the join.
+- **"Design a Spark job to process a stream of clickstream events and maintain a running count per user."** This is a stateful-streaming question — expect to discuss DStreams vs. Structured Streaming, windowing, checkpointing for fault tolerance, and how state gets persisted across micro-batches.
+- **"Why is this Spark application running out of memory?"** Walk through executor memory sizing (`spark.executor.memory`, cores per executor), storage level choice (`MEMORY_ONLY` vs. `MEMORY_AND_DISK_SER`), and whether the job is caching more than it needs to or shuffling more data than necessary.
+- **"When would you reach for RDDs instead of DataFrames?"** A good answer touches on low-level control over partitioning, working with unstructured data that doesn't fit a schema, and cases needing fine-grained transformations the Catalyst optimizer doesn't help with — while acknowledging that DataFrames/Datasets are the default choice for structured data in modern Spark.
+
+---
+
+## Further Reading
+
+- [Hadoop Interview Questions](/level-3-technologies/batch-processing/hadoop/) — the HDFS/YARN foundation Spark is most often deployed on
+- [Hive Interview Questions](/level-3-technologies/batch-processing/hive/) — the SQL-on-Hadoop engine Spark SQL frequently interoperates with
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — a structured, from-scratch learning path for Spark
+

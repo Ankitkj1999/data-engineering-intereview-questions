@@ -1,0 +1,118 @@
+---
+title: Data Observability
+description: Data observability interview questions covering monitoring signals, SLAs, lineage, alerting, backfills, runbooks, and incident response for data pipelines.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## Data Observability: Monitoring and Incident Response
+
+**Data observability is the practice of monitoring, alerting, and diagnosing the health of data and data pipelines — catching silent failures before they reach a dashboard, and cutting the time it takes to find root cause once something breaks.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Data observability differs from application observability in what it watches: instead of latency and error rates for request/response services, it tracks dataset health over time — **freshness** (is data arriving on schedule), **volume** (are row/byte/partition counts within expected bounds), **schema** (did columns get added, removed, or retyped), and **quality** (nulls, uniqueness, referential integrity). These signals matter because data failures are often silent — a job succeeds, but the data is wrong, missing a subset, or duplicated — so detection depends on dataset-level checks and reconciliation rather than job exit codes alone. When something breaks, **lineage** tells you the blast radius (which downstream tables and dashboards are affected), and a good **runbook** turns an alert into a repeatable recovery process rather than a from-scratch investigation.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Observability" storagePrefix="observability">
+
+<QuestionCard id="obs-01" number={1} question="What is data observability?" difficulty="easy" topic="Fundamentals">
+Data observability is the practice of monitoring, alerting, and diagnosing the health of data and data pipelines. It focuses on whether datasets are arriving on time, with correct volume and values, and whether downstream consumers can rely on them. The goal is to reduce "data downtime" and speed up root-cause analysis.
+</QuestionCard>
+
+<QuestionCard id="obs-02" number={2} question="How is data observability different from application observability?" difficulty="easy" topic="Fundamentals">
+Application observability focuses on service health (latency, error rates, traces) for request/response systems. Data observability focuses on dataset health and pipeline behavior over time (freshness, completeness, distribution shifts). Data issues can be silent, delayed, and cumulative, so you need different signals and baselines.
+</QuestionCard>
+
+<QuestionCard id="obs-03" number={3} question="What are the key signals you monitor for data pipelines?" difficulty="medium" topic="Signals">
+Common signals include:
+
+- **Freshness** — track max event/ingestion time to ensure data is arriving on schedule
+- **Volume** — monitor row counts, bytes, and partitions for anomalies
+- **Schema changes** — detect added, removed, or typed columns that may break downstream
+- **Quality checks** — validate null rates, uniqueness, and referential integrity
+- **Pipeline run status** — track job success/failure and execution duration
+- **Cost signals** — monitor query time, bytes scanned, and cluster utilization
+</QuestionCard>
+
+<QuestionCard id="obs-04" number={4} question="How do you define and measure an end-to-end SLA for data?" difficulty="medium" topic="SLAs">
+You define the SLA from source event time to availability in the final dataset or BI metric. Measure it with timestamps at each stage (ingest, transform, publish) and compute percentiles (p50/p95) as well as breach counts. SLAs should reflect consumer needs and include ownership and escalation paths.
+</QuestionCard>
+
+<QuestionCard id="obs-05" number={5} question="What should you log for each pipeline run?" difficulty="easy" topic="Logging">
+At minimum:
+
+- **Inputs** — source tables/partitions, offsets, watermarks
+- **Outputs** — target tables/partitions, row counts written
+- **Runtime and resource usage** — CPU, memory, execution time
+- **Warnings/errors** — retry attempts, failure details
+- **Data quality results** — summary of validation checks
+
+This makes runs reproducible and speeds up debugging.
+</QuestionCard>
+
+<QuestionCard id="obs-06" number={6} question="How do you detect silent failures?" difficulty="hard" topic="Failure Detection">
+Silent failures happen when the job succeeds but data is wrong (missing subset, wrong join, truncation). Detect them with dataset-level checks: freshness, volume bounds, distribution checks, and reconciliations against sources. Monitoring key business KPIs for unexpected changes is also effective.
+</QuestionCard>
+
+<QuestionCard id="obs-07" number={7} question="What is lineage and how does it help during incidents?" difficulty="medium" topic="Lineage">
+Lineage describes upstream/downstream dependencies between datasets, jobs, and dashboards. During incidents, lineage helps you assess blast radius (which reports are impacted) and prioritize fixes. It also helps prevent regressions by making dependencies explicit.
+</QuestionCard>
+
+<QuestionCard id="obs-08" number={8} question="How do you monitor and debug a broken metric in BI?" difficulty="hard" topic="Incident Response">
+You start from the metric definition and trace dependencies to the underlying tables. Then check data freshness and recent changes (deploys, schema changes, upstream outages). Use reconciliation queries and sampling to locate where the metric diverged, then confirm whether it is a data issue or a definition change.
+</QuestionCard>
+
+<QuestionCard id="obs-09" number={9} question="How do you design alerts to avoid alert fatigue?" difficulty="medium" topic="Alerting">
+Alerts should be actionable, scoped, and owned. Use severity levels, suppression windows, and baselines that account for seasonality. Prefer multi-signal alerts (freshness + volume) over single noisy checks, and include runbooks with clear next steps.
+</QuestionCard>
+
+<QuestionCard id="obs-10" number={10} question="How do you approach backfills safely?" difficulty="hard" topic="Backfills">
+Backfills can be expensive and risky because they rewrite history and can change metrics. A safe approach includes running in smaller batches, validating each batch, and separating "raw" from "published" layers so you can rebuild derived tables without re-ingesting sources. You also communicate expected metric changes and schedule around peak usage.
+</QuestionCard>
+
+<QuestionCard id="obs-11" number={11} question="What is a runbook and what should it contain?" difficulty="medium" topic="Runbooks">
+A runbook is a step-by-step guide for responding to an alert or incident. It should include impact assessment, common root causes, validation queries, mitigation steps, rollback/backfill steps, and escalation contacts. Good runbooks reduce time-to-recovery for on-call engineers.
+</QuestionCard>
+
+<QuestionCard id="obs-12" number={12} question="What are common incident patterns in data platforms?" difficulty="medium" topic="Incident Patterns">
+Common patterns include:
+
+- **Upstream outages** — late or missing data from source systems
+- **Schema changes** — breaking transforms when columns are added/removed/changed
+- **Duplicates** — data duplication from retries or reprocessing
+- **Incorrect joins** — metric inflation due to join logic errors
+- **Partition/timezone bugs** — incorrect data filtering due to boundary issues
+- **Cost spikes** — expensive queries consuming excessive resources
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Freshness on a critical table breaches SLA at 3am — walk through your triage steps."** Tests signal literacy, runbook use, and escalation instincts.
+- **"A BI dashboard shows revenue dropped 15% but nothing alerted — how did that slip through, and how do you prevent it next time?"** Tests silent-failure detection and multi-signal alerting.
+- **"You need to backfill six months of a core fact table without breaking downstream dashboards — how do you approach it?"** Tests safe backfill strategy and raw/published layer separation.
+- **"Design the logging and lineage you'd add to a new pipeline so the next on-call engineer isn't starting from zero."** Tests logging minimums and the practical value of lineage.
+
+---
+
+## Further Reading
+
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where observability fits into the broader curriculum
+- [Cost Optimization](/level-4-advanced/cost-optimization/) — monitoring signals often double as cost signals (bytes scanned, cluster utilization)
+- [Data Quality](/level-2-core-concepts/data-quality/) — the checks that feed observability's quality signal

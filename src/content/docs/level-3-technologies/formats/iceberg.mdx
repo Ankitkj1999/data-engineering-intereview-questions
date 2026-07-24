@@ -1,0 +1,124 @@
+---
+title: Iceberg
+description: Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Apache Iceberg: Open Table Format
+
+**Apache Iceberg is an open table format for large analytics datasets that adds transactional guarantees, consistent snapshots, and safe schema/partition evolution on top of files like Parquet — so multiple engines can read and write the same tables safely.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Iceberg tracks table state through **snapshots** — each commit produces a new snapshot referencing a set of data and delete files via manifest lists/manifests, which is what enables consistent reads and **time travel**. Writers use **optimistic concurrency control**, retrying commits if the base snapshot has moved. Two design choices set Iceberg apart from a plain folder of Parquet files: **hidden partitioning** (partitioning is metadata-driven, e.g. `day(ts)`, not baked into folder paths) and field-ID-based **schema evolution**, both of which allow **partition evolution** and schema changes without rewriting historical data. Deletes are handled via **equality** and **positional delete files** rather than rewriting whole data files, and ongoing **table maintenance** — compaction, manifest rewriting, snapshot expiration, orphan file removal — keeps metadata and the small-files problem under control. A **catalog** (Hive metastore, REST catalog, AWS Glue, etc.) tracks where each table's metadata lives.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Iceberg" storagePrefix="iceberg">
+
+<QuestionCard id="iceberg-01" number={1} question="What is Apache Iceberg?" difficulty="easy" topic="Fundamentals">
+Apache Iceberg is an open table format for large analytics datasets. It defines how table metadata, snapshots, and data files are managed so multiple engines can read and write the same tables safely. Iceberg tables are usually stored on object storage (S3/GCS/ADLS) with files like Parquet, but the table semantics — transactions, schema/partition evolution — come from Iceberg's own metadata layer.
+</QuestionCard>
+
+<QuestionCard id="iceberg-02" number={2} question="What problems does Iceberg solve compared to plain Parquet datasets?" difficulty="medium" topic="Fundamentals">
+A plain Parquet "dataset in folders" lacks transactional guarantees and consistent metadata. Iceberg adds ACID-like commits, consistent snapshots, reliable schema/partition evolution, and query planning features like partition pruning based on metadata. It also supports deletes and updates in a table-like way, rather than requiring you to rewrite everything.
+</QuestionCard>
+
+<QuestionCard id="iceberg-03" number={3} question="What is a snapshot in Iceberg?" difficulty="medium" topic="Snapshots">
+A snapshot is a point-in-time view of the table. Each commit creates a new snapshot that references a set of data and delete files through metadata (manifest lists/manifests). Readers can query a specific snapshot to get consistent results even while writers continue to append or modify the table.
+</QuestionCard>
+
+<QuestionCard id="iceberg-04" number={4} question="What is time travel and why is it useful?" difficulty="medium" topic="Time Travel">
+Time travel means querying the table "as of" a previous snapshot (or timestamp). It's useful for debugging regressions, auditing changes, reproducing past reports, and safe backfills — computing against a stable snapshot and then committing a new one.
+</QuestionCard>
+
+<QuestionCard id="iceberg-05" number={5} question="How does Iceberg handle concurrent writes?" difficulty="hard" topic="Concurrency">
+Iceberg typically uses optimistic concurrency control. Writers create new metadata based on a known current snapshot and then attempt to commit; if the base snapshot changed in the meantime, the commit may conflict and must be retried. This prevents silent lost updates and keeps commits atomic.
+</QuestionCard>
+
+<QuestionCard id="iceberg-06" number={6} question="What is hidden partitioning in Iceberg?" difficulty="medium" topic="Partitioning">
+Hidden partitioning means partitioning is defined at the table metadata level (for example `day(ts)`), not as user-managed folder paths. Engines can still prune partitions, but you're not tied to a physical directory layout. This makes partition evolution safer and avoids leaking storage details into query logic.
+</QuestionCard>
+
+<QuestionCard id="iceberg-07" number={7} question="What is partition evolution and why is it important?" difficulty="medium" topic="Partitioning">
+Partition evolution allows changing the partition spec over time — for example switching from `day(ts)` to `month(ts)`, or adding a new partition field — without rewriting all historical data. It matters because real datasets change: query patterns evolve, and the "right" partitioning today may not be right in a year.
+</QuestionCard>
+
+<QuestionCard id="iceberg-08" number={8} question="How does schema evolution work in Iceberg?" difficulty="medium" topic="Schema">
+Iceberg tracks columns by unique field IDs, enabling safe add/drop/rename operations without breaking readers. Schema evolution can be applied while keeping historical snapshots queryable. Some changes, like certain type changes, depend on engine support and can still be risky if consumers assume a fixed schema.
+</QuestionCard>
+
+<QuestionCard id="iceberg-09" number={9} question="What are equality deletes and positional deletes?" difficulty="hard" topic="Deletes">
+Deletes in Iceberg can be represented as separate delete files:
+
+- **Equality deletes** — delete rows matching a key predicate (for example `id = 123`).
+- **Positional deletes** — delete specific row positions in data files.
+
+They allow deletes without rewriting full data files, but too many delete files can hurt read performance until they're compacted.
+</QuestionCard>
+
+<QuestionCard id="iceberg-10" number={10} question="How do upserts/merges work with Iceberg?" difficulty="hard" topic="DML">
+Upserts are usually implemented by engines (Spark, Flink, Trino) using `MERGE INTO` semantics, which may create new data files and delete files. The exact behavior depends on the engine and write mode. Operationally, merges are often followed by maintenance jobs to compact data files and remove old snapshots.
+</QuestionCard>
+
+<QuestionCard id="iceberg-11" number={11} question="Why does the small files problem happen, and how do you mitigate it?" difficulty="medium" topic="Maintenance">
+Small files appear when many writers write tiny batches, or when streaming jobs checkpoint frequently. Too many files increase planning overhead and reduce scan efficiency. Mitigations include setting target file sizes, batching writes, and running compaction/rewrite jobs to merge files.
+</QuestionCard>
+
+<QuestionCard id="iceberg-12" number={12} question="What maintenance operations are common for Iceberg tables?" difficulty="medium" topic="Maintenance">
+Common maintenance includes:
+
+- Rewriting data files (compaction) to hit target file sizes.
+- Rewriting manifests to reduce metadata overhead.
+- Expiring old snapshots to control metadata growth.
+- Removing orphan files.
+
+These jobs keep query planning fast and storage cost under control.
+</QuestionCard>
+
+<QuestionCard id="iceberg-13" number={13} question="What is an Iceberg catalog, and what options exist?" difficulty="medium" topic="Catalogs">
+A catalog stores table metadata pointers and namespace information. Common options include the Hive metastore, a REST catalog, and cloud-native catalogs (for example AWS Glue). Catalog choice affects authorization, interoperability across engines, and operational complexity.
+</QuestionCard>
+
+<QuestionCard id="iceberg-14" number={14} question="How would you migrate an existing dataset to Iceberg?" difficulty="hard" topic="Migration">
+You typically create an Iceberg table schema and then either:
+
+- Register existing files in place (where supported), if they already conform to the expected layout.
+- Rewrite the data into Iceberg using an engine (Spark/Flink) for safety.
+
+After migration, validate row counts, key constraints, and query performance, then switch readers over to the new table.
+</QuestionCard>
+
+<QuestionCard id="iceberg-15" number={15} question="Iceberg vs. Delta vs. Hudi: when would you choose Iceberg?" difficulty="hard" topic="Comparison">
+Iceberg is a strong choice when you need an open, engine-agnostic table format with robust metadata, time travel, and evolution features. It fits well in environments with multiple query engines (Spark + Trino + Flink) and a preference for open standards. The best choice still depends on your stack, operational tooling, and update/CDC requirements.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"You have multiple engines — Spark, Trino, Flink — that all need to read and write the same tables. How do you avoid stepping on each other?"** Discuss Iceberg's catalog-based metadata, snapshot isolation, and optimistic concurrency control, which let independent engines commit safely against the same table.
+- **"A partitioning scheme chosen a year ago no longer matches query patterns — what are your options?"** Walk through partition evolution: changing the partition spec going forward without rewriting historical data, thanks to hidden partitioning decoupling logical partitions from physical layout.
+- **"Query planning on an Iceberg table has gotten slow over time — what would you check?"** Talk through snapshot/manifest bloat from frequent small commits, too many delete files from upserts, and the maintenance jobs (compaction, manifest rewrite, snapshot expiration) that address each.
+
+---
+
+## Further Reading
+
+- [Delta Lake](/level-3-technologies/formats/delta/) — the other major open table format, with a similar ACID/time-travel feature set but a different metadata design
+- [Parquet](/level-3-technologies/formats/parquet/) — the columnar file format Iceberg tables are commonly built on top of
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where storage formats fit into the broader curriculum

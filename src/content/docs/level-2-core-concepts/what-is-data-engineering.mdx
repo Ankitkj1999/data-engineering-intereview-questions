@@ -1,0 +1,103 @@
+---
+title: What is Data Engineering
+description: Interview questions on what data engineering is, a data engineer's core responsibilities and must-have skills, and the end-to-end data engineering lifecycle.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## What is Data Engineering: Role, Responsibilities, and Lifecycle
+
+**Data engineering is the discipline of designing, building, and maintaining the infrastructure that stores, processes, and serves data at scale — the foundation every downstream analytics, reporting, and machine learning workload depends on.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+At its core, data engineering is about **building and maintaining data pipelines** — systems that move data from source systems through transformation layers so it's reliably available for analysis, reporting, and machine learning. That work spans four recurring responsibilities: **data infrastructure** (reliable, scalable storage and processing systems), **pipeline architecture** (designing the ETL/ELT workflows that move data), **data quality** (ensuring accuracy and consistency), and **performance optimization** (keeping queries and transformations efficient as volume grows). The role leans on a specific skill set — SQL, Python, cloud platforms, data modeling, and system design — and the work itself follows a repeatable lifecycle: data is generated, ingested, processed, stored, served, and finally consumed by analysts, data scientists, and applications.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="What is Data Engineering" storagePrefix="what-is-data-engineering">
+
+<QuestionCard id="wde-01" number={1} question="What is data engineering, and why does it matter to an organization?" difficulty="easy" topic="Fundamentals">
+Data engineering is the practice of designing, building, and maintaining the infrastructure that stores, processes, and serves data at scale. It matters because data engineers create the foundation that lets an organization collect, transform, and analyze data reliably — without that foundation, analytics, reporting, and machine learning all sit on unreliable ground.
+</QuestionCard>
+
+<QuestionCard id="wde-02" number={2} question="What is a data engineer's primary responsibility?" difficulty="easy" topic="Role">
+A data engineer's primary responsibility is to build and maintain data pipelines — systems that move data from source systems, through transformation layers, to make it available for analysis, reporting, and machine learning. The emphasis is on the plumbing and infrastructure that gets data where it needs to go, reliably and repeatably.
+</QuestionCard>
+
+<QuestionCard id="wde-03" number={3} question="How does a data engineer's focus differ from a data scientist's?" difficulty="easy" topic="Role">
+Data scientists focus on extracting insights from data — analysis, modeling, prediction. Data engineers focus on the infrastructure and pipelines that make that data available and trustworthy in the first place: data infrastructure, pipeline architecture, data quality, and performance optimization. One builds the foundation; the other builds on top of it.
+</QuestionCard>
+
+<QuestionCard id="wde-04" number={4} question="What does “data infrastructure” mean as one of a data engineer's core responsibilities?" difficulty="easy" topic="Responsibilities">
+Data infrastructure refers to building reliable, scalable systems for data storage and processing — the databases, warehouses, lakes, and compute platforms that everything else is built on top of. If this layer isn't reliable or doesn't scale, every downstream pipeline and analysis inherits that fragility.
+</QuestionCard>
+
+<QuestionCard id="wde-05" number={5} question="What does “pipeline architecture” involve, and why does the ETL/ELT design choice matter?" difficulty="medium" topic="Responsibilities">
+Pipeline architecture is designing the ETL/ELT workflows that handle data movement — deciding where data gets extracted from, where and when it gets transformed, and how it lands in its final destination. Getting this design right determines how maintainable, debuggable, and cost-efficient the whole data flow is, since it dictates where complexity and compute cost actually live.
+</QuestionCard>
+
+<QuestionCard id="wde-06" number={6} question="Why is data quality treated as one of the four core responsibilities of a data engineer?" difficulty="easy" topic="Responsibilities">
+Data quality means ensuring accuracy, consistency, and reliability of data as it flows through the platform. It's called out as a core responsibility — not a nice-to-have — because every downstream consumer (dashboards, models, reports) inherits whatever quality problems exist upstream; fixing quality at the source is far cheaper than firefighting it in a hundred dashboards later.
+</QuestionCard>
+
+<QuestionCard id="wde-07" number={7} question="What does “performance optimization” mean in a data engineering context?" difficulty="medium" topic="Responsibilities">
+Performance optimization means making queries and transformations efficient at scale — the same pipeline that works fine on a small dataset needs to keep working as data volume, query concurrency, and complexity grow. It's a continuous responsibility rather than a one-time task, since data volumes and usage patterns keep shifting.
+</QuestionCard>
+
+<QuestionCard id="wde-08" number={8} question="Why are SQL and Python considered the core languages for data engineering?" difficulty="easy" topic="Skills">
+SQL is the lingua franca for data transformation and querying — nearly every warehouse, lake engine, and BI tool speaks it. Python is the most common language for pipeline scripting and automation — orchestration logic, custom transformations, and integrations are typically written in it. Together they cover both the "what data should look like" and "how do I move and shape it" sides of the job.
+</QuestionCard>
+
+<QuestionCard id="wde-09" number={9} question="Why do data engineers also need cloud platform knowledge, data modeling skills, and system design skills?" difficulty="medium" topic="Skills">
+- **Cloud platforms** — modern data infrastructure runs on AWS, GCP, or Azure, so operating there is a baseline expectation, not a bonus skill.
+- **Data modeling** — structuring data for efficient querying and analysis determines whether downstream consumers get clean, fast answers or confusing, slow ones.
+- **System design** — building scalable, resilient data architectures is what lets a platform keep working as data volume and the number of consumers grow.
+</QuestionCard>
+
+<QuestionCard id="wde-10" number={10} question="Walk through the stages of the data engineering lifecycle, from generation to consumption." difficulty="medium" topic="Lifecycle">
+The lifecycle runs: **Data Generation → Ingestion → Processing → Storage → Serving → Consumption**.
+
+1. **Generation** — data is created in source systems (databases, APIs, logs, IoT devices)
+2. **Ingestion** — data is collected and brought into the platform, either batch or streaming
+3. **Processing** — data is cleaned, transformed, and enriched
+4. **Storage** — data is stored in warehouses, lakes, or databases
+5. **Serving** — data is made available to consumers via APIs or query engines
+6. **Consumption** — analysts, data scientists, and applications use the data
+
+Each stage hands off to the next, so a failure or quality issue early in the chain propagates through everything downstream of it.
+</QuestionCard>
+
+<QuestionCard id="wde-11" number={11} question="What topics does a typical data engineering learning roadmap cover?" difficulty="easy" topic="Roadmap">
+A typical roadmap covers: programming fundamentals (Python, SQL, Java/Scala), database systems (RDBMS, NoSQL, data warehouses), cloud platforms and infrastructure, pipeline orchestration (Airflow, dbt), big data tools (Spark, Kafka), and monitoring and testing practices. It's designed to build from language and database fundamentals up through orchestration and operational maturity.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Explain data engineering to a non-technical stakeholder."** Frame it around the plumbing analogy: you're the one making sure clean water (data) reliably reaches every tap (dashboard, model, report) in the building, even as usage grows.
+- **"Walk me through what happens to a single event, from the moment it's generated to the moment an analyst sees it in a dashboard."** Trace it through the six lifecycle stages — generation, ingestion, processing, storage, serving, consumption — naming a concrete tool or pattern at each step.
+- **"Why do we need a dedicated data engineer instead of having analysts or data scientists build their own pipelines?"** Anchor the answer in the four core responsibilities — infrastructure, pipeline architecture, data quality, performance — and explain why treating those as first-class, owned work (rather than side projects) is what keeps a platform reliable at scale.
+- **"What skills would you look for when hiring a data engineer?"** Walk through SQL, Python, cloud platforms, data modeling, and system design, and explain what gap each one closes.
+
+---
+
+## Further Reading
+
+- [Data Engineer vs Data Scientist](/level-2-core-concepts/data-engineer-vs-data-scientist/) — a closer look at how the two roles differ and collaborate
+- [Data Modeling](/level-2-core-concepts/data-modeling/) — the schema design skills referenced in the lifecycle's processing and storage stages
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — the full step-by-step curriculum this page's roadmap section summarizes

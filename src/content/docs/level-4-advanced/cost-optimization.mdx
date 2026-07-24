@@ -1,0 +1,102 @@
+---
+title: Cost Optimization
+description: Interview questions on data platform cost optimization, covering cost drivers, partitioning, small files, skew, shuffle, materialization, and FinOps.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## Cost Optimization: Sustainable Data Platforms
+
+**Master cost optimization techniques for building efficient, scalable data platforms that remain sustainable at scale, rather than scaling cost linearly (or worse) with data volume.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Cost on a data platform is driven by a handful of levers: **compute time**, **bytes scanned and shuffled**, **storage growth**, **data movement**, and **operational overhead** like frequent backfills and retries. Most optimization work comes down to controlling those levers at the storage layer (partitioning, file sizes, avoiding small files), at the compute layer (reducing shuffle, fixing data skew, choosing the right join strategy), and at the process layer (deciding what to materialize, protecting the platform from runaway queries, and planning backfills deliberately instead of running them blind). None of this matters without visibility, which is what FinOps metrics — cost by team, cost per pipeline, bytes scanned per query — are for: they turn "the bill went up" into "this dataset's cost went up, and here's why."
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Cost Optimization" storagePrefix="cost-optimization">
+
+<QuestionCard id="cost-01" number={1} question="Why is cost optimization considered a core skill for data engineers?" difficulty="easy" topic="Fundamentals">
+Data platforms can scale costs linearly, or worse, with data volume and usage. Cost optimization ensures the platform remains sustainable while still meeting its SLAs. It requires understanding storage layout, compute behavior, query patterns, and operational practices like backfills and compaction — it isn't a one-off task, it's an ongoing part of running the platform.
+</QuestionCard>
+
+<QuestionCard id="cost-02" number={2} question="What are the main cost drivers in a data platform?" difficulty="easy" topic="Cost Drivers">
+- **Compute time** — clusters, warehouses, serverless slots
+- **Bytes scanned and shuffles** — how much data queries actually touch and move
+- **Storage growth** — raw plus derived plus duplicate data
+- **Data movement** — egress and cross-region transfers
+- **Operational overhead** — frequent backfills and retries
+
+Most cost problems trace back to one of these five drivers.
+</QuestionCard>
+
+<QuestionCard id="cost-03" number={3} question="How does partitioning strategy affect cost, and what happens when it's done poorly?" difficulty="medium" topic="Partitioning">
+Good partitioning reduces scanned data by enabling partition pruning, so queries only touch the data they need. Bad partitioning creates too many small partitions, which increases metadata overhead and causes a small files problem. Partitioning should match common query filters and the actual data distribution, and it needs to be reevaluated as workloads evolve rather than set once and forgotten.
+</QuestionCard>
+
+<QuestionCard id="cost-04" number={4} question="What is the small files problem, and why does it hurt performance and cost?" difficulty="medium" topic="Storage">
+Small files increase scheduling and metadata overhead and reduce scan efficiency, since engines spend more time opening and planning files than actually processing data. Small files typically appear from streaming writes or overly granular partitions, and fixing them usually requires compaction or clustering to merge them into larger files.
+</QuestionCard>
+
+<QuestionCard id="cost-05" number={5} question="How do you choose a target file size?" difficulty="medium" topic="Storage">
+You choose a size that balances parallelism and overhead. Too small increases file count and planning cost; too large reduces parallelism and can slow down selective queries that only need a fraction of a file. Many teams target hundreds of megabytes per file, but the right value depends on the engine, the storage layer, and the platform's actual query patterns.
+</QuestionCard>
+
+<QuestionCard id="cost-06" number={6} question="How do you detect and fix data skew?" difficulty="hard" topic="Performance">
+Skew happens when some partitions or keys have much more data than others, causing straggler tasks that hold up the whole job. You detect it via task duration distributions and partition size metrics — a few tasks taking far longer than the rest is the classic signature. Fixes include salting keys, using skew-aware join strategies, repartitioning, or broadcasting the smaller side of a join when possible.
+</QuestionCard>
+
+<QuestionCard id="cost-07" number={7} question="What is shuffle, and how do you reduce it?" difficulty="medium" topic="Performance">
+Shuffle is the redistribution of data across executors, needed for operations like joins, group-by, and distinct. It's expensive because of network IO and disk spills. You reduce it by using proper partitioning, avoiding unnecessarily wide transformations, filtering data early (before the shuffle-heavy step), broadcasting small tables instead of shuffling them, and tuning the number of shuffle partitions.
+</QuestionCard>
+
+<QuestionCard id="cost-08" number={8} question="When should you materialize a dataset vs. keep it as a view?" difficulty="medium" topic="Materialization">
+Materialize when many downstream queries reuse the same expensive computation, or when interactive BI needs low latency that a live view can't provide. Avoid over-materializing, since every materialized dataset adds storage and refresh complexity. A good default is to materialize stable, high-value marts and keep exploratory or rarely used logic as views.
+</QuestionCard>
+
+<QuestionCard id="cost-09" number={9} question="How do you protect a platform from runaway queries and costs?" difficulty="medium" topic="Governance">
+Use workload management: query timeouts, concurrency limits, resource quotas, and separate compute for heavy workloads so one bad query can't starve everyone else. Enforce best practices with guardrails like linting and cost alerts, and educate users with profiling tools so they can see the cost of what they're about to run. Multi-tenant platforms in particular need this kind of isolation to prevent one team from impacting another.
+</QuestionCard>
+
+<QuestionCard id="cost-10" number={10} question="How do you optimize joins for cost and performance?" difficulty="medium" topic="Query Optimization">
+You optimize joins by ensuring join keys are clean and well-distributed, filtering before the join rather than after, and choosing the right join strategy — broadcast for small tables, shuffle for large ones. You also reduce the size of join inputs by selecting only the columns you need, and consider pre-joining into curated marts when the same join gets repeated across many queries.
+</QuestionCard>
+
+<QuestionCard id="cost-11" number={11} question="How do you plan and budget for a large backfill?" difficulty="medium" topic="Operations">
+Estimate based on data volume, compute requirements, and expected scan and shuffle behavior. Run on a small sample window first to measure throughput and extrapolate to the full backfill. Backfills should be staged, monitored as they run, and preferably scheduled in off-peak windows, with a clear rollback plan if something goes wrong.
+</QuestionCard>
+
+<QuestionCard id="cost-12" number={12} question="What FinOps metrics should a data platform track?" difficulty="easy" topic="FinOps">
+Common metrics include cost by team or project, cost per pipeline, bytes scanned per query, cluster utilization, storage growth by layer, and the top expensive datasets or queries. You also want to track trend changes week-over-week and tie cost back to value — how much a dataset is actually used and how critical it is — rather than looking at cost in isolation.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Our warehouse bill doubled this month — how do you investigate?"** Walk through the FinOps metrics you'd pull first (cost by team/pipeline, bytes scanned, top expensive queries), then narrow down to a likely driver — a skewed job, a missing partition filter, or a backfill that ran wide.
+- **"A specific query is scanning far more data than it should — what do you check?"** Cover partitioning alignment with the query's filters, file size and small-files issues, and whether the query is doing an unnecessary broad join or shuffle.
+- **"You need to run a backfill across a year of historical data without blowing the budget or breaking current reporting."** Talk through sampling to estimate cost, staging and validating the backfill, running it off-peak, and isolating it from live pipelines so partially backfilled data doesn't leak into production dashboards.
+- **"How would you convince a team to stop over-materializing datasets?"** Frame it around the storage and refresh-complexity cost of materialization versus the query-latency benefit, and how to decide which is worth it dataset by dataset.
+
+---
+
+## Further Reading
+
+- [System Design](/level-4-advanced/system-design/) — the architectural decisions that cost optimization trades off against
+- [Observability](/level-4-advanced/observability/) — monitoring the pipeline health and freshness that cost decisions need to respect
+- [Spark](/level-3-technologies/batch-processing/spark/) — where shuffle, skew, and partitioning show up concretely in a batch engine

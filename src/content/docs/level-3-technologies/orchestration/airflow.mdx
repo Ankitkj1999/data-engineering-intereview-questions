@@ -1,0 +1,214 @@
+---
+title: Airflow
+description: Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Apache Airflow: Workflow Orchestration
+
+**Apache Airflow is a Python-based platform for programmatically authoring, scheduling, and monitoring workflows as directed acyclic graphs (DAGs) — the de facto standard for orchestrating batch data pipelines.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Airflow models a workflow as a **DAG** (directed acyclic graph): a Python-defined graph of tasks with dependencies, where each task should be **idempotent** so it can safely be retried or backfilled. Four components make this run — the **webserver** (UI), **scheduler** (walks DAGs and triggers tasks), **executor** (decides how/where tasks run), and **workers** (run the tasks) — all backed by a **metadata database** that tracks DAG runs, task state, and configuration. The choice of **executor** (Sequential, Local, Celery, or Kubernetes) is largely a scalability-vs-operational-complexity trade-off. Tasks communicate small values through **XComs**, and both scheduling (cron expressions) and runtime templating (Jinja, used to pull XComs or dates into SQL/bash commands) are core to writing real DAGs.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Airflow" storagePrefix="airflow">
+
+<QuestionCard id="af-01" number={1} question="What is Airflow?" difficulty="easy" topic="Fundamentals">
+Apache Airflow is an open-source workflow management platform. It began in October 2014 at Airbnb as a solution for managing the company's increasingly complex workflows. Airbnb's creation of Airflow enabled them to programmatically author, schedule, and monitor their workflows via the built-in Airflow user interface. Airflow is a data transformation pipeline ETL (Extract, Transform, Load) workflow orchestration tool.
+</QuestionCard>
+
+<QuestionCard id="af-02" number={2} question="What issues does Airflow resolve compared to cron?" difficulty="easy" topic="Fundamentals">
+Cron is an old technique for task scheduling, and it has real limitations that Airflow addresses:
+
+- **Scalability** — cron requires external tooling to log, track, and manage tasks, while the Airflow UI tracks and monitors workflow execution out of the box.
+- **Dependencies** — creating and maintaining a relationship between tasks in cron is a challenge, whereas it's as simple as writing Python code in Airflow.
+- **Reproducibility** — cron jobs aren't reproducible unless configured externally; Airflow maintains an audit trail of every task run.
+</QuestionCard>
+
+<QuestionCard id="af-03" number={3} question="Explain how a workflow is designed in Airflow." difficulty="easy" topic="DAGs">
+A directed acyclic graph (DAG) is used to design an Airflow workflow. That is to say, when creating a workflow, you consider how it can be divided into tasks that can be completed independently. The tasks are then combined into a graph to form a logical whole.
+
+The overall logic of your workflow is based on the shape of the graph. An Airflow DAG can have multiple branches, and you can choose which ones to follow and which to skip during workflow execution.
+
+Airflow can be completely stopped, and running workflows will then resume by restarting the last unfinished task. It's important to remember that Airflow tasks can be run more than once when designing them — each task should be **idempotent**, capable of being performed multiple times without causing unintended consequences.
+</QuestionCard>
+
+<QuestionCard id="af-04" number={4} question="Explain Airflow's architecture and its components." difficulty="medium" topic="Architecture">
+There are four major components to Airflow:
+
+- **Webserver** — the Airflow UI built on Flask, which provides an overview of the overall health of various DAGs and helps visualize their components and states. It also lets you manage users, roles, and configuration.
+- **Scheduler** — every few seconds, the scheduler walks over the DAGs and schedules tasks for execution.
+- **Executor** — an internal component used by the scheduler. Executors are what actually execute the tasks, while the scheduler orchestrates them. Airflow has different executor types, including `SequentialExecutor`, `LocalExecutor`, `CeleryExecutor`, and `KubernetesExecutor` — teams generally pick whichever is best suited to their use case.
+- **Worker** — workers run the tasks that the executor hands them.
+- **Metadata Database** — Airflow supports a range of metadata storage databases. This database holds information about DAGs, their runs, and other Airflow configuration such as users, roles, and connections. The webserver reads DAG state and run history from this database, and the scheduler is what keeps it updated.
+</QuestionCard>
+
+<QuestionCard id="af-05" number={5} question="What are the types of executors in Airflow?" difficulty="medium" topic="Executors">
+The executors are the components that actually execute tasks, while the scheduler orchestrates them:
+
+- **SequentialExecutor** — runs one task at a time.
+- **LocalExecutor** — same idea as SequentialExecutor, but can run multiple tasks at a time.
+- **CeleryExecutor** — Celery is a Python framework for running distributed asynchronous tasks; as a result, `CeleryExecutor` has long been part of Airflow, even before Kubernetes. It keeps a fixed number of workers on standby to take on tasks as they become available.
+- **KubernetesExecutor** — runs each task in its own Kubernetes pod. Unlike Celery, it spins up worker pods on demand, which allows for more efficient use of resources.
+
+People generally choose the executor that's best for their use case.
+</QuestionCard>
+
+<QuestionCard id="af-06" number={6} question="What are the pros and cons of SequentialExecutor?" difficulty="easy" topic="Executors">
+**Pros:**
+- Simple and straightforward to set up.
+- A good way to test DAGs while they're being developed.
+
+**Cons:**
+- Not scalable.
+- Can't perform multiple tasks at the same time.
+- Unsuitable for production use.
+</QuestionCard>
+
+<QuestionCard id="af-07" number={7} question="What are the pros and cons of LocalExecutor?" difficulty="easy" topic="Executors">
+**Pros:**
+- Able to perform multiple tasks.
+- Can be used to run DAGs during development.
+
+**Cons:**
+- Not scalable.
+- Single point of failure.
+- Unsuitable for production use.
+</QuestionCard>
+
+<QuestionCard id="af-08" number={8} question="What are the pros and cons of CeleryExecutor?" difficulty="medium" topic="Executors">
+**Pros:**
+- Allows for scalability.
+- Celery manages the workers itself and creates a new one in case of failure.
+
+**Cons:**
+- Celery requires RabbitMQ/Redis for task queuing, which is redundant with what Airflow already supports.
+- Setup is more complicated due to those extra dependencies.
+</QuestionCard>
+
+<QuestionCard id="af-09" number={9} question="What are the pros and cons of KubernetesExecutor?" difficulty="medium" topic="Executors">
+**Pros:**
+- Combines the scalability of CeleryExecutor with the simplicity of LocalExecutor.
+- Fine-grained control over per-task resource allocation — CPU/memory can be configured at the task level.
+
+**Cons:**
+- Airflow's Kubernetes integration is newer, and the documentation is more complicated than for the other executors.
+</QuestionCard>
+
+<QuestionCard id="af-10" number={10} question="How do you define a workflow in Airflow?" difficulty="medium" topic="DAG Definition">
+Workflows are defined in Python files. The `DAG` class in Airflow lets you generate a directed acyclic graph, which is a representation of the workflow:
+
+```python
+from airflow.models import DAG
+from airflow.utils.dates import days_ago
+
+args = {
+    'start_date': days_ago(0),
+}
+
+dag = DAG(
+    dag_id='bash_operator_example',
+    default_args=args,
+    schedule_interval='* * * * *',
+)
+```
+
+You can use `start_date` to launch a task on a specific date. The `schedule_interval` specifies how often the workflow is scheduled to run — `'* * * * *'` means the tasks run every minute.
+</QuestionCard>
+
+<QuestionCard id="af-11" number={11} question="What does the cron expression `30 8 * * 1-5` mean in Airflow scheduling?" difficulty="hard" topic="Scheduling">
+A cron expression is composed of 5 fields separated by spaces:
+
+| Field | Position | Allowed Values | Description |
+|---|---|---|---|
+| **Minute** | 1 | `0-59` | The minute of the hour |
+| **Hour** | 2 | `0-23` | The hour of the day |
+| **Day of Month** | 3 | `1-31` | The day of the month |
+| **Month** | 4 | `1-12` or `JAN-DEC` | The month |
+| **Day of Week** | 5 | `0-6` or `SUN-SAT` | The day of the week (0 = Sunday) |
+
+Breaking down `schedule_interval='30 8 * * 1-5'`:
+
+1. **`30` (Minute)** — the task runs at the 30th minute of the hour (e.g., `08:30` when the hour is `8`).
+2. **`8` (Hour)** — the task runs during the 8th hour of the day, so `08:30 AM`.
+3. **`*` (Day of Month)** — every day of the month; it doesn't matter whether it's the 1st, 15th, or 30th.
+4. **`*` (Month)** — every month.
+5. **`1-5` (Day of Week)** — Monday through Friday, skipping weekends.
+
+So this schedule fires at **8:30 AM, Monday through Friday** — for example, Monday Jan 6 2025 at 08:30, Tuesday Jan 7 2025 at 08:30, and so on for every weekday.
+
+**Real-world use case:** this pattern is common for tasks that should only run during business hours on workdays, such as sending daily reports to a team, updating a database with the previous day's data, or running data pipelines during non-peak hours.
+</QuestionCard>
+
+<QuestionCard id="af-12" number={12} question="How do you make a module available to Airflow if you're using Docker Compose?" difficulty="easy" topic="Docker">
+If you're using Docker Compose, you need to build a custom image with your own additional dependencies in order to make the module available to Airflow. Refer to the Airflow documentation for the full reasoning and steps.
+</QuestionCard>
+
+<QuestionCard id="af-13" number={13} question="How do you schedule a DAG in Airflow?" difficulty="easy" topic="Scheduling">
+DAGs can be scheduled by passing a `timedelta`, a cron expression, or one of the `@` presets — which works well for DAGs that need to run on a regular basis, though there are use cases that are hard to express "natively" in Airflow or that require workarounds (see the Airflow Improvement Proposals, AIPs, for ongoing work here).
+
+To start a scheduler, simply run:
+
+```bash
+airflow scheduler
+```
+</QuestionCard>
+
+<QuestionCard id="af-14" number={14} question="What are XComs in Airflow?" difficulty="easy" topic="XCom">
+XCom (short for "cross-communication") are messages that allow data to be passed between tasks. Each XCom is defined by a key, a value, a timestamp, and a task/DAG id.
+</QuestionCard>
+
+<QuestionCard id="af-15" number={15} question="What is xcom_pull in Airflow?" difficulty="medium" topic="XCom">
+`xcom_push` and `xcom_pull`, methods on Task Instances, are used to explicitly push and pull XComs to and from their storage. If the `do_xcom_push` parameter is set to `True` (the default), many operators and `@task` functions will auto-push their result into an XCom key named `return_value`.
+
+If no key is supplied to `xcom_pull`, it uses that `return_value` key by default, which lets you write code like:
+
+```python
+# Pulls the return_value XCom from "pushing_task"
+value = task_instance.xcom_pull(task_ids='pushing_task')
+```
+</QuestionCard>
+
+<QuestionCard id="af-16" number={16} question="What are Jinja templates?" difficulty="easy" topic="Templating">
+Jinja is a templating engine that is quick, expressive, and extensible. Templates have special placeholders that let you write code that looks like Python syntax; data is then passed to the template to render the final document.
+</QuestionCard>
+
+<QuestionCard id="af-17" number={17} question="How do you use Airflow XComs in Jinja templates?" difficulty="medium" topic="Templating">
+You can reference XComs directly inside a Jinja-templated field, such as a SQL statement passed to an operator:
+
+```sql
+SELECT * FROM {{ task_instance.xcom_pull(task_ids='foo', key='table_name') }}
+```
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Walk me through how you'd design a DAG for a daily ETL pipeline."** Talk through breaking the pipeline into idempotent tasks, choosing a `schedule_interval`/cron expression, wiring dependencies, and how retries and backfills would behave given that tasks can run more than once.
+- **"A task's output needs to feed into the next task's SQL query — how do you pass it along?"** Reach for XComs (`xcom_push`/`xcom_pull`) and Jinja templating to inject the pulled value directly into a templated field like a SQL statement.
+- **"Which executor would you pick for a production deployment, and why?"** Compare `CeleryExecutor` vs `KubernetesExecutor` on scalability, resource isolation per task, and operational complexity (Celery needs RabbitMQ/Redis; Kubernetes needs a cluster and more nuanced docs).
+
+---
+
+## Further Reading
+
+- [Kubernetes](/level-3-technologies/orchestration/kubernetes/) — the container platform Airflow's `KubernetesExecutor` runs tasks on
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where orchestration fits into the broader curriculum

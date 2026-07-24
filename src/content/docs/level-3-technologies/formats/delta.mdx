@@ -1,0 +1,180 @@
+---
+title: Delta Lake
+description: Delta Lake interview questions covering ACID transactions, the transaction log, time travel, schema evolution, MERGE, and performance optimization.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Delta Lake: Reliable Data Storage
+
+**Delta Lake is an open-source storage layer that brings ACID transactions, schema enforcement, and time travel to Parquet-based data lakes — turning a folder of files into something that behaves like a table.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Delta Lake sits on top of **Parquet** and adds a **transaction log** (`_delta_log/`) that records every change to a table, which is what makes **ACID transactions**, **time travel**, and reliable **schema enforcement/evolution** possible. Writers use **optimistic concurrency control** against that log, so multiple concurrent writers can commit safely, with conflicts detected and retried rather than silently corrupting data. Table maintenance revolves around `OPTIMIZE` (compacting small files and applying **Z-order clustering**) and `VACUUM` (removing old, unreferenced files) — both important because frequent writes or streaming ingestion tend to produce many small files. Delta also supports row-level `MERGE`/`DELETE`/`UPDATE`, **Change Data Capture (CDC)** for downstream consumers, and performance features like **data skipping** built on file-level statistics.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Delta Lake" storagePrefix="delta">
+
+<QuestionCard id="delta-01" number={1} question="What is Delta Lake?" difficulty="easy" topic="Fundamentals">
+Delta Lake is an open-source storage layer that brings ACID transactions, data versioning, and unified batch/streaming processing to data lakes built on Apache Spark.
+</QuestionCard>
+
+<QuestionCard id="delta-02" number={2} question="What are the key features of Delta Lake?" difficulty="easy" topic="Fundamentals">
+Key features include ACID transactions, schema enforcement and evolution, time travel, unified batch/streaming, data lineage, and high performance.
+</QuestionCard>
+
+<QuestionCard id="delta-03" number={3} question="What is the Delta Lake transaction log?" difficulty="medium" topic="Architecture">
+The transaction log (`_delta_log/`) records all transactions on a Delta table, enabling ACID guarantees, time travel, and data recovery.
+</QuestionCard>
+
+<QuestionCard id="delta-04" number={4} question="How does Delta Lake provide ACID transactions?" difficulty="medium" topic="ACID">
+Delta Lake uses the transaction log together with optimistic concurrency control to ensure Atomicity, Consistency, Isolation, and Durability.
+</QuestionCard>
+
+<QuestionCard id="delta-05" number={5} question="What is schema enforcement in Delta Lake?" difficulty="medium" topic="Schema">
+Schema enforcement prevents accidental data corruption by rejecting writes that don't match the table's schema.
+</QuestionCard>
+
+<QuestionCard id="delta-06" number={6} question="What is schema evolution in Delta Lake?" difficulty="medium" topic="Schema">
+Schema evolution allows adding new columns to a Delta table without rewriting the entire dataset.
+</QuestionCard>
+
+<QuestionCard id="delta-07" number={7} question="What is time travel in Delta Lake?" difficulty="easy" topic="Time Travel">
+Time travel allows querying previous versions of a table by specifying a version number or a timestamp.
+</QuestionCard>
+
+<QuestionCard id="delta-08" number={8} question="How do you query historical data in Delta Lake?" difficulty="medium" topic="Time Travel">
+Use:
+
+```sql
+SELECT * FROM table VERSION AS OF version_number
+SELECT * FROM table TIMESTAMP AS OF timestamp_string
+```
+</QuestionCard>
+
+<QuestionCard id="delta-09" number={9} question="What is the VACUUM command in Delta Lake?" difficulty="medium" topic="Maintenance">
+`VACUUM` removes old versions of files from Delta tables, reducing storage costs while still preserving recent history.
+</QuestionCard>
+
+<QuestionCard id="delta-10" number={10} question="What is the OPTIMIZE command in Delta Lake?" difficulty="medium" topic="Maintenance">
+`OPTIMIZE` consolidates small files into larger ones and can apply Z-order clustering, improving query performance.
+</QuestionCard>
+
+<QuestionCard id="delta-11" number={11} question="What is Z-order clustering in Delta Lake?" difficulty="hard" topic="Performance">
+Z-order clustering reorganizes data on disk to maximize data-skipping efficiency, which can dramatically improve query performance for queries that filter on the clustered columns.
+</QuestionCard>
+
+<QuestionCard id="delta-12" number={12} question="How does Delta Lake handle data lineage?" difficulty="medium" topic="Governance">
+Delta Lake tracks lineage through the transaction log, providing a complete audit trail of data changes over time.
+</QuestionCard>
+
+<QuestionCard id="delta-13" number={13} question="What is Change Data Capture in Delta Lake?" difficulty="medium" topic="CDC">
+Change Data Capture (CDC) captures INSERT, UPDATE, and DELETE operations on a table, allowing downstream systems to react to data changes incrementally.
+</QuestionCard>
+
+<QuestionCard id="delta-14" number={14} question="How do you enable CDC in Delta Lake?" difficulty="medium" topic="CDC">
+Enable CDC when creating (or altering) a table with:
+
+```sql
+TBLPROPERTIES ("delta.enableChangeDataFeed" = true)
+```
+</QuestionCard>
+
+<QuestionCard id="delta-15" number={15} question="What is Delta Lake's compatibility with Parquet?" difficulty="easy" topic="Architecture">
+Delta Lake uses Parquet as its underlying data format, while adding a transaction log layer on top for reliability, ACID guarantees, and performance features.
+</QuestionCard>
+
+<QuestionCard id="delta-16" number={16} question="Can you use Delta Lake with Spark?" difficulty="easy" topic="Ecosystem">
+Yes, Spark is the primary engine for Delta Lake. Use `spark.read.format("delta")` to read and `df.write.format("delta")` to write.
+</QuestionCard>
+
+<QuestionCard id="delta-17" number={17} question="Can you use Delta Lake with other tools?" difficulty="easy" topic="Ecosystem">
+Yes, Delta Lake works with Databricks, Apache Spark, Presto, Trino, and many other query engines.
+</QuestionCard>
+
+<QuestionCard id="delta-18" number={18} question="How do you create a Delta Lake table?" difficulty="easy" topic="Basics">
+Use `df.write.format("delta").mode("overwrite").save(path)`, or the SQL form `CREATE TABLE ... USING DELTA`.
+</QuestionCard>
+
+<QuestionCard id="delta-19" number={19} question="What is the difference between managed and external Delta tables?" difficulty="medium" topic="Table Types">
+Managed tables store their data inside the warehouse's managed directory; external tables reference data at an external storage location that the warehouse doesn't own.
+</QuestionCard>
+
+<QuestionCard id="delta-20" number={20} question="How do you handle concurrent writes in Delta Lake?" difficulty="hard" topic="Concurrency">
+Delta Lake uses optimistic concurrency control, allowing multiple writers to operate against the same table with automatic conflict detection and resolution at commit time.
+</QuestionCard>
+
+<QuestionCard id="delta-21" number={21} question="What is the MERGE command in Delta Lake?" difficulty="hard" topic="DML">
+`MERGE` performs INSERT, UPDATE, and DELETE operations in a single statement based on join conditions, similar to the SQL `MERGE` statement — commonly used for upserts.
+</QuestionCard>
+
+<QuestionCard id="delta-22" number={22} question="How do you delete records in Delta Lake?" difficulty="easy" topic="DML">
+Use:
+
+```sql
+DELETE FROM table WHERE condition
+```
+</QuestionCard>
+
+<QuestionCard id="delta-23" number={23} question="What is data skipping in Delta Lake?" difficulty="medium" topic="Performance">
+Data skipping uses file-level statistics to skip data files that don't match query predicates, improving performance without scanning the entire table.
+</QuestionCard>
+
+<QuestionCard id="delta-24" number={24} question="How does Delta Lake improve query performance?" difficulty="medium" topic="Performance">
+Through data skipping, Z-order clustering, predicate pushdown, and an optimized file layout maintained via `OPTIMIZE`.
+</QuestionCard>
+
+<QuestionCard id="delta-25" number={25} question="What is the Delta Lake protocol?" difficulty="hard" topic="Architecture">
+The Delta protocol specifies the transaction log format, ensuring different engines and implementations remain compatible when reading and writing the same tables.
+</QuestionCard>
+
+<QuestionCard id="delta-26" number={26} question="How do you upgrade an existing table to Delta Lake?" difficulty="medium" topic="Migration">
+Convert existing tables using `CONVERT TO DELTA table_name`, or recreate the table in Delta format by rewriting the data.
+</QuestionCard>
+
+<QuestionCard id="delta-27" number={27} question="Can you downgrade from Delta Lake?" difficulty="medium" topic="Migration">
+Downgrading is complex and not a first-class operation. A better approach is usually to keep a separate non-Delta table or maintain a dedicated export process.
+</QuestionCard>
+
+<QuestionCard id="delta-28" number={28} question="What are the storage requirements for Delta Lake?" difficulty="easy" topic="Infrastructure">
+Delta Lake requires cloud object storage (S3, ADLS, GCS, etc.) plus the transaction log directory (`_delta_log`) alongside the data files.
+</QuestionCard>
+
+<QuestionCard id="delta-29" number={29} question="How do you handle Delta Lake compaction?" difficulty="medium" topic="Maintenance">
+Run the `OPTIMIZE` command periodically to compact small files and improve query performance.
+</QuestionCard>
+
+<QuestionCard id="delta-30" number={30} question="What is the impact of frequent writes on Delta Lake?" difficulty="medium" topic="Maintenance">
+Frequent writes create many small files and many transaction log entries, which degrades query planning and performance over time — requiring periodic `OPTIMIZE` and `VACUUM` to keep the table healthy.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"How does Delta Lake guarantee ACID transactions on top of object storage, which has no native transactions?"** Explain the role of the `_delta_log` transaction log and optimistic concurrency control — writers propose new log entries and retry on conflict, rather than relying on storage-level locking.
+- **"A Delta table has thousands of small files after months of streaming writes — how do you fix it?"** Talk through `OPTIMIZE` for compaction (and Z-order clustering on frequently filtered columns), followed by `VACUUM` to reclaim space, and how you'd schedule that maintenance.
+- **"How would you implement an upsert pipeline into a Delta table?"** Walk through `MERGE INTO` with match/no-match conditions, and how CDC (`delta.enableChangeDataFeed`) could let downstream consumers react to just the changed rows instead of rescanning the table.
+
+---
+
+## Further Reading
+
+- [Iceberg](/level-3-technologies/formats/iceberg/) — an alternative open table format with similar ACID/time-travel goals but a different metadata design
+- [Parquet](/level-3-technologies/formats/parquet/) — the columnar file format Delta Lake is built on top of
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where storage formats fit into the broader curriculum

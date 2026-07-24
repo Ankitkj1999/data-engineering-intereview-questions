@@ -1,0 +1,366 @@
+---
+title: Superset
+description: Apache Superset interview questions covering SQL Lab, dashboards, database connectivity, caching and performance, and security for BI and analytics roles.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Superset: Open-Source BI & Visualization
+
+**Apache Superset is an open-source, Python-built BI platform that pairs a SQL-first exploration workflow (SQL Lab) with a drag-and-drop dashboard builder, connecting to almost any SQLAlchemy-compatible database without licensing cost.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Superset is built on Python and Flask, and stores its own **metadata** (dashboards, charts, connections, users) in a metadata database that's separate from the databases it queries. Every visualization starts as a **slice** — a single chart tied to a dataset — and slices are composed into **dashboards**. Two workflows feed slices: the drag-and-drop **Explore** view for point-and-click chart building, and **SQL Lab**, a full SQL IDE for ad-hoc querying, complete with query history and a saved-query workflow. Because Superset connects via SQLAlchemy, it can talk to most relational databases and several NoSQL/OLAP engines with SQL-like interfaces — including **Druid**, historically the go-to backend for fast, real-time-ish analytics on top of Superset. Security is role-based (RBAC), extendable to **row-level security** for restricting which rows a given user's queries can return. As with most BI tools, performance is largely inherited from the underlying database, with Superset's own caching layer sitting on top to avoid re-running identical queries.
+
+---
+
+## Interview Questions
+
+### Fundamentals, Architecture & Connectivity
+
+<QuestionList topic="Superset Fundamentals" storagePrefix="superset-fund">
+
+<QuestionCard id="superset-fund-01" number={1} question="What is Apache Superset?" difficulty="easy" topic="Fundamentals">
+Apache Superset is an open-source business intelligence (BI) and data visualization tool that lets users explore and analyze large datasets through interactive visualizations, dashboards, and SQL-based queries.
+</QuestionCard>
+
+<QuestionCard id="superset-fund-02" number={2} question="How does Superset differ from other BI tools?" difficulty="medium" topic="Fundamentals">
+Superset stands out for its intuitive interface, extensive customization options, and ability to handle large datasets. It supports many databases, offers a wide range of visualization types, and gives users an interactive environment for data exploration — all without commercial licensing.
+</QuestionCard>
+
+<QuestionCard id="superset-fund-03" number={3} question="Which programming language is Superset primarily built with?" difficulty="easy" topic="Fundamentals">
+Superset is primarily built using Python (on Flask), with a React/TypeScript frontend.
+</QuestionCard>
+
+<QuestionCard id="superset-fund-04" number={4} question="What are the key components of Superset?" difficulty="medium" topic="Architecture">
+The web server, the database backend for the data being visualized, the metadata database that stores Superset's own dashboards/charts/connections, and the visualization engine that renders charts.
+</QuestionCard>
+
+<QuestionCard id="superset-fund-05" number={5} question="What databases does Superset support?" difficulty="easy" topic="Connectivity">
+Superset supports a wide range of databases, including MySQL, PostgreSQL, SQLite, Oracle, Microsoft SQL Server, and many others via SQLAlchemy connectors.
+</QuestionCard>
+
+<QuestionCard id="superset-fund-06" number={6} question="How can you install Superset?" difficulty="easy" topic="Installation">
+The simplest path is `pip install apache-superset`, though production deployments typically use Docker or Docker Compose for a more reproducible setup.
+</QuestionCard>
+
+<QuestionCard id="superset-fund-07" number={7} question="Can you explain the process of connecting a database to Superset?" difficulty="medium" topic="Connectivity">
+Connecting a database involves configuring a SQLAlchemy database connection string — specifying the host, port, database name, username, and password — either through the Superset UI or the configuration file.
+</QuestionCard>
+
+<QuestionCard id="superset-fund-08" number={8} question="What is the role of metadata databases in Superset?" difficulty="medium" topic="Architecture">
+The metadata database stores information about Superset's own data models, users, dashboards, and other system-related metadata — it's what lets Superset manage and organize its internal state, separate from the actual analytical data being queried.
+</QuestionCard>
+
+<QuestionCard id="superset-fund-09" number={9} question="What is the Superset Database Metadata Model?" difficulty="medium" topic="Architecture">
+It represents the structure and attributes of the databases and tables registered within Superset — storing information about database connections, schemas, tables, columns, and related metadata that Superset uses to build datasets and charts.
+</QuestionCard>
+
+<QuestionCard id="superset-fund-10" number={10} question="What is the purpose of the Superset configuration file?" difficulty="easy" topic="Architecture">
+The configuration file (`superset_config.py`) contains the settings and parameters that define the behavior and customization options for a given Superset instance — database URIs, feature flags, caching backends, security settings, and more.
+</QuestionCard>
+
+<QuestionCard id="superset-fund-11" number={11} question="What is Druid in the context of Superset?" difficulty="medium" topic="Connectivity">
+Druid is an open-source distributed data store designed for real-time analytics. In Superset, Druid can serve as a backend database, providing high-performance querying and visualization capabilities for large, fast-moving datasets.
+</QuestionCard>
+
+<QuestionCard id="superset-fund-12" number={12} question="Can Superset connect to NoSQL databases?" difficulty="medium" topic="Connectivity">
+Superset primarily targets SQL-based databases, but through its SQLAlchemy integration it can connect to some NoSQL databases that expose a SQL-like interface, such as Apache Cassandra or MongoDB (via an appropriate connector).
+</QuestionCard>
+
+<QuestionCard id="superset-fund-13" number={13} question="Can Superset connect to data lakes or distributed file systems?" difficulty="medium" topic="Connectivity">
+Yes — Superset can connect to data lakes or distributed file systems like HDFS or Amazon S3, using appropriate database connectors or file system interfaces (typically via a query engine like Presto/Trino sitting in front of the lake).
+</QuestionCard>
+
+<QuestionCard id="superset-fund-14" number={14} question="Can Superset connect to cloud-based data warehouses like Amazon Redshift or Google BigQuery?" difficulty="easy" topic="Connectivity">
+Yes — Superset can connect to cloud data warehouses including Amazon Redshift, Google BigQuery, and Snowflake, using their specific database connectors or dialects.
+</QuestionCard>
+
+<QuestionCard id="superset-fund-15" number={15} question="Can Superset handle data from multiple databases or data sources within the same dashboard?" difficulty="medium" topic="Connectivity">
+Yes — by defining separate database connections and datasets for each source, then combining them with appropriate joins or unions in the underlying queries, a single dashboard can surface charts sourced from multiple databases.
+</QuestionCard>
+
+<QuestionCard id="superset-fund-16" number={16} question="Does Superset support cross-database joins in SQL queries?" difficulty="medium" topic="Connectivity">
+Yes — using the appropriate database connectors and schema configuration, Superset supports combining data from different databases via join statements in SQL Lab.
+</QuestionCard>
+
+<QuestionCard id="superset-fund-17" number={17} question="Can you integrate Superset with other BI tools or data platforms?" difficulty="medium" topic="Ecosystem">
+Yes — Superset provides integration capabilities with other BI tools and data platforms. It supports ingesting data from various sources, and can export visualizations and dashboards to different formats.
+</QuestionCard>
+
+<QuestionCard id="superset-fund-18" number={18} question="Can you integrate Superset with version control systems?" difficulty="medium" topic="Ecosystem">
+Yes — by storing Superset's configuration files, dashboard definitions, and visualization definitions in a Git repository, you get versioning, collaboration, and repeatable deployment for Superset artifacts, similar to "dashboards as code."
+</QuestionCard>
+
+</QuestionList>
+
+### SQL Lab & Query Engine
+
+<QuestionList topic="Superset SQL Lab" storagePrefix="superset-sql">
+
+<QuestionCard id="superset-sql-01" number={19} question="What is SQL Lab in Superset?" difficulty="easy" topic="SQL Lab">
+SQL Lab is Superset's built-in feature for writing and executing SQL queries directly against connected databases — a full-featured SQL IDE inside the BI tool.
+</QuestionCard>
+
+<QuestionCard id="superset-sql-02" number={20} question="What are the advantages of using SQL Lab in Superset?" difficulty="medium" topic="SQL Lab">
+SQL Lab provides an interactive, collaborative environment for data exploration, ad-hoc querying, and iterative development of SQL queries — letting analysts explore before formalizing a query into a chart.
+</QuestionCard>
+
+<QuestionCard id="superset-sql-03" number={21} question="What is Superset's SQL Lab Ad-Hoc Editor?" difficulty="medium" topic="SQL Lab">
+The Ad-Hoc Editor is a web-based interface within SQL Lab where users write and execute SQL queries, visualize query results, and save queries for future reference.
+</QuestionCard>
+
+<QuestionCard id="superset-sql-04" number={22} question="What is the Superset SQL Lab Query History feature?" difficulty="easy" topic="SQL Lab">
+Query History lets users view previously executed queries, review their results, and rerun or modify them as needed — useful for picking up an exploration where you left off.
+</QuestionCard>
+
+<QuestionCard id="superset-sql-05" number={23} question="Can you create custom SQL functions or macros in Superset?" difficulty="medium" topic="SQL Lab">
+Yes — you can define custom SQL functions or macros using the underlying database's own capabilities, or by using the SQLAlchemy expression language within Superset.
+</QuestionCard>
+
+<QuestionCard id="superset-sql-06" number={24} question="What is Superset's support for user-defined functions (UDFs)?" difficulty="medium" topic="SQL Lab">
+Superset supports UDFs by letting you define custom SQL functions in the database backend, then use them directly in queries and visualizations built on top of that connection.
+</QuestionCard>
+
+<QuestionCard id="superset-sql-07" number={25} question="Does Superset support data exploration using natural language queries (NLQ)?" difficulty="medium" topic="SQL Lab">
+Not natively — Superset doesn't provide built-in NLQ support. You can integrate it with external NLQ platforms or libraries to add natural-language query capabilities on top.
+</QuestionCard>
+
+<QuestionCard id="superset-sql-08" number={26} question="Can Superset connect to streaming data sources?" difficulty="medium" topic="Streaming">
+Yes — Superset can connect to streaming data sources by leveraging technologies like Apache Kafka or Apache Pulsar, consuming data from topics or streams for visualization.
+</QuestionCard>
+
+<QuestionCard id="superset-sql-09" number={27} question="What is Superset's support for data exploration on streaming data sources?" difficulty="medium" topic="Streaming">
+Superset's support here is limited — while it can connect to streaming platforms like Apache Kafka, its exploration capabilities are typically focused on visualizing historical snapshots rather than true real-time analysis.
+</QuestionCard>
+
+<QuestionCard id="superset-sql-10" number={28} question="Can Superset handle real-time data processing and visualization?" difficulty="medium" topic="Streaming">
+Superset can handle real-time-ish data processing and visualization when paired with an appropriate backing store like Apache Druid, or by integrating with streaming data platforms directly.
+</QuestionCard>
+
+<QuestionCard id="superset-sql-11" number={29} question="Can Superset be used for real-time data streaming analytics?" difficulty="medium" topic="Streaming">
+Superset is primarily designed for interactive querying and visualization of stored data. While it can integrate with real-time sources like Apache Kafka, it isn't optimized for true real-time streaming analytics — a specialized streaming analytics platform is generally a better fit for that use case.
+</QuestionCard>
+
+</QuestionList>
+
+### Visualization, Dashboards & Reporting
+
+<QuestionList topic="Superset Dashboards" storagePrefix="superset-dash">
+
+<QuestionCard id="superset-dash-01" number={30} question="What is a slice in Superset?" difficulty="easy" topic="Visualization">
+A slice is a visual representation of a dataset in Superset — a chart or table built from a single query against a dataset.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-02" number={31} question="How can you create a new slice in Superset?" difficulty="easy" topic="Visualization">
+Using the Slice Add form, you select the visualization type, choose the dataset, and configure the chart-specific settings for that slice.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-03" number={32} question="What is a dashboard in Superset?" difficulty="easy" topic="Dashboards">
+A dashboard is a collection of slices, visualizations, and filters that together provide a comprehensive view of the data.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-04" number={33} question="How can you create a new dashboard in Superset?" difficulty="easy" topic="Dashboards">
+Using the Dashboard Add form, which lets you select and arrange slices, define filters, and set other dashboard-specific properties.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-05" number={34} question="What are the different visualization types available in Superset?" difficulty="easy" topic="Visualization">
+Superset offers a wide range of chart types, including bar charts, line charts, scatter plots, pie charts, maps, tables, and many more.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-06" number={35} question="Can you create custom visualizations in Superset?" difficulty="medium" topic="Visualization">
+Yes — Superset lets you build custom visualizations using the rich set of visualization libraries available in the Python/JavaScript ecosystem, beyond the built-in chart types.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-07" number={36} question={"What is Superset's \"Explore\" feature?"} difficulty="medium" topic="Visualization">
+The Explore feature lets users interactively explore datasets, run SQL queries, apply filters, and visualize the results using different chart types — the drag-and-drop counterpart to SQL Lab.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-08" number={37} question="Can you define metrics and dimensions in Superset?" difficulty="medium" topic="Data Modeling">
+Yes — Superset lets you define metrics (aggregations) and dimensions (groupings) at the dataset level to build complex analytical queries and visualizations without rewriting SQL each time.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-09" number={38} question="How can you create interactive filters in Superset?" difficulty="medium" topic="Dashboards">
+You define filter controls based on the dataset's columns — users can then interact with these filters to dynamically update the data displayed across the dashboard.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-10" number={39} question="What is Superset's support for dashboard interactivity and filtering?" difficulty="medium" topic="Dashboards">
+Superset provides robust dashboard interactivity: users can apply filters, drill down into specific data points, and dynamically update visualizations across a dashboard based on their selections.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-11" number={40} question="How can you customize the look and feel of Superset's visualizations and dashboards?" difficulty="medium" topic="Visualization">
+Superset lets you modify chart properties, apply themes or styles, and use custom CSS or JavaScript to further tailor the appearance of visualizations and dashboards.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-12" number={41} question="Can you create drill-down or drill-through reports in Superset?" difficulty="medium" topic="Dashboards">
+Yes — Superset supports drill-down and drill-through, letting users interactively explore data hierarchies or navigate from a summary-level visualization into detailed underlying data.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-13" number={42} question="What is Superset's support for data storytelling and annotations?" difficulty="medium" topic="Dashboards">
+Superset supports data storytelling through markdown components, text boxes, and annotations layered directly on charts and dashboards — letting users add narrative context and insight alongside the visualizations.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-14" number={43} question="Does Superset support geospatial data visualization?" difficulty="medium" topic="Visualization">
+Yes — Superset supports geospatial visualization through map charts, integrating with map libraries like Leaflet and Mapbox.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-15" number={44} question="What is Superset's support for time-series data analysis?" difficulty="medium" topic="Visualization">
+Superset offers strong support for time-series analysis, with specialized chart types like line charts, area charts, and time-series forecasting visualizations.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-16" number={45} question="What is Superset's support for time-zone conversions in visualizations?" difficulty="medium" topic="Visualization">
+Superset lets users specify the desired time zone for date/time fields in a chart, ensuring data is displayed in the appropriate time zone for the viewer rather than always in the source's native zone.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-17" number={46} question="Can you share dashboards with other users in Superset?" difficulty="easy" topic="Dashboards">
+Yes — you can share a dashboard's URL directly, or embed it in other applications, and control access permissions to restrict or allow specific users to view or edit it.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-18" number={47} question="Does Superset support embedding dashboards in other applications?" difficulty="medium" topic="Dashboards">
+Yes — Superset provides embed codes or URLs that can be integrated into web pages or portals, letting dashboards live inside another application's UI.
+</QuestionCard>
+
+<QuestionCard id="superset-dash-19" number={48} question="Can you schedule and automate reports in Superset?" difficulty="medium" topic="Reporting">
+Yes — Superset supports report scheduling and automation using the Celery distributed task queue, letting you define periodic jobs that run queries and send reports via email or other channels.
+</QuestionCard>
+
+</QuestionList>
+
+### Performance, Caching & Scale
+
+<QuestionList topic="Superset Performance" storagePrefix="superset-perf">
+
+<QuestionCard id="superset-perf-01" number={49} question="What are some ways to optimize query performance in Superset?" difficulty="medium" topic="Performance">
+Use appropriate indexes on the underlying database tables, aggregate data at the database level rather than in Superset, cache query results, and tune Superset's own configuration settings (like query timeouts and row limits).
+</QuestionCard>
+
+<QuestionCard id="superset-perf-02" number={50} question="How does Superset handle large datasets?" difficulty="medium" topic="Performance">
+Superset leverages the power of the underlying database systems to handle large datasets — it uses efficient SQL queries and implements pagination and caching to keep performance reasonable rather than pulling everything into the app itself.
+</QuestionCard>
+
+<QuestionCard id="superset-perf-03" number={51} question="What is Superset's data caching mechanism?" difficulty="medium" topic="Caching">
+Superset caches query results to improve performance and reduce load on the underlying databases — subsequent identical requests are served from the cache instead of re-executing the query.
+</QuestionCard>
+
+<QuestionCard id="superset-perf-04" number={52} question="What is Superset's approach to data caching and cache invalidation?" difficulty="medium" topic="Caching">
+Query results are cached based on the underlying database and query parameters. Cache invalidation is handled either through cache timeout settings, or by manually clearing the cache when the underlying data is known to have changed.
+</QuestionCard>
+
+<QuestionCard id="superset-perf-05" number={53} question="How does Superset handle data caching for queries with dynamic parameters?" difficulty="medium" topic="Caching">
+For queries with dynamic parameters, Superset includes the parameter values as part of the cache key — this ensures different query instances with different parameter values don't collide or get mixed up in the cache.
+</QuestionCard>
+
+<QuestionCard id="superset-perf-06" number={54} question="How can you monitor the performance of Superset?" difficulty="medium" topic="Performance">
+Using monitoring agents, log analyzers, and performance tracking tools — analyzing server logs, watching resource usage, and tracking query performance to identify and resolve bottlenecks.
+</QuestionCard>
+
+<QuestionCard id="superset-perf-07" number={55} question="Can you deploy Superset in a distributed environment?" difficulty="medium" topic="Deployment">
+Yes — Superset can be deployed in a distributed environment using tools like Kubernetes or Docker Swarm to manage containerized instances across multiple nodes or machines.
+</QuestionCard>
+
+<QuestionCard id="superset-perf-08" number={56} question="Does Superset support multi-tenancy?" difficulty="medium" topic="Deployment">
+Yes — Superset supports multi-tenancy by letting you configure and manage multiple instances or workspaces within a single deployment, each with its own users, databases, and resources.
+</QuestionCard>
+
+<QuestionCard id="superset-perf-09" number={57} question="What are Superset's alerting capabilities?" difficulty="medium" topic="Alerting">
+Superset has limited built-in alerting. You can leverage external tools, or integrate Superset with alerting systems, to set up notifications based on predefined metrics or thresholds.
+</QuestionCard>
+
+</QuestionList>
+
+### Security, Governance & Lineage
+
+<QuestionList topic="Superset Security & Governance" storagePrefix="superset-sec">
+
+<QuestionCard id="superset-sec-01" number={58} question="How can you secure Superset?" difficulty="medium" topic="Security">
+Enable authentication and authorization mechanisms such as LDAP, OAuth, or database-backed authentication, and configure role-based access control (RBAC) to control what each user can see and do.
+</QuestionCard>
+
+<QuestionCard id="superset-sec-02" number={59} question="How does Superset handle data security and access control?" difficulty="medium" topic="Security">
+Superset provides access control through role-based permissions — you define roles and assign them specific permissions governing who can access and modify datasets, slices, dashboards, and other resources.
+</QuestionCard>
+
+<QuestionCard id="superset-sec-03" number={60} question="What is Superset's support for row-level security (RLS)?" difficulty="hard" topic="Security">
+Superset supports RLS by letting you define filters or query conditions based on a user's role or attributes, restricting the rows a given query can return based on who's running it.
+</QuestionCard>
+
+<QuestionCard id="superset-sec-04" number={61} question="What is Superset's support for data permissions and data masking?" difficulty="medium" topic="Security">
+Superset enforces data permissions through RBAC, letting you grant or restrict access to specific datasets or columns. Data masking itself, though, needs to be implemented at the database layer rather than within Superset.
+</QuestionCard>
+
+<QuestionCard id="superset-sec-05" number={62} question="Can you integrate Superset with external authentication systems?" difficulty="medium" topic="Security">
+Yes — Superset integrates with external authentication systems like LDAP, OAuth, or SSO solutions, letting users log in with their existing credentials.
+</QuestionCard>
+
+<QuestionCard id="superset-sec-06" number={63} question="What are some common security best practices and considerations for deploying Superset in production?" difficulty="medium" topic="Security">
+- Enforce secure communication over HTTPS
+- Set up strong authentication and authorization mechanisms
+- Restrict database access privileges to the minimum needed
+- Keep Superset and its dependencies up to date with security patches
+- Conduct regular security audits
+</QuestionCard>
+
+<QuestionCard id="superset-sec-07" number={64} question="What is Superset's support for data access logging and auditing?" difficulty="medium" topic="Security">
+Superset provides logging that can be configured to record user activity, query executions, and system events — used for auditing purposes and tracking data access and usage over time.
+</QuestionCard>
+
+<QuestionCard id="superset-sec-08" number={65} question="How does Superset handle data lineage and data governance?" difficulty="medium" topic="Governance">
+Superset can capture and display data lineage, letting users trace the source and transformations behind the data used in dashboards and visualizations. It also supports governance through access controls and data security measures.
+</QuestionCard>
+
+<QuestionCard id="superset-sec-09" number={66} question="Does Superset provide data lineage tracking?" difficulty="medium" topic="Governance">
+Yes — Superset has built-in features to track lineage by capturing and displaying information about the source tables, columns, and transformations used in dashboards and visualizations.
+</QuestionCard>
+
+<QuestionCard id="superset-sec-10" number={67} question="How does Superset handle data lineage in complex data pipelines?" difficulty="hard" topic="Governance">
+In complex pipelines, Superset relies on the metadata captured from the underlying database systems to track lineage. As long as database connections are properly configured, Superset can accurately capture and display lineage across different data sources.
+</QuestionCard>
+
+<QuestionCard id="superset-sec-11" number={68} question="Does Superset support data lineage across multiple dashboards and slices?" difficulty="medium" topic="Governance">
+Yes — by capturing and displaying metadata information, Superset lets users trace the origin and transformations of data used across multiple dashboards and slices, not just within a single one.
+</QuestionCard>
+
+<QuestionCard id="superset-sec-12" number={69} question="Can Superset integrate with external data catalog systems?" difficulty="medium" topic="Governance">
+Yes — Superset can integrate with external data catalog systems via metadata connectors or APIs, letting users discover and explore cataloged datasets from within the Superset interface.
+</QuestionCard>
+
+<QuestionCard id="superset-sec-13" number={70} question="What is Superset's support for anomaly detection?" difficulty="medium" topic="Governance">
+Not natively — Superset doesn't provide built-in anomaly detection. You can leverage Python libraries or integrate with a dedicated anomaly detection system to add that capability.
+</QuestionCard>
+
+<QuestionCard id="superset-sec-14" number={71} question="What is Superset's integration with Apache Airflow?" difficulty="medium" topic="Ecosystem">
+Superset integrates with Apache Airflow, letting you schedule and orchestrate data pipelines, trigger dashboard refreshes based on pipeline runs, and use Airflow operators to interact with Superset as part of a broader workflow.
+</QuestionCard>
+
+<QuestionCard id="superset-sec-15" number={72} question="How can you extend Superset's functionality?" difficulty="medium" topic="Ecosystem">
+By creating custom visualization plugins, integrating with external systems through Superset's API, or building new features on top of its extensible, open-source architecture.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A dashboard mixes data from Postgres and a data lake table — how would you build that in Superset?"** Walk through registering both connections, building separate datasets, and either joining/unioning them via a federated query engine or combining them at the dashboard level with multiple slices.
+- **"SQL Lab queries are timing out on a large table — what do you check?"** Cover query timeout configuration, whether the underlying table is properly indexed/partitioned, row limits, and whether caching or a materialized aggregate table would help.
+- **"How would you make sure a sales rep only sees their own region's data on a shared dashboard?"** Explain row-level security (RLS) rules tied to user attributes, and how that differs from just hiding a column via RBAC.
+- **"The team wants near-real-time dashboards on top of clickstream data — is Superset a fit?"** Discuss pairing Superset with Druid or a similarly fast OLAP store, versus the limits of connecting it directly to a raw Kafka stream.
+
+---
+
+## Further Reading
+
+- [Tableau Interview Questions](/level-3-technologies/bi/tableau/) — the leading commercial BI alternative
+- [Looker Interview Questions](/level-3-technologies/bi/looker/) — a modeling-first commercial alternative
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where BI tools fit into the broader data stack

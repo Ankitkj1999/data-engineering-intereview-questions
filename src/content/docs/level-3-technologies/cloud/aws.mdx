@@ -1,0 +1,382 @@
+---
+title: AWS
+description: AWS interview questions covering EC2, S3, VPC, IAM, RDS, DynamoDB, Redshift, and ElastiCache for data engineering and cloud roles.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## AWS: Amazon Web Services Data Solutions
+
+**AWS is the most widely used cloud platform for data engineering, offering managed compute (EC2), storage (S3, EBS), networking (VPC, Route 53), and purpose-built data services (RDS, DynamoDB, Redshift, ElastiCache) that let teams build pipelines and warehouses without managing physical infrastructure.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+AWS interviews generally test whether you understand the trade-offs behind each service category rather than raw trivia. **Compute** (EC2) comes in pricing flavors — On-Demand, Reserved, and Spot — each suited to a different workload shape. **Storage** splits between object storage (S3, with its own storage-class tiers for cost vs. access-frequency trade-offs), block storage (EBS, persistent) and ephemeral instance storage. **Networking** (VPC, subnets, security groups, Route 53) controls isolation and availability, while **IAM** governs who can do what. On the data side, AWS offers managed relational databases (RDS, with engines like Aurora, MySQL, and PostgreSQL), a serverless NoSQL store (DynamoDB) for single-digit-millisecond lookups at scale, a petabyte-scale columnar warehouse (Redshift) for analytics, and an in-memory cache (ElastiCache) for read-heavy workloads. Understanding *when* to reach for each — and how they combine into a real pipeline — is what separates rote answers from strong ones.
+
+---
+
+## Interview Questions
+
+### Core Compute & Storage (EC2, S3, AMI)
+
+<QuestionList topic="AWS Compute & Storage" storagePrefix="aws-compute">
+
+<QuestionCard id="aws-compute-01" number={1} question="What is EC2?" difficulty="easy" topic="EC2">
+EC2 (Elastic Compute Cloud) is a virtual machine in the cloud on which you have OS-level control. You can run this cloud server whenever you want — useful when you need to deploy your own servers in the cloud, similar to on-premises servers, and want full control over hardware choice and updates on the machine.
+</QuestionCard>
+
+<QuestionCard id="aws-compute-02" number={2} question="Explain what T2 instances are." difficulty="easy" topic="EC2">
+T2 instances are designed to provide moderate baseline CPU performance with the ability to "burst" to higher performance as required by the workload — a good fit for applications with variable, spiky CPU usage rather than sustained high load.
+</QuestionCard>
+
+<QuestionCard id="aws-compute-03" number={3} question="What are the different types of EC2 instances?" difficulty="easy" topic="EC2">
+- **Compute Optimized** — high-performance processors, for compute-bound workloads
+- **Memory-Optimized** — fast performance for memory-intensive workloads
+- **Storage Optimized** — high, sequential read/write access to large local datasets
+- **Accelerated Computing** — uses hardware accelerators (GPUs) for tasks like graphics processing and machine learning
+</QuestionCard>
+
+<QuestionCard id="aws-compute-04" number={4} question="What are the different types of EC2 instances based on their cost model?" difficulty="medium" topic="EC2">
+- **On-Demand Instance** — created as and when needed, no upfront commitment. Cheap for short-term use, but not for the long term.
+- **Spot Instance** — bought through a bidding model against AWS's unused capacity; comparatively cheaper than On-Demand, but can be reclaimed.
+- **Reserved Instance** — reserved for a year (or more) in advance; ideal when you know you'll need an instance long-term, and saves heavily on cost.
+</QuestionCard>
+
+<QuestionCard id="aws-compute-05" number={5} question="What are Spot Instances and On-Demand Instances?" difficulty="medium" topic="EC2">
+When AWS provisions EC2 capacity, some blocks of computing power go unused — AWS releases these as **Spot Instances**, which run whenever capacity is available and are a good fit if your workload is flexible about timing and tolerant of interruption. **On-Demand Instances**, by contrast, are created whenever needed at a static price, and stay available until you explicitly terminate them.
+</QuestionCard>
+
+<QuestionCard id="aws-compute-06" number={6} question="What do you understand by stopping and terminating an EC2 instance?" difficulty="easy" topic="EC2">
+**Stopping** an instance shuts it down like a personal computer — attached volumes are preserved, and the instance can be restarted later. **Terminating** an instance is equivalent to deleting it: all attached volumes are deleted, and the instance cannot be restarted afterward.
+</QuestionCard>
+
+<QuestionCard id="aws-compute-07" number={7} question="Can you change the private IP address of an EC2 instance while it is running or stopped?" difficulty="medium" topic="EC2">
+No. A private IP address is assigned to an EC2 instance at boot time and stays attached for the instance's entire lifetime — it can never be changed.
+</QuestionCard>
+
+<QuestionCard id="aws-compute-08" number={8} question="What does an AMI include?" difficulty="medium" topic="EC2">
+An Amazon Machine Image (AMI) includes:
+
+- a template for the instance's root volume
+- launch permissions controlling which AWS accounts can use the AMI to launch instances
+- a block device mapping that determines which volumes to attach to the instance at launch
+</QuestionCard>
+
+<QuestionCard id="aws-compute-09" number={9} question="What is an Instance Store Volume and an EBS Volume?" difficulty="medium" topic="Storage">
+An **Instance Store Volume** is temporary storage used for data an instance needs while running — as soon as the instance stops, the volume and its data are deleted. An **EBS Volume** is persistent block storage: data stored on it survives even after the instance is turned off.
+</QuestionCard>
+
+<QuestionCard id="aws-compute-10" number={10} question="Explain what S3 is." difficulty="easy" topic="S3">
+S3 (Simple Storage Service) is Amazon's object storage service. You can use the S3 interface to store and retrieve any amount of data, at any time, from anywhere on the web, on a pay-as-you-go pricing model.
+</QuestionCard>
+
+<QuestionCard id="aws-compute-11" number={11} question="What are the storage classes available in Amazon S3?" difficulty="easy" topic="S3">
+- Amazon S3 Standard
+- Amazon S3 Standard-Infrequent Access
+- Amazon S3 Reduced Redundancy Storage
+- Amazon Glacier
+
+Each trades cost against retrieval speed and access frequency, so the right class depends on how often the data is actually read.
+</QuestionCard>
+
+<QuestionCard id="aws-compute-12" number={12} question="How can you send a request to Amazon S3?" difficulty="easy" topic="S3">
+S3 is a REST service — you can send a request using the REST API directly, or via the AWS SDK wrapper libraries that wrap the underlying S3 REST API.
+</QuestionCard>
+
+<QuestionCard id="aws-compute-13" number={13} question="Is there a way to upload a file greater than 100 megabytes to Amazon S3?" difficulty="medium" topic="S3">
+Yes — using the **Multipart Upload** utility. Larger files can be split into multiple parts and uploaded independently (and in parallel, to reduce total upload time). Once all parts finish uploading, they're merged into the original object.
+</QuestionCard>
+
+<QuestionCard id="aws-compute-14" number={14} question="What is SnowBall?" difficulty="easy" topic="Data Transfer">
+Snowball is a physical data-transport appliance that enables you to move terabytes of data into and out of the AWS environment without relying on network bandwidth — useful for large one-time migrations.
+</QuestionCard>
+
+<QuestionCard id="aws-compute-15" number={15} question="What is Elastic Transcoder?" difficulty="easy" topic="Media">
+Elastic Transcoder is an AWS service that converts a video's format and resolution to support playback across different devices — tablets, smartphones, and laptops of varying screen resolutions.
+</QuestionCard>
+
+<QuestionCard id="aws-compute-16" number={16} question="List the different types of cloud services." difficulty="easy" topic="Fundamentals">
+- **Software as a Service (SaaS)**
+- **Data as a Service (DaaS)**
+- **Platform as a Service (PaaS)**
+- **Infrastructure as a Service (IaaS)**
+</QuestionCard>
+
+<QuestionCard id="aws-compute-17" number={17} question="What is the relationship between an Availability Zone and a Region?" difficulty="medium" topic="Fundamentals">
+An **Availability Zone** is a physical location where an AWS data center sits. A **Region** is a collection of Availability Zones. Spreading VMs across multiple Availability Zones within a Region means that if one data center fails, requests still get served from the others — keeping the service available even if a single data center goes down.
+</QuestionCard>
+
+</QuestionList>
+
+### Networking, Security & IAM
+
+<QuestionList topic="AWS Networking & Security" storagePrefix="aws-network">
+
+<QuestionCard id="aws-network-01" number={18} question="What do you understand by VPC?" difficulty="easy" topic="VPC">
+VPC (Virtual Private Cloud) lets you customize your own networking configuration. It's a network that is logically isolated from other networks in the cloud, giving you your own private IP address range, internet gateways, subnets, and security groups.
+</QuestionCard>
+
+<QuestionCard id="aws-network-02" number={19} question="How many subnets can you have per VPC?" difficulty="easy" topic="VPC">
+You can have up to 200 subnets per VPC.
+</QuestionCard>
+
+<QuestionCard id="aws-network-03" number={20} question="How do you monitor Amazon VPC?" difficulty="medium" topic="VPC">
+You can monitor a VPC using **CloudWatch** (metrics and alarms) and **VPC Flow Logs** (records of the IP traffic going to and from network interfaces in the VPC).
+</QuestionCard>
+
+<QuestionCard id="aws-network-04" number={21} question="DNS and Load Balancer services come under which type of cloud service?" difficulty="easy" topic="Fundamentals">
+DNS and Load Balancer services are part of **IaaS** (Infrastructure as a Service).
+</QuestionCard>
+
+<QuestionCard id="aws-network-05" number={22} question="How does Amazon Route 53 provide high availability and low latency?" difficulty="medium" topic="Route 53">
+- **Globally distributed servers** — AWS runs DNS servers around the world, so a query from any region reaches a nearby server, reducing latency.
+- **High dependability** — Route 53 is built to meet the reliability demands of critical applications.
+- **Optimal routing** — requests are served from the data center nearest the client. Data can be cached across regions depending on configuration, and Route 53 routes each request to whichever server holding the required data is closest, minimizing response time.
+</QuestionCard>
+
+<QuestionCard id="aws-network-06" number={23} question="What is Geo-Targeting in CloudFront?" difficulty="medium" topic="CloudFront">
+Geo-Targeting lets you serve customized content based on a user's geographic location. For example, you might show news about local elections to a user in India but not a user in the US, and vice versa for content more relevant to a US audience.
+</QuestionCard>
+
+<QuestionCard id="aws-network-07" number={24} question="What are Key-Pairs in AWS?" difficulty="easy" topic="Security">
+Key-Pairs are the secure login credentials for your virtual machines, consisting of a public key and a private key, used to connect to EC2 instances.
+</QuestionCard>
+
+<QuestionCard id="aws-network-08" number={25} question="What are the advantages of AWS IAM?" difficulty="medium" topic="IAM">
+IAM lets an administrator grant granular, role-based access to different users and groups, since different users typically need different levels of access to different resources. It also supports **Federated Access** — granting access to users and applications without creating dedicated IAM roles for each.
+</QuestionCard>
+
+<QuestionCard id="aws-network-09" number={26} question="What do you understand by a Security Group?" difficulty="medium" topic="Security">
+When you create an instance, you may want to control which networks can reach it. A Security Group is a rule-based virtual firewall for controlling access to instances — you define rules by port number, network range, or protocol to allow or deny access.
+</QuestionCard>
+
+<QuestionCard id="aws-network-10" number={27} question="What is a Stateful and a Stateless Firewall?" difficulty="medium" topic="Security">
+A **Stateful Firewall** tracks the state of connections and requires you to define only inbound rules — it automatically allows the matching outbound traffic. A **Stateless Firewall** requires you to explicitly define both inbound and outbound rules. For example, if you allow inbound traffic on port 80, a stateful firewall auto-allows the outbound response on port 80, while a stateless firewall would not unless you configured it separately.
+</QuestionCard>
+
+<QuestionCard id="aws-network-11" number={28} question="What is a Power User Access in AWS?" difficulty="medium" topic="IAM">
+An **Administrator** user is effectively the owner of AWS resources — able to create, delete, modify, or view resources, and grant permissions to others. A **Power User** has that same level of resource access, but cannot manage users or permissions for other people.
+</QuestionCard>
+
+<QuestionCard id="aws-network-12" number={29} question="What policies can you set for your users' passwords?" difficulty="easy" topic="Security">
+- Set a minimum password length
+- Require at least one number or special character
+- Require specific character types — uppercase, lowercase, numbers, non-alphanumeric
+- Enforce automatic password expiration, prevent reuse of old passwords, and force a reset on next sign-in
+- Require users to contact an account administrator once their password has expired
+</QuestionCard>
+
+<QuestionCard id="aws-network-13" number={30} question="Explain Connection Draining." difficulty="medium" topic="Load Balancing">
+Connection Draining lets a server that's about to be updated or removed finish serving its current requests. With Connection Draining enabled, the Load Balancer allows an outgoing instance to complete in-flight requests for a set period but stops routing new requests to it. Without it, the outgoing instance goes offline immediately and any pending requests error out.
+</QuestionCard>
+
+<QuestionCard id="aws-network-14" number={31} question="What is the use of lifecycle hooks in Auto Scaling?" difficulty="medium" topic="Auto Scaling">
+Lifecycle hooks add extra wait time to a scale-in or scale-out event — useful for running custom actions (like deregistering from a load balancer or pulling final logs) before an instance is terminated or put into service.
+</QuestionCard>
+
+</QuestionList>
+
+### Managed Databases (RDS, DynamoDB, ElastiCache)
+
+<QuestionList topic="AWS Managed Databases" storagePrefix="aws-db">
+
+<QuestionCard id="aws-db-01" number={32} question="What do you know about Amazon's database offerings?" difficulty="easy" topic="Fundamentals">
+AWS offers managed relational and NoSQL databases, a fully managed petabyte-scale data warehouse, and in-memory caching as a service. There are four core AWS database services, and you can mix and match based on your needs: **DynamoDB**, **RDS**, **Redshift**, and **ElastiCache**.
+</QuestionCard>
+
+<QuestionCard id="aws-db-02" number={33} question="Explain Amazon Relational Database Service (RDS)." difficulty="easy" topic="RDS">
+RDS helps users operate, scale, and manage a relational database in the cloud. It automates admin tasks like setup, hardware provisioning, backups, and patching, giving you resizable, cost-effective capacity so you can focus on the application instead of infrastructure — while still getting high availability, fast performance, compatibility, and security.
+
+Supported RDS engines include:
+- MySQL
+- Oracle
+- PostgreSQL
+- SQL Server
+- MariaDB
+- Amazon Aurora
+</QuestionCard>
+
+<QuestionCard id="aws-db-03" number={34} question="What are the key features of Amazon's managed database services?" difficulty="easy" topic="Fundamentals">
+- Easy to administer
+- Highly scalable
+- Durable and reliable
+- Fast performance
+- Highly available
+- More secure
+- Cost-effective
+</QuestionCard>
+
+<QuestionCard id="aws-db-04" number={35} question="What are the consistency models for modern databases offered by AWS?" difficulty="medium" topic="Consistency">
+- **Eventual Consistency** — data becomes consistent eventually, but not necessarily immediately. Serves requests faster, at the risk that some early reads see stale data. Acceptable where real-time accuracy isn't critical (e.g., not seeing the newest tweets for a couple of seconds).
+- **Strong Consistency** — provides immediate consistency across all DB servers. Slower to propagate writes, but guarantees every response reflects consistent data.
+</QuestionCard>
+
+<QuestionCard id="aws-db-05" number={36} question="Which AWS database service is a serverless NoSQL database that delivers consistent single-digit-millisecond latency at any scale?" difficulty="easy" topic="DynamoDB">
+Amazon DynamoDB.
+</QuestionCard>
+
+<QuestionCard id="aws-db-06" number={37} question="What is a key-value store?" difficulty="easy" topic="DynamoDB">
+A key-value store is a database service that facilitates storing, updating, and querying objects identified by a key, with a value holding the actual content associated with that key.
+</QuestionCard>
+
+<QuestionCard id="aws-db-07" number={38} question="What is DynamoDB?" difficulty="easy" topic="DynamoDB">
+DynamoDB is a fully managed NoSQL database service offering fast, predictable performance with seamless scalability. Because it's fully managed, users don't need to worry about configuration, hardware provisioning, throughput capacity, replication, software patching, or cluster scaling — AWS handles the operational burden of running a distributed database.
+</QuestionCard>
+
+<QuestionCard id="aws-db-08" number={39} question="What are the benefits of using Amazon DynamoDB?" difficulty="medium" topic="DynamoDB">
+- Fully managed — no need for dedicated experts to handle setup, installation, or clustering
+- Predictable, fast performance
+- Highly scalable, available, and durable
+- Very high throughput at low latency
+- Cost-effective
+- Supports flexible, dynamic tables with multi-valued attributes
+</QuestionCard>
+
+<QuestionCard id="aws-db-09" number={40} question="What is the DynamoDBMapper class?" difficulty="medium" topic="DynamoDB">
+`DynamoDBMapper` is the entry point for accessing DynamoDB programmatically. It lets you access data stored across various tables, then execute queries, run scans, and perform CRUD operations on the data items through a higher-level, object-oriented interface.
+</QuestionCard>
+
+<QuestionCard id="aws-db-10" number={41} question="What data types does DynamoDB support?" difficulty="medium" topic="DynamoDB">
+DynamoDB supports scalar, collection, and null data types.
+
+**Scalar types:**
+- Binary
+- Number
+- Boolean
+- String
+
+**Collection types:**
+- Binary Set
+- Number Set
+- String Set
+- Heterogeneous Map
+- Heterogeneous List
+</QuestionCard>
+
+<QuestionCard id="aws-db-11" number={42} question="What do you understand by DynamoDB Auto Scaling?" difficulty="medium" topic="DynamoDB">
+DynamoDB Auto Scaling automatically scales a table's (or global secondary index's) read and write capacity up or down in response to actual traffic patterns, so you don't have to provision for peak load manually.
+</QuestionCard>
+
+<QuestionCard id="aws-db-12" number={43} question="Which database engines are supported by Amazon RDS?" difficulty="easy" topic="RDS">
+Amazon Aurora, MySQL, MariaDB, Oracle, SQL Server, and PostgreSQL.
+</QuestionCard>
+
+<QuestionCard id="aws-db-13" number={44} question="What is the work of Amazon RDS?" difficulty="easy" topic="RDS">
+When a user wants to set up a relational database, RDS provisions the infrastructure capacity requested and installs the database software. Once the database is running, RDS automates tasks like patching the software, taking backups, and managing synchronous data replication with automatic failover.
+</QuestionCard>
+
+<QuestionCard id="aws-db-14" number={45} question="What is the purpose of a standby RDS instance?" difficulty="medium" topic="RDS">
+A standby RDS instance protects against infrastructure failure — it's stored in a different Availability Zone, on physically independent infrastructure, so it can take over if the primary instance's infrastructure fails.
+</QuestionCard>
+
+<QuestionCard id="aws-db-15" number={46} question="Are RDS instances upgradable or downgradable as needed?" difficulty="medium" topic="RDS">
+Yes — you can upgrade an RDS instance with the `modify-db-instance` command. If you're unsure how much CPU capacity you'll need, start with a `db.m1.small` instance class and monitor CPU utilization with CloudWatch before deciding whether to scale up.
+</QuestionCard>
+
+<QuestionCard id="aws-db-16" number={47} question="Is it possible to run multiple DB instances for free with Amazon RDS?" difficulty="medium" topic="RDS">
+Yes — you can run more than one Single-AZ micro DB instance for free. However, if combined usage exceeds 750 instance-hours across all Single-AZ micro DB instances in a month, you're billed at standard RDS rates for the overage. For example, running 2 Single-AZ micro instances for 400 hours each totals 800 instance-hours — 750 are free, and you're billed for the remaining 50 hours.
+</QuestionCard>
+
+<QuestionCard id="aws-db-17" number={48} question="What happens to DB snapshots and backups if a user deletes a DB instance?" difficulty="medium" topic="RDS">
+When a DB instance is deleted, the user is offered the option to take a final DB snapshot, which can later be used to restore the data. RDS retains all snapshots — both this final one and any manually created ones — after the instance is deleted. Automated backups, however, are deleted; only manually created snapshots are preserved.
+</QuestionCard>
+
+<QuestionCard id="aws-db-18" number={49} question="What is Amazon ElastiCache?" difficulty="easy" topic="ElastiCache">
+ElastiCache is a fully managed, zero-administration in-memory key-value store that supports two engines — Redis and Memcached. It's used both to build new high-performance applications and to speed up existing ones, with common use cases in gaming, healthcare, and other latency-sensitive fields.
+</QuestionCard>
+
+<QuestionCard id="aws-db-19" number={50} question="What is the use of Amazon ElastiCache?" difficulty="easy" topic="ElastiCache">
+ElastiCache improves web application performance by caching frequently accessed information in memory, which is far faster than fetching it from disk on every request. Because it's fully managed, you don't need to run a separate caching server yourself — you get high-throughput, low-latency, open-source-compatible in-memory storage out of the box.
+</QuestionCard>
+
+<QuestionCard id="aws-db-20" number={51} question="What are the benefits of Amazon ElastiCache?" difficulty="medium" topic="ElastiCache">
+- Automatic detection and recovery from cache node failures
+- Easy integration with other AWS services for a high-performance, secured in-memory cache
+- Most operational work (setup, configuration, monitoring) is handled for you, freeing your team to focus on higher-value work
+- Enhanced performance for applications that need very low response times
+- Scales up or down easily to match demand
+</QuestionCard>
+
+<QuestionCard id="aws-db-21" number={52} question="Explain the types of engines in ElastiCache." difficulty="medium" topic="ElastiCache">
+- **Memcached** — a popular in-memory store for high-performance caching. By keeping data in memory rather than on disk, it retrieves values in under a millisecond, uniquely identifying each cached item by key.
+- **Redis** — favored for its performance, simplicity, and feature set. It offers sub-millisecond latency and supports complex data types (strings, hashes, and more), along with backup and restore capabilities. Where Memcached caps key/value size at 1 MB, Redis supports values up to 512 MB.
+</QuestionCard>
+
+</QuestionList>
+
+### Data Warehousing, Analytics & Resilience
+
+<QuestionList topic="AWS Data Warehousing & Resilience" storagePrefix="aws-warehouse">
+
+<QuestionCard id="aws-warehouse-01" number={53} question="What is a data warehouse, and what role does AWS Redshift play in it?" difficulty="medium" topic="Redshift">
+A data warehouse is a repository where data generated by a company's systems and other sources is collected and stored, typically in a three-tier architecture:
+
+- **Bottom tier** — tools that cleanse and collect the data
+- **Middle tier** — tools that transform the data via an OLAP server
+- **Top tier** — front-end tools for data analysis and data mining
+
+Running a data warehouse in-house gets expensive fast, since storage needs keep growing and servers need continual upgrades. Redshift solves this by letting companies store their data in a fully managed, cloud-based warehouse instead.
+</QuestionCard>
+
+<QuestionCard id="aws-warehouse-02" number={54} question="What is Amazon Redshift, and why is it popular among cloud data warehouses?" difficulty="medium" topic="Redshift">
+Redshift is a fast, scalable, cost-effective data warehouse, ranging from gigabytes to hundreds of petabytes of storage. No specific programming knowledge is required to use it — you launch a cluster and start querying with familiar SQL tools.
+
+Redshift is popular because:
+- **It's easy to use** — create a cluster from the console, fill in a few details, and launch; Redshift automates management, monitoring, and scaling.
+- **Scaling is simple** — just resize the cluster by changing the number of compute nodes.
+- **It's fast** — columnar storage and massively parallel processing deliver high throughput and low response times, often 10x faster than comparable setups.
+- **It's economical** — no upfront setup cost, bringing costs down to roughly a tenth of a traditional data warehouse.
+</QuestionCard>
+
+<QuestionCard id="aws-warehouse-03" number={55} question="What is Redshift Spectrum?" difficulty="medium" topic="Redshift">
+Redshift Spectrum lets you run queries directly against petabytes of unstructured data without any ETL/loading step first. It scales to millions of queries and lets you store data wherever and in whatever format suits you.
+</QuestionCard>
+
+<QuestionCard id="aws-warehouse-04" number={56} question="What is a Leader Node and a Compute Node in Redshift?" difficulty="medium" topic="Redshift">
+The **Leader Node** receives queries from the client application, parses them, and builds the execution plan, then sends the resulting steps to the compute nodes and returns the final result to the client. The **Compute Nodes** execute the steps assigned by the leader node, process the data, and send their results back to the leader node before it responds to the client.
+</QuestionCard>
+
+<QuestionCard id="aws-warehouse-05" number={57} question="How do you load data into Amazon Redshift?" difficulty="medium" topic="Redshift">
+Common sources for loading data into Redshift include DynamoDB, EMR, AWS Glue, and AWS Data Pipeline. Clients can also connect via ODBC or JDBC and issue standard SQL `INSERT` statements to load data directly.
+</QuestionCard>
+
+<QuestionCard id="aws-warehouse-06" number={58} question="Which AWS services would you choose for collecting and processing e-commerce data for real-time analysis?" difficulty="hard" topic="Architecture">
+Use **DynamoDB** to collect and store e-commerce data — it's a fully managed NoSQL service well suited to unstructured data from e-commerce sites. From there, run analysis on the retrieved data with **Redshift**. EMR is also capable of analysis but is generally avoided here, since it's less suited to the real-time requirement.
+</QuestionCard>
+
+<QuestionCard id="aws-warehouse-07" number={59} question="What is CloudWatch?" difficulty="easy" topic="Monitoring">
+CloudWatch monitors AWS environments — EC2 instances, RDS instances, CPU utilization, and more — and can trigger alarms based on metrics you define.
+</QuestionCard>
+
+<QuestionCard id="aws-warehouse-08" number={60} question="What are Recovery Time Objective (RTO) and Recovery Point Objective (RPO) in AWS?" difficulty="medium" topic="Resilience">
+- **Recovery Time Objective (RTO)** — the maximum acceptable delay between a service interruption and its restoration; effectively, the acceptable window of unavailability.
+- **Recovery Point Objective (RPO)** — the maximum acceptable amount of time since the last data restore point; effectively, the acceptable amount of data loss between the last recovery point and the interruption.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Design a data pipeline that ingests e-commerce clickstream events and makes them queryable for analysts within minutes."** Talk through landing raw events in S3, cataloging with Glue, loading into Redshift (or querying in place with Spectrum), and where DynamoDB fits for the low-latency operational side.
+- **"A team's RDS-backed application is slowing down under read load — what do you do?"** Walk through read replicas, caching hot queries with ElastiCache, checking instance sizing via CloudWatch metrics, and when it's time to consider a different data store entirely.
+- **"How would you secure a multi-account AWS environment for a data team?"** Cover IAM roles vs. users, least-privilege policies, security groups vs. NACLs, and VPC isolation between environments.
+- **"Choose between Spot, On-Demand, and Reserved instances for a nightly batch ETL job."** Reason about interruption tolerance, cost, and whether the workload is predictable enough to reserve capacity.
+
+---
+
+## Further Reading
+
+- [Azure Interview Questions](/level-3-technologies/cloud/azure/) — the equivalent services on Microsoft's cloud
+- [GCP Interview Questions](/level-3-technologies/cloud/gcp/) — the equivalent services on Google Cloud
+- [AWS Roadmap](/roadmaps/aws/) — a structured path through AWS for data engineers
