@@ -815,8 +815,14 @@ const hasSidebar = sidebar && sidebar.length > 0;
       pointer-events: none;
     }
 
+    /* The expanded state's translateX(-50%) centers the button ON the
+       sidebar/content seam (half over each side) — carrying that into the
+       collapsed state with left:0 pushed half the button off-screen,
+       leaving only a sliver visible. Drop the horizontal translate here
+       and give it real breathing room from the edge instead. */
     body.sidebar-collapsed .sidebar-collapse-toggle {
-      left: 0;
+      left: 12px;
+      transform: translateY(-50%);
     }
 
     body.sidebar-collapsed .sidebar-collapse-toggle svg {

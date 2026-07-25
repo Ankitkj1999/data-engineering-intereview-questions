@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
+  <!-- Two independently swappable color slots: the cell-bg property
+       for the cell background and cell-fg for the text (edit the
+       defaults below, or override both via inline CSS custom
+       properties on an ancestor if this is embedded inline). Each
+       falls back to this file's own default so it still renders
+       correctly as a standalone image (favicon, img tag, manifest
+       icon) with no external stylesheet reaching it. XML comments
+       cannot contain a doubled hyphen character, so the two custom
+       property names are spelled out below without their usual
+       punctuation prefix. -->
+  <style>
+    .cell-bg { fill: var(--cell-bg, #0b1220); }
+    .cell-fg { fill: var(--cell-fg, #ffffff); }
+  </style>
+
+  <rect class="cell-bg" x="0" y="0" width="108" height="108" rx="24" ry="24" />
+
+  <text class="cell-fg" x="31" y="40" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="8">01</text>
+  <text class="cell-fg" x="54" y="67" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="33">De</text>
+  <text class="cell-fg" x="54" y="79.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="5.6" letter-spacing="0.8">DATA ENG</text>
+</svg>
