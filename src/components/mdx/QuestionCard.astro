@@ -11,7 +11,9 @@ interface Props {
 
 const { id, number, question, difficulty = "medium", topic } = Astro.props;
 
-const DIFFICULTY_TONE = { easy: "success", medium: "accent", hard: "danger" } as const;
+// "medium" is the unremarkable middle, not a highlight — it stays neutral so
+// the accent color is reserved for things actually worth calling out.
+const DIFFICULTY_TONE = { easy: "success", medium: "neutral", hard: "danger" } as const;
 ---
 
 <div class="qc" data-question-id={id} data-difficulty={difficulty}>
@@ -184,9 +186,11 @@ const DIFFICULTY_TONE = { easy: "success", medium: "accent", hard: "danger" } as
     min-width: 0;
   }
 
-  /* Q-number chip — a solid-fill identifier, deliberately distinct from the
+  /* Q-number chip — a plain identifier, deliberately distinct from the
      tinted status pills (Badge) next to it: this labels *which* question,
-     not a state of it. */
+     not a state of it. Neutral on purpose — with ~2,000 of these on the
+     site, giving each one a solid accent fill is what made the accent
+     color read as everywhere instead of as a highlight. */
   .qc-num {
     height: 22px;
     display: inline-flex;
@@ -194,8 +198,9 @@ const DIFFICULTY_TONE = { easy: "success", medium: "accent", hard: "danger" } as
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.04em;
-    color: #fff;
-    background: var(--sl-color-accent);
+    color: var(--page-text-secondary);
+    background: var(--page-bg-tertiary);
+    border: 1px solid var(--page-border);
     padding: 0.2em 0.6em;
     border-radius: var(--page-radius-full);
     white-space: nowrap;

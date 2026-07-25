@@ -106,6 +106,29 @@
 	--sl-color-accent-high: #7c4a0a;
 }
 
+/* Neither Starlight nor @pelagornis/page ever paints html/body itself —
+   only specific chrome elements (header, sidebar, content panel) get an
+   explicit background. Anywhere those don't fully cover the viewport
+   (scroll overscroll/rubber-banding, the instant before layout settles),
+   the browser's own `color-scheme` UA default shows through instead —
+   a flat near-black that doesn't match this site's navy --sl-color-bg,
+   visible as a seam/flash between two different "blacks". Pin the real
+   background here so there's no gap for the UA default to show at all. */
+html,
+body {
+	background-color: var(--sl-color-bg);
+}
+
+/* @pelagornis/page's utilities.css carries its own
+   `[data-theme="dark"] body { background-color: var(--page-bg) !important }`,
+   unlayered and later in the bundle than this file — on a tied selector,
+   source order alone would let it win, painting body a flat UA-default
+   black instead of this navy. One extra type selector (html) breaks the
+   specificity tie in our favor regardless of bundle order. */
+html[data-theme="dark"] body {
+	background-color: var(--sl-color-bg) !important;
+}
+
 /* Display face, used with restraint: top-level content headings + the
    homepage signature only. Body copy and UI stay on IBM Plex Sans. */
 .sl-markdown-content :is(h1, h2, h3),
