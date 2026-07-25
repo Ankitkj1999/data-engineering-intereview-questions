@@ -43,20 +43,19 @@ const hasSidebar = sidebar && sidebar.length > 0;
     <div class="page-header-left">
       <!-- Page-style site title -->
       <a href={siteTitleHref} class="page-site-title">
-        <img
-          class="dark:sl-hidden logo-size"
-          alt={siteTitle}
-          src="/icons/logo-light.png"
+        <svg
+          class="logo-size logo-cell"
+          viewBox="0 0 108 108"
           width="32"
           height="32"
-        />
-        <img
-          class="light:sl-hidden logo-size"
-          alt={siteTitle}
-          src="/icons/logo-dark.png"
-          width="32"
-          height="32"
-        />
+          role="img"
+          aria-label={siteTitle}
+        >
+          <rect class="logo-cell-bg" x="0" y="0" width="108" height="108" rx="24" ry="24" />
+          <text class="logo-cell-fg" x="31" y="40" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="8">01</text>
+          <text class="logo-cell-fg" x="54" y="67" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="33">De</text>
+          <text class="logo-cell-fg" x="54" y="79.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="5.6" letter-spacing="0.8">DATA ENG</text>
+        </svg>
         <span class="page-title-text">{siteTitle}</span>
       </a>
 
@@ -387,6 +386,20 @@ const hasSidebar = sidebar && sidebar.length > 0;
     width: 32px;
     height: 32px;
     border-radius: var(--page-radius-sm);
+  }
+
+  /* Logo mark: one inline SVG instead of separate light/dark PNGs — the
+     rounded-cell shape is self-contained in the SVG's own <rect>, so only
+     its two fill colors need setting here. Orange stays orange regardless
+     of site theme (it's a single per-page brand mark, not a repeated
+     element), but --sl-color-accent already resolves to the correct
+     light/dark shade on its own. */
+  .logo-cell-bg {
+    fill: var(--sl-color-accent);
+  }
+
+  .logo-cell-fg {
+    fill: #fff;
   }
 
   .page-title-text {
