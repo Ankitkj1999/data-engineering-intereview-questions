@@ -93,7 +93,12 @@ const dataId = `po-data-${Math.random().toString(36).slice(2, 8)}`;
   document.querySelectorAll<HTMLElement>(".po").forEach(initProgress);
 </script>
 
-<style>
+<style is:global>
+  /* Global, not scoped: .po-section rows are built client-side via
+     innerHTML (see script above), so they never receive Astro's
+     scope-hash attribute and scoped styles would silently never match
+     them — only the globally-defined .ds-progress-track/.ds-progress-fill
+     (primitives.css) would apply, leaving rows as an unstyled stacked list. */
   .po {
     margin: 1.5rem 0 2rem;
   }
@@ -142,7 +147,7 @@ const dataId = `po-data-${Math.random().toString(36).slice(2, 8)}`;
     min-width: 180px;
   }
 
-  .po-overall-bar-wrap :global(.po-overall-bar) {
+  .po-overall-bar-wrap .po-overall-bar {
     flex: 1;
     height: 8px;
   }
@@ -183,7 +188,7 @@ const dataId = `po-data-${Math.random().toString(36).slice(2, 8)}`;
     min-width: 0;
   }
 
-  .po-section :global(.po-section-bar) {
+  .po-section .po-section-bar {
     width: 100px;
     flex-shrink: 0;
     height: 5px;
@@ -199,6 +204,6 @@ const dataId = `po-data-${Math.random().toString(36).slice(2, 8)}`;
   }
 
   @media (max-width: 480px) {
-    .po-section :global(.po-section-bar) { display: none; }
+    .po-section .po-section-bar { display: none; }
   }
 </style>
