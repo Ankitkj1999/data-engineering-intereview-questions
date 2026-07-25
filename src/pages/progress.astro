@@ -332,9 +332,17 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
         Mark one done anywhere on the site and it updates here automatically.
       </p>
 
+      <div class="stack-toolbar">
+        <div class="stack-toggle" role="group" aria-label="Progress scope">
+          <button type="button" class="stack-toggle-btn" data-mode-btn="all">All topics</button>
+          <button type="button" class="stack-toggle-btn" data-mode-btn="mine">My stack <span class="stack-toggle-count" id="pin-count">0</span></button>
+        </div>
+        <p class="stack-hint">Pin the topics you're focusing on below, then switch here to track just those.</p>
+      </div>
+
       <div class="hero-stat">
         <div class="hero-stat-top">
-          <span class="hero-stat-value"><span id="grand-done">0</span><span class="hero-stat-sep">/</span>{grandTotal.toLocaleString()}</span>
+          <span class="hero-stat-value"><span id="grand-done">0</span><span class="hero-stat-sep">/</span><span id="grand-total">{grandTotal.toLocaleString()}</span></span>
           <span class="hero-stat-label">questions completed</span>
         </div>
         <div class="hero-stat-bar-wrap">
@@ -353,7 +361,7 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
             <span class="tier-desc">{tier.desc}</span>
           </span>
           <span class="tier-stat">
-            <span class="tier-count"><span data-tier-done={tier.key}>0</span>/{tier.total}</span>
+            <span class="tier-count"><span data-tier-done={tier.key}>0</span>/<span data-tier-total={tier.key}>{tier.total}</span></span>
             <div class="ds-progress-track tier-bar"><span class="ds-progress-fill" data-tier-fill={tier.key} style="width:0%"></span></div>
           </span>
         </a>
@@ -363,19 +371,35 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
     {tierStats.map((tier) => (
       <section class="stage-section" id={tier.key}>
         <h2 class="stage-section-title">{tier.id} &middot; {tier.title}</h2>
+        <p class="stage-empty-hint" data-empty-hint={tier.key} hidden>
+          Nothing pinned in this stage yet &mdash; switch to &ldquo;All topics&rdquo; to add some.
+        </p>
 
         {tier.groups.map((group) => (
           <div class="topic-group">
             {group.label && <p class="group-label">{group.label}</p>}
             <div class="topic-grid">
               {group.topics.map((topic) => (
-                <a class="topic-row ds-card-interactive" href={topic.anchor} data-ids={topic.ids.join(",")}>
-                  <span class="topic-row-top">
-                    <span class="topic-row-title">{topic.title}</span>
-                    <span class="topic-row-count"><span data-done>0</span>/{topic.ids.length}</span>
-                  </span>
-                  <div class="ds-progress-track topic-row-bar"><span class="ds-progress-fill" data-fill style="width:0%"></span></div>
-                </a>
+                <div class="topic-row ds-card-interactive" data-ids={topic.ids.join(",")} data-topic-key={topic.anchor}>
+                  <a class="topic-row-link" href={topic.anchor}>
+                    <span class="topic-row-top">
+                      <span class="topic-row-title">{topic.title}</span>
+                      <span class="topic-row-count"><span data-done>0</span>/{topic.ids.length}</span>
+                    </span>
+                    <div class="ds-progress-track topic-row-bar"><span class="ds-progress-fill" data-fill style="width:0%"></span></div>
+                  </a>
+                  <button
+                    type="button"
+                    class="topic-pin"
+                    data-action="pin"
+                    aria-pressed="false"
+                    aria-label={`Add ${topic.title} to my stack`}
+                  >
+                    <svg class="topic-pin-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M3 2h10v13l-5-3-5 3V2z" />
+                    </svg>
+                  </button>
+                </div>
               ))}
             </div>
           </div>
@@ -395,12 +419,57 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
     }
   }
 
+  const STACK_KEY = "de_stack_v1";
+  const MODE_KEY = "de_stack_mode_v1";
+
+  function getStack(): Set<string> {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(STACK_KEY) ?? "[]"));
+    } catch {
+      return new Set();
+    }
+  }
+
+  function saveStack(stack: Set<string>) {
+    localStorage.setItem(STACK_KEY, JSON.stringify([...stack]));
+  }
+
+  function getMode(): "all" | "mine" {
+    return localStorage.getItem(MODE_KEY) === "mine" ? "mine" : "all";
+  }
+
+  function saveMode(mode: "all" | "mine") {
+    localStorage.setItem(MODE_KEY, mode);
+  }
+
   function update() {
+    const stack = getStack();
+    const mode = getMode();
+
+    document.querySelectorAll<HTMLButtonElement>("[data-mode-btn]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.modeBtn === mode);
+    });
+
+    const pinCountEl = document.getElementById("pin-count");
+    if (pinCountEl) pinCountEl.textContent = String(stack.size);
+
     const tierAgg: Record<string, { done: number; total: number }> = {};
     let grandDone = 0;
     let grandTotalCount = 0;
 
-    document.querySelectorAll<HTMLAnchorElement>(".topic-row").forEach((row) => {
+    document.querySelectorAll<HTMLElement>(".topic-row").forEach((row) => {
+      const key = row.dataset.topicKey ?? "";
+      const pinned = stack.has(key);
+
+      const pinBtn = row.querySelector<HTMLButtonElement>("[data-action='pin']");
+      if (pinBtn) {
+        pinBtn.classList.toggle("is-active", pinned);
+        pinBtn.setAttribute("aria-pressed", String(pinned));
+      }
+
+      const included = mode === "all" || pinned;
+      row.hidden = !included;
+
       const ids = (row.dataset.ids ?? "").split(",").filter(Boolean);
       const done = ids.filter(isDone).length;
       const total = ids.length;
@@ -412,6 +481,8 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
       if (fillEl) fillEl.style.width = `${pct}%`;
       row.classList.toggle("is-complete", total > 0 && done === total);
 
+      if (!included) return;
+
       const tierKey = row.closest<HTMLElement>(".stage-section")?.id ?? "";
       const agg = tierAgg[tierKey] ?? (tierAgg[tierKey] = { done: 0, total: 0 });
       agg.done += done;
@@ -420,24 +491,62 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
       grandTotalCount += total;
     });
 
-    for (const [key, { done, total }] of Object.entries(tierAgg)) {
+    // Hide sub-category groups (and, in "mine" mode, whole stages) that have
+    // nothing visible left, and surface the empty-stage hint in their place.
+    document.querySelectorAll<HTMLElement>(".topic-group").forEach((group) => {
+      const anyVisible = [...group.querySelectorAll<HTMLElement>(".topic-row")].some((r) => !r.hidden);
+      group.hidden = !anyVisible;
+    });
+
+    document.querySelectorAll<HTMLElement>(".stage-section").forEach((section) => {
+      const anyVisible = [...section.querySelectorAll<HTMLElement>(".topic-row")].some((r) => !r.hidden);
+      const hint = section.querySelector<HTMLElement>("[data-empty-hint]");
+      if (hint) hint.hidden = !(mode === "mine" && !anyVisible);
+    });
+
+    document.querySelectorAll<HTMLElement>(".tier-card").forEach((card) => {
+      const key = card.dataset.tierCard ?? "";
+      const { done, total } = tierAgg[key] ?? { done: 0, total: 0 };
       const pct = total ? Math.round((done / total) * 100) : 0;
       const doneEl = document.querySelector<HTMLElement>(`[data-tier-done="${key}"]`);
       const fillEl = document.querySelector<HTMLElement>(`[data-tier-fill="${key}"]`);
-      const card = document.querySelector<HTMLElement>(`[data-tier-card="${key}"]`);
+      const totalEl = document.querySelector<HTMLElement>(`[data-tier-total="${key}"]`);
       if (doneEl) doneEl.textContent = String(done);
       if (fillEl) fillEl.style.width = `${pct}%`;
-      if (card) card.classList.toggle("is-complete", total > 0 && done === total);
-    }
+      if (totalEl) totalEl.textContent = total.toLocaleString();
+      card.classList.toggle("is-complete", total > 0 && done === total);
+    });
 
     const grandPct = grandTotalCount ? Math.round((grandDone / grandTotalCount) * 100) : 0;
     const grandDoneEl = document.getElementById("grand-done");
     const grandFillEl = document.getElementById("grand-fill");
     const grandPctEl = document.getElementById("grand-pct");
+    const grandTotalEl = document.getElementById("grand-total");
     if (grandDoneEl) grandDoneEl.textContent = String(grandDone);
     if (grandFillEl) grandFillEl.style.width = `${grandPct}%`;
     if (grandPctEl) grandPctEl.textContent = `${grandPct}%`;
+    if (grandTotalEl) grandTotalEl.textContent = grandTotalCount.toLocaleString();
   }
+
+  document.querySelectorAll<HTMLButtonElement>("[data-action='pin']").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const row = btn.closest<HTMLElement>(".topic-row");
+      const key = row?.dataset.topicKey;
+      if (!key) return;
+      const stack = getStack();
+      if (stack.has(key)) stack.delete(key);
+      else stack.add(key);
+      saveStack(stack);
+      update();
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>("[data-mode-btn]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      saveMode(btn.dataset.modeBtn === "mine" ? "mine" : "all");
+      update();
+    });
+  });
 
   update();
   document.addEventListener("qc:change", update);
@@ -488,6 +597,69 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
     color: var(--sl-color-gray-2);
     max-width: 56ch;
     margin: 0 0 1.75rem;
+  }
+
+  /* ── Personalization toolbar ──────────────────────────────────────── */
+  .stack-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .stack-toggle {
+    display: inline-flex;
+    padding: 3px;
+    gap: 2px;
+    border: 1.5px solid var(--page-border);
+    border-radius: var(--page-radius-lg);
+    background: var(--page-bg-secondary);
+    flex-shrink: 0;
+  }
+
+  .stack-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    border: none;
+    background: transparent;
+    color: var(--page-text-secondary);
+    font-family: var(--page-font-family);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.45rem 0.85rem;
+    border-radius: var(--page-radius-lg);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .stack-toggle-btn:hover {
+    color: var(--page-text);
+  }
+
+  .stack-toggle-btn:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+
+  .stack-toggle-btn.is-active {
+    background: var(--sl-color-accent);
+    color: #14100a;
+  }
+
+  .stack-toggle-count {
+    font-family: var(--brand-mono);
+    font-size: 0.7rem;
+    opacity: 0.85;
+  }
+
+  .stack-hint {
+    font-size: 0.82rem;
+    color: var(--sl-color-gray-3);
+    margin: 0;
+    flex: 1;
+    min-width: 220px;
   }
 
   .hero-stat {
@@ -632,6 +804,15 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
     margin-top: 1.25rem;
   }
 
+  .stage-empty-hint {
+    font-size: 0.85rem;
+    color: var(--page-text-muted);
+    border: 1.5px dashed var(--page-border);
+    border-radius: var(--page-radius-lg);
+    padding: 1rem 1.1rem;
+    margin: 0 0 1rem;
+  }
+
   /* Sub-category label (Technologies tier only) — same structural/mono
      voice as the sidebar's own group labels, so "Data Warehouses" here
      reads as the same kind of heading it is in the sidebar. */
@@ -653,13 +834,27 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
 
   .topic-row {
     display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
+    align-items: flex-start;
+    gap: 0.6rem;
     padding: 0.75rem 0.9rem;
+  }
+
+  .topic-row[hidden] {
+    display: none;
   }
 
   .topic-row.is-complete {
     border-color: color-mix(in srgb, var(--brand-green) 40%, var(--page-border));
+  }
+
+  .topic-row-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    flex: 1;
+    min-width: 0;
+    text-decoration: none;
+    color: inherit;
   }
 
   .topic-row-top {
@@ -667,6 +862,49 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
     align-items: baseline;
     justify-content: space-between;
     gap: 0.75rem;
+  }
+
+  /* Pin button: same interaction language as QuestionCard's bookmark
+     action elsewhere on the site — "save this for later" reused here as
+     "this is part of my stack." Lives outside .topic-row-link (a sibling,
+     not nested inside the anchor) so it stays independently clickable
+     without invalid nested-interactive-content markup. */
+  .topic-pin {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    border: 1.5px solid var(--page-border);
+    border-radius: var(--page-radius-lg);
+    background: transparent;
+    color: var(--sl-color-gray-3);
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .topic-pin:hover {
+    border-color: var(--sl-color-gray-4);
+    color: var(--page-text);
+    background: var(--page-accent-light);
+  }
+
+  .topic-pin:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+
+  .topic-pin.is-active {
+    background: var(--sl-color-accent);
+    border-color: var(--sl-color-accent);
+    color: #14100a;
+  }
+
+  .topic-pin-icon {
+    width: 13px;
+    height: 13px;
   }
 
   .topic-row-title {
