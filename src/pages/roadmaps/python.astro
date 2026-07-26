@@ -183,6 +183,7 @@ function save(s: Record<string, string>) {
 }
 
 let state = load();
+let collapsedIds = new Set();
 function getS(id: string) { return state[id] || "pending"; }
 
 // ── Progress ──────────────────────────────────────────────────────────────────
@@ -210,10 +211,11 @@ function buildFlow() {
 
   ROADMAP.forEach((topic, ti) => {
     const s = getS(topic.id);
+    const isCollapsed = collapsedIds.has(topic.id);
 
     // Topic node
     const topicEl = document.createElement("div");
-    topicEl.className = `rm-topic-node${s !== "pending" ? ` is-${s}` : ""}`;
+    topicEl.className = `rm-topic-node${s !== "pending" ? ` is-${s}` : ""}${isCollapsed ? " is-collapsed" : ""}`;
     topicEl.dataset.id = topic.id;
     topicEl.innerHTML = `
       <span class="rm-topic-icon">${iconFor(s)}</span>
@@ -222,10 +224,18 @@ function buildFlow() {
       <span class="rm-chevron">${ICON_CHEVRON}</span>
     `;
     topicEl.addEventListener("click", () => openPanel(topic.id, "topic"));
+    if (topic.subs.length > 0) {
+      const chevronEl = topicEl.querySelector(".rm-chevron");
+      chevronEl?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (collapsedIds.has(topic.id)) collapsedIds.delete(topic.id); else collapsedIds.add(topic.id);
+        buildFlow();
+      });
+    }
     flow.appendChild(topicEl);
 
     // Subtopics
-    if (topic.subs.length > 0) {
+    if (topic.subs.length > 0 && !isCollapsed) {
       const group = document.createElement("div");
       group.className = "rm-sub-group";
       group.dataset.parent = topic.id;

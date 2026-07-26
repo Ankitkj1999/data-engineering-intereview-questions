@@ -215,15 +215,26 @@
 }
 
 .rm-chevron {
-  width      : 14px;
-  height     : 14px;
+  width      : 24px;
+  height     : 24px;
   flex-shrink: 0;
   color      : var(--sl-color-gray-4);
   display    : flex;
-  align-items: center;
+  align-items    : center;
+  justify-content: center;
+  border-radius  : 999px;
+  cursor         : pointer;
+  transition     : transform 0.15s, background 0.15s, color 0.15s;
+}
+
+.rm-chevron:hover {
+  background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
+  color     : var(--sl-color-accent);
 }
 
 .rm-chevron svg { width: 14px; height: 14px; display: block; }
+
+.rm-topic-node.is-collapsed .rm-chevron { transform: rotate(-90deg); }
 
 /* ── Subtopic group ───────────────────────────────────────────────────────── */
 .rm-sub-group {

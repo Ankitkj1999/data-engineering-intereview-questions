@@ -185,6 +185,7 @@ const KEY = "sql_roadmap_v1";
 function load(): Record<string,string> { try { return JSON.parse(localStorage.getItem(KEY)||"{}"); } catch { return {}; } }
 function save(s: Record<string,string>) { localStorage.setItem(KEY, JSON.stringify(s)); }
 let state = load();
+let collapsedIds = new Set();
 function getS(id: string) { return state[id]||"pending"; }
 
 function allIds() {
@@ -209,13 +210,22 @@ function buildFlow() {
   flow.innerHTML = "";
   ROADMAP.forEach((topic, ti) => {
     const s = getS(topic.id);
+    const isCollapsed = collapsedIds.has(topic.id);
     const topicEl = document.createElement("div");
-    topicEl.className = `rm-topic-node${s!=="pending"?` is-${s}`:""}`;
+    topicEl.className = `rm-topic-node${s!=="pending"?` is-${s}`:""}${isCollapsed?" is-collapsed":""}`;
     topicEl.dataset.id = topic.id;
     topicEl.innerHTML = `<span class="rm-topic-icon">${iconFor(s)}</span><span class="rm-topic-label">${topic.label}</span>${topic.subs.length?`<span class="rm-count-badge">${topic.subs.length}</span>`:""}<span class="rm-chevron">${ICON_CHEVRON}</span>`;
     topicEl.addEventListener("click", () => openPanel(topic.id, "topic"));
-    flow.appendChild(topicEl);
     if (topic.subs.length > 0) {
+      const chevronEl = topicEl.querySelector(".rm-chevron");
+      chevronEl?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (collapsedIds.has(topic.id)) collapsedIds.delete(topic.id); else collapsedIds.add(topic.id);
+        buildFlow();
+      });
+    }
+    flow.appendChild(topicEl);
+    if (topic.subs.length > 0 && !isCollapsed) {
       const group = document.createElement("div");
       group.className = "rm-sub-group";
       for (const sub of topic.subs) {
