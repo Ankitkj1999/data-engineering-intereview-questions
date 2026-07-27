@@ -1298,113 +1298,281 @@
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
     "content": "import QuestionCard from '../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../components/mdx/QuestionList.astro';"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
     "content": "## Data Modeling: Schema Design for Analytics\n\n**Data modeling is how you structure data so it can be queried reliably and efficiently — the difference between a warehouse that answers business questions cleanly and one that produces inconsistent metrics and slow, confusing joins.**"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
-    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Data Vault Modeling](#data-vault-modeling)\n- [NoSQL & Modern Analytics-Engineering Modeling](#nosql--modern-analytics-engineering-modeling)\n- [Advanced Dimension Patterns](#advanced-dimension-patterns)\n- [Schema Evolution, Contracts & Relationships](#schema-evolution-contracts--relationships)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
     "content": "## Key Concepts\n\nEverything in analytical data modeling starts with **grain** — the level of detail a table represents (one row per order line, one row per user per day). Get grain wrong and every downstream join or aggregation is suspect. From there, the **star schema** (a central fact table surrounded by dimension tables) is the default shape for analytics: facts hold measurable events and foreign keys, dimensions hold descriptive context. **Slowly Changing Dimensions (SCD)** define how you handle attribute changes over time, and patterns like **conformed dimensions**, **bridge tables**, and **degenerate dimensions** solve for consistency, many-to-many relationships, and drill-through respectively.\n\n---"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
     "content": "## Interview Questions\n\n<QuestionList topic=\"Data Modeling\" storagePrefix=\"data-modeling\">\n\n<QuestionCard id=\"dm-01\" number={1} question=\"What is data modeling in analytics and why does it matter?\" difficulty=\"easy\" topic=\"Fundamentals\">\nData modeling in analytics is the process of structuring data so it can be queried reliably and efficiently for business questions. A good model makes metrics consistent, reduces complexity for consumers, and improves performance by aligning storage with query patterns. A bad model leads to inconsistent KPIs, confusing joins, and expensive queries.\n</QuestionCard>\n\n<QuestionCard id=\"dm-02\" number={2} question=\"What is grain and why is it the first question to answer?\" difficulty=\"easy\" topic=\"Fundamentals\">\nGrain is the level of detail of a table — for exa"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
     "content": "mple \"one row per order line\" or \"one row per user per day.\" It determines which metrics are additive, how joins behave, and what can be uniquely identified. If grain is unclear, you get duplicates, incorrect aggregations, and ambiguous keys.\n</QuestionCard>\n\n<QuestionCard id=\"dm-03\" number={3} question=\"What is the difference between fact and dimension tables?\" difficulty=\"easy\" topic=\"Star Schema\">\nFacts store measurable events (orders, payments, clicks) and typically contain foreign keys to dimensions. Dimensions store descriptive attributes (user, product, date) that provide context for slicing and filtering. Facts answer \"what happened,\" dimensions answer \"who/what/where/when.\"\n</QuestionCard>\n\n<QuestionCard id=\"dm-04\" number={4} question=\"What is a star schema and what are its benefi"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
     "content": "ts?\" difficulty=\"easy\" topic=\"Star Schema\">\nA star schema has a central fact table connected to multiple dimension tables. Benefits include simpler queries, clear join paths, and good performance because joins are typically fact-to-dimension (many-to-one). It also encourages consistent definitions of metrics and attributes.\n</QuestionCard>\n\n<QuestionCard id=\"dm-05\" number={5} question=\"Star schema vs snowflake schema: what are the trade-offs?\" difficulty=\"medium\" topic=\"Star Schema\">\nA snowflake schema normalizes dimensions into multiple related tables. It can reduce redundancy and improve dimension maintainability, but it increases join complexity and can hurt performance. Star schemas are usually preferred for BI and ad-hoc analytics because they're easier for users and tools to work wit"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
     "content": "h.\n</QuestionCard>\n\n<QuestionCard id=\"dm-06\" number={6} question=\"What are the main types of fact tables?\" difficulty=\"medium\" topic=\"Fact Tables\">\n- **Transactional** — one row per business event (order, payment)\n- **Periodic snapshot** — one row per entity per period (daily account balance)\n- **Accumulating snapshot** — one row that gets updated as a process progresses (order lifecycle)\n\nChoosing the right type depends on the questions you need to answer.\n</QuestionCard>\n\n<QuestionCard id=\"dm-07\" number={7} question=\"What is a surrogate key and when should you use it?\" difficulty=\"medium\" topic=\"Keys\">\nA surrogate key is a synthetic identifier used instead of a natural key. It's useful when natural keys aren't stable, when you need SCD history, or when integrating multiple sources with d"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
     "content": "ifferent key systems. Surrogate keys also allow consistent joins even if source keys change.\n</QuestionCard>\n\n<QuestionCard id=\"dm-08\" number={8} question=\"What is a conformed dimension?\" difficulty=\"medium\" topic=\"Dimensions\">\nA conformed dimension is a dimension shared consistently across multiple fact tables or data marts — for example, the same \"customer\" dimension used for orders and support tickets. Conformed dimensions enable consistent reporting and cross-domain analysis.\n</QuestionCard>\n\n<QuestionCard id=\"dm-09\" number={9} question=\"What is SCD (Slowly Changing Dimension)?\" difficulty=\"medium\" topic=\"SCD\">\nSCD describes how you handle changes in dimension attributes over time (for example, a user changing address).\n\n- **Type 1** — overwrites history\n- **Type 2** — tracks history w"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
     "content": "ith multiple rows and effective dates\n- **Type 3** — keeps limited history in additional columns\n\nThe choice depends on whether \"as-of\" reporting is required.\n</QuestionCard>\n\n<QuestionCard id=\"dm-10\" number={10} question=\"How do you implement SCD Type 2?\" difficulty=\"hard\" topic=\"SCD\">\nSCD2 typically stores:\n\n- a surrogate key\n- the natural/business key\n- `effective_start` and `effective_end` timestamps (or `end_date`)\n- a `current_flag`\n\nOn change, you \"close\" the previous record and insert a new version. You must define how to detect changes and handle late-arriving updates.\n</QuestionCard>\n\n<QuestionCard id=\"dm-11\" number={11} question=\"What is a factless fact table?\" difficulty=\"medium\" topic=\"Fact Tables\">\nA factless fact table records events that don't have numeric measures — for ex"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
     "content": "ample, \"student attended class\" or \"user is eligible for campaign.\" The fact itself can be counted, and the table is useful for coverage, eligibility, and relationship tracking.\n</QuestionCard>\n\n<QuestionCard id=\"dm-12\" number={12} question=\"What is a bridge table and when do you need it?\" difficulty=\"hard\" topic=\"Dimensions\">\nA bridge table resolves many-to-many relationships — for example, products belonging to multiple categories, or users having multiple roles. It can also store weights for allocation (for example, revenue split). Without a bridge table, joins can explode row counts and break aggregations.\n</QuestionCard>\n\n<QuestionCard id=\"dm-13\" number={13} question=\"What are degenerate dimensions?\" difficulty=\"medium\" topic=\"Dimensions\">\nDegenerate dimensions are identifiers stored"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
     "content": "directly in the fact table without a separate dimension table, such as `order_id` or `invoice_number`. They're useful for drill-through and filtering while avoiding unnecessary dimension tables.\n</QuestionCard>\n\n<QuestionCard id=\"dm-14\" number={14} question=\"How do you prevent double counting in analytical models?\" difficulty=\"hard\" topic=\"Data Quality\">\nYou prevent double counting by enforcing correct grain, using proper join keys (many-to-one), and avoiding many-to-many joins without a bridge table. You also define metric rules (sum vs. distinct count vs. last value) and test them with reconciliation queries.\n</QuestionCard>\n\n<QuestionCard id=\"dm-15\" number={15} question=\"How do you validate a data model after changes?\" difficulty=\"medium\" topic=\"Data Quality\">\nTypical validation include"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
     "content": "s:\n\n- row count and key uniqueness checks at each layer\n- reconciliation of totals against source systems\n- sampling and drill-through checks on known entities\n- regression tests for key business metrics\n\nThis catches subtle issues like join duplication or missing late data.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "## Data Vault Modeling\n\nAn alternative to Kimball dimensional modeling, built for integrating many source systems with strong auditability and resilience to change.\n\n<QuestionList topic=\"Data Vault\" storagePrefix=\"dm-vault\">\n\n<QuestionCard id=\"dm-16\" number={16} question=\"What is Data Vault modeling, and when would you choose it over Kimball dimensional modeling?\" difficulty=\"medium\" topic=\"Data Vault\">\nData Vault is a modeling methodology designed for auditability, scalability, and flexibility when integrating many source systems, especially where schemas and sources change often. Unlike Kimball's business-facing star schemas, Data Vault separates raw structural integration (hubs/links/satellites) from the business-friendly reporting layer built on top of it. Choose Data Vault when you ne"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "ed strong historization, parallel loading, and resilience to upstream changes; choose Kimball when the priority is fast, simple BI consumption.\n</QuestionCard>\n\n<QuestionCard id=\"dm-17\" number={17} question=\"What are hubs, links, and satellites in Data Vault modeling?\" difficulty=\"medium\" topic=\"Data Vault\">\n- **Hub** — stores a list of unique business keys for a core entity (e.g., customer), never descriptive attributes.\n- **Link** — represents a relationship or transaction between hubs (e.g., customer-to-order), storing only foreign keys.\n- **Satellite** — holds descriptive, time-stamped attributes for a hub or link (e.g., customer address history), enabling full historization.\n\nThis separation lets you add new attributes or sources without redesigning existing structures.\n</QuestionCard"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": ">\n\n<QuestionCard id=\"dm-18\" number={18} question=\"How does Data Vault handle history compared to SCD Type 2?\" difficulty=\"hard\" topic=\"Data Vault\">\nSatellites are inherently append-only and timestamped on load, so every change becomes a new satellite row automatically, without the explicit \"close old row, insert new row\" logic SCD Type 2 needs. Because history lives in every satellite rather than one dimension table, Data Vault captures history at a more granular level, at the cost of needing more joins to reconstruct a point-in-time view.\n</QuestionCard>\n\n<QuestionCard id=\"dm-19\" number={19} question=\"What is a Point-of-Time (PIT) table in Data Vault, and why is it needed?\" difficulty=\"hard\" topic=\"Data Vault\">\nA PIT table pre-joins hubs to their satellites at defined snapshot points (e.g"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "., daily), storing the relevant satellite keys for each point in time. It exists because querying multiple satellites directly for an \"as of\" report requires expensive multi-way joins with date-range logic — a PIT table pre-computes those joins so downstream BI queries stay fast and simple.\n</QuestionCard>\n\n<QuestionCard id=\"dm-20\" number={20} question=\"What are the main trade-offs of Data Vault versus Kimball dimensional modeling?\" difficulty=\"medium\" topic=\"Data Vault\">\nData Vault trades query simplicity for load flexibility and auditability — it's easier to onboard new sources and preserve full history, but raw Data Vault tables are rarely queried directly by business users; you typically build a Kimball-style mart on top. Kimball is simpler to query and understand but harder to evolve"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "without redesign when sources or business rules change significantly. Many organizations use Data Vault as the integration layer and Kimball as the presentation layer.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "## NoSQL & Modern Analytics-Engineering Modeling\n\nModeling principles shift once you leave the relational world, or once \"modeling\" means organizing dbt/lakehouse transformation layers rather than table schemas.\n\n<QuestionList topic=\"Modern Modeling\" storagePrefix=\"dm-modern\">\n\n<QuestionCard id=\"dm-21\" number={21} question=\"How does data modeling for NoSQL databases differ from relational modeling?\" difficulty=\"medium\" topic=\"NoSQL\">\nRelational modeling starts from the data's structure and normalizes to avoid redundancy; NoSQL modeling starts from your application's access patterns and denormalizes deliberately so the most common queries need no joins. You often duplicate data across documents or wide rows, trading storage and update complexity for read performance and horizontal scalabili"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "ty.\n</QuestionCard>\n\n<QuestionCard id=\"dm-22\" number={22} question=\"Embedding vs. referencing in document store modeling: how do you decide?\" difficulty=\"medium\" topic=\"NoSQL\">\nEmbed related data inside a document when it's read together, doesn't grow unbounded, and isn't queried independently (an order's line items inside the order document). Reference — store an ID and look up separately — when the related data is large, shared across many parents, updated independently, or would push a document past size limits (a product referenced by thousands of orders).\n</QuestionCard>\n\n<QuestionCard id=\"dm-23\" number={23} question=\"How do you model data for a wide-column store like Cassandra or BigTable?\" difficulty=\"hard\" topic=\"NoSQL\">\nDesign the table around your query patterns first — a partiti"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "on key that distributes data evenly and matches your most common lookup, and a clustering key that gives the sort order your queries need. Since these stores don't support arbitrary joins or efficient secondary indexes, you typically denormalize and maintain multiple query-specific tables (\"one table per query\") rather than one normalized source of truth.\n</QuestionCard>\n\n<QuestionCard id=\"dm-24\" number={24} question=\"What is denormalization, and when is it the right modeling choice?\" difficulty=\"easy\" topic=\"NoSQL\">\nDenormalization intentionally duplicates or pre-joins data to avoid expensive joins or lookups at query time. It's the right choice when read performance matters more than storage cost or update complexity — typical in analytics/BI tables, NoSQL access-pattern modeling, and ca"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "ching layers — but it pushes the burden of keeping duplicated data consistent onto your write/ETL logic.\n</QuestionCard>\n\n<QuestionCard id=\"dm-25\" number={25} question=\"What are dbt's staging, intermediate, and marts layers, and why keep them separate?\" difficulty=\"medium\" topic=\"Analytics Engineering\">\n- **Staging** — one model per source table, doing only light renaming/type-casting: a 1:1 clean mirror of the source.\n- **Intermediate** — business logic and joins not yet ready to expose to end users, reused across multiple marts.\n- **Marts** — final, business-facing models (often dimensionally shaped) that BI tools query directly.\n\nSeparating them keeps transformations testable and traceable, and lets source-level details change without rewriting business logic.\n</QuestionCard>\n\n<Question"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "Card id=\"dm-26\" number={26} question=\"What is the medallion architecture (bronze/silver/gold), and how does it relate to data modeling?\" difficulty=\"medium\" topic=\"Analytics Engineering\">\nBronze holds raw, unprocessed data as ingested; silver holds cleaned, conformed, deduplicated data (often still fairly normalized); gold holds business-level, aggregated, typically dimensionally-modeled data ready for consumption. It maps loosely onto staging/intermediate/marts, but is framed around data-quality stages rather than dbt's specific tooling layers, and is common in lakehouse architectures.\n</QuestionCard>\n\n<QuestionCard id=\"dm-27\" number={27} question=\"What is the 'One Big Table' (OBT) approach, and when does it make sense instead of a star schema?\" difficulty=\"medium\" topic=\"Analytics Engine"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "ering\">\nOBT denormalizes a fact and all its dimensions into a single wide table, avoiding joins entirely at query time. It makes sense when your BI tool or query engine handles wide tables well, joins are the actual bottleneck, or a single well-defined use case doesn't need reusable conformed dimensions. The trade-off is duplicated dimension data and harder-to-maintain consistency if you need several OBTs.\n</QuestionCard>\n\n<QuestionCard id=\"dm-28\" number={28} question=\"How do you model semi-structured data, like JSON columns, in an analytical warehouse?\" difficulty=\"medium\" topic=\"NoSQL\">\nModern warehouses support native JSON/VARIANT/STRUCT types, so you can flatten predictable, stable fields into normal columns at load time, or keep genuinely variable/nested data in a semi-structured colu"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "mn and flatten only what a query needs using the warehouse's native JSON functions. The trade-off is upfront flattening cost and schema rigidity vs. query-time parsing cost and flexibility.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "## Advanced Dimension Patterns\n\nBeyond the basic star schema — patterns for specific dimensional-modeling problems that come up once a warehouse matures.\n\n<QuestionList topic=\"Advanced Patterns\" storagePrefix=\"dm-advanced\">\n\n<QuestionCard id=\"dm-29\" number={29} question=\"What is a role-playing dimension?\" difficulty=\"medium\" topic=\"Dimensions\">\nA role-playing dimension is a single physical dimension table used multiple times in the same fact table through different foreign keys and views, representing different roles it plays. The classic example is one Date dimension joined three times to represent order_date, ship_date, and delivery_date — each presented to users as if it were a separate dimension.\n</QuestionCard>\n\n<QuestionCard id=\"dm-30\" number={30} question=\"What is a mini-dimension,"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "and when do you need one?\" difficulty=\"hard\" topic=\"Dimensions\">\nA mini-dimension splits frequently-changing or high-cardinality attributes out of a large dimension into their own smaller dimension — for example, pulling \"customer age band\" and \"income band\" out of a Customer dimension. It's used when those attributes change often enough that SCD Type 2 on the full dimension would create excessive row churn, or when the attribute combination is small enough to enumerate as its own table.\n</QuestionCard>\n\n<QuestionCard id=\"dm-31\" number={31} question=\"What is an outrigger dimension?\" difficulty=\"hard\" topic=\"Dimensions\">\nAn outrigger dimension is a dimension table that itself has a foreign key to another dimension table — for example, a Customer dimension referencing a separate Geography di"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "mension. It's a controlled exception to the \"dimensions don't join to other dimensions\" star-schema rule, used sparingly when a shared sub-dimension like geography or a calendar is reused across several dimensions.\n</QuestionCard>\n\n<QuestionCard id=\"dm-32\" number={32} question=\"How do you model ragged or unbalanced hierarchies?\" difficulty=\"hard\" topic=\"Hierarchies\">\nA ragged hierarchy is one where branches have different depths — an org chart where some employees report directly to the CEO and others sit five levels down. Common approaches are a **recursive/parent-child** table (self-referencing foreign key) queried with recursive CTEs, or a **bridge table** that flattens every ancestor-descendant pair with a depth column, trading modeling simplicity for query-time convenience.\n</Question"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "Card>\n\n<QuestionCard id=\"dm-33\" number={33} question=\"How do you design a date or time dimension?\" difficulty=\"easy\" topic=\"Dimensions\">\nA date dimension has one row per calendar day, often pre-populated for decades, with pre-computed attributes like day-of-week, month name, fiscal period, holiday flags, and quarter — so BI tools can filter and group by these without date-function logic in every query. Time-of-day is usually modeled separately (a small dimension or a plain column), since a date dimension is already large enough without every second of the day multiplying it further.\n</QuestionCard>\n\n<QuestionCard id=\"dm-34\" number={34} question=\"What is SCD Type 4, and how does it differ from Type 2?\" difficulty=\"hard\" topic=\"SCD\">\nSCD Type 4 splits a dimension into a current-values table"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "and a separate history table, rather than keeping both current and historical rows in one table with effective dates like Type 2. This keeps the current table small and fast for typical queries, while the larger, less-frequently-queried history table absorbs the historical churn — useful when a dimension changes very frequently and Type 2's row growth becomes a performance problem.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "## Schema Evolution, Contracts & Relationships\n\nHow a model survives change over time — both in schema shape and in the relationships it represents.\n\n<QuestionList topic=\"Schema Evolution\" storagePrefix=\"dm-evolution\">\n\n<QuestionCard id=\"dm-35\" number={35} question=\"What is schema evolution, and why is it risky in analytics pipelines?\" difficulty=\"medium\" topic=\"Schema Evolution\">\nSchema evolution is how a table's structure changes over time — new columns, renamed fields, changed types. It's risky because downstream consumers (dashboards, ML models, other pipelines) often assume a fixed shape; an unannounced column removal or type change can silently break queries or, worse, silently produce wrong numbers if a type change alters aggregation behavior without erroring.\n</QuestionCard>\n\n<Ques"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "tionCard id=\"dm-36\" number={36} question=\"What is a data contract, and how does it help manage schema evolution?\" difficulty=\"medium\" topic=\"Schema Evolution\">\nA data contract is an explicit, versioned agreement between a data producer and its consumers about a dataset's schema, semantics, and change process, often enforced with validation in CI/CD. It helps by making breaking changes a deliberate, communicated decision — bump a version, notify consumers — rather than a surprise, shifting schema evolution from \"discovered when something breaks\" to \"planned and reviewed.\"\n</QuestionCard>\n\n<QuestionCard id=\"dm-37\" number={37} question=\"What's the difference between a backward-compatible and a forward-compatible schema change?\" difficulty=\"hard\" topic=\"Schema Evolution\">\nA **backward-compatib"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "le** change means new data still works with code written against the old schema (adding a new optional column — old readers just ignore it). A **forward-compatible** change means old data still works with code written against the new schema (a new required field needs a default so historical rows without it don't break). Designing for both lets producers and consumers deploy independently without a synchronized rollout.\n</QuestionCard>\n\n<QuestionCard id=\"dm-38\" number={38} question=\"What is cardinality in ER modeling, and why does it matter for a data model?\" difficulty=\"easy\" topic=\"Relationships\">\nCardinality describes how many instances of one entity relate to instances of another — one-to-one, one-to-many, or many-to-many. Getting it wrong is a common source of grain-mismatch bugs: ass"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "uming a one-to-many relationship is actually one-to-one silently drops rows or picks an arbitrary one on a join, while missing a many-to-many relationship (no bridge table) silently duplicates rows and inflates metrics.\n</QuestionCard>\n\n<QuestionCard id=\"dm-39\" number={39} question=\"How do you model recursive or self-referencing relationships, like an org chart or category tree?\" difficulty=\"medium\" topic=\"Relationships\">\nThe standard relational approach is a self-referencing foreign key (`employee.manager_id -> employee.employee_id`), queried with a recursive CTE to walk up or down the hierarchy. For read-heavy analytical use, this is often paired with a flattened path or bridge-table representation so BI tools don't need to run recursive queries themselves.\n</QuestionCard>\n\n<QuestionCard"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "id=\"dm-40\" number={40} question=\"How do you handle unknown or missing dimension members?\" difficulty=\"medium\" topic=\"Relationships\">\nRather than allowing NULL foreign keys — which silently exclude rows from inner joins and complicate filtering — the standard pattern is to insert an explicit \"Unknown\" or \"Not Applicable\" row into the dimension with a reserved surrogate key, and point unresolved facts at that row. This keeps joins simple (always an inner join) and makes missing-data volume visible and reportable instead of hidden.\n</QuestionCard>\n\n<QuestionCard id=\"dm-41\" number={41} question=\"What questions should you ask before modeling a new fact table for a new business domain?\" difficulty=\"medium\" topic=\"Fact Tables\">\nStart with grain — what does one row represent? Then: what dimension"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "s does this event naturally relate to, are any of them new or already covered by existing conformed dimensions, what measures are actually additive at this grain, how will corrections or cancellations be handled (a new fact vs. mutating a row), and what's the expected volume and update frequency. Answering these up front avoids the most common rework: discovering the grain was wrong after the table's already in production.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
     "content": "## Common Interview Scenarios\n\n- **\"Design a fact table for e-commerce orders.\"** Start by nailing down grain (order? order line?), then identify dimensions (customer, product, date, promotion) and decide how to handle returns or cancellations — usually a separate fact or a status dimension rather than mutating the original row.\n- **\"Our revenue metric doesn't match between two dashboards.\"** This is almost always a grain or join-fan-out problem. Walk through checking for many-to-many joins without a bridge table, duplicate rows from a non-conformed dimension, or inconsistent aggregation rules (sum vs. distinct count) between the two queries.\n- **\"A dimension's attributes change over time — how do you model it?\"** Identify whether the business needs point-in-time history (SCD Type 2) or on"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
-    "content": "ly the current value (SCD Type 1), then talk through the surrogate key, effective-dating, and how late-arriving changes get handled.\n\n---"
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "ly the current value (SCD Type 1), then talk through the surrogate key, effective-dating, and how late-arriving changes get handled.\n- **\"We're integrating 12 source systems that all change independently — how would you model this?\"** This is a Data Vault signal: talk through hubs for the shared business keys, links for how the systems' entities relate, and satellites absorbing each source's own attributes and change cadence, with a Kimball-style mart built on top for actual reporting.\n- **\"Design a schema for a document store instead of a relational database.\"** Walk through identifying the application's actual read patterns first, then decide what gets embedded (read together, bounded size) versus referenced (shared, independently updated, unbounded growth) — the opposite starting point"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
     "locale": "en",
     "title": "Data Modeling",
-    "description": "Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.",
-    "content": "## Further Reading\n\n- [Data Warehousing](/level-2-core-concepts/data-warehousing/) — how these models get deployed at the platform level\n- [SQL Interview Questions](/level-1-foundations/sql/theory/) — the query patterns (joins, window functions) used to work with these schemas\n- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where data modeling fits into the broader curriculum"
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "from relational normalization.\n\n---"
+  },
+  {
+    "path": "/level-2-core-concepts/data-modeling/",
+    "locale": "en",
+    "title": "Data Modeling",
+    "description": "Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.",
+    "content": "## Further Reading\n\n- [Data Warehousing](/level-2-core-concepts/data-warehousing/) — how these models get deployed at the platform level\n- [SQL Interview Questions](/level-1-foundations/sql/theory/) — the query patterns (joins, window functions) used to work with these schemas\n- [MongoDB](/level-3-technologies/databases/mongodb/#interview-questions) — document-store modeling in practice\n- [DBT](/level-3-technologies/transformation/dbt/#interview-questions) — how staging/intermediate/marts layers are actually built\n- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where data modeling fits into the broader curriculum"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",

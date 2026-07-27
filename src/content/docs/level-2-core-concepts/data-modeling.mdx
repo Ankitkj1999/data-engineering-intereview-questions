@@ -1,6 +1,6 @@
 ---
 title: Data Modeling
-description: Data modeling interview questions covering star vs snowflake schema, fact and dimension tables, SCD types, and analytics-ready design for data engineers.
+description: Data modeling interview questions covering star schema, SCD, Data Vault, NoSQL and dbt-style modeling, advanced dimension patterns, and schema evolution.
 ---
 
 import QuestionCard from '../../../components/mdx/QuestionCard.astro';
@@ -13,6 +13,10 @@ import QuestionList from '../../../components/mdx/QuestionList.astro';
 ## Table of Contents
 - [Key Concepts](#key-concepts)
 - [Interview Questions](#interview-questions)
+- [Data Vault Modeling](#data-vault-modeling)
+- [NoSQL & Modern Analytics-Engineering Modeling](#nosql--modern-analytics-engineering-modeling)
+- [Advanced Dimension Patterns](#advanced-dimension-patterns)
+- [Schema Evolution, Contracts & Relationships](#schema-evolution-contracts--relationships)
 - [Common Interview Scenarios](#common-interview-scenarios)
 - [Further Reading](#further-reading)
 
@@ -116,11 +120,165 @@ This catches subtle issues like join duplication or missing late data.
 
 ---
 
+## Data Vault Modeling
+
+An alternative to Kimball dimensional modeling, built for integrating many source systems with strong auditability and resilience to change.
+
+<QuestionList topic="Data Vault" storagePrefix="dm-vault">
+
+<QuestionCard id="dm-16" number={16} question="What is Data Vault modeling, and when would you choose it over Kimball dimensional modeling?" difficulty="medium" topic="Data Vault">
+Data Vault is a modeling methodology designed for auditability, scalability, and flexibility when integrating many source systems, especially where schemas and sources change often. Unlike Kimball's business-facing star schemas, Data Vault separates raw structural integration (hubs/links/satellites) from the business-friendly reporting layer built on top of it. Choose Data Vault when you need strong historization, parallel loading, and resilience to upstream changes; choose Kimball when the priority is fast, simple BI consumption.
+</QuestionCard>
+
+<QuestionCard id="dm-17" number={17} question="What are hubs, links, and satellites in Data Vault modeling?" difficulty="medium" topic="Data Vault">
+- **Hub** — stores a list of unique business keys for a core entity (e.g., customer), never descriptive attributes.
+- **Link** — represents a relationship or transaction between hubs (e.g., customer-to-order), storing only foreign keys.
+- **Satellite** — holds descriptive, time-stamped attributes for a hub or link (e.g., customer address history), enabling full historization.
+
+This separation lets you add new attributes or sources without redesigning existing structures.
+</QuestionCard>
+
+<QuestionCard id="dm-18" number={18} question="How does Data Vault handle history compared to SCD Type 2?" difficulty="hard" topic="Data Vault">
+Satellites are inherently append-only and timestamped on load, so every change becomes a new satellite row automatically, without the explicit "close old row, insert new row" logic SCD Type 2 needs. Because history lives in every satellite rather than one dimension table, Data Vault captures history at a more granular level, at the cost of needing more joins to reconstruct a point-in-time view.
+</QuestionCard>
+
+<QuestionCard id="dm-19" number={19} question="What is a Point-of-Time (PIT) table in Data Vault, and why is it needed?" difficulty="hard" topic="Data Vault">
+A PIT table pre-joins hubs to their satellites at defined snapshot points (e.g., daily), storing the relevant satellite keys for each point in time. It exists because querying multiple satellites directly for an "as of" report requires expensive multi-way joins with date-range logic — a PIT table pre-computes those joins so downstream BI queries stay fast and simple.
+</QuestionCard>
+
+<QuestionCard id="dm-20" number={20} question="What are the main trade-offs of Data Vault versus Kimball dimensional modeling?" difficulty="medium" topic="Data Vault">
+Data Vault trades query simplicity for load flexibility and auditability — it's easier to onboard new sources and preserve full history, but raw Data Vault tables are rarely queried directly by business users; you typically build a Kimball-style mart on top. Kimball is simpler to query and understand but harder to evolve without redesign when sources or business rules change significantly. Many organizations use Data Vault as the integration layer and Kimball as the presentation layer.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## NoSQL & Modern Analytics-Engineering Modeling
+
+Modeling principles shift once you leave the relational world, or once "modeling" means organizing dbt/lakehouse transformation layers rather than table schemas.
+
+<QuestionList topic="Modern Modeling" storagePrefix="dm-modern">
+
+<QuestionCard id="dm-21" number={21} question="How does data modeling for NoSQL databases differ from relational modeling?" difficulty="medium" topic="NoSQL">
+Relational modeling starts from the data's structure and normalizes to avoid redundancy; NoSQL modeling starts from your application's access patterns and denormalizes deliberately so the most common queries need no joins. You often duplicate data across documents or wide rows, trading storage and update complexity for read performance and horizontal scalability.
+</QuestionCard>
+
+<QuestionCard id="dm-22" number={22} question="Embedding vs. referencing in document store modeling: how do you decide?" difficulty="medium" topic="NoSQL">
+Embed related data inside a document when it's read together, doesn't grow unbounded, and isn't queried independently (an order's line items inside the order document). Reference — store an ID and look up separately — when the related data is large, shared across many parents, updated independently, or would push a document past size limits (a product referenced by thousands of orders).
+</QuestionCard>
+
+<QuestionCard id="dm-23" number={23} question="How do you model data for a wide-column store like Cassandra or BigTable?" difficulty="hard" topic="NoSQL">
+Design the table around your query patterns first — a partition key that distributes data evenly and matches your most common lookup, and a clustering key that gives the sort order your queries need. Since these stores don't support arbitrary joins or efficient secondary indexes, you typically denormalize and maintain multiple query-specific tables ("one table per query") rather than one normalized source of truth.
+</QuestionCard>
+
+<QuestionCard id="dm-24" number={24} question="What is denormalization, and when is it the right modeling choice?" difficulty="easy" topic="NoSQL">
+Denormalization intentionally duplicates or pre-joins data to avoid expensive joins or lookups at query time. It's the right choice when read performance matters more than storage cost or update complexity — typical in analytics/BI tables, NoSQL access-pattern modeling, and caching layers — but it pushes the burden of keeping duplicated data consistent onto your write/ETL logic.
+</QuestionCard>
+
+<QuestionCard id="dm-25" number={25} question="What are dbt's staging, intermediate, and marts layers, and why keep them separate?" difficulty="medium" topic="Analytics Engineering">
+- **Staging** — one model per source table, doing only light renaming/type-casting: a 1:1 clean mirror of the source.
+- **Intermediate** — business logic and joins not yet ready to expose to end users, reused across multiple marts.
+- **Marts** — final, business-facing models (often dimensionally shaped) that BI tools query directly.
+
+Separating them keeps transformations testable and traceable, and lets source-level details change without rewriting business logic.
+</QuestionCard>
+
+<QuestionCard id="dm-26" number={26} question="What is the medallion architecture (bronze/silver/gold), and how does it relate to data modeling?" difficulty="medium" topic="Analytics Engineering">
+Bronze holds raw, unprocessed data as ingested; silver holds cleaned, conformed, deduplicated data (often still fairly normalized); gold holds business-level, aggregated, typically dimensionally-modeled data ready for consumption. It maps loosely onto staging/intermediate/marts, but is framed around data-quality stages rather than dbt's specific tooling layers, and is common in lakehouse architectures.
+</QuestionCard>
+
+<QuestionCard id="dm-27" number={27} question="What is the 'One Big Table' (OBT) approach, and when does it make sense instead of a star schema?" difficulty="medium" topic="Analytics Engineering">
+OBT denormalizes a fact and all its dimensions into a single wide table, avoiding joins entirely at query time. It makes sense when your BI tool or query engine handles wide tables well, joins are the actual bottleneck, or a single well-defined use case doesn't need reusable conformed dimensions. The trade-off is duplicated dimension data and harder-to-maintain consistency if you need several OBTs.
+</QuestionCard>
+
+<QuestionCard id="dm-28" number={28} question="How do you model semi-structured data, like JSON columns, in an analytical warehouse?" difficulty="medium" topic="NoSQL">
+Modern warehouses support native JSON/VARIANT/STRUCT types, so you can flatten predictable, stable fields into normal columns at load time, or keep genuinely variable/nested data in a semi-structured column and flatten only what a query needs using the warehouse's native JSON functions. The trade-off is upfront flattening cost and schema rigidity vs. query-time parsing cost and flexibility.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Advanced Dimension Patterns
+
+Beyond the basic star schema — patterns for specific dimensional-modeling problems that come up once a warehouse matures.
+
+<QuestionList topic="Advanced Patterns" storagePrefix="dm-advanced">
+
+<QuestionCard id="dm-29" number={29} question="What is a role-playing dimension?" difficulty="medium" topic="Dimensions">
+A role-playing dimension is a single physical dimension table used multiple times in the same fact table through different foreign keys and views, representing different roles it plays. The classic example is one Date dimension joined three times to represent order_date, ship_date, and delivery_date — each presented to users as if it were a separate dimension.
+</QuestionCard>
+
+<QuestionCard id="dm-30" number={30} question="What is a mini-dimension, and when do you need one?" difficulty="hard" topic="Dimensions">
+A mini-dimension splits frequently-changing or high-cardinality attributes out of a large dimension into their own smaller dimension — for example, pulling "customer age band" and "income band" out of a Customer dimension. It's used when those attributes change often enough that SCD Type 2 on the full dimension would create excessive row churn, or when the attribute combination is small enough to enumerate as its own table.
+</QuestionCard>
+
+<QuestionCard id="dm-31" number={31} question="What is an outrigger dimension?" difficulty="hard" topic="Dimensions">
+An outrigger dimension is a dimension table that itself has a foreign key to another dimension table — for example, a Customer dimension referencing a separate Geography dimension. It's a controlled exception to the "dimensions don't join to other dimensions" star-schema rule, used sparingly when a shared sub-dimension like geography or a calendar is reused across several dimensions.
+</QuestionCard>
+
+<QuestionCard id="dm-32" number={32} question="How do you model ragged or unbalanced hierarchies?" difficulty="hard" topic="Hierarchies">
+A ragged hierarchy is one where branches have different depths — an org chart where some employees report directly to the CEO and others sit five levels down. Common approaches are a **recursive/parent-child** table (self-referencing foreign key) queried with recursive CTEs, or a **bridge table** that flattens every ancestor-descendant pair with a depth column, trading modeling simplicity for query-time convenience.
+</QuestionCard>
+
+<QuestionCard id="dm-33" number={33} question="How do you design a date or time dimension?" difficulty="easy" topic="Dimensions">
+A date dimension has one row per calendar day, often pre-populated for decades, with pre-computed attributes like day-of-week, month name, fiscal period, holiday flags, and quarter — so BI tools can filter and group by these without date-function logic in every query. Time-of-day is usually modeled separately (a small dimension or a plain column), since a date dimension is already large enough without every second of the day multiplying it further.
+</QuestionCard>
+
+<QuestionCard id="dm-34" number={34} question="What is SCD Type 4, and how does it differ from Type 2?" difficulty="hard" topic="SCD">
+SCD Type 4 splits a dimension into a current-values table and a separate history table, rather than keeping both current and historical rows in one table with effective dates like Type 2. This keeps the current table small and fast for typical queries, while the larger, less-frequently-queried history table absorbs the historical churn — useful when a dimension changes very frequently and Type 2's row growth becomes a performance problem.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Schema Evolution, Contracts & Relationships
+
+How a model survives change over time — both in schema shape and in the relationships it represents.
+
+<QuestionList topic="Schema Evolution" storagePrefix="dm-evolution">
+
+<QuestionCard id="dm-35" number={35} question="What is schema evolution, and why is it risky in analytics pipelines?" difficulty="medium" topic="Schema Evolution">
+Schema evolution is how a table's structure changes over time — new columns, renamed fields, changed types. It's risky because downstream consumers (dashboards, ML models, other pipelines) often assume a fixed shape; an unannounced column removal or type change can silently break queries or, worse, silently produce wrong numbers if a type change alters aggregation behavior without erroring.
+</QuestionCard>
+
+<QuestionCard id="dm-36" number={36} question="What is a data contract, and how does it help manage schema evolution?" difficulty="medium" topic="Schema Evolution">
+A data contract is an explicit, versioned agreement between a data producer and its consumers about a dataset's schema, semantics, and change process, often enforced with validation in CI/CD. It helps by making breaking changes a deliberate, communicated decision — bump a version, notify consumers — rather than a surprise, shifting schema evolution from "discovered when something breaks" to "planned and reviewed."
+</QuestionCard>
+
+<QuestionCard id="dm-37" number={37} question="What's the difference between a backward-compatible and a forward-compatible schema change?" difficulty="hard" topic="Schema Evolution">
+A **backward-compatible** change means new data still works with code written against the old schema (adding a new optional column — old readers just ignore it). A **forward-compatible** change means old data still works with code written against the new schema (a new required field needs a default so historical rows without it don't break). Designing for both lets producers and consumers deploy independently without a synchronized rollout.
+</QuestionCard>
+
+<QuestionCard id="dm-38" number={38} question="What is cardinality in ER modeling, and why does it matter for a data model?" difficulty="easy" topic="Relationships">
+Cardinality describes how many instances of one entity relate to instances of another — one-to-one, one-to-many, or many-to-many. Getting it wrong is a common source of grain-mismatch bugs: assuming a one-to-many relationship is actually one-to-one silently drops rows or picks an arbitrary one on a join, while missing a many-to-many relationship (no bridge table) silently duplicates rows and inflates metrics.
+</QuestionCard>
+
+<QuestionCard id="dm-39" number={39} question="How do you model recursive or self-referencing relationships, like an org chart or category tree?" difficulty="medium" topic="Relationships">
+The standard relational approach is a self-referencing foreign key (`employee.manager_id -> employee.employee_id`), queried with a recursive CTE to walk up or down the hierarchy. For read-heavy analytical use, this is often paired with a flattened path or bridge-table representation so BI tools don't need to run recursive queries themselves.
+</QuestionCard>
+
+<QuestionCard id="dm-40" number={40} question="How do you handle unknown or missing dimension members?" difficulty="medium" topic="Relationships">
+Rather than allowing NULL foreign keys — which silently exclude rows from inner joins and complicate filtering — the standard pattern is to insert an explicit "Unknown" or "Not Applicable" row into the dimension with a reserved surrogate key, and point unresolved facts at that row. This keeps joins simple (always an inner join) and makes missing-data volume visible and reportable instead of hidden.
+</QuestionCard>
+
+<QuestionCard id="dm-41" number={41} question="What questions should you ask before modeling a new fact table for a new business domain?" difficulty="medium" topic="Fact Tables">
+Start with grain — what does one row represent? Then: what dimensions does this event naturally relate to, are any of them new or already covered by existing conformed dimensions, what measures are actually additive at this grain, how will corrections or cancellations be handled (a new fact vs. mutating a row), and what's the expected volume and update frequency. Answering these up front avoids the most common rework: discovering the grain was wrong after the table's already in production.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
 ## Common Interview Scenarios
 
 - **"Design a fact table for e-commerce orders."** Start by nailing down grain (order? order line?), then identify dimensions (customer, product, date, promotion) and decide how to handle returns or cancellations — usually a separate fact or a status dimension rather than mutating the original row.
 - **"Our revenue metric doesn't match between two dashboards."** This is almost always a grain or join-fan-out problem. Walk through checking for many-to-many joins without a bridge table, duplicate rows from a non-conformed dimension, or inconsistent aggregation rules (sum vs. distinct count) between the two queries.
 - **"A dimension's attributes change over time — how do you model it?"** Identify whether the business needs point-in-time history (SCD Type 2) or only the current value (SCD Type 1), then talk through the surrogate key, effective-dating, and how late-arriving changes get handled.
+- **"We're integrating 12 source systems that all change independently — how would you model this?"** This is a Data Vault signal: talk through hubs for the shared business keys, links for how the systems' entities relate, and satellites absorbing each source's own attributes and change cadence, with a Kimball-style mart built on top for actual reporting.
+- **"Design a schema for a document store instead of a relational database."** Walk through identifying the application's actual read patterns first, then decide what gets embedded (read together, bounded size) versus referenced (shared, independently updated, unbounded growth) — the opposite starting point from relational normalization.
 
 ---
 
@@ -128,4 +286,6 @@ This catches subtle issues like join duplication or missing late data.
 
 - [Data Warehousing](/level-2-core-concepts/data-warehousing/) — how these models get deployed at the platform level
 - [SQL Interview Questions](/level-1-foundations/sql/theory/) — the query patterns (joins, window functions) used to work with these schemas
+- [MongoDB](/level-3-technologies/databases/mongodb/#interview-questions) — document-store modeling in practice
+- [DBT](/level-3-technologies/transformation/dbt/#interview-questions) — how staging/intermediate/marts layers are actually built
 - [Data Engineering Roadmap](/roadmaps/data-engineering/) — where data modeling fits into the broader curriculum
