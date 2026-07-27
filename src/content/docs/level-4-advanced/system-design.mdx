@@ -1,6 +1,6 @@
 ---
 title: System Design
-description: Data platform system design interview questions covering pipeline architecture, streaming, idempotency, layering, multi-tenancy, and reliability patterns.
+description: Data platform system design interview questions covering pipeline architecture, distributed systems, storage selection, scalability, fault tolerance, and governance.
 ---
 
 import QuestionCard from '../../../components/mdx/QuestionCard.astro';
@@ -22,11 +22,17 @@ import QuestionList from '../../../components/mdx/QuestionList.astro';
 
 Data system design questions test whether you can turn a vague business requirement into a concrete architecture. Most answers draw from a small set of recurring building blocks: a **layered storage model** (raw/silver/gold) that separates immutable ingestion from cleaned and business-ready data; a **batch vs. streaming** decision driven by latency needs versus complexity and cost; **reliability patterns** — idempotent writes, retries, dead-letter queues, checkpointing — that make pipelines safe to rerun; and handling for the messy realities of production data, like **late-arriving events**, **schema evolution**, and **backfills**. Around all of that sit platform-level concerns — **multi-tenancy**, **observability**, and **cost vs. SLA trade-offs** — that turn a single pipeline into a platform other teams can build on safely.
 
+Underneath those pipeline-level decisions sit **distributed systems fundamentals** — the CAP theorem, consistency models, replication topologies, partitioning, and consensus — that explain *why* the tools you use behave the way they do, plus a **storage and database selection** framework (SQL vs. NoSQL, lake vs. warehouse vs. lakehouse, OLTP vs. OLAP, indexing and caching trade-offs) for choosing the right backend instead of defaulting to a familiar one.
+
+At platform scale, interviews also probe **scalability and capacity planning** (partitioning strategy, back-of-envelope estimation, backpressure, auto-scaling), **fault tolerance and disaster recovery** (RTO/RPO, multi-region failover, backup validation), and **governance and security by design** (access control, PII handling, lineage, audit logging, data contracts) — the concerns that separate a working pipeline from a platform other teams can safely depend on. The Interview Questions section below closes with applied **case studies** — designing the data pipeline behind a fraud detector, a recommendation engine, a feature store, and similar systems — since real interviews often frame these concepts as one open-ended "design X" prompt rather than isolated definitions.
+
 ---
 
 ## Interview Questions
 
-<QuestionList topic="System Design" storagePrefix="system-design">
+### Pipeline Architecture & Reliability Fundamentals
+
+<QuestionList topic="Pipeline Architecture & Reliability Fundamentals" storagePrefix="sysdesign-fund">
 
 <QuestionCard id="sysdesign-01" number={1} question="How would you design a batch analytics pipeline?" difficulty="medium" topic="Batch Design">
 A typical design ingests data into a raw layer (immutable), transforms it into curated datasets (cleaned and modeled), and publishes it into marts or BI-serving datasets. You define SLAs, data quality checks, and clear ownership for each dataset along the way. Batch pipelines are usually scheduled daily or hourly and optimized for correctness and cost rather than latency.
@@ -74,6 +80,256 @@ You optimize storage layout (partitioning, file sizes), avoid unnecessary recomp
 
 </QuestionList>
 
+### Distributed Systems Fundamentals
+
+<QuestionList topic="Distributed Systems Fundamentals" storagePrefix="sysdesign-dist">
+
+<QuestionCard id="sysdesign-12" number={12} question="What is the CAP theorem, and how does it shape data platform design?" difficulty="medium" topic="CAP Theorem">
+CAP theorem states that a distributed system can only guarantee two of Consistency, Availability, and Partition tolerance at once — and since network partitions are unavoidable at scale, the real choice in practice is between consistency and availability during a partition (CP vs. AP). Systems like HBase or a strongly-consistent metastore favor CP (refuse requests rather than serve stale data); systems like Cassandra or DynamoDB favor AP (stay available, resolve conflicts later). For data engineering, this shows up as a design decision: an OLTP source-of-truth typically leans CP, while a high-throughput ingestion or serving layer often leans AP and pushes reconciliation downstream.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-13" number={13} question="What's the difference between strong, eventual, and causal consistency, and where does each fit in a data platform?" difficulty="hard" topic="Consistency Models">
+Strong consistency guarantees every read sees the latest write, at the cost of latency and availability under partition — appropriate for something like a ledger balance or a feature store used for real-time decisions. Eventual consistency only guarantees that replicas converge given enough time with no new writes — acceptable for analytics-serving layers where a few seconds of staleness doesn't change the answer. Causal consistency sits between the two: it preserves the order of causally related events without paying for global ordering, which is often the right fit for event-driven pipelines where downstream consumers need "happens-before" guarantees but not perfect real-time freshness.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-14" number={14} question="How do leader-follower, multi-leader, and leaderless replication differ, and when would you choose each?" difficulty="hard" topic="Replication">
+Leader-follower (single-leader) replication routes all writes through one node and fans reads out to followers — simple to reason about, but the leader is a write bottleneck and failover involves promoting a follower. Multi-leader replication accepts writes on multiple nodes (common across regions for latency) but requires conflict resolution when the same record is modified concurrently in two places. Leaderless replication (Cassandra, DynamoDB-style) sends writes to multiple replicas directly and uses quorum reads/writes plus read-repair to converge — it trades strict ordering for very high write availability, which is why it's common in ingestion-heavy data engineering workloads.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-15" number={15} question="How do you partition or shard a large dataset, and what causes hot partitions?" difficulty="medium" topic="Partitioning">
+The three common schemes are hash partitioning (spreads load evenly but breaks range scans), range partitioning (great for range queries and time-ordered access but risks hotspotting on the newest range), and list/lookup partitioning (groups by a known discrete key like region or tenant). Hot partitions happen when the partition key doesn't distribute load evenly — a classic case is partitioning event data by day when one day gets disproportionate volume. The fix is usually adding entropy to the key (salting, composite keys combining a coarse and fine-grained attribute) or picking a key with naturally higher cardinality than the skewed one.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-16" number={16} question="At a high level, why do distributed systems need consensus algorithms like Paxos or Raft?" difficulty="medium" topic="Consensus">
+Whenever multiple nodes need to agree on a single value or ordering — who the current leader is, what the next entry in a replicated log is — you can't have every node decide independently, because network delays and failures mean nodes can disagree. Consensus algorithms let a majority of nodes agree on one decision even if some nodes are slow or fail, without needing all nodes to respond. In data engineering you rarely implement these yourself, but you rely on systems built on them constantly — ZooKeeper and etcd back leader election in Kafka and Kubernetes, and knowing they need a quorum majority explains why an odd number of nodes and majority-availability are common operational requirements.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-17" number={17} question="How do two-phase commit (2PC) and the Saga pattern differ for handling cross-system transactions?" difficulty="hard" topic="Distributed Transactions">
+Two-phase commit gets all participants to prepare and vote before any of them commits, giving atomicity across systems — but the coordinator becomes a blocking single point, and a participant that crashes mid-protocol can hold locks indefinitely, which scales poorly across independently-owned services. The Saga pattern instead breaks a cross-system operation into a sequence of local transactions, each with a compensating action to undo it if a later step fails — no long-lived locks, but you accept a temporary intermediate state and must design idempotent compensations. Most data platforms favor sagas (or simply eventual consistency plus reconciliation jobs) over 2PC, since 2PC's tight coupling conflicts with how independently pipelines are usually deployed.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-18" number={18} question="Why can't you rely on wall-clock timestamps to order events across a distributed system?" difficulty="medium" topic="Event Ordering">
+Clocks on different machines drift and aren't perfectly synchronized even with NTP, so two events in true causal order can end up with out-of-order or identical timestamps once they cross machines. Logical clocks and vector clocks solve this by tracking causal relationships explicitly instead of relying on physical time — a logical clock only guarantees "happened-before" ordering, not real time. In streaming pipelines this is why you distinguish event-time from processing-time, and use watermarks to reason about how far processing has fallen behind event-time — wall-clock alone can't tell you that.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-19" number={19} question="What is a quorum in a distributed database, and how do quorum reads/writes trade off consistency and availability?" difficulty="medium" topic="Quorum Systems">
+In an N-replica system, a quorum requires W (write) and R (read) nodes to acknowledge an operation such that W + R &gt; N, guaranteeing overlap between any write set and any read set — that overlap is what lets a read see the latest write. Tuning W and R lets you dial the trade-off: R=1, W=N favors fast reads but slow writes; W=1, R=N is the opposite; balanced quorums like W=R=(N/2)+1 (Cassandra and DynamoDB defaults) balance latency against consistency. The key interview point is that quorum systems give tunable, not absolute, consistency — you can still get stale reads if versioning isn't handled correctly, which is why these systems pair quorums with vector clocks or last-write-wins timestamps.
+</QuestionCard>
+
+</QuestionList>
+
+### Storage & Database Selection
+
+<QuestionList topic="Storage & Database Selection" storagePrefix="sysdesign-storage">
+
+<QuestionCard id="sysdesign-20" number={20} question="How do you decide between a SQL and a NoSQL database for a given system?" difficulty="medium" topic="Database Selection">
+The decision usually comes down to access pattern and consistency needs rather than data volume alone. Choose SQL/relational when you need strong consistency, complex multi-table joins and ad-hoc querying, and a relatively stable schema (financial records, order management). Choose NoSQL when you have a known, simple access pattern at very high scale (key-value lookups, wide time-series writes), need flexible/evolving schemas, or need to scale writes horizontally beyond what a single-leader relational system comfortably handles — the trade-off is usually giving up joins and sometimes strong consistency in exchange for horizontal scalability.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-21" number={21} question="When would you use a data lake, a data warehouse, or a lakehouse?" difficulty="medium" topic="Storage Architecture">
+A data warehouse is the right choice when consumers are BI/analytics workloads that need fast, structured, governed SQL access and you're willing to pay for schema-on-write and warehouse compute. A data lake fits when you need to cheaply retain large volumes of raw or semi-structured data with schema-on-read flexibility, at the cost of weaker transactional guarantees and query performance. A lakehouse (Delta Lake, Iceberg, Hudi on object storage) tries to give both — warehouse-like ACID transactions and performance on lake-cheap storage — and has become the default for new platforms that don't want to maintain two separate copies of the same data.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-22" number={22} question="What are the key design differences between an OLTP system and an OLAP system?" difficulty="medium" topic="OLTP vs OLAP">
+OLTP systems are optimized for many small, concurrent read/write transactions against a normalized schema — a single row insert/update, sub-millisecond latency, ACID guarantees. OLAP systems are optimized for large, read-heavy aggregations over history against a denormalized, often dimensional schema, where a single query might scan millions of rows. The design implication is you almost never point analytics traffic directly at an OLTP database — you replicate or CDC the data into an OLAP-shaped store instead, which is the entire reason data warehouses and this platform's pipelines exist.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-23" number={23} question="Why do analytical systems favor columnar storage over row-oriented storage?" difficulty="medium" topic="Storage Formats">
+Row-oriented storage keeps all columns of a record together on disk, which is efficient when you read or write whole records — the OLTP pattern. Columnar storage groups each column's values together, so a query touching 3 of 50 columns reads only those columns, and because values within a column are similar, they compress far better. Analytical queries typically aggregate a few columns across millions of rows, so columnar formats (Parquet, ORC, and columnar warehouses like Redshift/BigQuery internally) dramatically cut I/O and improve compression compared to row storage — see the [Parquet](/level-3-technologies/formats/parquet/) page for format-level detail.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-24" number={24} question="How do you decide what to index, and what's the trade-off between B-tree and LSM-tree indexes?" difficulty="hard" topic="Indexing">
+Index the columns your queries actually filter, join, or sort on — every index speeds up reads but slows down writes and costs storage, so indexing everything "just in case" is a common anti-pattern. B-tree indexes (traditional RDBMS) keep data sorted and support fast point lookups and range scans with in-place updates, but random writes cause page splits and write amplification. LSM-tree indexes (Cassandra, RocksDB, HBase) buffer writes in memory and flush them as sorted immutable segments, merging them later via compaction — this makes writes very fast and sequential, at the cost of reads sometimes checking multiple segments, which is why LSM-based stores are the default for write-heavy data engineering workloads.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-25" number={25} question="What are the main caching strategies, and how do you keep a cache consistent with its source of truth?" difficulty="medium" topic="Caching">
+Cache-aside (lazy loading) has the application check the cache first and populate it on a miss — simple and resilient to cache failure, but the first request after eviction pays full latency. Write-through writes to the cache and the store synchronously, keeping them consistent but adding write latency; write-behind writes to the cache immediately and flushes to the store asynchronously, which is fast but risks data loss if the cache fails before flushing. Consistency is kept via TTLs (accept some staleness), explicit invalidation on write, or versioned/event-driven invalidation — the right choice depends on how much staleness the consumer can tolerate.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-26" number={26} question="How do you choose between Kafka, a cloud pub/sub service, and a traditional message queue for ingestion?" difficulty="hard" topic="Messaging Systems">
+Kafka (and Kinesis, which shares its model) is a durable, ordered, replayable log — consumers track their own offset and can reprocess history, which is what makes it the default backbone for pipelines needing multiple independent consumers and replay/backfill capability. Cloud pub/sub services (SNS/SQS, Google Pub/Sub) are typically simpler fan-out/queue primitives without long retention or offset-based replay, and fit event notification or decoupling services rather than acting as a system of record. Traditional message queues (RabbitMQ) excel at complex routing and per-message delivery guarantees for task distribution, but aren't built for "replay the last 7 days" — so the deciding question is usually "do consumers need to replay history," and if yes, you reach for a log, not a queue.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-27" number={27} question="How do you design storage for high-volume time-series or IoT sensor data?" difficulty="hard" topic="Time-Series Design">
+Partition by time (often with device/sensor ID as a secondary key) so writes and typical time-range queries hit a small number of partitions instead of scanning everything. Use a storage engine built for high write throughput and time-ordered access (Cassandra, InfluxDB, or a columnar lakehouse table partitioned by day/hour), and apply downsampling/rollups — raw data at full resolution for a short retention window, pre-aggregated minute/hour/day rollups kept much longer — so storage cost doesn't grow unbounded with sensor count. Tiered retention, hot storage for recent raw data and cold/archive storage for older data, is the standard way to keep both query latency and cost under control at IoT scale.
+</QuestionCard>
+
+</QuestionList>
+
+### Scalability & Capacity Planning
+
+<QuestionList topic="Scalability & Capacity Planning" storagePrefix="sysdesign-scale">
+
+<QuestionCard id="sysdesign-28" number={28} question="What's the difference between scaling a data system horizontally versus vertically, and when does each break down?" difficulty="easy" topic="Scalability">
+Vertical scaling means adding more CPU/RAM/disk to a single node — simple, no distributed-systems complexity, but bounded by the biggest machine you can buy and creates a single point of failure. Horizontal scaling means adding more nodes and distributing data/load across them — theoretically unbounded and more fault-tolerant, but introduces partitioning, coordination, and network overhead. Most systems start vertical for simplicity and move horizontal once a single node can no longer hold the data or handle the throughput; the interview signal is recognizing that horizontal scaling isn't free — it's a deliberate trade of operational complexity for headroom.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-29" number={29} question="How would you approach a back-of-the-envelope capacity estimation question in a system design interview?" difficulty="medium" topic="Capacity Estimation">
+Start from the business numbers you're given or can reasonably assume — daily active users or events per day — and convert to a rate (events/day ÷ 86,400 seconds ≈ average QPS), then apply a peak multiplier (commonly 2-3x average) for peak QPS. For storage, multiply average record size by daily volume and retention period, then add a multiplier for replication factor and indexes. The goal isn't precision — it's showing you can reason from a rough input to a number that tells you whether you need one server or a hundred, since interviewers are checking your estimation process, not expecting an exact answer.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-30" number={30} question="How do you detect and fix a hot key or hot partition once a system is already in production?" difficulty="hard" topic="Hot Partitions">
+You detect it through per-partition metrics — throughput, CPU, or queue depth broken out by partition/shard rather than aggregated, since an aggregate average hides a single overloaded partition. Fixes include adding randomness to the partition key (salting: append a random or hashed suffix so one logical key spreads across several physical partitions, then merge on read), splitting an overly broad key into a more granular composite key, or, for read-heavy hot keys, adding a cache in front of that specific key. The underlying lesson is that partition keys should be chosen for even distribution up front, because re-partitioning a live system is disruptive and usually requires a migration.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-31" number={31} question="What is backpressure, and how do you design a streaming pipeline to handle it?" difficulty="medium" topic="Backpressure">
+Backpressure is what happens when a downstream consumer processes events slower than an upstream producer sends them — without handling it, the gap fills a buffer until it overflows and you either drop data or crash. The standard fixes are: let the transport layer buffer durably (Kafka's log lets a slow consumer fall behind and catch up later, since data isn't lost while it waits), apply flow control so the producer slows down when a consumer signals it's overwhelmed, or scale out consumers so aggregate processing capacity matches input rate. The design principle is to make "the consumer is behind" a survivable, monitorable state (consumer lag) rather than a failure mode.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-32" number={32} question="What load balancing strategies would you use in front of a data platform's serving layer?" difficulty="medium" topic="Load Balancing">
+Round-robin is simplest and works well when requests are roughly uniform in cost, but breaks down if some requests are much more expensive than others. Least-connections routing sends new requests to whichever backend currently has the fewest in-flight requests, adapting better to uneven request cost. Consistent hashing routes requests with the same key to the same backend (useful when a backend caches per-key state, like a feature store shard) and minimizes reshuffling when backends change compared to plain modulo hashing — the choice depends on whether backends are stateless and interchangeable or hold key-specific state.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-33" number={33} question="How do you design auto-scaling for variable data pipeline load, like a batch cluster or a streaming consumer group?" difficulty="medium" topic="Auto-Scaling">
+For batch, scale the cluster to the job rather than keeping it fixed — ephemeral, job-scoped clusters (Spark-on-Kubernetes or EMR/Databricks jobs) spin up sized to the workload and tear down afterward, so cost tracks actual usage instead of provisioning for peak year-round. For streaming, scale consumer instances to partition count (more consumers than partitions doesn't help) and use consumer lag as the scaling signal — rising lag means you're falling behind and need more consumers or partitions, not CPU alone. The design principle is picking a metric that reflects actual backlog rather than just CPU utilization, which can look fine even while a pipeline falls further behind.
+</QuestionCard>
+
+</QuestionList>
+
+### Fault Tolerance, DR & High Availability
+
+<QuestionList topic="Fault Tolerance, DR & High Availability" storagePrefix="sysdesign-ha">
+
+<QuestionCard id="sysdesign-34" number={34} question="How do you define and use RTO and RPO when designing disaster recovery for a data platform?" difficulty="medium" topic="Disaster Recovery">
+RPO (Recovery Point Objective) is how much data you can afford to lose, measured in time — an RPO of 15 minutes means your backup/replication cadence must guarantee you never lose more than 15 minutes of data. RTO (Recovery Time Objective) is how long you can afford to be down before service is restored. These two numbers drive concrete architecture choices: a tight RPO pushes you toward continuous replication or CDC rather than nightly backups, and a tight RTO pushes you toward warm/hot standby infrastructure rather than restoring from cold backups — DR design is working backward from agreed RTO/RPO targets, not a generic "have backups" answer.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-35" number={35} question="What's the difference between active-active and active-passive multi-region architecture, and what does each cost you?" difficulty="hard" topic="Multi-Region Design">
+Active-passive keeps a fully-provisioned standby region that normally serves no traffic and gets promoted on failover — simpler to reason about and avoids multi-region write conflicts, but you're paying for idle capacity and failover isn't instant. Active-active serves live traffic from multiple regions simultaneously, giving lower latency to distributed users and no idle capacity, but requires solving cross-region write conflicts and typically settles for eventual consistency between regions. Data platforms often run ingestion active-active per region (regional events don't conflict) while keeping a single authoritative region for anything requiring strong consistency, like a control plane or a ledger.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-36" number={36} question="How do you design failover to avoid a split-brain scenario?" difficulty="hard" topic="Failover Design">
+Split-brain happens when a network partition causes both the old and a newly-promoted leader to believe they're in charge and accept writes independently, diverging the data. The standard defense is requiring a quorum/majority to elect or confirm a leader, so only one side of a partition can ever have a majority, rather than letting any isolated node self-promote. Fencing — actively preventing an old leader from writing once superseded, using a fencing token that downstream storage checks and rejects if stale — is the second layer, because quorum-based election alone doesn't stop a "zombie" old leader from writing if it regains partial connectivity.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-37" number={37} question="What backup strategies would you use for a data platform, and how do you validate they actually work?" difficulty="medium" topic="Backup Strategy">
+Combine full snapshots (periodic, complete copies — simple to restore from, but expensive and slow to take often) with incremental backups or CDC-based continuous replication (cheaper and more frequent, but restore requires replaying the chain). Retention should follow a tiered policy — frequent recent backups, sparser older ones — driven by your RPO and any compliance requirements. The step teams most often skip is validation: a backup you've never restored from is unverified, so scheduled restore drills into an isolated environment are what actually give you confidence the backup works, not just that the backup job "succeeded."
+</QuestionCard>
+
+<QuestionCard id="sysdesign-38" number={38} question="How do circuit breakers and graceful degradation apply to data pipeline design?" difficulty="medium" topic="Graceful Degradation">
+A circuit breaker stops calling a downstream dependency that's failing or timing out — after a failure threshold, it "opens" and fails fast instead of piling up retries against something already struggling, giving the dependency room to recover instead of being hit by a retry storm. Graceful degradation means designing the pipeline to keep providing a reduced but useful service when a dependency is down — serving a slightly stale cached result instead of erroring, or skipping an optional enrichment step rather than failing the whole record. Both patterns are about designing pipelines to fail partially and recoverably instead of failing completely, which matters more as a platform accumulates dependencies.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-39" number={39} question="What is chaos engineering, and how would you apply it to a data pipeline?" difficulty="medium" topic="Chaos Engineering">
+Chaos engineering is deliberately injecting failures — killing a node, adding network latency, dropping a percentage of messages — into a system to verify your fault-tolerance assumptions actually hold rather than just being untested claims. For a data pipeline, useful experiments include killing a worker mid-job to confirm checkpointing/idempotency actually works, injecting duplicate messages to verify deduplication logic, or simulating a slow downstream dependency to confirm backpressure and circuit breakers engage as designed. The value is finding out your retry logic causes a duplicate-write bug, or your "automatic failover" doesn't actually trigger, before a real incident forces you to find out.
+</QuestionCard>
+
+</QuestionList>
+
+### Data Contracts, Governance & Security by Design
+
+<QuestionList topic="Data Contracts, Governance & Security by Design" storagePrefix="sysdesign-gov">
+
+<QuestionCard id="sysdesign-40" number={40} question="How would you design access control for a multi-team data platform?" difficulty="medium" topic="Access Control">
+Role-based access control (RBAC) grants permissions to roles rather than individuals, which scales better as headcount grows — you manage a handful of roles instead of per-person grants. Attribute-based access control (ABAC) goes further, evaluating attributes of the user, the data, and the context at request time, which is more flexible but more complex to audit. Data platforms typically also need row-level and column-level security beneath whichever model they choose — restricting which rows a role can see (tenant isolation) and which columns (masking PII for roles that shouldn't see raw values) — which most modern warehouses support natively rather than requiring it in application code.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-41" number={41} question="How do you design PII handling and data masking into a platform, rather than bolting it on afterward?" difficulty="hard" topic="PII & Masking">
+The design principle is classifying and tagging sensitive fields at ingestion (a column-level tag like `pii:email` in the catalog/schema) so every downstream consumer of that field is discoverable and every future pipeline touching it is covered automatically, rather than relying on each pipeline author remembering which fields are sensitive. From there, apply masking or tokenization as close to the source as the use case allows — full redaction for broad analytics roles, format-preserving tokenization when a downstream system needs a stable-but-fake identifier for joins, and reversible encryption only for the narrow set of roles that need the real value back. Enforcing this as a platform-level policy rather than per-pipeline logic is what makes it reliable, since per-pipeline enforcement gets missed the moment a new pipeline is added.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-42" number={42} question="How would you design data lineage tracking into a platform?" difficulty="medium" topic="Data Lineage">
+Lineage needs capturing at two levels: table/dataset-level (which tables feed which — usually extracted automatically by parsing SQL/DAG definitions in your orchestrator or transformation tool) and column-level (which source columns a given output column was derived from, useful for impact analysis but harder to extract automatically). The most reliable designs capture lineage as a byproduct of normal pipeline execution — instrumenting the orchestrator or query engine to emit lineage events (OpenLineage is the common open standard) — rather than requiring engineers to manually document it, since manual documentation reliably goes stale. Lineage is what lets you answer "if I change this upstream table, what breaks downstream" without a spreadsheet.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-43" number={43} question="How would you design audit logging for a data platform that needs to support a compliance investigation?" difficulty="medium" topic="Audit Logging">
+Log at the point of access, not just the point of change — who queried what data and when, not only who ran an UPDATE. Audit logs need to be immutable and stored separately from the systems they audit, so someone covering their tracks can't also edit the audit trail, with retention driven by the relevant compliance regime (SOC 2, GDPR, HIPAA each specify different minimums). The practical design question is granularity versus cost: logging every SELECT at the row level is expensive at scale, so most platforms log at the query level (full query text, user, timestamp, tables touched) and reserve row-level detail for data classified as sensitive enough to warrant it.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-44" number={44} question="What is a data contract, and how do you design one between a producer and consumer team?" difficulty="medium" topic="Data Contracts">
+A data contract is an explicit, versioned agreement on a dataset's schema, semantics, and guarantees — field types, nullability, what a status value actually means, expected freshness/SLA — that the producing team commits to and the consuming team can build against without babysitting the pipeline. It gets enforced with schema validation in CI (a producer's breaking change fails their own build, not the consumer's production pipeline) and compatibility rules (additive changes allowed silently, breaking changes require a version bump and deprecation window). The point of formalizing this is shifting the failure left — from "the consumer's dashboard broke in production" to "the producer's CI failed before merge."
+</QuestionCard>
+
+<QuestionCard id="sysdesign-45" number={45} question="How do you design encryption for a data platform — at rest, in transit, and for key management?" difficulty="medium" topic="Encryption Design">
+Encryption in transit (TLS between every service-to-service and client-to-service hop) protects data from network interception and is close to table-stakes today. Encryption at rest protects storage media itself — most managed cloud storage and warehouses support this natively with minimal design work. The part that actually requires design decisions is key management: envelope encryption (a data encryption key encrypts the data, and a separate key-encryption key from a managed KMS encrypts that key) lets you rotate keys and revoke access without re-encrypting all underlying data, and centralizing this in a KMS rather than each service managing its own keys is what makes rotation and revocation operationally feasible.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-46" number={46} question="How would you design a self-serve data platform that lets other teams build pipelines without your team as a bottleneck?" difficulty="hard" topic="Self-Serve Platform">
+The core idea is a "paved road": a small set of golden, well-supported patterns — a standard way to define a pipeline, a standard ingestion path, a standard testing/CI template — that cover most use cases with strong defaults for quality, monitoring, and cost baked in, so teams building on the paved road get reliability for free instead of reinventing it. This is paired with self-service tooling — a catalog to discover existing datasets before building a duplicate, templated pipeline scaffolding, and automated policy enforcement (schema validation, naming standards) in CI rather than manual review gates. The platform team's job shifts from building every pipeline to building and maintaining the paved road, with manual involvement reserved for use cases that don't fit it.
+</QuestionCard>
+
+</QuestionList>
+
+### Applied System Design Case Studies
+
+<QuestionList topic="Applied System Design Case Studies" storagePrefix="sysdesign-case">
+
+<QuestionCard id="sysdesign-47" number={47} question="Design the data pipeline behind a real-time analytics dashboard (e.g., product or clickstream analytics)." difficulty="hard" topic="Case Study: Analytics Dashboard">
+Events (page views, clicks) are produced from client SDKs into a durable log (Kafka/Kinesis), partitioned by a key like session or user ID so related events land on the same partition and preserve order. A stream processor (Flink or Spark Structured Streaming) consumes the log, does windowed aggregation with watermarking to handle late-arriving events, and writes current-state aggregates to a low-latency serving store (Redis, or a fast OLAP store like Druid/ClickHouse) that the dashboard queries. The raw event stream is also sunk to a data lake/warehouse for historical, ad-hoc analysis the real-time path doesn't need to serve — separating the "always-current small aggregate" path from the "complete history" path is the key design decision.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-48" number={48} question="Design a log aggregation and search platform, similar to the ELK stack or Splunk." difficulty="hard" topic="Case Study: Log Aggregation">
+Lightweight agents on each host tail log files and ship them to a durable buffer (Kafka), decoupling log producers from the indexing pipeline and absorbing bursts without losing logs if the indexer falls behind. A processing stage parses and enriches raw log lines before writing into a search-optimized inverted index partitioned by time, since almost all log queries filter by a time range first. Retention is tiered — recent logs in fast, expensive storage for interactive search; older logs rolled into cheaper storage or dropped — and the design has to account for cardinality explosions, where an errant field with unbounded unique values can blow up index size, one of the most common real-world failures of these systems.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-49" number={49} question="Design the data pipeline for a ride-sharing platform (trip events, driver location, surge pricing)." difficulty="hard" topic="Case Study: Ride-Sharing">
+High-frequency, low-value events (continuous driver GPS pings) go through a streaming path optimized for throughput over per-event durability, often downsampled before long-term storage since most consumers don't need full resolution. Trip lifecycle events (request, match, start, complete, cancel) are higher-value and need stronger guarantees since they drive billing, typically flowing through CDC or an event log with idempotent, keyed writes into a trips table. Surge pricing needs a low-latency view of local supply/demand — a streaming job aggregating recent requests and available drivers per geo-cell, feeding a fast key-value store the pricing service reads from — architecturally a separate, tighter-latency path from the batch pipeline computing historical reporting off the same event stream.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-50" number={50} question="Design a real-time fraud detection pipeline for financial transactions." difficulty="hard" topic="Case Study: Fraud Detection">
+Transactions stream through a log into a scoring service that must respond within a tight latency budget, often under 100-200ms since this usually gates the transaction itself — which rules out anything requiring a full historical scan per request. Instead, a feature store precomputes and serves features (recent transaction velocity, historical spend patterns) with low-latency lookups, and the model scores using those precomputed features plus the incoming transaction. The same event stream also feeds a batch pipeline that retrains fraud models on fresh labeled data, keeping online features aligned with what the model was trained on — a common real-world bug is training/serving skew, where batch-computed training features don't match what the real-time store actually serves. False positives and negatives also need a feedback loop, since blocking a legitimate transaction and missing real fraud are both costly, differently.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-51" number={51} question="Design the offline/online data pipeline for a recommendation system." difficulty="hard" topic="Case Study: Recommendations">
+Recommendations split cleanly into an offline path and an online path: offline, a batch job periodically computes candidate recommendations or embeddings from historical interaction data — a large, slow computation not needed in real time — writing results into a fast serving store. Online, a lightweight request-time service reads precomputed candidates for a user and applies fast re-ranking using recent session context, since the deep computation already happened offline. The design challenge is freshness versus cost: fully offline recommendations go stale within a session, so most real systems add a thin real-time re-ranking layer on top of the batch-computed candidate set rather than trying to recompute the expensive part live.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-52" number={52} question="Design a feature store for machine learning." difficulty="hard" topic="Case Study: Feature Store">
+A feature store needs two storage paths sharing one feature definition: an offline store (warehouse or lake, holding historical feature values for training, since training needs point-in-time-correct history to avoid leaking future information) and an online store (a low-latency key-value store like Redis or DynamoDB, holding only the current value of each feature for real-time inference). The core engineering problem is training/serving consistency — computing a feature once from a shared definition and materializing it to both stores, rather than maintaining separate offline and online logic that can silently drift apart. Point-in-time correctness for the offline store is the subtlest requirement: each historical training example must only see feature values as they existed at that example's timestamp, or the model trains on information it wouldn't have had in production.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-53" number={53} question="Design a notification/alert delivery pipeline that needs to reach users across email, SMS, and push." difficulty="medium" topic="Case Study: Notifications">
+Producers publish a notification event to a queue rather than calling delivery providers directly, decoupling "something happened" from "how it gets delivered." A dispatch service consumes the queue, applies user preferences and rate-limiting/deduplication, and routes to channel-specific delivery workers, each with their own retry policy and dead-letter handling since third-party providers fail independently and at different rates. Idempotency keys prevent duplicate delivery when a retry happens after a provider timeout that actually succeeded, and delivery status flows back into an event log so the rest of the platform can react to it — for example, stop retrying a permanently invalid phone number.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-54" number={54} question="Design a metrics and monitoring platform, similar to Datadog or Prometheus, for ingesting time-series data at scale." difficulty="hard" topic="Case Study: Metrics Platform">
+Metrics arrive as high-cardinality, high-volume time-series emitted every few seconds from every host/service, so the ingestion path needs to batch and locally pre-aggregate at the source before shipping, since sending every raw data point individually doesn't scale. Storage uses a time-series-specific engine partitioned by time with downsampling — full resolution for a short recent window, progressively coarser rollups for older data — because nobody queries 6-month-old metrics at 1-second resolution. The hardest real design problem is cardinality control: unbounded label values can multiply the number of unique time-series combinatorially and take down the whole system, so cardinality limits at ingestion are a first-class design concern, not an afterthought.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-55" number={55} question="Design a data catalog / metadata discovery platform for an organization with hundreds of datasets." difficulty="medium" topic="Case Study: Data Catalog">
+The catalog's core job is answering three questions for any dataset: what is this, where does it come from (lineage), and can I trust it (quality/freshness/ownership) — so its data model centers on a dataset entity enriched with schema, owner, tags, lineage edges, and quality signals. Most of this metadata should be harvested automatically rather than hand-entered — connecting to the warehouse's information schema, the orchestrator for lineage, and data quality tooling for freshness scores — because catalogs relying on manual documentation reliably go stale and get abandoned. Search and discovery is the user-facing half, but trust signals like last-updated timestamp and owning team are usually what actually determines whether someone uses a dataset they found, so they need to be prominent, not buried.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-56" number={56} question="Design a reconciliation pipeline to catch discrepancies between a payments system and its downstream ledger." difficulty="hard" topic="Case Study: Payments Reconciliation">
+Both sides — the source payments system and the downstream ledger/warehouse copy — need to expose comparable, complete snapshots, typically daily and keyed by a stable transaction ID, rather than relying on the pipeline "probably" having copied everything correctly. A reconciliation job compares record counts and key financial aggregates between source and destination for the same time window, and flags row-level differences for investigation rather than just a pass/fail total, since totals can match by coincidence while individual rows are wrong. Because this is financial data, the reconciliation itself needs to be auditable and re-runnable, and discrepancies need a clear escalation path rather than silently logging a warning nobody reads.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-57" number={57} question="Design a data pipeline that can fulfill GDPR 'right to be forgotten' deletion requests across a data platform." difficulty="hard" topic="Case Study: GDPR Deletion">
+This depends on knowing where a given user's data lives at all — tractable only if PII fields are tagged in the catalog and lineage tracks every downstream copy of a source table, since you can't delete what you can't find. Deletion then has to reach every copy: the source system, the raw/bronze layer, every derived table, every backup, and any downstream export — and because raw/immutable layers are usually append-only, deletion is often implemented as a tombstone/reprocessing job that rebuilds affected partitions excluding the deleted user's records, rather than an in-place mutation of "immutable" raw data. Backups are the hardest part in practice — since you generally can't selectively edit an existing backup, the common approach is a documented, time-bound exception combined with encrypting each user's data under a separable key, so "deletion" can mean destroying that one key (crypto-shredding) instead of rewriting the backup.
+</QuestionCard>
+
+</QuestionList>
+
+### SLAs, Delivery & Cost at Scale
+
+<QuestionList topic="SLAs, Delivery & Cost at Scale" storagePrefix="sysdesign-ops">
+
+<QuestionCard id="sysdesign-58" number={58} question="How do you define SLAs, SLOs, and error budgets for a data pipeline, and what do you do once the error budget is spent?" difficulty="medium" topic="SLAs & Error Budgets">
+An SLA is the external commitment, often with a consequence attached — "the daily sales table is available by 8am, 99.5% of the time." An SLO is the internal target you actually engineer to, usually stricter than the SLA to leave margin. The error budget is 100% minus the SLO — the amount of unreliability you're allowed before risking the external commitment — and it turns reliability into a number you can spend deliberately: while budget remains, teams can ship riskier changes; once it's exhausted, priority shifts to reliability work over new features until the budget recovers.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-59" number={59} question="How would you design end-to-end data freshness monitoring across a multi-stage pipeline?" difficulty="medium" topic="Freshness Monitoring">
+Freshness needs measuring at every stage boundary, not just the final table — timestamp each stage's output with both the event-time of its data and the processing-time it completed, so you can compute lag at each hop instead of only knowing the final dashboard is stale without knowing which upstream stage caused it. Alerting should trigger on lag crossing a threshold tied to that dataset's SLA, since a pipeline can be technically succeeding while still falling behind with no individual failure to alert on. Centralizing this as a platform capability — every pipeline emits a standard freshness metric — is what makes it possible to build one dashboard showing what's stale right now across the whole platform.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-60" number={60} question="How do you design cost attribution or chargeback for a shared, multi-tenant data platform?" difficulty="medium" topic="Cost Attribution">
+Attribution requires tagging resources — compute jobs, storage, warehouse queries — with an owning team/project at creation time; most cloud billing and warehouse query-cost APIs support this natively, so the design work is enforcing that every job is tagged, not building the tracking mechanism itself. Aggregate tagged usage into a regular report broken out by team, and decide upfront between showback (visibility only) and chargeback (cost actually billed to the team's budget), since chargeback changes team incentives much more strongly. The most common practical failure isn't the reporting — it's untagged "shared" resources that can't be attributed to anyone, which is why enforcing tagging at creation time matters more than the dashboard built on top of it.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-61" number={61} question="How would you design a safe deployment strategy (blue-green or canary) for changes to a production data pipeline?" difficulty="medium" topic="Deployment Strategy">
+Blue-green deployment runs the new pipeline version fully in parallel against the same input, writing to a separate output location, and you validate its output against the old version before cutting reads over — giving an instant, safe rollback since the old version's output is untouched. Canary deployment instead routes a small slice of traffic or data through the new version first, comparing results before rolling out fully — cheaper than duplicating compute, but only surfaces issues visible in whatever slice you chose. For data pipelines specifically, the validation step matters more than in typical service deployments, because a "successful" run can still silently produce wrong numbers — so the gate before full rollout should be a data-quality/reconciliation check, not just "did the job exit with status 0."
+</QuestionCard>
+
+<QuestionCard id="sysdesign-62" number={62} question="What testing strategy would you design for a data platform, beyond unit tests for transformation code?" difficulty="medium" topic="Testing Strategy">
+Unit tests cover transformation logic in isolation. Integration tests run a pipeline end-to-end against representative sampled or synthetic data to catch issues that only appear when steps are chained together, like a schema mismatch between two stages. Data quality/contract tests run continuously in production, not just pre-deploy — schema checks, null-rate and distribution checks, row-count reasonableness — because production data itself changes in ways a fixed CI test suite can't anticipate; a pipeline can pass every CI test and still break in production when an upstream source silently changes its data. The combination matters because code regressions and data regressions are genuinely different failure modes, not the same test run twice.
+</QuestionCard>
+
+<QuestionCard id="sysdesign-63" number={63} question="How would you design an internal data API or service layer to serve derived data to other teams, instead of giving them direct table access?" difficulty="medium" topic="Internal Data APIs">
+A service layer in front of derived data gives a stable contract independent of the underlying table's physical schema — you can repartition, rename columns, or migrate warehouses behind the API without breaking every consumer, which direct table access can't offer. It also centralizes cross-cutting concerns that are painful to enforce per-consumer: access control and row-level security in one place, consistent caching for expensive queries, and rate limiting so one consumer's runaway query can't degrade the warehouse for everyone else. The trade-off is cost and latency — operating a service layer is more work than granting a warehouse role and adds a hop — so it's usually reserved for data that many consumers depend on or that needs governance beyond what a raw grant provides.
+</QuestionCard>
+
+</QuestionList>
+
 ---
 
 ## Common Interview Scenarios
@@ -82,6 +338,10 @@ You optimize storage layout (partitioning, file sizes), avoid unnecessary recomp
 - **"A backfill you ran overwrote correct data with stale data — how do you prevent that next time?"** Talk through isolating backfills from live pipelines, validating output before promoting it, and designing idempotent, deterministic reprocessing keyed by event time.
 - **"Multiple teams want to share one data platform — how do you design for that?"** Cover isolation and quotas, a shared catalog and naming standards, and cost/SLA guardrails that stop one tenant's workload from degrading everyone else's.
 - **"How would you detect and diagnose a silent data quality problem before a stakeholder does?"** Describe the observability layer — freshness, volume, and quality monitors with actionable alerts — spanning from source ingestion through to the gold-layer datasets people actually query.
+- **"Design a real-time fraud detection system for credit card transactions."** Cover the tight latency budget forcing precomputed features from a feature store rather than live scans, the separate batch retraining loop, and the training/serving skew risk between them.
+- **"A regulator asks you to delete one user's data everywhere — walk me through how that actually happens."** Talk through lineage-driven discovery of every copy, tombstone-and-reprocess for "immutable" raw layers, and why backups need a separable per-user key rather than in-place editing.
+- **"Another team wants direct SQL access to your production tables instead of waiting on your team — how do you respond?"** Weigh a data contract plus row/column-level access control against building a thin internal API, and explain when the extra hop is actually worth it.
+- **"Design a system that handles a 20x traffic spike (e.g., Black Friday) without staying over-provisioned the other 364 days."** Walk through capacity estimation, auto-scaling tied to a backlog signal like consumer lag, and backpressure as the safety net when scaling can't keep up.
 
 ---
 
@@ -89,4 +349,7 @@ You optimize storage layout (partitioning, file sizes), avoid unnecessary recomp
 
 - [Cost Optimization](/level-4-advanced/cost-optimization/) — the cost side of the design trade-offs discussed here
 - [Observability](/level-4-advanced/observability/) — a deeper look at monitoring freshness, quality, and pipeline health
-- [Streaming](/level-3-technologies/streaming/) — the tools and patterns behind the near-real-time ingestion designs above
+- [Kafka](/level-3-technologies/streaming/kafka/) — the log-based messaging system underlying most of the streaming and event-ordering designs above
+- [Data Governance](/level-2-core-concepts/data-governance/) — a deeper look at access control, PII handling, and lineage
+- [CDC](/level-3-technologies/ingestion/cdc/) — the change-data-capture patterns behind several of the reconciliation and replication designs above
+- [Data Modeling](/level-2-core-concepts/data-modeling/) — schema-design specifics for the storage and layering decisions discussed here
