@@ -1,6 +1,6 @@
 ---
 title: Python Theory | Core Concepts
-description: Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.
+description: Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.
 ---
 
 import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
@@ -522,6 +522,570 @@ def test_output_columns():
 Run with: `pytest test_transform.py -v`
 
 **Key principle:** test the data contract (shape, types, values), not implementation details.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Comprehensions & Functional Patterns
+
+Concise, idiomatic ways to transform data without writing explicit loops.
+
+<QuestionList topic="Comprehensions & Functional Patterns" storagePrefix="py-comp">
+
+<QuestionCard
+  id="py-comp-01"
+  number={15}
+  question="What are list, dict, and set comprehensions, and why prefer them over loops?"
+  difficulty="easy"
+  topic="Comprehensions"
+>
+Comprehensions build a collection in a single expression instead of an explicit loop with `.append()`/assignment:
+
+```python
+squares = [n ** 2 for n in range(10)]                       # list
+by_id   = {row["id"]: row for row in records}               # dict
+unique  = {row["user_id"] for row in records}                # set
+```
+
+They're preferred because they're usually faster (the loop runs in C, not Python bytecode), more concise, and signal intent clearly — "this builds a new collection" — rather than mixing that intent with manual accumulator bookkeeping.
+</QuestionCard>
+
+<QuestionCard
+  id="py-comp-02"
+  number={16}
+  question="What's the difference between a list comprehension and a generator expression?"
+  difficulty="easy"
+  topic="Comprehensions"
+>
+```python
+squares_list = [n ** 2 for n in range(1_000_000)]   # built eagerly, all in memory
+squares_gen  = (n ** 2 for n in range(1_000_000))   # lazy, one value at a time
+```
+
+The only syntax difference is `[]` vs `()`, but the memory behavior is completely different — a list comprehension materializes the entire result immediately, while a generator expression produces values on demand. Use a generator expression when you're piping the result into something that consumes it once (`sum(...)`, another loop) and don't need it as an indexable collection.
+</QuestionCard>
+
+<QuestionCard
+  id="py-comp-03"
+  number={17}
+  question="How do map(), filter(), and functools.reduce() work, and when would you prefer a comprehension instead?"
+  difficulty="medium"
+  topic="Functional"
+>
+```python
+from functools import reduce
+
+doubled  = map(lambda x: x * 2, values)              # apply a function to each item
+positive = filter(lambda x: x > 0, values)           # keep items matching a predicate
+total    = reduce(lambda a, b: a + b, values, 0)     # fold into a single value
+```
+
+`map`/`filter` return lazy iterators (like generator expressions), and `reduce` collapses an iterable into one accumulated result. In practice, a comprehension is usually preferred over `map`/`filter` for readability (`[x * 2 for x in values if x > 0]` reads more directly than nested calls), but `reduce` still earns its place for genuine folds that don't map cleanly onto a comprehension.
+</QuestionCard>
+
+<QuestionCard
+  id="py-comp-04"
+  number={18}
+  question="What is a lambda function and when is it appropriate to use one?"
+  difficulty="easy"
+  topic="Functional"
+>
+A `lambda` is a small, anonymous, single-expression function: `lambda x: x * 2` is equivalent to a one-line `def`. They're appropriate for short, throwaway logic passed inline — a `sort` key, a `map`/`filter` callback — but not for anything with multiple statements, a docstring, or logic worth naming and reusing; at that point a regular `def` is clearer and easier to test.
+
+```python
+records.sort(key=lambda r: r["created_at"])
+```
+</QuestionCard>
+
+<QuestionCard
+  id="py-comp-05"
+  number={19}
+  question="What does the walrus operator (:=) do, and where is it useful in a data pipeline?"
+  difficulty="medium"
+  topic="Functional"
+>
+`:=` assigns a value and returns it in the same expression, letting you avoid computing something twice:
+
+```python
+# Without walrus — the read happens twice, or needs an extra line
+while (line := file.readline()):
+    process(line)
+
+# Useful inside a comprehension to avoid recomputation
+results = [y for x in data if (y := expensive(x)) is not None]
+```
+
+It's most useful anywhere you'd otherwise call the same expensive function or I/O call once to check a condition and again to use the value.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Scope, Closures & Context Managers
+
+How Python resolves names, captures state in nested functions, and manages resource lifecycles.
+
+<QuestionList topic="Scope, Closures & Context Managers" storagePrefix="py-scope">
+
+<QuestionCard
+  id="py-scope-01"
+  number={20}
+  question="What is the LEGB rule for variable scope resolution?"
+  difficulty="medium"
+  topic="Scope"
+>
+Python looks up a name in this order: **L**ocal (current function) → **E**nclosing (any outer function it's nested in) → **G**lobal (module level) → **B**uilt-in (`len`, `print`, etc.). The lookup stops at the first scope where the name is found.
+
+```python
+x = "global"
+
+def outer():
+    x = "enclosing"
+    def inner():
+        print(x)  # "enclosing" — found in the enclosing scope before global
+    inner()
+
+outer()
+```
+</QuestionCard>
+
+<QuestionCard
+  id="py-scope-02"
+  number={21}
+  question="What is a closure, and how would you use one to build a configurable transformation function?"
+  difficulty="medium"
+  topic="Scope"
+>
+A closure is a function that "remembers" variables from its enclosing scope even after that scope has finished executing:
+
+```python
+def make_multiplier(factor):
+    def multiply(value):
+        return value * factor   # factor is captured from the enclosing scope
+    return multiply
+
+to_cents = make_multiplier(100)
+to_cents(19.99)  # 1999.0
+```
+
+This is a common pattern for building a family of small, pre-configured transformation functions (unit converters, column renamers) without writing a full class for each one.
+</QuestionCard>
+
+<QuestionCard
+  id="py-scope-03"
+  number={22}
+  question="What does the nonlocal keyword do?"
+  difficulty="medium"
+  topic="Scope"
+>
+`nonlocal` lets an inner function **assign** to a variable in its enclosing (not global) scope, rather than creating a new local variable that shadows it:
+
+```python
+def make_counter():
+    count = 0
+    def increment():
+        nonlocal count
+        count += 1   # without nonlocal, this raises UnboundLocalError
+        return count
+    return increment
+
+counter = make_counter()
+counter()  # 1
+counter()  # 2
+```
+</QuestionCard>
+
+<QuestionCard
+  id="py-scope-04"
+  number={23}
+  question="How do you write a custom context manager, and why would a data pipeline need one?"
+  difficulty="medium"
+  topic="Context Managers"
+>
+Define `__enter__` and `__exit__` to guarantee setup/teardown runs even if an exception occurs partway through:
+
+```python
+class ManagedConnection:
+    def __enter__(self):
+        self.conn = create_connection()
+        return self.conn
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.conn.close()   # always runs, even on exception
+        return False        # don't suppress the exception
+
+with ManagedConnection() as conn:
+    conn.execute(query)
+```
+
+Pipelines need this anywhere a resource (DB connection, file handle, distributed lock, temp directory) must be released even when the code inside the block fails — without it, a failed transform can leak connections until the process runs out of them.
+</QuestionCard>
+
+<QuestionCard
+  id="py-scope-05"
+  number={24}
+  question="What's the difference between contextlib.contextmanager and defining __enter__/__exit__ directly?"
+  difficulty="hard"
+  topic="Context Managers"
+>
+`@contextlib.contextmanager` lets you write a context manager as a single generator function instead of a class:
+
+```python
+from contextlib import contextmanager
+
+@contextmanager
+def managed_connection():
+    conn = create_connection()
+    try:
+        yield conn          # code inside the `with` block runs here
+    finally:
+        conn.close()        # guaranteed cleanup, like __exit__
+
+with managed_connection() as conn:
+    conn.execute(query)
+```
+
+It's more concise for simple cases (one resource, no extra methods needed on the object), while a class-based context manager is worth it when the object also needs other methods/state beyond just entering and exiting.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Collections & Itertools
+
+Standard-library tools that replace hand-rolled counting, grouping, and windowing logic.
+
+<QuestionList topic="Collections & Itertools" storagePrefix="py-coll">
+
+<QuestionCard
+  id="py-coll-01"
+  number={25}
+  question="What are the most useful types in the collections module for data engineering?"
+  difficulty="easy"
+  topic="Collections"
+>
+- **`defaultdict`** — a dict with an automatic default value for missing keys
+- **`Counter`** — a dict specialized for counting hashable items
+- **`namedtuple`** — a lightweight, immutable record type with named fields
+- **`deque`** — a double-ended queue with O(1) appends/pops from either side
+- **`OrderedDict`** — a dict that remembers insertion order (mostly historical now that plain `dict` preserves order too, but still useful for its `move_to_end()` method)
+
+Each replaces a common hand-rolled pattern (a `dict.get(key, default)` accumulator loop, a manual counting dict, a plain tuple with unclear positional meaning) with a purpose-built, better-tested type.
+</QuestionCard>
+
+<QuestionCard
+  id="py-coll-02"
+  number={26}
+  question="When would you use a defaultdict instead of a regular dict?"
+  difficulty="easy"
+  topic="Collections"
+>
+```python
+from collections import defaultdict
+
+groups = defaultdict(list)
+for row in records:
+    groups[row["category"]].append(row)   # no need to check "if key not in groups"
+```
+
+Use it whenever you're grouping or accumulating into a dict and would otherwise write `if key not in d: d[key] = ...` before every update — `defaultdict` removes that boilerplate and the risk of forgetting it in one code path.
+</QuestionCard>
+
+<QuestionCard
+  id="py-coll-03"
+  number={27}
+  question="What is Counter, and what's a practical data engineering use for it?"
+  difficulty="easy"
+  topic="Collections"
+>
+```python
+from collections import Counter
+
+event_counts = Counter(row["event_type"] for row in records)
+event_counts.most_common(5)   # top 5 event types by frequency
+```
+
+`Counter` is a dict subclass for tallying hashable items, with built-in `.most_common()` for ranking. It's a quick way to profile a dataset — value frequency checks, finding the most common error codes in a log, spotting an unexpectedly dominant category before it's worth writing a full aggregation query.
+</QuestionCard>
+
+<QuestionCard
+  id="py-coll-04"
+  number={28}
+  question="What's the difference between a list and a deque, and when does it matter for pipeline code?"
+  difficulty="medium"
+  topic="Collections"
+>
+A `list` has O(1) appends/pops at the **end** but O(n) at the **start** (every remaining element shifts). A `deque` (double-ended queue) has O(1) at **both** ends.
+
+```python
+from collections import deque
+
+recent_events = deque(maxlen=1000)   # fixed-size rolling window, oldest drops automatically
+recent_events.append(new_event)
+```
+
+It matters for any rolling-window or queue-like pipeline pattern — a sliding window of recent events, a work queue being consumed from the front while new items arrive at the back — where a plain list would silently become a performance problem as it grows.
+</QuestionCard>
+
+<QuestionCard
+  id="py-coll-05"
+  number={29}
+  question="What does itertools.groupby() do, and what's the most common mistake when using it?"
+  difficulty="hard"
+  topic="Itertools"
+>
+```python
+from itertools import groupby
+
+for key, group in groupby(records, key=lambda r: r["category"]):
+    print(key, list(group))
+```
+
+`groupby` only groups **consecutive** matching items — it does not sort first. The most common mistake is calling it on unsorted data and getting multiple separate groups for the same key instead of one:
+
+```python
+data = ["a", "b", "a"]
+# without sorting, groupby sees three separate runs: "a", "b", "a" — not one "a" group
+sorted_data = sorted(data)
+```
+
+Always `sort()` (or ensure the input is already sorted) on the grouping key before calling `groupby`.
+</QuestionCard>
+
+<QuestionCard
+  id="py-coll-06"
+  number={30}
+  question="What are itertools.chain() and itertools.islice() used for in data processing?"
+  difficulty="medium"
+  topic="Itertools"
+>
+```python
+from itertools import chain, islice
+
+# chain — iterate over several iterables as if they were one, without concatenating first
+all_rows = chain(batch1, batch2, batch3)
+
+# islice — take a slice of an iterator without loading it into a list first
+first_100 = islice(read_huge_file(), 100)
+```
+
+Both avoid materializing an intermediate list: `chain` lets you treat multiple sources (several files, several API pages) as one stream, and `islice` lets you sample or limit a generator without exhausting or copying it.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Modern Python & Type System
+
+Type hints, dataclasses, and pattern matching — features that make pipeline code safer and more self-documenting.
+
+<QuestionList topic="Modern Python & Type System" storagePrefix="py-modern">
+
+<QuestionCard
+  id="py-modern-01"
+  number={31}
+  question="What are type hints, and do they change Python's runtime behavior?"
+  difficulty="easy"
+  topic="Type Hints"
+>
+```python
+def normalize(revenue_cents: int) -> float:
+    return revenue_cents / 100
+```
+
+Type hints are annotations that document expected types — Python itself does **not** enforce them at runtime; the function above still runs even if you pass a string. Their value comes from static type checkers (`mypy`, `pyright`) catching mismatches before deployment, and from making function signatures self-documenting for anyone reading or calling the code.
+</QuestionCard>
+
+<QuestionCard
+  id="py-modern-02"
+  number={32}
+  question="How do you use Optional, Union, and generics from the typing module?"
+  difficulty="medium"
+  topic="Type Hints"
+>
+```python
+from typing import Optional, Union
+
+def find_user(user_id: int) -> Optional[dict]:      # dict, or None
+    ...
+
+def parse_amount(value: Union[int, str]) -> float:   # int OR str
+    ...
+
+# Python 3.10+ shorthand for both:
+def find_user(user_id: int) -> dict | None: ...
+def parse_amount(value: int | str) -> float: ...
+```
+
+`Optional[X]` is shorthand for `Union[X, None]` — use it whenever a function can legitimately return or accept nothing. Generics (`list[int]`, `dict[str, float]`) go further and describe the type of a collection's contents, not just the collection type itself.
+</QuestionCard>
+
+<QuestionCard
+  id="py-modern-03"
+  number={33}
+  question="What is a dataclass, and when would you use one instead of a plain class or a dict?"
+  difficulty="medium"
+  topic="Dataclasses"
+>
+```python
+from dataclasses import dataclass
+
+@dataclass
+class PipelineConfig:
+    source_path: str
+    batch_size: int = 1000
+    dry_run: bool = False
+
+cfg = PipelineConfig(source_path="s3://bucket/data")
+```
+
+`@dataclass` auto-generates `__init__`, `__repr__`, and `__eq__` from the annotated fields, removing the boilerplate of writing them by hand. Prefer it over a plain dict when the structure is fixed and known ahead of time (you get attribute access, type hints, and IDE autocomplete instead of stringly-typed keys), and over a hand-written class when you don't need custom behavior beyond holding data.
+</QuestionCard>
+
+<QuestionCard
+  id="py-modern-04"
+  number={34}
+  question="What is structural pattern matching (match/case), and when is it clearer than if/elif?"
+  difficulty="medium"
+  topic="Pattern Matching"
+>
+```python
+match event:
+    case {"type": "insert", "table": table, "data": data}:
+        handle_insert(table, data)
+    case {"type": "delete", "table": table, "id": row_id}:
+        handle_delete(table, row_id)
+    case _:
+        raise ValueError(f"Unknown event shape: {event}")
+```
+
+Introduced in Python 3.10, `match`/`case` can destructure a value's **shape** (dict keys, list length, object attributes) as part of the match, not just compare it — which makes it clearer than `if/elif` chains for routing logic based on a record's structure, like dispatching different event or message shapes in an ingestion pipeline.
+</QuestionCard>
+
+<QuestionCard
+  id="py-modern-05"
+  number={35}
+  question="What is a Protocol in the typing module, and how does it enable structural typing?"
+  difficulty="hard"
+  topic="Type Hints"
+>
+```python
+from typing import Protocol
+
+class Writable(Protocol):
+    def write(self, data: bytes) -> int: ...
+
+def save(destination: Writable, data: bytes):
+    destination.write(data)
+```
+
+A `Protocol` describes a **shape** (what methods/attributes an object must have) rather than a specific class hierarchy — any object with a matching `write` method satisfies `Writable`, whether or not it inherits from anything in particular. This is Python's version of "duck typing, but checkable" — useful for accepting a file handle, an S3 client wrapper, or an in-memory buffer interchangeably, as long as each implements the same interface.
+</QuestionCard>
+
+<QuestionCard
+  id="py-modern-06"
+  number={36}
+  question="What's the difference between typing.TypedDict and a dataclass for representing structured records?"
+  difficulty="hard"
+  topic="Type Hints"
+>
+```python
+from typing import TypedDict
+from dataclasses import dataclass
+
+class UserRecord(TypedDict):
+    id: int
+    name: str
+
+@dataclass
+class UserRecord:
+    id: int
+    name: str
+```
+
+`TypedDict` type-checks a **plain dict** — the record is still a real `dict` at runtime (useful when working with JSON payloads that are naturally dict-shaped, like API responses). A `dataclass` creates an actual **object** with attribute access (`user.name` instead of `user["name"]`) and generated `__init__`/`__repr__`/`__eq__`. Use `TypedDict` when interoperating with dict-based APIs; use a dataclass when you want a first-class object with behavior.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Data Serialization & Parsing
+
+Handling dates, encodings, structured formats, and the numeric precision issues that trip up ingestion pipelines.
+
+<QuestionList topic="Data Serialization & Parsing" storagePrefix="py-parse">
+
+<QuestionCard
+  id="py-parse-01"
+  number={37}
+  question="How do you work with dates, times, and timezones correctly in Python?"
+  difficulty="medium"
+  topic="Datetime"
+>
+```python
+from datetime import datetime, timezone
+
+# Always store and compare in UTC — convert to local time only for display
+now_utc = datetime.now(timezone.utc)
+
+# Naive datetimes (no tzinfo) are a common source of silent bugs —
+# comparing a naive and an aware datetime raises TypeError
+naive = datetime(2024, 1, 1)          # no timezone attached — ambiguous
+aware = datetime(2024, 1, 1, tzinfo=timezone.utc)
+```
+
+The core rule for pipelines: make every datetime **timezone-aware** as early as possible on ingestion, store everything in UTC, and only convert to a local timezone at the point of display — mixing naive and aware datetimes is one of the most common sources of off-by-some-hours bugs in production pipelines.
+</QuestionCard>
+
+<QuestionCard
+  id="py-parse-02"
+  number={38}
+  question="What's the difference between json.dumps/loads and pickle, and when is pickle unsafe to use?"
+  difficulty="medium"
+  topic="Serialization"
+>
+`json` serializes to a human-readable, language-agnostic text format, but only supports a limited set of types (no dates, sets, or custom objects without extra work). `pickle` serializes almost any Python object, including custom classes, but produces Python-specific binary output that other languages can't read.
+
+**Security warning:** `pickle.loads()` on data from an untrusted source is unsafe — unpickling can execute arbitrary code embedded in the byte stream. Only unpickle data you produced yourself or fully trust; for data crossing a trust boundary (an API, a queue, another team's system), use JSON or a schema-validated format instead.
+</QuestionCard>
+
+<QuestionCard
+  id="py-parse-03"
+  number={39}
+  question="What common pitfalls come up when using regular expressions to parse or clean ingested data?"
+  difficulty="medium"
+  topic="Regex"
+>
+```python
+import re
+
+pattern = re.compile(r"^\d{3}-\d{4}$")   # compile once, reuse across many rows
+```
+
+Common pitfalls: compiling the same pattern inside a loop (recompile once, outside the loop, for anything run per-row); using `.match()` (anchors at the start only) when you meant `.fullmatch()` or a pattern anchored with `^...$`; and reaching for regex on structured formats like JSON or CSV where a real parser handles edge cases (escaping, quoting, nested structures) that a hand-written pattern will eventually get wrong.
+</QuestionCard>
+
+<QuestionCard
+  id="py-parse-04"
+  number={40}
+  question="Why can float arithmetic produce unexpected results, and when should you use Decimal instead?"
+  difficulty="hard"
+  topic="Numeric Precision"
+>
+```python
+0.1 + 0.2  # 0.30000000000000004 — binary floating point can't represent 0.1 exactly
+
+from decimal import Decimal
+Decimal("0.1") + Decimal("0.2")  # Decimal('0.3') — exact
+```
+
+Floats use binary floating-point representation, which can't exactly represent most decimal fractions — fine for scientific/statistical data where tiny rounding error doesn't matter, but risky for money or anything requiring exact decimal arithmetic. Use `Decimal` (constructed from strings, not floats, to avoid importing the float's own imprecision) for financial calculations, and be explicit about rounding rules rather than relying on default float behavior.
 </QuestionCard>
 
 </QuestionList>

@@ -178,113 +178,239 @@
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
     "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';\n\nScenario-based Python questions data engineers actually get asked — mark them **done** ✓, **bookmark** 🔖 for review, and expand answers on demand.\n\n---"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
-    "content": "## Language Fundamentals in Practice\n\nWhy Python shows up everywhere in data platforms, and how its concurrency model plays out in real pipelines.\n\n<QuestionList topic=\"Language Fundamentals in Practice\" storagePrefix=\"py-prac-fundamentals\">\n\n<QuestionCard\n  id=\"py-prac-01\"\n  number={15}\n  question=\"Why is Python widely used in data engineering?\"\n  difficulty=\"easy\"\n  topic=\"Fundamentals\"\n>\nPython is popular because it's productive, readable, and has a strong ecosystem for data processing, orchestration, and integration.\n\n- **Glue code** — connecting APIs, databases, and file systems with minimal boilerplate\n- **Rich libraries** — pandas, PyArrow, SQLAlchemy, boto3 cover most pipeline needs out of the box\n- **Orchestration native** — Airflow, Dagster, and Prefect are all Python-first\n- **I"
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "## Language Fundamentals in Practice\n\nWhy Python shows up everywhere in data platforms, and how its concurrency model plays out in real pipelines.\n\n<QuestionList topic=\"Language Fundamentals in Practice\" storagePrefix=\"py-prac-fundamentals\">\n\n<QuestionCard\n  id=\"py-prac-01\"\n  number={41}\n  question=\"Why is Python widely used in data engineering?\"\n  difficulty=\"easy\"\n  topic=\"Fundamentals\"\n>\nPython is popular because it's productive, readable, and has a strong ecosystem for data processing, orchestration, and integration.\n\n- **Glue code** — connecting APIs, databases, and file systems with minimal boilerplate\n- **Rich libraries** — pandas, PyArrow, SQLAlchemy, boto3 cover most pipeline needs out of the box\n- **Orchestration native** — Airflow, Dagster, and Prefect are all Python-first\n- **I"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
-    "content": "nterop layer** — even when heavy compute runs on Spark or a warehouse engine, Python is the language stitching the pipeline together\n\nIt's rarely the fastest language for raw compute, but it's usually the fastest to build and maintain a correct pipeline in.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-02\"\n  number={16}\n  question=\"How do iterators and generators help with large data processing?\"\n  difficulty=\"medium\"\n  topic=\"Fundamentals\"\n>\nIterators and generators let you stream data instead of loading everything into memory — processing row-by-row or batch-by-batch keeps memory flat regardless of input size.\n\n```python\ndef batched(iterable, size):\n    \"\"\"Yield successive chunks without materializing the full list.\"\"\"\n    batch = []\n    for item in iterable:\n        batch.append(item)"
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "nterop layer** — even when heavy compute runs on Spark or a warehouse engine, Python is the language stitching the pipeline together\n\nIt's rarely the fastest language for raw compute, but it's usually the fastest to build and maintain a correct pipeline in.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-02\"\n  number={42}\n  question=\"How do iterators and generators help with large data processing?\"\n  difficulty=\"medium\"\n  topic=\"Fundamentals\"\n>\nIterators and generators let you stream data instead of loading everything into memory — processing row-by-row or batch-by-batch keeps memory flat regardless of input size.\n\n```python\ndef batched(iterable, size):\n    \"\"\"Yield successive chunks without materializing the full list.\"\"\"\n    batch = []\n    for item in iterable:\n        batch.append(item)"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
-    "content": "if len(batch) == size:\n            yield batch\n            batch = []\n    if batch:\n        yield batch\n\ndef process_events(event_stream):\n    for chunk in batched(event_stream, size=500):\n        write_to_sink(chunk)  # one bounded batch at a time\n```\n\nThis pattern — pull, don't load — is what lets a single job process files far larger than available RAM.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-03\"\n  number={17}\n  question=\"What is the difference between threads, multiprocessing, and async IO in Python?\"\n  difficulty=\"medium\"\n  topic=\"Concurrency\"\n>\n| Approach | Good for | Limited by |\n|----------|----------|-----------|\n| `threading` | I/O-bound work (network, disk) | GIL — no CPU parallelism |\n| `multiprocessing` | CPU-bound work (parsing, transforms) | Process spawn/IPC over"
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "if len(batch) == size:\n            yield batch\n            batch = []\n    if batch:\n        yield batch\n\ndef process_events(event_stream):\n    for chunk in batched(event_stream, size=500):\n        write_to_sink(chunk)  # one bounded batch at a time\n```\n\nThis pattern — pull, don't load — is what lets a single job process files far larger than available RAM.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-03\"\n  number={43}\n  question=\"What is the difference between threads, multiprocessing, and async IO in Python?\"\n  difficulty=\"medium\"\n  topic=\"Concurrency\"\n>\n| Approach | Good for | Limited by |\n|----------|----------|-----------|\n| `threading` | I/O-bound work (network, disk) | GIL — no CPU parallelism |\n| `multiprocessing` | CPU-bound work (parsing, transforms) | Process spawn/IPC over"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
-    "content": "head |\n| `asyncio` | Many concurrent I/O waits (API calls) | Single-threaded event loop |\n\n**Rule of thumb:** if the job spends most of its time *waiting* (network, disk), reach for threads or `asyncio`. If it spends its time *computing*, reach for `multiprocessing` or push the work to a native/distributed engine.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-04\"\n  number={18}\n  question=\"What is the GIL and why does it matter for a data pipeline you're building?\"\n  difficulty=\"medium\"\n  topic=\"Concurrency\"\n>\nThe **Global Interpreter Lock** allows only one thread to execute Python bytecode at a time in CPython, even on a multi-core machine.\n\nIn practice, most data engineering jobs are I/O-bound (waiting on S3, a database, or an API), so the GIL rarely matters — threads still help because th"
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "head |\n| `asyncio` | Many concurrent I/O waits (API calls) | Single-threaded event loop |\n\n**Rule of thumb:** if the job spends most of its time *waiting* (network, disk), reach for threads or `asyncio`. If it spends its time *computing*, reach for `multiprocessing` or push the work to a native/distributed engine.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-04\"\n  number={44}\n  question=\"What is the GIL and why does it matter for a data pipeline you're building?\"\n  difficulty=\"medium\"\n  topic=\"Concurrency\"\n>\nThe **Global Interpreter Lock** allows only one thread to execute Python bytecode at a time in CPython, even on a multi-core machine.\n\nIn practice, most data engineering jobs are I/O-bound (waiting on S3, a database, or an API), so the GIL rarely matters — threads still help because th"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
     "content": "e GIL is released during I/O. It only becomes a bottleneck when a job is CPU-bound (row-by-row transforms in pure Python), at which point `multiprocessing` or vectorized libraries (pandas/NumPy, which release the GIL in their C internals) are the fix.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
-    "content": "## Working with Data at Scale\n\nPractical patterns for reading, writing, and moving data reliably in production pipelines.\n\n<QuestionList topic=\"Working with Data at Scale\" storagePrefix=\"py-prac-data\">\n\n<QuestionCard\n  id=\"py-prac-05\"\n  number={19}\n  question=\"How do you read and write Parquet efficiently in Python?\"\n  difficulty=\"medium\"\n  topic=\"File Formats\"\n>\n`pyarrow` is the standard choice — it supports columnar reads, predicate pushdown, and explicit schema control.\n\n```python\nimport pyarrow.parquet as pq"
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "## Working with Data at Scale\n\nPractical patterns for reading, writing, and moving data reliably in production pipelines.\n\n<QuestionList topic=\"Working with Data at Scale\" storagePrefix=\"py-prac-data\">\n\n<QuestionCard\n  id=\"py-prac-05\"\n  number={45}\n  question=\"How do you read and write Parquet efficiently in Python?\"\n  difficulty=\"medium\"\n  topic=\"File Formats\"\n>\n`pyarrow` is the standard choice — it supports columnar reads, predicate pushdown, and explicit schema control.\n\n```python\nimport pyarrow.parquet as pq"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
-    "content": "# Read only the columns you need, filtered at the file level\ntable = pq.read_table(\n    \"s3://bucket/events/\",\n    columns=[\"user_id\", \"event_type\", \"ts\"],\n    filters=[(\"ts\", \">=\", \"2024-01-01\")],\n)\n```\n\nGuidelines: select only needed columns, keep row groups/files at a reasonable size (avoid the \"many tiny files\" problem), and hand large datasets off to a distributed engine rather than processing them purely locally.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-06\"\n  number={20}\n  question=\"How do you process a large CSV file without running out of memory?\"\n  difficulty=\"medium\"\n  topic=\"File Formats\"\n>\nStream the file in chunks instead of loading it whole:\n\n```python\nimport pandas as pd\n\ntotal = 0\nfor chunk in pd.read_csv(\"huge_file.csv\", chunksize=100_000):\n    total += chunk[\"amount\"]"
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "# Read only the columns you need, filtered at the file level\ntable = pq.read_table(\n    \"s3://bucket/events/\",\n    columns=[\"user_id\", \"event_type\", \"ts\"],\n    filters=[(\"ts\", \">=\", \"2024-01-01\")],\n)\n```\n\nGuidelines: select only needed columns, keep row groups/files at a reasonable size (avoid the \"many tiny files\" problem), and hand large datasets off to a distributed engine rather than processing them purely locally.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-06\"\n  number={46}\n  question=\"How do you process a large CSV file without running out of memory?\"\n  difficulty=\"medium\"\n  topic=\"File Formats\"\n>\nStream the file in chunks instead of loading it whole:\n\n```python\nimport pandas as pd\n\ntotal = 0\nfor chunk in pd.read_csv(\"huge_file.csv\", chunksize=100_000):\n    total += chunk[\"amount\"]"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
-    "content": ".sum()\n    chunk.to_parquet(f\"out/part-{chunk.index[0]}.parquet\")\n```\n\nSkip columns you don't need with `usecols`, and prefer writing results incrementally over accumulating them in memory. For anything beyond a few GB, converting to Parquet or moving to distributed processing is usually the better call than tuning chunk size further.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-07\"\n  number={21}\n  question=\"How do you implement retries with exponential backoff?\"\n  difficulty=\"medium\"\n  topic=\"Reliability\"\n>\n```python\nimport random, time, functools\n\ndef retry_with_backoff(max_attempts=5, base_delay=0.5):\n    def decorator(fn):\n        @functools.wraps(fn)\n        def wrapper(*args, **kwargs):\n            for attempt in range(1, max_attempts + 1):\n                try:\n                    re"
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": ".sum()\n    chunk.to_parquet(f\"out/part-{chunk.index[0]}.parquet\")\n```\n\nSkip columns you don't need with `usecols`, and prefer writing results incrementally over accumulating them in memory. For anything beyond a few GB, converting to Parquet or moving to distributed processing is usually the better call than tuning chunk size further.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-07\"\n  number={47}\n  question=\"How do you implement retries with exponential backoff?\"\n  difficulty=\"medium\"\n  topic=\"Reliability\"\n>\n```python\nimport random, time, functools\n\ndef retry_with_backoff(max_attempts=5, base_delay=0.5):\n    def decorator(fn):\n        @functools.wraps(fn)\n        def wrapper(*args, **kwargs):\n            for attempt in range(1, max_attempts + 1):\n                try:\n                    re"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
-    "content": "turn fn(*args, **kwargs)\n                except TransientError:\n                    if attempt == max_attempts:\n                        raise\n                    delay = base_delay * (2 ** (attempt - 1))\n                    time.sleep(delay + random.uniform(0, delay * 0.1))  # jitter\n        return wrapper\n    return decorator\n```\n\nOnly retry **transient** errors (timeouts, rate limits) — never retry a schema mismatch or a validation failure. Cap total retry time, and make the operation idempotent so a retried write can't duplicate data.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-08\"\n  number={22}\n  question=\"What logging practices are important for data pipelines?\"\n  difficulty=\"easy\"\n  topic=\"Reliability\"\n>\n```python\nimport logging, json\n\nlogger = logging.getLogger(\"pipeline\")\n\ndef log"
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "turn fn(*args, **kwargs)\n                except TransientError:\n                    if attempt == max_attempts:\n                        raise\n                    delay = base_delay * (2 ** (attempt - 1))\n                    time.sleep(delay + random.uniform(0, delay * 0.1))  # jitter\n        return wrapper\n    return decorator\n```\n\nOnly retry **transient** errors (timeouts, rate limits) — never retry a schema mismatch or a validation failure. Cap total retry time, and make the operation idempotent so a retried write can't duplicate data.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-08\"\n  number={48}\n  question=\"What logging practices are important for data pipelines?\"\n  difficulty=\"easy\"\n  topic=\"Reliability\"\n>\n```python\nimport logging, json\n\nlogger = logging.getLogger(\"pipeline\")\n\ndef log"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
     "content": "_event(level, message, **context):\n    logger.log(level, json.dumps({\"message\": message, **context}))\n\nlog_event(logging.INFO, \"batch loaded\", run_id=\"r-42\", rows=15000, table=\"orders\")\n```\n\nStructured (JSON) logs make pipeline runs searchable and correlatable across systems. Always include a run/pipeline id, log errors with enough context to debug without re-running the job, and never log sensitive values (PII, credentials).\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
-    "content": "## Project Structure & Testing\n\nOrganizing and validating pipeline code so it's maintainable beyond the first script.\n\n<QuestionList topic=\"Project Structure & Testing\" storagePrefix=\"py-prac-structure\">\n\n<QuestionCard\n  id=\"py-prac-09\"\n  number={23}\n  question=\"How do you structure a Python project for data pipelines?\"\n  difficulty=\"medium\"\n  topic=\"Project Structure\"\n>\n```\nmy_pipeline/\n├── src/\n│   ├── extract.py\n│   ├── transform.py\n│   ├── load.py\n│   └── config.py        # env-driven settings, no hardcoded secrets\n├── jobs/\n│   └── run_daily.py      # thin CLI entrypoint\n├── tests/\n│   └── test_transform.py\n├── pyproject.toml\n```\n\nKeep reusable library code separate from job entrypoints, inject external services (DB clients, S3 clients) rather than constructing them deep in the call s"
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "## Project Structure & Testing\n\nOrganizing and validating pipeline code so it's maintainable beyond the first script.\n\n<QuestionList topic=\"Project Structure & Testing\" storagePrefix=\"py-prac-structure\">\n\n<QuestionCard\n  id=\"py-prac-09\"\n  number={49}\n  question=\"How do you structure a Python project for data pipelines?\"\n  difficulty=\"medium\"\n  topic=\"Project Structure\"\n>\n```\nmy_pipeline/\n├── src/\n│   ├── extract.py\n│   ├── transform.py\n│   ├── load.py\n│   └── config.py        # env-driven settings, no hardcoded secrets\n├── jobs/\n│   └── run_daily.py      # thin CLI entrypoint\n├── tests/\n│   └── test_transform.py\n├── pyproject.toml\n```\n\nKeep reusable library code separate from job entrypoints, inject external services (DB clients, S3 clients) rather than constructing them deep in the call s"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
-    "content": "tack, and standardize logging/error handling in one place so every job behaves consistently.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-10\"\n  number={24}\n  question=\"How do you manage dependencies and reproducible environments?\"\n  difficulty=\"easy\"\n  topic=\"Project Structure\"\n>\nPin dependencies with a lockfile (`poetry.lock`, `uv.lock`, or `requirements.txt` with hashes), and isolate environments per project with a virtualenv or container.\n\nReproducibility also means pinning the Python version itself and building deterministic images — CI should build and test against the exact same environment definition that runs in production, not a looser \"close enough\" one.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-11\"\n  number={25}\n  question=\"How do you test data transformations in Python?\"\n  d"
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "tack, and standardize logging/error handling in one place so every job behaves consistently.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-10\"\n  number={50}\n  question=\"How do you manage dependencies and reproducible environments?\"\n  difficulty=\"easy\"\n  topic=\"Project Structure\"\n>\nPin dependencies with a lockfile (`poetry.lock`, `uv.lock`, or `requirements.txt` with hashes), and isolate environments per project with a virtualenv or container.\n\nReproducibility also means pinning the Python version itself and building deterministic images — CI should build and test against the exact same environment definition that runs in production, not a looser \"close enough\" one.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-11\"\n  number={51}\n  question=\"How do you test data transformations in Python?\"\n  d"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
     "content": "ifficulty=\"medium\"\n  topic=\"Testing\"\n>\n```python\ndef test_normalize_revenue_golden_case():\n    input_df = pd.DataFrame({\"id\": [1], \"revenue_cents\": [1050]})\n    result = normalize_revenue(input_df)\n    assert result[\"revenue\"].iloc[0] == 10.50\n\n@given(revenue_cents=st.integers(min_value=0))\ndef test_revenue_is_never_negative(revenue_cents):\n    df = pd.DataFrame({\"id\": [1], \"revenue_cents\": [revenue_cents]})\n    result = normalize_revenue(df)\n    assert (result[\"revenue\"] >= 0).all()\n```\n\nCombine small **golden-case** fixtures (known input → known output) with **property-based tests** (`hypothesis`) for invariants that must hold across all inputs, like non-negative amounts or no duplicate keys. Keep integration tests against real connectors separate and isolated, since they're slower and l"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
-    "content": "ess stable.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-12\"\n  number={26}\n  question=\"How do you profile and optimize slow Python code?\"\n  difficulty=\"hard\"\n  topic=\"Performance\"\n>\nProfile before optimizing — guessing at bottlenecks wastes time:\n\n```python\nimport cProfile\ncProfile.run(\"process_data(df)\", sort=\"cumulative\")\n```\n\nCommon fixes, in order of how often they apply:\n1. **Vectorize** — replace `iterrows()`/Python loops with pandas/NumPy operations\n2. **Reduce copies** — avoid chained `.loc`/`.copy()` calls that duplicate large frames\n3. **Offload CPU work** — `multiprocessing`, or push to a native/distributed engine\n4. **Cache repeated I/O** — `functools.lru_cache`, or batch reads instead of per-row calls\n\n`py-spy` is worth knowing for production debugging — it's a sampling profil"
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "ess stable.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-12\"\n  number={52}\n  question=\"How do you profile and optimize slow Python code?\"\n  difficulty=\"hard\"\n  topic=\"Performance\"\n>\nProfile before optimizing — guessing at bottlenecks wastes time:\n\n```python\nimport cProfile\ncProfile.run(\"process_data(df)\", sort=\"cumulative\")\n```\n\nCommon fixes, in order of how often they apply:\n1. **Vectorize** — replace `iterrows()`/Python loops with pandas/NumPy operations\n2. **Reduce copies** — avoid chained `.loc`/`.copy()` calls that duplicate large frames\n3. **Offload CPU work** — `multiprocessing`, or push to a native/distributed engine\n4. **Cache repeated I/O** — `functools.lru_cache`, or batch reads instead of per-row calls\n\n`py-spy` is worth knowing for production debugging — it's a sampling profil"
   },
   {
     "path": "/level-1-foundations/python/practice/",
     "locale": "en",
     "title": "Python Practice | Core Concepts",
-    "description": "Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.",
-    "content": "er that attaches to a running process with effectively zero overhead.\n</QuestionCard>\n\n</QuestionList>"
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "er that attaches to a running process with effectively zero overhead.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "## APIs, Config & CLI Tooling\n\nPractical patterns for talking to external systems and making pipeline jobs configurable and runnable.\n\n<QuestionList topic=\"APIs, Config & CLI Tooling\" storagePrefix=\"py-prac-api\">\n\n<QuestionCard\n  id=\"py-prac-api-01\"\n  number={53}\n  question=\"How do you handle pagination when pulling data from a REST API?\"\n  difficulty=\"medium\"\n  topic=\"APIs\"\n>\n```python\ndef fetch_all_pages(client, endpoint):\n    results = []\n    url = endpoint\n    while url:\n        response = client.get(url).json()\n        results.extend(response[\"data\"])\n        url = response.get(\"next_page_url\")  # or a cursor/offset, depending on the API\n    return results\n```\n\nHandle both common pagination styles (page/offset-based and cursor-based), respect rate limits with backoff between requests,"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "and make the fetch resumable — if the job dies on page 40 of 100, you want to restart from page 40, not from the beginning.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-api-02\"\n  number={54}\n  question=\"How do you manage configuration and secrets across environments in a Python pipeline?\"\n  difficulty=\"medium\"\n  topic=\"Configuration\"\n>\n```python\nimport os\nfrom dataclasses import dataclass\n\n@dataclass\nclass Settings:\n    db_url: str\n    batch_size: int = 1000\n\ndef load_settings() -> Settings:\n    return Settings(\n        db_url=os.environ[\"DB_URL\"],              # required — fail fast if missing\n        batch_size=int(os.environ.get(\"BATCH_SIZE\", 1000)),\n    )\n```\n\nRead configuration from environment variables (or a secrets manager for credentials), never hardcode secrets in source, and fa"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "il immediately at startup if a required value is missing rather than failing confusingly mid-run. Keep one settings object built once per run rather than reading `os.environ` scattered throughout the codebase.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-api-03\"\n  number={55}\n  question=\"How do you build a CLI entrypoint for a pipeline job?\"\n  difficulty=\"easy\"\n  topic=\"CLI\"\n>\n```python\nimport argparse\n\ndef main():\n    parser = argparse.ArgumentParser()\n    parser.add_argument(\"--run-date\", required=True)\n    parser.add_argument(\"--dry-run\", action=\"store_true\")\n    args = parser.parse_args()\n\n    run_pipeline(run_date=args.run_date, dry_run=args.dry_run)\n\nif __name__ == \"__main__\":\n    main()\n```\n\n`argparse` (standard library) or `click`/`typer` (richer, more ergonomic) both work — the im"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "portant part is a thin entrypoint that only parses arguments and calls into the real pipeline logic, so that logic stays testable without going through the CLI at all.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-api-04\"\n  number={56}\n  question=\"How do you validate incoming data with pydantic before it enters a pipeline?\"\n  difficulty=\"medium\"\n  topic=\"Validation\"\n>\n```python\nfrom pydantic import BaseModel, ValidationError\n\nclass OrderEvent(BaseModel):\n    order_id: str\n    amount_cents: int\n    user_id: str\n\ndef parse_event(raw: dict) -> OrderEvent | None:\n    try:\n        return OrderEvent(**raw)\n    except ValidationError as e:\n        logger.warning(\"Dropping invalid event: %s\", e)\n        return None\n```\n\nDefining the expected shape as a `pydantic` model gives you type coercion and v"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "alidation in one step, with clear errors identifying exactly which field failed — far more reliable than manually checking `if \"field\" in dict` for every required key, and it doubles as documentation of the data contract.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-api-05\"\n  number={57}\n  question=\"How do you manage a database connection pool in a long-running pipeline process?\"\n  difficulty=\"hard\"\n  topic=\"Connections\"\n>\n```python\nfrom sqlalchemy import create_engine\n\nengine = create_engine(\n    \"postgresql://...\",\n    pool_size=10,        # keep this many connections warm\n    max_overflow=5,       # allow a burst above pool_size under load\n    pool_pre_ping=True,   # check a connection is alive before handing it out\n)\n```\n\nCreate the engine/pool **once** at process startup, not per requ"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "est or per row — recreating connections per operation is a common source of both poor performance and eventually exhausting the database's connection limit. `pool_pre_ping` protects against handing out a connection that's silently gone stale (common after idle periods or a database failover).\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "## Serialization & Data Formats in Practice\n\nHandling the messy realities of real-world ingested data — mixed formats, encodings, and partial failures.\n\n<QuestionList topic=\"Serialization & Data Formats in Practice\" storagePrefix=\"py-prac-fmt\">\n\n<QuestionCard\n  id=\"py-prac-fmt-01\"\n  number={58}\n  question=\"How do you choose between JSON, Avro, and Protobuf for a data pipeline?\"\n  difficulty=\"medium\"\n  topic=\"Serialization\"\n>\n**JSON** — human-readable, no schema enforcement, widest tooling support; good for APIs and low-volume/debugging-friendly paths. **Avro** — compact binary format with an embedded schema, strong support for schema evolution, common in Kafka pipelines. **Protobuf** — compact binary, schema defined separately and compiled, very fast, common for service-to-service RPC (gRP"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "C).\n\nIn practice: JSON when human-readability and flexibility matter more than size/speed, Avro when you need schema evolution inside a streaming pipeline, Protobuf when you need a fast, strongly-typed contract between services.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-fmt-02\"\n  number={59}\n  question=\"How do you handle inconsistent date formats coming from multiple upstream sources?\"\n  difficulty=\"medium\"\n  topic=\"Datetime\"\n>\n```python\nfrom dateutil import parser\n\ndef parse_flexible_date(value: str):\n    try:\n        return parser.parse(value)   # handles many formats automatically\n    except (ValueError, TypeError):\n        logger.warning(\"Unparseable date: %r\", value)\n        return None\n```\n\n`dateutil.parser` handles a wide range of formats without per-source format strings, but fo"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "r high-volume pipelines it's worth maintaining an explicit per-source format map (faster, and fails loudly instead of guessing) rather than relying on flexible parsing everywhere. Either way, always normalize to UTC immediately after parsing.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-fmt-03\"\n  number={60}\n  question=\"How do you detect and handle character encoding issues in ingested files?\"\n  difficulty=\"hard\"\n  topic=\"Encoding\"\n>\n```python\nimport chardet\n\nwith open(\"upstream_export.csv\", \"rb\") as f:\n    raw = f.read()\n    detected = chardet.detect(raw)   # {'encoding': 'ISO-8859-1', 'confidence': 0.73}\n\ntext = raw.decode(detected[\"encoding\"], errors=\"replace\")\n```\n\nNever assume UTF-8 for external files — declare the expected encoding explicitly when you know it, use a detection library"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "as a fallback when you don't, and decide deliberately how to handle undecodable bytes (`errors=\"replace\"` to keep going with a placeholder, or `errors=\"strict\"` to fail loudly) rather than letting a `UnicodeDecodeError` crash the job unpredictably partway through.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-fmt-04\"\n  number={61}\n  question=\"How would you deduplicate records in a stream using a rolling window in Python?\"\n  difficulty=\"hard\"\n  topic=\"Streaming\"\n>\n```python\nfrom collections import deque\n\nclass RollingDeduplicator:\n    def __init__(self, window_size=10_000):\n        self.seen = set()\n        self.order = deque(maxlen=window_size)\n\n    def is_duplicate(self, record_id: str) -> bool:\n        if record_id in self.seen:\n            return True\n        if len(self.order) == self."
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "order.maxlen:\n            oldest = self.order[0]\n            self.seen.discard(oldest)   # evict the oldest id as the window slides\n        self.order.append(record_id)\n        self.seen.add(record_id)\n        return False\n```\n\nA `deque` with `maxlen` combined with a `set` gives O(1) membership checks with a bounded memory footprint — the set alone would grow unbounded over an infinite stream, so the deque enforces a sliding window of \"recently seen\" ids that age out automatically.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-fmt-05\"\n  number={62}\n  question=\"How do you safely handle partially-written or corrupted files during ingestion?\"\n  difficulty=\"medium\"\n  topic=\"Reliability\"\n>\n```python\nimport os\n\ndef atomic_write(path, data):\n    tmp_path = f\"{path}.tmp\"\n    with open(tmp_path, \"wb"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "\") as f:\n        f.write(data)\n    os.replace(tmp_path, path)   # atomic on the same filesystem — no partial file visible\n```\n\nOn the **write** side, write to a temp path and atomically rename it into place, so a consumer never sees a half-written file. On the **read** side, validate what you read (checksum, expected row count, schema check) before treating it as good, and quarantine or reject files that fail validation rather than silently processing a truncated file as if it were complete.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "## Modern Python in Pipelines\n\nApplying type hints, dataclasses, and pattern matching to real pipeline code, not just toy examples.\n\n<QuestionList topic=\"Modern Python in Pipelines\" storagePrefix=\"py-prac-modern\">\n\n<QuestionCard\n  id=\"py-prac-modern-01\"\n  number={63}\n  question=\"How would you use a dataclass to define a pipeline's configuration?\"\n  difficulty=\"easy\"\n  topic=\"Dataclasses\"\n>\n```python\nfrom dataclasses import dataclass, field\n\n@dataclass\nclass IngestConfig:\n    source_bucket: str\n    table_name: str\n    columns: list[str] = field(default_factory=list)   # mutable defaults need field()\n    batch_size: int = 5000\n```\n\nA dataclass gives the config attribute access and a generated `__repr__` (so logging the config for a run is readable), catches typos as attribute errors instead"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "of silent `KeyError`s from a dict, and — combined with type hints — lets a type checker catch a caller passing the wrong type before the job ever runs.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-modern-02\"\n  number={64}\n  question=\"How do type hints help catch bugs in a pipeline before it reaches production?\"\n  difficulty=\"medium\"\n  topic=\"Type Hints\"\n>\n```python\ndef load_partition(table: str, run_date: str, retries: int = 3) -> int:\n    ...\n```\n\nRunning `mypy` in CI catches an entire class of bugs before deploy: passing a `datetime` where a `str` is expected, forgetting a required argument, or a typo'd function returning `None` where callers assumed an `int`. It won't catch logic errors, but it turns \"found in production three days later\" type mismatches into \"found in CI in ten seconds"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": ".\"\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-modern-03\"\n  number={65}\n  question=\"How would you use match/case to route records by event type in an ingestion job?\"\n  difficulty=\"medium\"\n  topic=\"Pattern Matching\"\n>\n```python\ndef handle_event(event: dict):\n    match event:\n        case {\"type\": \"user_created\", \"user_id\": uid}:\n            upsert_user(uid, event)\n        case {\"type\": \"user_deleted\", \"user_id\": uid}:\n            soft_delete_user(uid)\n        case {\"type\": str(unknown_type)}:\n            logger.warning(\"Unhandled event type: %s\", unknown_type)\n        case _:\n            logger.error(\"Malformed event, missing type: %r\", event)\n```\n\nThis reads as a clear dispatch table for the shapes you expect, and — unlike a chain of `if \"type\" in event and event[\"type\"] == ...` checks —"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "naturally falls through to an explicit \"unknown/malformed\" branch, so unexpected event shapes are handled deliberately instead of silently ignored.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-modern-04\"\n  number={66}\n  question=\"How do you use functools.lru_cache safely in a long-running pipeline process?\"\n  difficulty=\"hard\"\n  topic=\"Performance\"\n>\n```python\nfrom functools import lru_cache\n\n@lru_cache(maxsize=10_000)\ndef lookup_country_name(country_code: str) -> str:\n    return reference_data_client.get_country(country_code)   # expensive I/O call\n```\n\nSafe uses are for **pure, small-cardinality lookups** — reference/dimension data that rarely changes and has a bounded number of distinct inputs. It's unsafe (or at least suspicious) to cache anything based on mutable external state withou"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "t a `maxsize` (unbounded growth = slow memory leak in a long-running process) or anything that needs to reflect updates during the process's lifetime, since `lru_cache` has no built-in expiry.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-prac-modern-05\"\n  number={67}\n  question=\"How would you use itertools to batch an unbounded stream of records for writing?\"\n  difficulty=\"medium\"\n  topic=\"Itertools\"\n>\n```python\nfrom itertools import islice\n\ndef batched(iterable, size):\n    it = iter(iterable)\n    while batch := list(islice(it, size)):\n        yield batch\n\nfor batch in batched(read_kafka_stream(), size=500):\n    write_to_sink(batch)\n```\n\n`islice` pulls a bounded chunk off a shared iterator without knowing or caring how long the overall stream is — combined with the walrus operator to stop clean"
+  },
+  {
+    "path": "/level-1-foundations/python/practice/",
+    "locale": "en",
+    "title": "Python Practice | Core Concepts",
+    "description": "Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.",
+    "content": "ly when a batch comes back empty, this pattern batches a genuinely unbounded stream (a Kafka consumer, a paginated API) using constant memory, regardless of total volume.\n</QuestionCard>\n\n</QuestionList>"
   },
   {
     "path": "/level-1-foundations/python/progress/",
@@ -298,231 +424,483 @@
     "locale": "en",
     "title": "Python Progress",
     "description": "Your aggregated progress across every Python theory and practice question for data engineering interviews.",
-    "content": "title: \"Theory · Object-Oriented Programming\",\n    anchor: \"/level-1-foundations/python/theory/#object-oriented-programming\",\n    ids: [\"py-oop-01\", \"py-oop-02\"],\n  },\n  {\n    title: \"Theory · Concurrency & Performance\",\n    anchor: \"/level-1-foundations/python/theory/#concurrency--performance\",\n    ids: [\"py-conc-01\", \"py-conc-02\"],\n  },\n  {\n    title: \"Theory · Error Handling & Testing\",\n    anchor: \"/level-1-foundations/python/theory/#error-handling--testing\",\n    ids: [\"py-test-01\", \"py-test-02\"],\n  },\n  {\n    title: \"Practice · Language Fundamentals in Practice\",\n    anchor: \"/level-1-foundations/python/practice/#language-fundamentals-in-practice\",\n    ids: [\"py-prac-01\", \"py-prac-02\", \"py-prac-03\", \"py-prac-04\"],\n  },\n  {\n    title: \"Practice · Working with Data at Scale\",\n    an"
+    "content": "title: \"Theory · Object-Oriented Programming\",\n    anchor: \"/level-1-foundations/python/theory/#object-oriented-programming\",\n    ids: [\"py-oop-01\", \"py-oop-02\"],\n  },\n  {\n    title: \"Theory · Concurrency & Performance\",\n    anchor: \"/level-1-foundations/python/theory/#concurrency--performance\",\n    ids: [\"py-conc-01\", \"py-conc-02\"],\n  },\n  {\n    title: \"Theory · Error Handling & Testing\",\n    anchor: \"/level-1-foundations/python/theory/#error-handling--testing\",\n    ids: [\"py-test-01\", \"py-test-02\"],\n  },\n  {\n    title: \"Theory · Comprehensions & Functional Patterns\",\n    anchor: \"/level-1-foundations/python/theory/#comprehensions--functional-patterns\",\n    ids: [\"py-comp-01\", \"py-comp-02\", \"py-comp-03\", \"py-comp-04\", \"py-comp-05\"],\n  },\n  {\n    title: \"Theory · Scope, Closures & Cont"
   },
   {
     "path": "/level-1-foundations/python/progress/",
     "locale": "en",
     "title": "Python Progress",
     "description": "Your aggregated progress across every Python theory and practice question for data engineering interviews.",
-    "content": "chor: \"/level-1-foundations/python/practice/#working-with-data-at-scale\",\n    ids: [\"py-prac-05\", \"py-prac-06\", \"py-prac-07\", \"py-prac-08\"],\n  },\n  {\n    title: \"Practice · Project Structure & Testing\",\n    anchor: \"/level-1-foundations/python/practice/#project-structure--testing\",\n    ids: [\"py-prac-09\", \"py-prac-10\", \"py-prac-11\", \"py-prac-12\"],\n  },\n]} />"
+    "content": "ext Managers\",\n    anchor: \"/level-1-foundations/python/theory/#scope-closures--context-managers\",\n    ids: [\"py-scope-01\", \"py-scope-02\", \"py-scope-03\", \"py-scope-04\", \"py-scope-05\"],\n  },\n  {\n    title: \"Theory · Collections & Itertools\",\n    anchor: \"/level-1-foundations/python/theory/#collections--itertools\",\n    ids: [\"py-coll-01\", \"py-coll-02\", \"py-coll-03\", \"py-coll-04\", \"py-coll-05\", \"py-coll-06\"],\n  },\n  {\n    title: \"Theory · Modern Python & Type System\",\n    anchor: \"/level-1-foundations/python/theory/#modern-python--type-system\",\n    ids: [\"py-modern-01\", \"py-modern-02\", \"py-modern-03\", \"py-modern-04\", \"py-modern-05\", \"py-modern-06\"],\n  },\n  {\n    title: \"Theory · Data Serialization & Parsing\",\n    anchor: \"/level-1-foundations/python/theory/#data-serialization--parsing\",\n    i"
+  },
+  {
+    "path": "/level-1-foundations/python/progress/",
+    "locale": "en",
+    "title": "Python Progress",
+    "description": "Your aggregated progress across every Python theory and practice question for data engineering interviews.",
+    "content": "ds: [\"py-parse-01\", \"py-parse-02\", \"py-parse-03\", \"py-parse-04\"],\n  },\n  {\n    title: \"Practice · Language Fundamentals in Practice\",\n    anchor: \"/level-1-foundations/python/practice/#language-fundamentals-in-practice\",\n    ids: [\"py-prac-01\", \"py-prac-02\", \"py-prac-03\", \"py-prac-04\"],\n  },\n  {\n    title: \"Practice · Working with Data at Scale\",\n    anchor: \"/level-1-foundations/python/practice/#working-with-data-at-scale\",\n    ids: [\"py-prac-05\", \"py-prac-06\", \"py-prac-07\", \"py-prac-08\"],\n  },\n  {\n    title: \"Practice · Project Structure & Testing\",\n    anchor: \"/level-1-foundations/python/practice/#project-structure--testing\",\n    ids: [\"py-prac-09\", \"py-prac-10\", \"py-prac-11\", \"py-prac-12\"],\n  },\n  {\n    title: \"Practice · APIs, Config & CLI Tooling\",\n    anchor: \"/level-1-foundations/"
+  },
+  {
+    "path": "/level-1-foundations/python/progress/",
+    "locale": "en",
+    "title": "Python Progress",
+    "description": "Your aggregated progress across every Python theory and practice question for data engineering interviews.",
+    "content": "python/practice/#apis-config--cli-tooling\",\n    ids: [\"py-prac-api-01\", \"py-prac-api-02\", \"py-prac-api-03\", \"py-prac-api-04\", \"py-prac-api-05\"],\n  },\n  {\n    title: \"Practice · Serialization & Data Formats in Practice\",\n    anchor: \"/level-1-foundations/python/practice/#serialization--data-formats-in-practice\",\n    ids: [\"py-prac-fmt-01\", \"py-prac-fmt-02\", \"py-prac-fmt-03\", \"py-prac-fmt-04\", \"py-prac-fmt-05\"],\n  },\n  {\n    title: \"Practice · Modern Python in Pipelines\",\n    anchor: \"/level-1-foundations/python/practice/#modern-python-in-pipelines\",\n    ids: [\"py-prac-modern-01\", \"py-prac-modern-02\", \"py-prac-modern-03\", \"py-prac-modern-04\", \"py-prac-modern-05\"],\n  },\n]} />"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';\n\nTrack your study progress — mark questions as **done** ✓, **bookmark** 🔖 for review, and expand answers on demand.\n\n---"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "## Python Fundamentals\n\nCore language concepts that come up in every data engineering interview.\n\n<QuestionList topic=\"Python Fundamentals\" storagePrefix=\"py-fundamentals\">\n\n<QuestionCard\n  id=\"py-fund-01\"\n  number={1}\n  question=\"What are the key features of Python?\"\n  difficulty=\"easy\"\n  topic=\"Fundamentals\"\n>\n- **Simple syntax** — readable, English-like code reduces cognitive overhead\n- **Interpreted** — runs directly without a compilation step\n- **Dynamically typed** — no explicit type declarations required\n- **High-level** — memory management is handled by the runtime\n- **Cross-platform** — runs on Windows, Linux, macOS without changes\n- **Rich ecosystem** — pandas, NumPy, requests, and thousands of other libraries\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-fund-02\"\n  number={2}\n  questi"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "on=\"What is the difference between a mutable and an immutable object? Give examples of each.\"\n  difficulty=\"easy\"\n  topic=\"Fundamentals\"\n>\n**Mutable** objects can be changed after creation:\n- `list` — `my_list.append(4)` modifies in place\n- `dict` — `my_dict[\"key\"] = \"value\"` modifies in place\n- `set` — `my_set.add(5)` modifies in place\n\n**Immutable** objects cannot be changed:\n- `int`, `float`, `bool` — reassignment creates a new object\n- `str` — `\"hello\" + \"!\"` returns a new string\n- `tuple` — elements cannot be added, removed, or changed\n- `frozenset` — immutable version of set\n\n**Why it matters for data engineering:** immutable objects are safe as dict keys or set members; sharing mutable objects across threads causes subtle bugs.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-fund-03\"\n  numb"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "er={3}\n  question=\"Explain the difference between == and is in Python.\"\n  difficulty=\"easy\"\n  topic=\"Fundamentals\"\n>\n| Operator | Checks | Example |\n|----------|--------|---------|\n| `==` | **Value equality** — same value? | `[1,2] == [1,2]` → `True` |\n| `is` | **Identity** — same object in memory? | `[1,2] is [1,2]` → `False` |\n\n```python\na = [1, 2, 3]\nb = a           # same reference\nc = [1, 2, 3]   # new object, same value\n\nprint(a == c)   # True  — same value\nprint(a is b)   # True  — same object\nprint(a is c)   # False — different objects\n```\n\n> Use `is` only for singleton checks (`if x is None`). Use `==` for all value comparisons.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-fund-04\"\n  number={4}\n  question=\"How does memory management and garbage collection work in Python?\"\n  difficulty="
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "\"medium\"\n  topic=\"Fundamentals\"\n>\nPython uses two mechanisms:\n\n**1. Reference Counting**\nEvery object tracks how many references point to it. When the count hits 0 the memory is freed immediately.\n\n```python\nimport sys\na = [1, 2, 3]\nprint(sys.getrefcount(a))  # 2 (a + getrefcount arg itself)\ndel a  # refcount → 0, memory freed\n```\n\n**2. Cyclic Garbage Collector**\nReference counting cannot handle circular references (A → B → A). Python's `gc` module runs periodically to detect and clean these cycles.\n\n```python\nimport gc\ngc.collect()  # manually trigger GC\n```\n\n**Memory pools:** CPython uses `pymalloc`, a private heap for small objects (≤ 512 bytes), reducing `malloc` overhead.\n\n**For data engineering:** use `del df` + `gc.collect()` after processing large DataFrames, or prefer chunked proc"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "essing to avoid OOM.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-fund-05\"\n  number={5}\n  question=\"What is the Global Interpreter Lock (GIL) and how does it affect data engineering workloads?\"\n  difficulty=\"hard\"\n  topic=\"Concurrency\"\n>\nThe **GIL** is a mutex in CPython that allows only one thread to execute Python bytecode at a time, even on multi-core machines.\n\n**Impact by workload type:**\n\n| Workload | GIL Impact | Solution |\n|----------|-----------|---------|\n| I/O-bound (network, disk) | Minimal — GIL released during I/O | `threading` or `asyncio` |\n| CPU-bound (parsing, transforms) | Full — only one core used | `multiprocessing` |\n| NumPy / pandas ops | Minimal — C extensions release GIL | Can use threads |\n\n```python\nfrom multiprocessing import Pool\n\ndef process_partition(chunk):\n    r"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "eturn chunk.apply(some_transform)\n\nwith Pool(processes=4) as pool:\n    results = pool.map(process_partition, chunks)\n```\n\n> Python 3.13 introduced an experimental **no-GIL** build (PEP 703). This will change concurrent Python data pipeline design.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "## Functions & Generators\n\nEssential Python patterns for building efficient, composable data pipelines.\n\n<QuestionList topic=\"Functions & Generators\" storagePrefix=\"py-functions\">\n\n<QuestionCard\n  id=\"py-fn-01\"\n  number={6}\n  question=\"What are generators and why are they useful in data engineering?\"\n  difficulty=\"medium\"\n  topic=\"Generators\"\n>\nA **generator** uses `yield` instead of `return` — it produces values lazily, one at a time, without loading everything into memory.\n\n```python"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "# ❌ Loads all 1M rows into memory at once\ndef read_all_rows(file):\n    rows = []\n    with open(file) as f:\n        for line in f:\n            rows.append(line)\n    return rows"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "# ✅ Yields one row at a time — memory stays flat\ndef stream_rows(file):\n    with open(file) as f:\n        for line in f:\n            yield line.strip()\n\nfor row in stream_rows(\"huge_file.csv\"):\n    process(row)\n```\n\n**Why critical for data engineering:**\n- Process multi-GB files without OOM errors\n- Build composable, lazy pipeline stages\n- Power `chunksize` patterns in pandas\n\n**Generator expression** (inline):\n```python\ntotal = sum(len(line) for line in open(\"file.txt\"))\n```\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-fn-02\"\n  number={7}\n  question=\"Explain *args and **kwargs. When would you use them in data pipelines?\"\n  difficulty=\"easy\"\n  topic=\"Functions\"\n>\n- **`*args`** — captures extra positional arguments as a **tuple**\n- **`**kwargs`** — captures extra keyword arguments as a **dict**"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "```python\ndef log_event(event_type, *args, **kwargs):\n    print(f\"Event: {event_type}\")\n    print(f\"Values: {args}\")\n    print(f\"Metadata: {kwargs}\")\n\nlog_event(\"click\", 100, 200, user_id=42, session=\"abc\")"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "# Event: click"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "# Values: (100, 200)"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "# Metadata: {'user_id': 42, 'session': 'abc'}\n```\n\n**Data engineering use case — flexible reader wrapper:**\n```python\ndef read_data(path, *args, **kwargs):\n    \"\"\"Forward extra options to the right pandas reader.\"\"\"\n    if path.endswith(\".parquet\"):\n        return pd.read_parquet(path, **kwargs)\n    return pd.read_csv(path, *args, **kwargs)\n```\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-fn-03\"\n  number={8}\n  question=\"What are decorators and how would you use one in a data pipeline?\"\n  difficulty=\"medium\"\n  topic=\"Functions\"\n>\nA **decorator** wraps a function to extend its behaviour without modifying it directly.\n\n```python\nimport time, functools\n\ndef timer(func):\n    @functools.wraps(func)  # preserves __name__ and docstring\n    def wrapper(*args, **kwargs):\n        start = time.perf_counter"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "()\n        result = func(*args, **kwargs)\n        print(f\"{func.__name__} took {time.perf_counter() - start:.3f}s\")\n        return result\n    return wrapper\n\n@timer\ndef load_dataset(path):\n    import pandas as pd\n    return pd.read_parquet(path)\n\ndf = load_dataset(\"sales.parquet\")"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "# load_dataset took 0.243s\n```\n\n**Common DE decorator patterns:**\n- `@retry(max_attempts=3)` — resilient API / DB calls\n- `@log_inputs` — audit trail for transformations\n- `@validate_schema` — assert DataFrame shape before writing\n\nAirflow, dbt, and Prefect all use decorators (`@dag`, `@task`) to register pipeline units.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "## Object-Oriented Programming\n\nOOP patterns used in data engineering frameworks and libraries.\n\n<QuestionList topic=\"OOP in Python\" storagePrefix=\"py-oop\">\n\n<QuestionCard\n  id=\"py-oop-01\"\n  number={9}\n  question=\"What is the difference between class methods, static methods, and instance methods?\"\n  difficulty=\"medium\"\n  topic=\"OOP\"\n>\n| Method type | Decorator | First arg | Can access |\n|-------------|-----------|-----------|------------|\n| Instance | *(none)* | `self` | instance + class |\n| Class | `@classmethod` | `cls` | class only |\n| Static | `@staticmethod` | *(none)* | neither |\n\n```python\nclass DatabaseConnector:\n    _default_port = 5432\n\n    def __init__(self, host, port=None):\n        self.host = host\n        self.port = port or self._default_port\n\n    def connect(self):"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "# Instance method — uses self\n        return f\"Connecting to {self.host}:{self.port}\"\n\n    @classmethod\n    def from_url(cls, url: str):\n        # Class method — factory pattern\n        host, port = url.split(\":\")\n        return cls(host, int(port))\n\n    @staticmethod\n    def validate_port(port: int) -> bool:\n        # Static — pure utility, no state needed\n        return 1 <= port <= 65535\n\ndb = DatabaseConnector.from_url(\"localhost:5432\")\nprint(DatabaseConnector.validate_port(5432))  # True\n```\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-oop-02\"\n  number={10}\n  question=\"What are Python's magic (dunder) methods? Give examples relevant to data engineering.\"\n  difficulty=\"medium\"\n  topic=\"OOP\"\n>\n**Magic methods** (dunder = double underscore) let you define how objects behave with built-in oper"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "ators and functions.\n\n```python\nclass DataPipeline:\n    def __init__(self, steps: list):\n        self.steps = steps\n\n    def __repr__(self):\n        return f\"DataPipeline(steps={self.steps})\"\n\n    def __len__(self):\n        # len(pipeline)\n        return len(self.steps)\n\n    def __iter__(self):\n        # for step in pipeline\n        return iter(self.steps)\n\n    def __add__(self, other):\n        # pipeline1 + pipeline2\n        return DataPipeline(self.steps + other.steps)\n\n    def __contains__(self, step):\n        # \"transform\" in pipeline\n        return step in self.steps\n\nextract = DataPipeline([\"extract\"])\nload    = DataPipeline([\"transform\", \"load\"])\nfull    = extract + load\nprint(len(full))              # 3\nprint(\"transform\" in full)    # True\n```\n\n**Key dunder methods for DE:**\n- `__e"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "nter__` / `__exit__` — context manager for resource cleanup\n- `__getitem__` — custom indexing on dataset wrappers\n- `__call__` — make transformer objects callable like functions\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "## Concurrency & Performance\n\nThreading, async, and profiling patterns for high-throughput pipelines.\n\n<QuestionList topic=\"Concurrency & Performance\" storagePrefix=\"py-concurrency\">\n\n<QuestionCard\n  id=\"py-conc-01\"\n  number={11}\n  question=\"What is the difference between threading, multiprocessing, and asyncio?\"\n  difficulty=\"hard\"\n  topic=\"Concurrency\"\n>\n| Approach | Best for | GIL affected? | Overhead |\n|----------|----------|--------------|---------|\n| `threading` | I/O-bound (HTTP, DB queries) | Yes | Low |\n| `multiprocessing` | CPU-bound (data transforms) | No | High (process spawn) |\n| `asyncio` | Many concurrent I/O ops | Yes | Very low |\n\n```python"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "# asyncio — ideal for many concurrent API calls\nimport asyncio, httpx\n\nasync def fetch(url, client):\n    r = await client.get(url)\n    return r.json()\n\nasync def fetch_all(urls):\n    async with httpx.AsyncClient() as client:\n        return await asyncio.gather(*[fetch(u, client) for u in urls])\n\nresults = asyncio.run(fetch_all([\"https://api.example.com/data\"] * 100))\n```\n\n**Rule of thumb for data engineering:**\n- Reading 100 S3 files in parallel → `asyncio` or `ThreadPoolExecutor`\n- Transforming 10 million rows → `multiprocessing.Pool`\n- Single background task → `threading.Thread`\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-conc-02\"\n  number={12}\n  question=\"How do you profile and optimize a slow Python data pipeline?\"\n  difficulty=\"hard\"\n  topic=\"Performance\"\n>\n**Step 1 — Profile first, optim"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "ize second:**\n```python\nimport cProfile\ncProfile.run('process_data(df)', sort='cumulative')\n```\n\n**Step 2 — Common bottlenecks and fixes:**\n\n| Bottleneck | Symptom | Fix |\n|------------|---------|-----|\n| Python loops over rows | Slow `iterrows()` | Vectorize with pandas / NumPy |\n| Repeated I/O | High disk/net read time | Batch reads, cache with `functools.lru_cache` |\n| Single-threaded CPU | One core at 100% | `multiprocessing.Pool` |\n| Memory pressure | OOM / swap thrashing | Generator / chunked processing |\n\n```python"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "# ❌ Slow — Python loop\nfor idx, row in df.iterrows():\n    df.at[idx, 'total'] = row['price'] * row['qty']"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "# ✅ Fast — vectorized\ndf['total'] = df['price'] * df['qty']\n```\n\n**Useful profiling tools:**\n- `cProfile` / `snakeviz` — function-level timings\n- `memory_profiler` — line-by-line memory usage\n- `py-spy` — sampling profiler, zero overhead on production\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "## Error Handling & Testing\n\nWriting robust, testable data pipeline code.\n\n<QuestionList topic=\"Error Handling & Testing\" storagePrefix=\"py-testing\">\n\n<QuestionCard\n  id=\"py-test-01\"\n  number={13}\n  question=\"How do you handle exceptions in Python? What are best practices for data pipelines?\"\n  difficulty=\"easy\"\n  topic=\"Error Handling\"\n>\n```python\ntry:\n    result = load_from_db(query)\nexcept ConnectionError as e:\n    logger.error(\"DB connection failed: %s\", e)\n    raise  # re-raise after logging\nexcept ValueError as e:\n    logger.warning(\"Bad data, skipping: %s\", e)\n    result = default_value\nfinally:\n    cleanup()  # always runs\n```\n\n**Data pipeline best practices:**\n- Catch **specific** exceptions — never bare `except:`\n- Log with context (row id, file name, batch id)\n- Distinguish **re"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "tryable** errors (network timeout) from **fatal** errors (schema mismatch)\n- Use `finally` for resource cleanup (close connections, delete temp files)\n\n```python"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "# Context manager — cleanup guaranteed\nwith closing(db.connect()) as conn:\n    rows = conn.execute(query).fetchall()\n```\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-test-02\"\n  number={14}\n  question=\"How do you test a data transformation function with pytest?\"\n  difficulty=\"medium\"\n  topic=\"Testing\"\n>\n```python"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "# transform.py\nimport pandas as pd\n\ndef normalize_revenue(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"Convert revenue from cents to dollars, drop nulls.\"\"\"\n    df = df.dropna(subset=[\"revenue_cents\"])\n    df[\"revenue\"] = df[\"revenue_cents\"] / 100\n    return df[[\"id\", \"revenue\"]]\n```\n\n```python"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
     "content": "# test_transform.py\nimport pandas as pd\nimport pytest\nfrom transform import normalize_revenue\n\ndef test_converts_cents_to_dollars():\n    input_df = pd.DataFrame({\"id\": [1], \"revenue_cents\": [1050]})\n    result = normalize_revenue(input_df)\n    assert result[\"revenue\"].iloc[0] == 10.50\n\ndef test_drops_null_revenue():\n    input_df = pd.DataFrame({\"id\": [1, 2], \"revenue_cents\": [500, None]})\n    result = normalize_revenue(input_df)\n    assert len(result) == 1\n\ndef test_output_columns():\n    input_df = pd.DataFrame({\"id\": [1], \"revenue_cents\": [100]})\n    result = normalize_revenue(input_df)\n    assert list(result.columns) == [\"id\", \"revenue\"]\n```\n\nRun with: `pytest test_transform.py -v`\n\n**Key principle:** test the data contract (shape, types, values), not implementation details.\n</QuestionCa"
   },
   {
     "path": "/level-1-foundations/python/theory/",
     "locale": "en",
     "title": "Python Theory | Core Concepts",
-    "description": "Master Python fundamentals for data engineering. Interactive Q&A with progress tracking.",
-    "content": "rd>\n\n</QuestionList>"
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "rd>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "## Comprehensions & Functional Patterns\n\nConcise, idiomatic ways to transform data without writing explicit loops.\n\n<QuestionList topic=\"Comprehensions & Functional Patterns\" storagePrefix=\"py-comp\">\n\n<QuestionCard\n  id=\"py-comp-01\"\n  number={15}\n  question=\"What are list, dict, and set comprehensions, and why prefer them over loops?\"\n  difficulty=\"easy\"\n  topic=\"Comprehensions\"\n>\nComprehensions build a collection in a single expression instead of an explicit loop with `.append()`/assignment:\n\n```python\nsquares = [n ** 2 for n in range(10)]                       # list\nby_id   = {row[\"id\"]: row for row in records}               # dict\nunique  = {row[\"user_id\"] for row in records}                # set\n```\n\nThey're preferred because they're usually faster (the loop runs in C, not Python byte"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "code), more concise, and signal intent clearly — \"this builds a new collection\" — rather than mixing that intent with manual accumulator bookkeeping.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-comp-02\"\n  number={16}\n  question=\"What's the difference between a list comprehension and a generator expression?\"\n  difficulty=\"easy\"\n  topic=\"Comprehensions\"\n>\n```python\nsquares_list = [n ** 2 for n in range(1_000_000)]   # built eagerly, all in memory\nsquares_gen  = (n ** 2 for n in range(1_000_000))   # lazy, one value at a time\n```\n\nThe only syntax difference is `[]` vs `()`, but the memory behavior is completely different — a list comprehension materializes the entire result immediately, while a generator expression produces values on demand. Use a generator expression when you're piping the resul"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "t into something that consumes it once (`sum(...)`, another loop) and don't need it as an indexable collection.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-comp-03\"\n  number={17}\n  question=\"How do map(), filter(), and functools.reduce() work, and when would you prefer a comprehension instead?\"\n  difficulty=\"medium\"\n  topic=\"Functional\"\n>\n```python\nfrom functools import reduce\n\ndoubled  = map(lambda x: x * 2, values)              # apply a function to each item\npositive = filter(lambda x: x > 0, values)           # keep items matching a predicate\ntotal    = reduce(lambda a, b: a + b, values, 0)     # fold into a single value\n```\n\n`map`/`filter` return lazy iterators (like generator expressions), and `reduce` collapses an iterable into one accumulated result. In practice, a comprehension is usu"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "ally preferred over `map`/`filter` for readability (`[x * 2 for x in values if x > 0]` reads more directly than nested calls), but `reduce` still earns its place for genuine folds that don't map cleanly onto a comprehension.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-comp-04\"\n  number={18}\n  question=\"What is a lambda function and when is it appropriate to use one?\"\n  difficulty=\"easy\"\n  topic=\"Functional\"\n>\nA `lambda` is a small, anonymous, single-expression function: `lambda x: x * 2` is equivalent to a one-line `def`. They're appropriate for short, throwaway logic passed inline — a `sort` key, a `map`/`filter` callback — but not for anything with multiple statements, a docstring, or logic worth naming and reusing; at that point a regular `def` is clearer and easier to test.\n\n```python\nreco"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "rds.sort(key=lambda r: r[\"created_at\"])\n```\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-comp-05\"\n  number={19}\n  question=\"What does the walrus operator (:=) do, and where is it useful in a data pipeline?\"\n  difficulty=\"medium\"\n  topic=\"Functional\"\n>\n`:=` assigns a value and returns it in the same expression, letting you avoid computing something twice:\n\n```python"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "# Without walrus — the read happens twice, or needs an extra line\nwhile (line := file.readline()):\n    process(line)"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "# Useful inside a comprehension to avoid recomputation\nresults = [y for x in data if (y := expensive(x)) is not None]\n```\n\nIt's most useful anywhere you'd otherwise call the same expensive function or I/O call once to check a condition and again to use the value.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "## Scope, Closures & Context Managers\n\nHow Python resolves names, captures state in nested functions, and manages resource lifecycles.\n\n<QuestionList topic=\"Scope, Closures & Context Managers\" storagePrefix=\"py-scope\">\n\n<QuestionCard\n  id=\"py-scope-01\"\n  number={20}\n  question=\"What is the LEGB rule for variable scope resolution?\"\n  difficulty=\"medium\"\n  topic=\"Scope\"\n>\nPython looks up a name in this order: **L**ocal (current function) → **E**nclosing (any outer function it's nested in) → **G**lobal (module level) → **B**uilt-in (`len`, `print`, etc.). The lookup stops at the first scope where the name is found.\n\n```python\nx = \"global\"\n\ndef outer():\n    x = \"enclosing\"\n    def inner():\n        print(x)  # \"enclosing\" — found in the enclosing scope before global\n    inner()\n\nouter()\n```\n</Q"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "uestionCard>\n\n<QuestionCard\n  id=\"py-scope-02\"\n  number={21}\n  question=\"What is a closure, and how would you use one to build a configurable transformation function?\"\n  difficulty=\"medium\"\n  topic=\"Scope\"\n>\nA closure is a function that \"remembers\" variables from its enclosing scope even after that scope has finished executing:\n\n```python\ndef make_multiplier(factor):\n    def multiply(value):\n        return value * factor   # factor is captured from the enclosing scope\n    return multiply\n\nto_cents = make_multiplier(100)\nto_cents(19.99)  # 1999.0\n```\n\nThis is a common pattern for building a family of small, pre-configured transformation functions (unit converters, column renamers) without writing a full class for each one.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-scope-03\"\n  number={22}\n  qu"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "estion=\"What does the nonlocal keyword do?\"\n  difficulty=\"medium\"\n  topic=\"Scope\"\n>\n`nonlocal` lets an inner function **assign** to a variable in its enclosing (not global) scope, rather than creating a new local variable that shadows it:\n\n```python\ndef make_counter():\n    count = 0\n    def increment():\n        nonlocal count\n        count += 1   # without nonlocal, this raises UnboundLocalError\n        return count\n    return increment\n\ncounter = make_counter()\ncounter()  # 1\ncounter()  # 2\n```\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-scope-04\"\n  number={23}\n  question=\"How do you write a custom context manager, and why would a data pipeline need one?\"\n  difficulty=\"medium\"\n  topic=\"Context Managers\"\n>\nDefine `__enter__` and `__exit__` to guarantee setup/teardown runs even if an exception"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "occurs partway through:\n\n```python\nclass ManagedConnection:\n    def __enter__(self):\n        self.conn = create_connection()\n        return self.conn\n\n    def __exit__(self, exc_type, exc_val, exc_tb):\n        self.conn.close()   # always runs, even on exception\n        return False        # don't suppress the exception\n\nwith ManagedConnection() as conn:\n    conn.execute(query)\n```\n\nPipelines need this anywhere a resource (DB connection, file handle, distributed lock, temp directory) must be released even when the code inside the block fails — without it, a failed transform can leak connections until the process runs out of them.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-scope-05\"\n  number={24}\n  question=\"What's the difference between contextlib.contextmanager and defining __enter__/__exit_"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "_ directly?\"\n  difficulty=\"hard\"\n  topic=\"Context Managers\"\n>\n`@contextlib.contextmanager` lets you write a context manager as a single generator function instead of a class:\n\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef managed_connection():\n    conn = create_connection()\n    try:\n        yield conn          # code inside the `with` block runs here\n    finally:\n        conn.close()        # guaranteed cleanup, like __exit__\n\nwith managed_connection() as conn:\n    conn.execute(query)\n```\n\nIt's more concise for simple cases (one resource, no extra methods needed on the object), while a class-based context manager is worth it when the object also needs other methods/state beyond just entering and exiting.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "## Collections & Itertools\n\nStandard-library tools that replace hand-rolled counting, grouping, and windowing logic.\n\n<QuestionList topic=\"Collections & Itertools\" storagePrefix=\"py-coll\">\n\n<QuestionCard\n  id=\"py-coll-01\"\n  number={25}\n  question=\"What are the most useful types in the collections module for data engineering?\"\n  difficulty=\"easy\"\n  topic=\"Collections\"\n>\n- **`defaultdict`** — a dict with an automatic default value for missing keys\n- **`Counter`** — a dict specialized for counting hashable items\n- **`namedtuple`** — a lightweight, immutable record type with named fields\n- **`deque`** — a double-ended queue with O(1) appends/pops from either side\n- **`OrderedDict`** — a dict that remembers insertion order (mostly historical now that plain `dict` preserves order too, but still"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "useful for its `move_to_end()` method)\n\nEach replaces a common hand-rolled pattern (a `dict.get(key, default)` accumulator loop, a manual counting dict, a plain tuple with unclear positional meaning) with a purpose-built, better-tested type.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-coll-02\"\n  number={26}\n  question=\"When would you use a defaultdict instead of a regular dict?\"\n  difficulty=\"easy\"\n  topic=\"Collections\"\n>\n```python\nfrom collections import defaultdict\n\ngroups = defaultdict(list)\nfor row in records:\n    groups[row[\"category\"]].append(row)   # no need to check \"if key not in groups\"\n```\n\nUse it whenever you're grouping or accumulating into a dict and would otherwise write `if key not in d: d[key] = ...` before every update — `defaultdict` removes that boilerplate and the risk of"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "forgetting it in one code path.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-coll-03\"\n  number={27}\n  question=\"What is Counter, and what's a practical data engineering use for it?\"\n  difficulty=\"easy\"\n  topic=\"Collections\"\n>\n```python\nfrom collections import Counter\n\nevent_counts = Counter(row[\"event_type\"] for row in records)\nevent_counts.most_common(5)   # top 5 event types by frequency\n```\n\n`Counter` is a dict subclass for tallying hashable items, with built-in `.most_common()` for ranking. It's a quick way to profile a dataset — value frequency checks, finding the most common error codes in a log, spotting an unexpectedly dominant category before it's worth writing a full aggregation query.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-coll-04\"\n  number={28}\n  question=\"What's the difference bet"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "ween a list and a deque, and when does it matter for pipeline code?\"\n  difficulty=\"medium\"\n  topic=\"Collections\"\n>\nA `list` has O(1) appends/pops at the **end** but O(n) at the **start** (every remaining element shifts). A `deque` (double-ended queue) has O(1) at **both** ends.\n\n```python\nfrom collections import deque\n\nrecent_events = deque(maxlen=1000)   # fixed-size rolling window, oldest drops automatically\nrecent_events.append(new_event)\n```\n\nIt matters for any rolling-window or queue-like pipeline pattern — a sliding window of recent events, a work queue being consumed from the front while new items arrive at the back — where a plain list would silently become a performance problem as it grows.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-coll-05\"\n  number={29}\n  question=\"What does iterto"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "ols.groupby() do, and what's the most common mistake when using it?\"\n  difficulty=\"hard\"\n  topic=\"Itertools\"\n>\n```python\nfrom itertools import groupby\n\nfor key, group in groupby(records, key=lambda r: r[\"category\"]):\n    print(key, list(group))\n```\n\n`groupby` only groups **consecutive** matching items — it does not sort first. The most common mistake is calling it on unsorted data and getting multiple separate groups for the same key instead of one:\n\n```python\ndata = [\"a\", \"b\", \"a\"]"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "# without sorting, groupby sees three separate runs: \"a\", \"b\", \"a\" — not one \"a\" group\nsorted_data = sorted(data)\n```\n\nAlways `sort()` (or ensure the input is already sorted) on the grouping key before calling `groupby`.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-coll-06\"\n  number={30}\n  question=\"What are itertools.chain() and itertools.islice() used for in data processing?\"\n  difficulty=\"medium\"\n  topic=\"Itertools\"\n>\n```python\nfrom itertools import chain, islice"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "# chain — iterate over several iterables as if they were one, without concatenating first\nall_rows = chain(batch1, batch2, batch3)"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "# islice — take a slice of an iterator without loading it into a list first\nfirst_100 = islice(read_huge_file(), 100)\n```\n\nBoth avoid materializing an intermediate list: `chain` lets you treat multiple sources (several files, several API pages) as one stream, and `islice` lets you sample or limit a generator without exhausting or copying it.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "## Modern Python & Type System\n\nType hints, dataclasses, and pattern matching — features that make pipeline code safer and more self-documenting.\n\n<QuestionList topic=\"Modern Python & Type System\" storagePrefix=\"py-modern\">\n\n<QuestionCard\n  id=\"py-modern-01\"\n  number={31}\n  question=\"What are type hints, and do they change Python's runtime behavior?\"\n  difficulty=\"easy\"\n  topic=\"Type Hints\"\n>\n```python\ndef normalize(revenue_cents: int) -> float:\n    return revenue_cents / 100\n```\n\nType hints are annotations that document expected types — Python itself does **not** enforce them at runtime; the function above still runs even if you pass a string. Their value comes from static type checkers (`mypy`, `pyright`) catching mismatches before deployment, and from making function signatures self-doc"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "umenting for anyone reading or calling the code.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-modern-02\"\n  number={32}\n  question=\"How do you use Optional, Union, and generics from the typing module?\"\n  difficulty=\"medium\"\n  topic=\"Type Hints\"\n>\n```python\nfrom typing import Optional, Union\n\ndef find_user(user_id: int) -> Optional[dict]:      # dict, or None\n    ...\n\ndef parse_amount(value: Union[int, str]) -> float:   # int OR str\n    ..."
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "# Python 3.10+ shorthand for both:\ndef find_user(user_id: int) -> dict | None: ...\ndef parse_amount(value: int | str) -> float: ...\n```\n\n`Optional[X]` is shorthand for `Union[X, None]` — use it whenever a function can legitimately return or accept nothing. Generics (`list[int]`, `dict[str, float]`) go further and describe the type of a collection's contents, not just the collection type itself.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-modern-03\"\n  number={33}\n  question=\"What is a dataclass, and when would you use one instead of a plain class or a dict?\"\n  difficulty=\"medium\"\n  topic=\"Dataclasses\"\n>\n```python\nfrom dataclasses import dataclass\n\n@dataclass\nclass PipelineConfig:\n    source_path: str\n    batch_size: int = 1000\n    dry_run: bool = False\n\ncfg = PipelineConfig(source_path=\"s3://bu"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "cket/data\")\n```\n\n`@dataclass` auto-generates `__init__`, `__repr__`, and `__eq__` from the annotated fields, removing the boilerplate of writing them by hand. Prefer it over a plain dict when the structure is fixed and known ahead of time (you get attribute access, type hints, and IDE autocomplete instead of stringly-typed keys), and over a hand-written class when you don't need custom behavior beyond holding data.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-modern-04\"\n  number={34}\n  question=\"What is structural pattern matching (match/case), and when is it clearer than if/elif?\"\n  difficulty=\"medium\"\n  topic=\"Pattern Matching\"\n>\n```python\nmatch event:\n    case {\"type\": \"insert\", \"table\": table, \"data\": data}:\n        handle_insert(table, data)\n    case {\"type\": \"delete\", \"table\": table, \"id\""
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": ": row_id}:\n        handle_delete(table, row_id)\n    case _:\n        raise ValueError(f\"Unknown event shape: {event}\")\n```\n\nIntroduced in Python 3.10, `match`/`case` can destructure a value's **shape** (dict keys, list length, object attributes) as part of the match, not just compare it — which makes it clearer than `if/elif` chains for routing logic based on a record's structure, like dispatching different event or message shapes in an ingestion pipeline.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-modern-05\"\n  number={35}\n  question=\"What is a Protocol in the typing module, and how does it enable structural typing?\"\n  difficulty=\"hard\"\n  topic=\"Type Hints\"\n>\n```python\nfrom typing import Protocol\n\nclass Writable(Protocol):\n    def write(self, data: bytes) -> int: ...\n\ndef save(destination: Wri"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "table, data: bytes):\n    destination.write(data)\n```\n\nA `Protocol` describes a **shape** (what methods/attributes an object must have) rather than a specific class hierarchy — any object with a matching `write` method satisfies `Writable`, whether or not it inherits from anything in particular. This is Python's version of \"duck typing, but checkable\" — useful for accepting a file handle, an S3 client wrapper, or an in-memory buffer interchangeably, as long as each implements the same interface.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-modern-06\"\n  number={36}\n  question=\"What's the difference between typing.TypedDict and a dataclass for representing structured records?\"\n  difficulty=\"hard\"\n  topic=\"Type Hints\"\n>\n```python\nfrom typing import TypedDict\nfrom dataclasses import dataclass\n\nclass"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "UserRecord(TypedDict):\n    id: int\n    name: str\n\n@dataclass\nclass UserRecord:\n    id: int\n    name: str\n```\n\n`TypedDict` type-checks a **plain dict** — the record is still a real `dict` at runtime (useful when working with JSON payloads that are naturally dict-shaped, like API responses). A `dataclass` creates an actual **object** with attribute access (`user.name` instead of `user[\"name\"]`) and generated `__init__`/`__repr__`/`__eq__`. Use `TypedDict` when interoperating with dict-based APIs; use a dataclass when you want a first-class object with behavior.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "## Data Serialization & Parsing\n\nHandling dates, encodings, structured formats, and the numeric precision issues that trip up ingestion pipelines.\n\n<QuestionList topic=\"Data Serialization & Parsing\" storagePrefix=\"py-parse\">\n\n<QuestionCard\n  id=\"py-parse-01\"\n  number={37}\n  question=\"How do you work with dates, times, and timezones correctly in Python?\"\n  difficulty=\"medium\"\n  topic=\"Datetime\"\n>\n```python\nfrom datetime import datetime, timezone"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "# Always store and compare in UTC — convert to local time only for display\nnow_utc = datetime.now(timezone.utc)"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "# Naive datetimes (no tzinfo) are a common source of silent bugs —"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "# comparing a naive and an aware datetime raises TypeError\nnaive = datetime(2024, 1, 1)          # no timezone attached — ambiguous\naware = datetime(2024, 1, 1, tzinfo=timezone.utc)\n```\n\nThe core rule for pipelines: make every datetime **timezone-aware** as early as possible on ingestion, store everything in UTC, and only convert to a local timezone at the point of display — mixing naive and aware datetimes is one of the most common sources of off-by-some-hours bugs in production pipelines.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-parse-02\"\n  number={38}\n  question=\"What's the difference between json.dumps/loads and pickle, and when is pickle unsafe to use?\"\n  difficulty=\"medium\"\n  topic=\"Serialization\"\n>\n`json` serializes to a human-readable, language-agnostic text format, but only support"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "s a limited set of types (no dates, sets, or custom objects without extra work). `pickle` serializes almost any Python object, including custom classes, but produces Python-specific binary output that other languages can't read.\n\n**Security warning:** `pickle.loads()` on data from an untrusted source is unsafe — unpickling can execute arbitrary code embedded in the byte stream. Only unpickle data you produced yourself or fully trust; for data crossing a trust boundary (an API, a queue, another team's system), use JSON or a schema-validated format instead.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-parse-03\"\n  number={39}\n  question=\"What common pitfalls come up when using regular expressions to parse or clean ingested data?\"\n  difficulty=\"medium\"\n  topic=\"Regex\"\n>\n```python\nimport re\n\npattern"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "= re.compile(r\"^\\d{3}-\\d{4}$\")   # compile once, reuse across many rows\n```\n\nCommon pitfalls: compiling the same pattern inside a loop (recompile once, outside the loop, for anything run per-row); using `.match()` (anchors at the start only) when you meant `.fullmatch()` or a pattern anchored with `^...$`; and reaching for regex on structured formats like JSON or CSV where a real parser handles edge cases (escaping, quoting, nested structures) that a hand-written pattern will eventually get wrong.\n</QuestionCard>\n\n<QuestionCard\n  id=\"py-parse-04\"\n  number={40}\n  question=\"Why can float arithmetic produce unexpected results, and when should you use Decimal instead?\"\n  difficulty=\"hard\"\n  topic=\"Numeric Precision\"\n>\n```python\n0.1 + 0.2  # 0.30000000000000004 — binary floating point can't re"
+  },
+  {
+    "path": "/level-1-foundations/python/theory/",
+    "locale": "en",
+    "title": "Python Theory | Core Concepts",
+    "description": "Python interview questions for data engineering — core language, comprehensions, closures, collections, type hints, dataclasses, and serialization.",
+    "content": "present 0.1 exactly\n\nfrom decimal import Decimal\nDecimal(\"0.1\") + Decimal(\"0.2\")  # Decimal('0.3') — exact\n```\n\nFloats use binary floating-point representation, which can't exactly represent most decimal fractions — fine for scientific/statistical data where tiny rounding error doesn't matter, but risky for money or anything requiring exact decimal arithmetic. Use `Decimal` (constructed from strings, not floats, to avoid importing the float's own imprecision) for financial calculations, and be explicit about rounding rules rather than relying on default float behavior.\n</QuestionCard>\n\n</QuestionList>"
   },
   {
     "path": "/level-1-foundations/sql/index/",

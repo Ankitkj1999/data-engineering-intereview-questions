@@ -1,6 +1,6 @@
 ---
 title: Python Practice | Core Concepts
-description: Practice Python interview questions for data engineering with real-world scenarios. Interactive Q&A with progress tracking.
+description: Practice Python interview questions for data engineering — APIs, config, CLI tooling, serialization formats, and applying type hints and dataclasses.
 ---
 
 import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
@@ -18,7 +18,7 @@ Why Python shows up everywhere in data platforms, and how its concurrency model 
 
 <QuestionCard
   id="py-prac-01"
-  number={15}
+  number={41}
   question="Why is Python widely used in data engineering?"
   difficulty="easy"
   topic="Fundamentals"
@@ -35,7 +35,7 @@ It's rarely the fastest language for raw compute, but it's usually the fastest t
 
 <QuestionCard
   id="py-prac-02"
-  number={16}
+  number={42}
   question="How do iterators and generators help with large data processing?"
   difficulty="medium"
   topic="Fundamentals"
@@ -64,7 +64,7 @@ This pattern — pull, don't load — is what lets a single job process files fa
 
 <QuestionCard
   id="py-prac-03"
-  number={17}
+  number={43}
   question="What is the difference between threads, multiprocessing, and async IO in Python?"
   difficulty="medium"
   topic="Concurrency"
@@ -80,7 +80,7 @@ This pattern — pull, don't load — is what lets a single job process files fa
 
 <QuestionCard
   id="py-prac-04"
-  number={18}
+  number={44}
   question="What is the GIL and why does it matter for a data pipeline you're building?"
   difficulty="medium"
   topic="Concurrency"
@@ -102,7 +102,7 @@ Practical patterns for reading, writing, and moving data reliably in production 
 
 <QuestionCard
   id="py-prac-05"
-  number={19}
+  number={45}
   question="How do you read and write Parquet efficiently in Python?"
   difficulty="medium"
   topic="File Formats"
@@ -125,7 +125,7 @@ Guidelines: select only needed columns, keep row groups/files at a reasonable si
 
 <QuestionCard
   id="py-prac-06"
-  number={20}
+  number={46}
   question="How do you process a large CSV file without running out of memory?"
   difficulty="medium"
   topic="File Formats"
@@ -146,7 +146,7 @@ Skip columns you don't need with `usecols`, and prefer writing results increment
 
 <QuestionCard
   id="py-prac-07"
-  number={21}
+  number={47}
   question="How do you implement retries with exponential backoff?"
   difficulty="medium"
   topic="Reliability"
@@ -175,7 +175,7 @@ Only retry **transient** errors (timeouts, rate limits) — never retry a schema
 
 <QuestionCard
   id="py-prac-08"
-  number={22}
+  number={48}
   question="What logging practices are important for data pipelines?"
   difficulty="easy"
   topic="Reliability"
@@ -206,7 +206,7 @@ Organizing and validating pipeline code so it's maintainable beyond the first sc
 
 <QuestionCard
   id="py-prac-09"
-  number={23}
+  number={49}
   question="How do you structure a Python project for data pipelines?"
   difficulty="medium"
   topic="Project Structure"
@@ -230,7 +230,7 @@ Keep reusable library code separate from job entrypoints, inject external servic
 
 <QuestionCard
   id="py-prac-10"
-  number={24}
+  number={50}
   question="How do you manage dependencies and reproducible environments?"
   difficulty="easy"
   topic="Project Structure"
@@ -242,7 +242,7 @@ Reproducibility also means pinning the Python version itself and building determ
 
 <QuestionCard
   id="py-prac-11"
-  number={25}
+  number={51}
   question="How do you test data transformations in Python?"
   difficulty="medium"
   topic="Testing"
@@ -265,7 +265,7 @@ Combine small **golden-case** fixtures (known input → known output) with **pro
 
 <QuestionCard
   id="py-prac-12"
-  number={26}
+  number={52}
   question="How do you profile and optimize slow Python code?"
   difficulty="hard"
   topic="Performance"
@@ -284,6 +284,356 @@ Common fixes, in order of how often they apply:
 4. **Cache repeated I/O** — `functools.lru_cache`, or batch reads instead of per-row calls
 
 `py-spy` is worth knowing for production debugging — it's a sampling profiler that attaches to a running process with effectively zero overhead.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## APIs, Config & CLI Tooling
+
+Practical patterns for talking to external systems and making pipeline jobs configurable and runnable.
+
+<QuestionList topic="APIs, Config & CLI Tooling" storagePrefix="py-prac-api">
+
+<QuestionCard
+  id="py-prac-api-01"
+  number={53}
+  question="How do you handle pagination when pulling data from a REST API?"
+  difficulty="medium"
+  topic="APIs"
+>
+```python
+def fetch_all_pages(client, endpoint):
+    results = []
+    url = endpoint
+    while url:
+        response = client.get(url).json()
+        results.extend(response["data"])
+        url = response.get("next_page_url")  # or a cursor/offset, depending on the API
+    return results
+```
+
+Handle both common pagination styles (page/offset-based and cursor-based), respect rate limits with backoff between requests, and make the fetch resumable — if the job dies on page 40 of 100, you want to restart from page 40, not from the beginning.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-api-02"
+  number={54}
+  question="How do you manage configuration and secrets across environments in a Python pipeline?"
+  difficulty="medium"
+  topic="Configuration"
+>
+```python
+import os
+from dataclasses import dataclass
+
+@dataclass
+class Settings:
+    db_url: str
+    batch_size: int = 1000
+
+def load_settings() -> Settings:
+    return Settings(
+        db_url=os.environ["DB_URL"],              # required — fail fast if missing
+        batch_size=int(os.environ.get("BATCH_SIZE", 1000)),
+    )
+```
+
+Read configuration from environment variables (or a secrets manager for credentials), never hardcode secrets in source, and fail immediately at startup if a required value is missing rather than failing confusingly mid-run. Keep one settings object built once per run rather than reading `os.environ` scattered throughout the codebase.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-api-03"
+  number={55}
+  question="How do you build a CLI entrypoint for a pipeline job?"
+  difficulty="easy"
+  topic="CLI"
+>
+```python
+import argparse
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--run-date", required=True)
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+
+    run_pipeline(run_date=args.run_date, dry_run=args.dry_run)
+
+if __name__ == "__main__":
+    main()
+```
+
+`argparse` (standard library) or `click`/`typer` (richer, more ergonomic) both work — the important part is a thin entrypoint that only parses arguments and calls into the real pipeline logic, so that logic stays testable without going through the CLI at all.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-api-04"
+  number={56}
+  question="How do you validate incoming data with pydantic before it enters a pipeline?"
+  difficulty="medium"
+  topic="Validation"
+>
+```python
+from pydantic import BaseModel, ValidationError
+
+class OrderEvent(BaseModel):
+    order_id: str
+    amount_cents: int
+    user_id: str
+
+def parse_event(raw: dict) -> OrderEvent | None:
+    try:
+        return OrderEvent(**raw)
+    except ValidationError as e:
+        logger.warning("Dropping invalid event: %s", e)
+        return None
+```
+
+Defining the expected shape as a `pydantic` model gives you type coercion and validation in one step, with clear errors identifying exactly which field failed — far more reliable than manually checking `if "field" in dict` for every required key, and it doubles as documentation of the data contract.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-api-05"
+  number={57}
+  question="How do you manage a database connection pool in a long-running pipeline process?"
+  difficulty="hard"
+  topic="Connections"
+>
+```python
+from sqlalchemy import create_engine
+
+engine = create_engine(
+    "postgresql://...",
+    pool_size=10,        # keep this many connections warm
+    max_overflow=5,       # allow a burst above pool_size under load
+    pool_pre_ping=True,   # check a connection is alive before handing it out
+)
+```
+
+Create the engine/pool **once** at process startup, not per request or per row — recreating connections per operation is a common source of both poor performance and eventually exhausting the database's connection limit. `pool_pre_ping` protects against handing out a connection that's silently gone stale (common after idle periods or a database failover).
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Serialization & Data Formats in Practice
+
+Handling the messy realities of real-world ingested data — mixed formats, encodings, and partial failures.
+
+<QuestionList topic="Serialization & Data Formats in Practice" storagePrefix="py-prac-fmt">
+
+<QuestionCard
+  id="py-prac-fmt-01"
+  number={58}
+  question="How do you choose between JSON, Avro, and Protobuf for a data pipeline?"
+  difficulty="medium"
+  topic="Serialization"
+>
+**JSON** — human-readable, no schema enforcement, widest tooling support; good for APIs and low-volume/debugging-friendly paths. **Avro** — compact binary format with an embedded schema, strong support for schema evolution, common in Kafka pipelines. **Protobuf** — compact binary, schema defined separately and compiled, very fast, common for service-to-service RPC (gRPC).
+
+In practice: JSON when human-readability and flexibility matter more than size/speed, Avro when you need schema evolution inside a streaming pipeline, Protobuf when you need a fast, strongly-typed contract between services.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-fmt-02"
+  number={59}
+  question="How do you handle inconsistent date formats coming from multiple upstream sources?"
+  difficulty="medium"
+  topic="Datetime"
+>
+```python
+from dateutil import parser
+
+def parse_flexible_date(value: str):
+    try:
+        return parser.parse(value)   # handles many formats automatically
+    except (ValueError, TypeError):
+        logger.warning("Unparseable date: %r", value)
+        return None
+```
+
+`dateutil.parser` handles a wide range of formats without per-source format strings, but for high-volume pipelines it's worth maintaining an explicit per-source format map (faster, and fails loudly instead of guessing) rather than relying on flexible parsing everywhere. Either way, always normalize to UTC immediately after parsing.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-fmt-03"
+  number={60}
+  question="How do you detect and handle character encoding issues in ingested files?"
+  difficulty="hard"
+  topic="Encoding"
+>
+```python
+import chardet
+
+with open("upstream_export.csv", "rb") as f:
+    raw = f.read()
+    detected = chardet.detect(raw)   # {'encoding': 'ISO-8859-1', 'confidence': 0.73}
+
+text = raw.decode(detected["encoding"], errors="replace")
+```
+
+Never assume UTF-8 for external files — declare the expected encoding explicitly when you know it, use a detection library as a fallback when you don't, and decide deliberately how to handle undecodable bytes (`errors="replace"` to keep going with a placeholder, or `errors="strict"` to fail loudly) rather than letting a `UnicodeDecodeError` crash the job unpredictably partway through.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-fmt-04"
+  number={61}
+  question="How would you deduplicate records in a stream using a rolling window in Python?"
+  difficulty="hard"
+  topic="Streaming"
+>
+```python
+from collections import deque
+
+class RollingDeduplicator:
+    def __init__(self, window_size=10_000):
+        self.seen = set()
+        self.order = deque(maxlen=window_size)
+
+    def is_duplicate(self, record_id: str) -> bool:
+        if record_id in self.seen:
+            return True
+        if len(self.order) == self.order.maxlen:
+            oldest = self.order[0]
+            self.seen.discard(oldest)   # evict the oldest id as the window slides
+        self.order.append(record_id)
+        self.seen.add(record_id)
+        return False
+```
+
+A `deque` with `maxlen` combined with a `set` gives O(1) membership checks with a bounded memory footprint — the set alone would grow unbounded over an infinite stream, so the deque enforces a sliding window of "recently seen" ids that age out automatically.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-fmt-05"
+  number={62}
+  question="How do you safely handle partially-written or corrupted files during ingestion?"
+  difficulty="medium"
+  topic="Reliability"
+>
+```python
+import os
+
+def atomic_write(path, data):
+    tmp_path = f"{path}.tmp"
+    with open(tmp_path, "wb") as f:
+        f.write(data)
+    os.replace(tmp_path, path)   # atomic on the same filesystem — no partial file visible
+```
+
+On the **write** side, write to a temp path and atomically rename it into place, so a consumer never sees a half-written file. On the **read** side, validate what you read (checksum, expected row count, schema check) before treating it as good, and quarantine or reject files that fail validation rather than silently processing a truncated file as if it were complete.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Modern Python in Pipelines
+
+Applying type hints, dataclasses, and pattern matching to real pipeline code, not just toy examples.
+
+<QuestionList topic="Modern Python in Pipelines" storagePrefix="py-prac-modern">
+
+<QuestionCard
+  id="py-prac-modern-01"
+  number={63}
+  question="How would you use a dataclass to define a pipeline's configuration?"
+  difficulty="easy"
+  topic="Dataclasses"
+>
+```python
+from dataclasses import dataclass, field
+
+@dataclass
+class IngestConfig:
+    source_bucket: str
+    table_name: str
+    columns: list[str] = field(default_factory=list)   # mutable defaults need field()
+    batch_size: int = 5000
+```
+
+A dataclass gives the config attribute access and a generated `__repr__` (so logging the config for a run is readable), catches typos as attribute errors instead of silent `KeyError`s from a dict, and — combined with type hints — lets a type checker catch a caller passing the wrong type before the job ever runs.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-modern-02"
+  number={64}
+  question="How do type hints help catch bugs in a pipeline before it reaches production?"
+  difficulty="medium"
+  topic="Type Hints"
+>
+```python
+def load_partition(table: str, run_date: str, retries: int = 3) -> int:
+    ...
+```
+
+Running `mypy` in CI catches an entire class of bugs before deploy: passing a `datetime` where a `str` is expected, forgetting a required argument, or a typo'd function returning `None` where callers assumed an `int`. It won't catch logic errors, but it turns "found in production three days later" type mismatches into "found in CI in ten seconds."
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-modern-03"
+  number={65}
+  question="How would you use match/case to route records by event type in an ingestion job?"
+  difficulty="medium"
+  topic="Pattern Matching"
+>
+```python
+def handle_event(event: dict):
+    match event:
+        case {"type": "user_created", "user_id": uid}:
+            upsert_user(uid, event)
+        case {"type": "user_deleted", "user_id": uid}:
+            soft_delete_user(uid)
+        case {"type": str(unknown_type)}:
+            logger.warning("Unhandled event type: %s", unknown_type)
+        case _:
+            logger.error("Malformed event, missing type: %r", event)
+```
+
+This reads as a clear dispatch table for the shapes you expect, and — unlike a chain of `if "type" in event and event["type"] == ...` checks — naturally falls through to an explicit "unknown/malformed" branch, so unexpected event shapes are handled deliberately instead of silently ignored.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-modern-04"
+  number={66}
+  question="How do you use functools.lru_cache safely in a long-running pipeline process?"
+  difficulty="hard"
+  topic="Performance"
+>
+```python
+from functools import lru_cache
+
+@lru_cache(maxsize=10_000)
+def lookup_country_name(country_code: str) -> str:
+    return reference_data_client.get_country(country_code)   # expensive I/O call
+```
+
+Safe uses are for **pure, small-cardinality lookups** — reference/dimension data that rarely changes and has a bounded number of distinct inputs. It's unsafe (or at least suspicious) to cache anything based on mutable external state without a `maxsize` (unbounded growth = slow memory leak in a long-running process) or anything that needs to reflect updates during the process's lifetime, since `lru_cache` has no built-in expiry.
+</QuestionCard>
+
+<QuestionCard
+  id="py-prac-modern-05"
+  number={67}
+  question="How would you use itertools to batch an unbounded stream of records for writing?"
+  difficulty="medium"
+  topic="Itertools"
+>
+```python
+from itertools import islice
+
+def batched(iterable, size):
+    it = iter(iterable)
+    while batch := list(islice(it, size)):
+        yield batch
+
+for batch in batched(read_kafka_stream(), size=500):
+    write_to_sink(batch)
+```
+
+`islice` pulls a bounded chunk off a shared iterator without knowing or caring how long the overall stream is — combined with the walrus operator to stop cleanly when a batch comes back empty, this pattern batches a genuinely unbounded stream (a Kafka consumer, a paginated API) using constant memory, regardless of total volume.
 </QuestionCard>
 
 </QuestionList>
