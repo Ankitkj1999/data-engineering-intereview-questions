@@ -1,6 +1,6 @@
 ---
 title: Kafka
-description: Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.
+description: Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.
 ---
 
 import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
@@ -13,6 +13,9 @@ import QuestionList from '../../../../components/mdx/QuestionList.astro';
 ## Table of Contents
 - [Key Concepts](#key-concepts)
 - [Interview Questions](#interview-questions)
+- [Consumer Groups & Rebalancing](#consumer-groups--rebalancing)
+- [Ecosystem: Connect, Streams & Schema Registry](#ecosystem-connect-streams--schema-registry)
+- [Retention, Compaction & Security](#retention-compaction--security)
 - [Common Interview Scenarios](#common-interview-scenarios)
 - [Further Reading](#further-reading)
 
@@ -165,12 +168,104 @@ The Producer API lets applications send streams of records to one or more Kafka 
 
 ---
 
+## Consumer Groups & Rebalancing
+
+What actually happens when consumers join, leave, or fail within a group.
+
+<QuestionList topic="Consumer Groups & Rebalancing" storagePrefix="kafka-rebalance">
+
+<QuestionCard id="kafka-24" number={24} question="What is consumer group rebalancing, and when does it get triggered?" difficulty="medium" topic="Rebalancing">
+Rebalancing is the process of reassigning partitions among the members of a consumer group — triggered when a consumer joins, leaves (including crashing or being killed), or a subscribed topic's partition count changes. During a rebalance, consumption pauses while partitions are redistributed, which is why frequent rebalances (from flaky consumers or slow processing triggering session timeouts) directly hurt throughput.
+</QuestionCard>
+
+<QuestionCard id="kafka-25" number={25} question="What's the difference between eager and cooperative sticky rebalancing?" difficulty="hard" topic="Rebalancing">
+**Eager rebalancing** (the original protocol) revokes *all* partitions from *every* consumer at the start of a rebalance, then reassigns them — even consumers keeping the same partitions briefly stop processing. **Cooperative sticky rebalancing** only reassigns the specific partitions that actually need to move, letting unaffected consumers keep processing uninterrupted — significantly reducing the "stop the world" pause, especially in large consumer groups.
+</QuestionCard>
+
+<QuestionCard id="kafka-26" number={26} question="What is static group membership, and what problem does it solve?" difficulty="hard" topic="Rebalancing">
+Setting `group.instance.id` gives a consumer a persistent identity across restarts, so a brief restart or network blip (a rolling deploy, a pod restarting) doesn't trigger a full rebalance — Kafka recognizes the returning consumer and hands it back its previous partitions once it reconnects within `session.timeout.ms`. This avoids the throughput hit of unnecessary rebalances for routine, short-lived disruptions.
+</QuestionCard>
+
+<QuestionCard id="kafka-27" number={27} question="What's the difference between auto-commit and manual offset commit?" difficulty="medium" topic="Offsets">
+With `enable.auto.commit=true` (the default), the client library commits the latest consumed offset on a timer, regardless of whether that record has actually finished processing — simple, but risks marking a message "done" before it's safely written downstream, losing it on a crash. Manual commit (`commitSync()`/`commitAsync()`) lets you commit only after processing genuinely completes, trading a bit of code complexity for control over exactly when a message counts as consumed.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Ecosystem: Connect, Streams & Schema Registry
+
+The tools built around core Kafka for getting data in/out and enforcing message structure.
+
+<QuestionList topic="Ecosystem" storagePrefix="kafka-ecosystem">
+
+<QuestionCard id="kafka-28" number={28} question="What is Kafka Connect, and what problem does it solve?" difficulty="medium" topic="Kafka Connect">
+Kafka Connect is a framework for moving data between Kafka and external systems (databases, S3, Elasticsearch) using pre-built, configuration-only **connectors**, instead of hand-writing a custom producer or consumer application for every integration. It handles the operational concerns (scaling, offset tracking, fault tolerance, restarts) generically, so adding a new source or destination is usually a config file, not new code.
+</QuestionCard>
+
+<QuestionCard id="kafka-29" number={29} question="What's the difference between a source connector and a sink connector?" difficulty="easy" topic="Kafka Connect">
+A **source connector** pulls data from an external system *into* a Kafka topic (a Postgres CDC connector streaming database changes in). A **sink connector** pushes data *out of* a Kafka topic into an external system (an S3 sink connector writing consumed records out as files). Both run inside the same Kafka Connect cluster, just moving data in opposite directions.
+</QuestionCard>
+
+<QuestionCard id="kafka-30" number={30} question="What is Kafka Streams, and how does it differ from using an external engine like Flink?" difficulty="medium" topic="Stream Processing">
+Kafka Streams is a Java library for building stream processing applications that read from and write to Kafka topics, running as a normal application process rather than on a separate cluster — no separate job manager or cluster to operate, unlike Flink. The trade-off is scope: Kafka Streams is tightly coupled to Kafka as both source and sink and has a narrower feature set than a general-purpose engine like Flink, which can read from many sources and offers more advanced windowing/state-management capabilities.
+</QuestionCard>
+
+<QuestionCard id="kafka-31" number={31} question="What is Schema Registry, and why is it important for Kafka pipelines?" difficulty="medium" topic="Schema Registry">
+Schema Registry is a service that stores and versions schemas (typically Avro, Protobuf, or JSON Schema) for the messages flowing through Kafka topics, and validates that producers/consumers use compatible schemas. Without it, a producer can silently start sending a differently-shaped message and every consumer breaks independently and confusingly — with it, an incompatible schema change is rejected at publish time, with the failure surfacing at the actual source of the problem.
+</QuestionCard>
+
+<QuestionCard id="kafka-32" number={32} question="What are the schema compatibility modes (backward, forward, full) in Schema Registry?" difficulty="hard" topic="Schema Registry">
+**Backward** compatibility means a new schema can read data written with the previous schema (safe to upgrade consumers first). **Forward** compatibility means old schema code can read data written with the new schema (safe to upgrade producers first). **Full** compatibility requires both directions to hold. Choosing the right mode up front determines which side (producers or consumers) you're free to deploy first without coordinating a synchronized rollout.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Retention, Compaction & Security
+
+How long data actually stays in a topic, and controlling who can read or write it.
+
+<QuestionList topic="Retention, Compaction & Security" storagePrefix="kafka-retention">
+
+<QuestionCard id="kafka-33" number={33} question="What retention policies does Kafka support?" difficulty="easy" topic="Retention">
+Retention is controlled per topic, primarily by **time** (`retention.ms` — delete segments older than this) and **size** (`retention.bytes` — delete oldest segments once the partition exceeds this size), whichever limit is hit first. This is separate from log compaction (a different retention *strategy* entirely, not just a different limit) — a topic can use time/size-based deletion, compaction, or both together.
+</QuestionCard>
+
+<QuestionCard id="kafka-34" number={34} question="What is log compaction, and how does it differ from time/size-based retention?" difficulty="hard" topic="Retention">
+Log compaction retains only the **most recent** record for each key, discarding older records with the same key regardless of age — rather than deleting whole segments based on a time/size cutoff. It's the mechanism behind Kafka's use as a changelog for things like `__consumer_offsets` or Kafka Streams' state stores, where you only care about a key's current value, not its full history of updates.
+</QuestionCard>
+
+<QuestionCard id="kafka-35" number={35} question="What are the trade-offs of increasing a topic's partition count?" difficulty="hard" topic="Partitioning">
+More partitions mean more parallelism (more consumers in a group can be active simultaneously) and higher potential throughput, but also more open file handles and memory overhead per broker, longer leader-election time during failover, and — critically — partition count can only be **increased**, never decreased, and increasing it changes key-to-partition hashing, which can break ordering guarantees for existing keyed data.
+</QuestionCard>
+
+<QuestionCard id="kafka-36" number={36} question="How do you secure a Kafka cluster — authentication, authorization, and encryption?" difficulty="hard" topic="Security">
+**Authentication** verifies client identity, typically via SASL (SASL/SCRAM, SASL/GSSAPI for Kerberos) or mutual TLS. **Authorization** is handled by ACLs, granting specific principals permission to produce/consume/manage specific topics or consumer groups, rather than an all-or-nothing cluster credential. **Encryption** uses TLS for data in transit between clients and brokers (and between brokers themselves); disk-level encryption handles data at rest, usually via the underlying filesystem/cloud storage layer rather than Kafka itself.
+</QuestionCard>
+
+<QuestionCard id="kafka-37" number={37} question="What are the different producer acks settings, and what do they trade off?" difficulty="medium" topic="Producers">
+- **`acks=0`** — don't wait for any broker acknowledgment; fastest, but messages can be silently lost.
+- **`acks=1`** — wait for the leader to write the message; if the leader fails before followers replicate it, it can still be lost.
+- **`acks=all`** (or `-1`) — wait for every in-sync replica to acknowledge; strongest durability guarantee, at the cost of higher latency.
+
+This is the core throughput-vs-durability dial for a Kafka producer, and `acks=all` combined with a sufficient `min.insync.replicas` is what's required for the strong delivery guarantees discussed elsewhere on this page.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
 ## Common Interview Scenarios
 
 - **"Design a Kafka pipeline for order events feeding fraud detection, analytics, and notifications."** Talk through topic and partition design, one consumer group per downstream system so each gets its own full copy of the stream, and the tradeoffs of partitioning by `order_id` vs. `customer_id` (ordering guarantees vs. even load distribution).
 - **"A consumer group's lag keeps growing — how do you diagnose and fix it?"** Check partition count vs. consumer count (a group can't have more active consumers than partitions), per-message processing time, `poll()`/batch-size tuning, and whether scaling consumers up to the partition count resolves it.
 - **"How would you guarantee exactly-once processing from Kafka into a downstream database?"** Idempotent producers plus the transactional API on the write side, paired with idempotent writes downstream (upserts keyed on a dedup key, or storing the last-processed offset transactionally with the write).
 - **"How do you handle a broker failure in production without losing data?"** Replication factor, `min.insync.replicas`, `acks=all` on the producer, and leader election constrained to the ISR so a stale replica never becomes leader.
+- **"Consumers keep dropping out and rejoining during routine deploys, and throughput tanks every time."** Point to rebalancing as the cause, and static group membership (`group.instance.id`) plus cooperative sticky rebalancing as the fix — recognizing a returning consumer instead of treating every restart as a full membership change.
+- **"A producing team wants to add a field and rename another on a topic several teams consume."** Reach for Schema Registry and compatibility modes — talk through why adding a field is typically backward-compatible (safe) while a rename is usually a breaking change that needs a coordinated rollout or a new topic version.
 
 ---
 
@@ -179,3 +274,4 @@ The Producer API lets applications send streams of records to one or more Kafka 
 - [Flink](/level-3-technologies/streaming/flink/) — the stream processing engine most commonly paired with Kafka for stateful, event-time computation
 - [Data Engineering Roadmap](/roadmaps/data-engineering/) — where Kafka fits into the broader curriculum
 - [Change Data Capture](/level-3-technologies/ingestion/cdc/) — a common source pattern for getting data into Kafka topics in the first place
+- [Data Quality](/level-2-core-concepts/data-quality/#interview-questions) — schema drift and contract enforcement, upstream of what Schema Registry solves for Kafka specifically

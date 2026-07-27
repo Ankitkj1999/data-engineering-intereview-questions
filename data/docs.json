@@ -1956,120 +1956,232 @@
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
     "content": "import QuestionCard from '../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../components/mdx/QuestionList.astro';"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
     "content": "## Data Quality: Accuracy, Completeness & Trust\n\n**Data quality is the practice of ensuring data is correct, complete, consistent, and timely enough that downstream consumers can trust it — a mix of pipeline engineering (checks, contracts, monitoring) and product thinking (clear definitions and ownership).**"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
-    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Tooling & Frameworks](#tooling--frameworks)\n- [Practical Validation Techniques](#practical-validation-techniques)\n- [Metrics, Ownership & Trust](#metrics-ownership--trust)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
     "content": "## Key Concepts\n\nData quality means data is fit for its intended use, which usually breaks down into six dimensions: completeness, validity, accuracy, consistency, timeliness/freshness, and uniqueness. Checks operate at two levels — **row-level checks** (`not_null`, regex, range constraints on individual records) and **aggregate checks** (row counts, distinct counts, distribution shifts across the whole dataset) — and both are needed because aggregate checks catch issues row-level rules miss, like a missing partition. Upstream, **data contracts** and schema-drift detection prevent producers from silently breaking consumers; downstream, **quarantine patterns** let bad rows get isolated with an error reason while the pipeline keeps running for valid data. A common failure mode is alert fatig"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
     "content": "ue, so mature setups lean on dynamic thresholds and multi-signal alerting (freshness + volume + error rate) rather than single noisy checks.\n\n---"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
     "content": "## Interview Questions\n\n<QuestionList topic=\"Data Quality\" storagePrefix=\"data-quality\">\n\n<QuestionCard id=\"dq-01\" number={1} question=\"What does data quality mean in data engineering?\" difficulty=\"easy\" topic=\"Fundamentals\">\nData quality means the data is fit for its intended use. In practice, it means data is correct, complete, consistent, timely, and well-defined so downstream consumers can trust metrics. Data quality is both a technical problem (pipelines) and a product problem (definitions and contracts).\n</QuestionCard>\n\n<QuestionCard id=\"dq-02\" number={2} question=\"What are common dimensions of data quality?\" difficulty=\"easy\" topic=\"Fundamentals\">\nCommon dimensions include:\n\n- completeness (missing rows/fields)\n- validity (values in allowed ranges/domains)\n- accuracy (matches real-"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
     "content": "world or source truth)\n- consistency (no contradictions across tables)\n- timeliness/freshness (arrives within SLA)\n- uniqueness (no duplicates where keys should be unique)\n</QuestionCard>\n\n<QuestionCard id=\"dq-03\" number={3} question=\"What is data freshness and how do you measure it?\" difficulty=\"easy\" topic=\"Freshness\">\nFreshness is how recently data was updated relative to expected cadence. You can measure it by comparing the maximum event/ingestion timestamp in a table to current time, and alert when it exceeds an SLA threshold. Freshness should be defined per dataset because \"daily\" and \"real-time\" pipelines differ.\n</QuestionCard>\n\n<QuestionCard id=\"dq-04\" number={4} question=\"What is the difference between data validation and data reconciliation?\" difficulty=\"medium\" topic=\"Validatio"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
     "content": "n\">\nValidation checks whether a dataset satisfies rules (types, constraints, ranges). Reconciliation compares datasets to ensure they match expected totals or invariants (for example source row count vs. target row count, or `sum(amount)` in source vs. warehouse). Reconciliation is important when multiple systems can drift.\n</QuestionCard>\n\n<QuestionCard id=\"dq-05\" number={5} question=\"What are row-level checks and aggregate checks?\" difficulty=\"medium\" topic=\"Checks\">\nRow-level checks validate each record (for example `not_null`, regex, range constraints). Aggregate checks validate the dataset as a whole (row counts, distinct counts, distribution checks, totals). Aggregate checks often catch issues that row-level rules miss, like missing partitions.\n</QuestionCard>\n\n<QuestionCard id=\"dq-0"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
     "content": "6\" number={6} question=\"How do you design quality checks for incremental pipelines?\" difficulty=\"hard\" topic=\"Pipelines\">\nChecks should be scoped to the incremental window and also protect the full table invariants. For example, validate uniqueness on the keys in the new batch, validate that the batch size is within expected bounds, and validate that total counts change consistently. You also need idempotency checks to detect duplicates on retries.\n</QuestionCard>\n\n<QuestionCard id=\"dq-07\" number={7} question=\"How do you handle late arriving data from a quality perspective?\" difficulty=\"hard\" topic=\"Pipelines\">\nYou define allowed lateness (for example 7 days), track completeness by event time, and implement backfills to \"close\" historical partitions. Quality checks should consider both ing"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
     "content": "estion time and event time so you can detect gaps in past periods.\n</QuestionCard>\n\n<QuestionCard id=\"dq-08\" number={8} question=\"How do you detect schema drift and breaking changes?\" difficulty=\"medium\" topic=\"Schema\">\nYou compare incoming schemas to an expected contract (column names, types, nullability) and alert on changes. Additive changes can be allowed with policy, but breaking changes (rename/type change) should fail fast. Many teams use CI checks and schema registries to enforce compatibility.\n</QuestionCard>\n\n<QuestionCard id=\"dq-09\" number={9} question=\"What are data contracts?\" difficulty=\"medium\" topic=\"Contracts\">\nData contracts are explicit agreements between producers and consumers about schema, semantics, SLAs, and ownership. Contracts reduce surprises by defining what can"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
     "content": "change and what cannot, and they enable automated validation. A contract can live as code (YAML/JSON) and be enforced in CI/CD.\n</QuestionCard>\n\n<QuestionCard id=\"dq-10\" number={10} question=\"How do you avoid noisy alerts (false positives) in data quality monitoring?\" difficulty=\"medium\" topic=\"Alerting\">\nUse dynamic thresholds, seasonality-aware baselines, and multi-signal alerts (freshness + volume + error rate). Also route alerts by severity and dataset criticality, and suppress alerts during known maintenance windows. Good alerting includes a runbook and clear ownership.\n</QuestionCard>\n\n<QuestionCard id=\"dq-11\" number={11} question=\"What is anomaly detection for metrics and when is it useful?\" difficulty=\"medium\" topic=\"Monitoring\">\nAnomaly detection flags unusual changes in metrics"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
     "content": "(spikes/drops) that may indicate pipeline issues or business events. It is useful for detecting silent failures where data still arrives but is wrong. It should be combined with context (releases, campaigns) to avoid alert fatigue.\n</QuestionCard>\n\n<QuestionCard id=\"dq-12\" number={12} question=\"How do you quarantine bad data without blocking the entire pipeline?\" difficulty=\"hard\" topic=\"Pipelines\">\nA common pattern is to split data into \"good\" and \"quarantine\" outputs based on validation rules. You can store bad rows with error reasons for debugging while allowing the pipeline to continue for valid data. For critical datasets, you may still block publishing to marts while keeping raw ingestion running.\n</QuestionCard>\n\n<QuestionCard id=\"dq-13\" number={13} question=\"How do you test data tr"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
     "content": "ansformations?\" difficulty=\"medium\" topic=\"Testing\">\nYou can test transformations by:\n\n- unit-like tests on small fixtures (golden datasets)\n- property tests (invariants like non-negative totals)\n- reconciliation tests against known sources\n- regression tests on key metrics\n\nIn dbt-style workflows, tests often run in the warehouse as SQL assertions.\n</QuestionCard>\n\n<QuestionCard id=\"dq-14\" number={14} question=\"What is the minimum set of checks you would add to every table?\" difficulty=\"easy\" topic=\"Checks\">\nMinimum checks often include:\n\n- freshness (max timestamp within SLA)\n- row count / volume sanity check\n- primary key uniqueness (if applicable)\n- not_null checks on critical columns\n- referential integrity for key joins (where applicable)\n</QuestionCard>\n\n<QuestionCard id=\"dq-15\" num"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
     "content": "ber={15} question=\"What are common data quality failure modes?\" difficulty=\"medium\" topic=\"Failure Modes\">\nCommon failures include:\n\n- missing partitions or partial loads\n- duplicates due to retries/reprocessing\n- schema drift and type coercion issues\n- timezone and date boundary bugs\n- silent truncation or rounding changes\n- incorrect joins causing duplication\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "## Tooling & Frameworks\n\nThe actual libraries and workflows teams use to define and run checks, rather than writing ad-hoc validation SQL every time.\n\n<QuestionList topic=\"Tooling & Frameworks\" storagePrefix=\"dq-tools\">\n\n<QuestionCard id=\"dq-16\" number={16} question=\"What is Great Expectations, and what problem does it solve?\" difficulty=\"medium\" topic=\"Tooling\">\nGreat Expectations is a Python framework for defining data quality rules (\"expectations\" — `expect_column_values_to_not_be_null`, `expect_column_values_to_be_between`) as declarative, version-controllable code rather than one-off SQL scripts. Expectations are grouped into **suites** and run via **checkpoints**, producing a human-readable validation report — it solves the problem of quality checks living as tribal knowledge or scat"
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "tered scripts by making them a first-class, testable, shareable artifact.\n</QuestionCard>\n\n<QuestionCard id=\"dq-17\" number={17} question=\"How do dbt's built-in tests (unique, not_null, relationships, accepted_values) work?\" difficulty=\"easy\" topic=\"Tooling\">\n```yaml\nmodels:\n  - name: orders\n    columns:\n      - name: order_id\n        tests: [unique, not_null]\n      - name: status\n        tests:\n          - accepted_values: {values: [\"pending\", \"shipped\", \"cancelled\"]}\n      - name: customer_id\n        tests:\n          - relationships: {to: ref('customers'), field: customer_id}\n```\nEach test compiles to a SQL query that should return **zero rows** if the data is valid — `dbt test` runs them after a build and fails the run if any query returns rows. They're declared alongside the model defin"
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "ition, so the quality rule lives right next to the transformation it's validating.\n</QuestionCard>\n\n<QuestionCard id=\"dq-18\" number={18} question=\"When would you choose a dedicated framework like Great Expectations over dbt tests?\" difficulty=\"medium\" topic=\"Tooling\">\ndbt tests are ideal when checks are simple, SQL-expressible, and already living inside a dbt project — low friction, no extra tooling. Reach for Great Expectations (or a similar dedicated framework) when you need checks outside a dbt-managed warehouse (raw files, a data lake, a non-dbt pipeline), richer statistical expectations, or standalone validation reports/documentation independent of any single transformation tool.\n</QuestionCard>\n\n<QuestionCard id=\"dq-19\" number={19} question=\"How do you integrate data quality checks i"
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "nto a CI/CD pipeline?\" difficulty=\"medium\" topic=\"Tooling\">\nRun checks against a representative sample or a full staging dataset as part of the build/deploy pipeline — for dbt, `dbt build` runs models and tests together, failing the pipeline before a broken model reaches production. The key design decision is *what blocks deployment versus what just alerts*: schema-breaking changes and critical table failures should block merges, while softer statistical checks (mild distribution shifts) are often better as warnings that don't halt every deploy.\n</QuestionCard>\n\n<QuestionCard id=\"dq-20\" number={20} question=\"What is data profiling, and why is it the first step before writing quality checks for a new dataset?\" difficulty=\"easy\" topic=\"Profiling\">\nProfiling means computing summary statistics"
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "on a dataset before you know what to check — null rates per column, distinct value counts, min/max/mean, common patterns in string columns. It matters because you can't write meaningful checks (what's a \"normal\" null rate? what values are actually valid?) without first understanding what the data actually looks like; skipping profiling leads to either checks that are too loose to catch real problems or so strict they fail on legitimate data.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "## Practical Validation Techniques\n\nSpecific problems that come up once you move past \"check for nulls\" into real production datasets.\n\n<QuestionList topic=\"Practical Validation Techniques\" storagePrefix=\"dq-practical\">\n\n<QuestionCard id=\"dq-21\" number={21} question=\"How do you check referential integrity in a warehouse that doesn't enforce foreign keys?\" difficulty=\"medium\" topic=\"Referential Integrity\">\nMost analytical warehouses accept (but don't enforce) foreign key declarations, so referential integrity has to be checked explicitly — typically an anti-join: rows in the child table whose key doesn't exist in the parent table.\n\n```sql\nSELECT o.customer_id\nFROM orders o\nLEFT JOIN customers c ON o.customer_id = c.customer_id\nWHERE c.customer_id IS NULL   -- orphaned foreign keys\n```\n\nRun"
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "this as a scheduled check (or a dbt `relationships` test) rather than relying on the database to reject bad writes, since the warehouse itself won't.\n</QuestionCard>\n\n<QuestionCard id=\"dq-22\" number={22} question=\"What techniques do you use to detect duplicate records at scale?\" difficulty=\"hard\" topic=\"Deduplication\">\nFor exact duplicates, hash the row's relevant columns and check for repeated hash values — cheaper than comparing every column pairwise. For duplicates that differ slightly (a retry that changed a timestamp), define a business key (the columns that should uniquely identify a record) and check *that* for uniqueness instead of the whole row. At large scale, a window function is the standard SQL pattern for both detecting and resolving duplicates:\n\n```sql\nSELECT *, ROW_NUMBER()"
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "OVER (PARTITION BY business_key ORDER BY updated_at DESC) AS rn\nFROM table\nQUALIFY rn = 1   -- keep only the most recent version of each key\n```\n</QuestionCard>\n\n<QuestionCard id=\"dq-23\" number={23} question=\"How do you detect distribution drift in a column's values over time?\" difficulty=\"hard\" topic=\"Statistical Checks\">\nCompare a statistical summary of today's batch against a rolling historical baseline — mean/median/standard deviation for numeric columns, or the distribution of category frequencies for categorical ones — and alert when the difference exceeds a threshold (a fixed percentage, or a statistical distance measure like population stability index for more rigorous setups). This catches problems row-level checks can't: every row can individually be \"valid\" while the overall sh"
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "ape of the data has still shifted in a way that signals an upstream change.\n</QuestionCard>\n\n<QuestionCard id=\"dq-24\" number={24} question=\"What data quality challenges are unique to streaming pipelines compared to batch?\" difficulty=\"hard\" topic=\"Streaming\">\nBatch checks run against a complete, stable dataset; streaming checks have to work against data that's still arriving, with no natural \"batch is done\" moment to validate against. This means checks need to run over rolling windows rather than a fixed dataset, tolerate legitimately late/out-of-order events without false-alarming, and use approximate techniques (sketches for distinct counts, running aggregates) since holding the full stream in memory to validate it isn't an option.\n</QuestionCard>\n\n<QuestionCard id=\"dq-25\" number={25} qu"
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "estion=\"How do you decide between NULL, an empty string, and a sentinel value for missing data?\" difficulty=\"medium\" topic=\"Data Modeling\">\nUse **NULL** for \"value doesn't exist / unknown,\" reserving it for genuine absence rather than overloading it with multiple meanings. Use an **empty string** only when \"known to be empty\" is itself meaningful and distinct from \"unknown\" (a middle name field where you've confirmed the person has none, vs. one you simply haven't collected). Avoid ad-hoc **sentinel values** (\"N/A\", -1, 9999) in the data itself wherever possible — they're invisible to standard NULL-handling logic (COUNT, aggregates, joins) and silently corrupt results unless every downstream consumer knows to filter them out; if you need a placeholder in a dimension for exactly this reason"
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": ", use the \"Unknown member\" pattern instead.\n</QuestionCard>\n\n<QuestionCard id=\"dq-26\" number={26} question=\"Where in a medallion (bronze/silver/gold) pipeline should quality gates actually enforce checks?\" difficulty=\"medium\" topic=\"Pipeline Design\">\nLight structural checks (can it be parsed, does it match the expected raw schema) belong at bronze, right on ingestion, so malformed source data is caught immediately rather than propagating. The bulk of validation — not-null, referential integrity, business rules, deduplication — belongs at the bronze-to-silver transition, since silver is meant to be the clean, trusted layer everything else builds on. Gold-layer checks are usually reconciliation-style (do these aggregates tie back to silver correctly) rather than re-validating row-level rules"
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "that should have already been caught upstream.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "## Metrics, Ownership & Trust\n\nBeyond individual checks — how you decide how much quality investment a dataset deserves, and who's responsible when it fails.\n\n<QuestionList topic=\"Metrics, Ownership & Trust\" storagePrefix=\"dq-trust\">\n\n<QuestionCard id=\"dq-27\" number={27} question=\"How do you build a data quality score, and what would it be based on?\" difficulty=\"medium\" topic=\"Metrics\">\nA simple, defensible approach: weight each quality dimension (completeness, validity, freshness, uniqueness) by how much it matters for that specific dataset, compute a pass rate for each from your existing checks, and combine into a single 0-100 score per table. The value isn't the exact number — it's giving stakeholders a trend line (\"this table's score dropped from 98 to 85 last week\") that's easier to a"
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "ct on than a wall of individual pass/fail check results.\n</QuestionCard>\n\n<QuestionCard id=\"dq-28\" number={28} question=\"How do you decide how much quality investment a dataset actually needs?\" difficulty=\"medium\" topic=\"Prioritization\">\nScale checks to the dataset's actual blast radius: a table feeding an executive dashboard or a financial report justifies deep validation, reconciliation, and tight SLAs; an internal exploratory table a few analysts use occasionally doesn't need the same investment. Treating every table as equally critical is how quality programs burn effort on low-value checks while genuinely important tables stay under-covered — usage and downstream dependency count are the practical signals for where to spend the effort.\n</QuestionCard>\n\n<QuestionCard id=\"dq-29\" number="
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "{29} question=\"Who should own a data quality failure — the producing team or the consuming team?\" difficulty=\"medium\" topic=\"Ownership\">\nThe producing team owns fixing the *source* of the problem (a broken upstream job, a schema change that wasn't communicated), since they're the only ones who can actually correct it at the root. The consuming team typically owns detecting and surfacing the failure fast (their checks, their dashboards break first) and communicating impact — a data contract is what ties these together in advance, so this isn't negotiated fresh during every incident.\n</QuestionCard>\n\n<QuestionCard id=\"dq-30\" number={30} question=\"How do you build stakeholder trust in data after a high-profile quality incident?\" difficulty=\"medium\" topic=\"Trust\">\nBe transparent about what hap"
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "pened and why, rather than quietly fixing it — a short incident writeup (what broke, what was affected, what's changing) does more for trust than silence. Follow up with a durable fix (a new check that would have caught it, not just a one-time patch), and make quality *visible* going forward — a quality score, a status page, or a badge on documented tables — so trust is rebuilt on demonstrated reliability over time rather than a single reassurance.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-2-core-concepts/data-quality/",
+    "locale": "en",
+    "title": "Data Quality",
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
     "content": "## Common Interview Scenarios\n\n- **\"A dashboard's revenue number dropped 20% overnight — walk me through how you'd investigate.\"** Tests freshness/volume checks, anomaly detection, and reconciliation instincts.\n- **\"Design the minimum set of quality checks you'd add to a new fact table before it ships to production.\"** Tests knowledge of freshness, volume, primary key uniqueness, not-null, and referential integrity checks.\n- **\"A producing team wants to rename a column — how do you prevent that from breaking five downstream dashboards?\"** Tests understanding of contracts, schema drift detection, and CI enforcement.\n- **\"Your quality checks are so noisy that the on-call engineer has started ignoring them — how do you fix that?\"** Tests dynamic thresholds, multi-signal alerting, and clear ow"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
-    "content": "nership.\n\n---"
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "nership.\n- **\"You've inherited a table with no existing quality checks — where do you start?\"** Tests the profiling-first instinct: understand null rates, distinct counts, and value ranges before writing a single check, then prioritize based on how critical and widely-used the table actually is.\n- **\"Two teams' dashboards show different revenue totals from what should be the same underlying data.\"** Tests reconciliation instincts and referential-integrity thinking — walk through checking for a duplicated join, a dropped filter, or an orphaned foreign key causing rows to silently disappear from one side.\n\n---"
   },
   {
     "path": "/level-2-core-concepts/data-quality/",
     "locale": "en",
     "title": "Data Quality",
-    "description": "Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.",
-    "content": "## Further Reading\n\n- [Data Governance](/level-2-core-concepts/data-governance/) — ownership and access controls that complement quality practices\n- [Data Warehousing](/level-2-core-concepts/data-warehousing/) — where these checks get enforced at the platform level\n- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where data quality fits into the broader curriculum"
+    "description": "Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.",
+    "content": "## Further Reading\n\n- [Data Governance](/level-2-core-concepts/data-governance/) — ownership and access controls that complement quality practices\n- [Data Warehousing](/level-2-core-concepts/data-warehousing/) — where these checks get enforced at the platform level\n- [Observability](/level-4-advanced/observability/#interview-questions) — monitoring, alerting, and incident response once checks are in place\n- [DBT](/level-3-technologies/transformation/dbt/#interview-questions) — where dbt-native tests actually get defined and run\n- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where data quality fits into the broader curriculum"
   },
   {
     "path": "/level-2-core-concepts/data-warehousing/",
@@ -12897,162 +13009,358 @@
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "## Apache Airflow: Workflow Orchestration\n\n**Apache Airflow is a Python-based platform for programmatically authoring, scheduling, and monitoring workflows as directed acyclic graphs (DAGs) — the de facto standard for orchestrating batch data pipelines.**"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
-    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Operators, Hooks & Connections](#operators-hooks--connections)\n- [Sensors](#sensors)\n- [Modern DAG Authoring: TaskFlow API](#modern-dag-authoring-taskflow-api)\n- [Control Flow: Branching & Trigger Rules](#control-flow-branching--trigger-rules)\n- [Scheduling, Backfills & Idempotency](#scheduling-backfills--idempotency)\n- [Operations, Testing & Ecosystem](#operations-testing--ecosystem)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "## Key Concepts\n\nAirflow models a workflow as a **DAG** (directed acyclic graph): a Python-defined graph of tasks with dependencies, where each task should be **idempotent** so it can safely be retried or backfilled. Four components make this run — the **webserver** (UI), **scheduler** (walks DAGs and triggers tasks), **executor** (decides how/where tasks run), and **workers** (run the tasks) — all backed by a **metadata database** that tracks DAG runs, task state, and configuration. The choice of **executor** (Sequential, Local, Celery, or Kubernetes) is largely a scalability-vs-operational-complexity trade-off. Tasks communicate small values through **XComs**, and both scheduling (cron expressions) and runtime templating (Jinja, used to pull XComs or dates into SQL/bash commands) are cor"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "e to writing real DAGs.\n\n---"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "## Interview Questions\n\n<QuestionList topic=\"Airflow\" storagePrefix=\"airflow\">\n\n<QuestionCard id=\"af-01\" number={1} question=\"What is Airflow?\" difficulty=\"easy\" topic=\"Fundamentals\">\nApache Airflow is an open-source workflow management platform. It began in October 2014 at Airbnb as a solution for managing the company's increasingly complex workflows. Airbnb's creation of Airflow enabled them to programmatically author, schedule, and monitor their workflows via the built-in Airflow user interface. Airflow is a data transformation pipeline ETL (Extract, Transform, Load) workflow orchestration tool.\n</QuestionCard>\n\n<QuestionCard id=\"af-02\" number={2} question=\"What issues does Airflow resolve compared to cron?\" difficulty=\"easy\" topic=\"Fundamentals\">\nCron is an old technique for task sched"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "uling, and it has real limitations that Airflow addresses:\n\n- **Scalability** — cron requires external tooling to log, track, and manage tasks, while the Airflow UI tracks and monitors workflow execution out of the box.\n- **Dependencies** — creating and maintaining a relationship between tasks in cron is a challenge, whereas it's as simple as writing Python code in Airflow.\n- **Reproducibility** — cron jobs aren't reproducible unless configured externally; Airflow maintains an audit trail of every task run.\n</QuestionCard>\n\n<QuestionCard id=\"af-03\" number={3} question=\"Explain how a workflow is designed in Airflow.\" difficulty=\"easy\" topic=\"DAGs\">\nA directed acyclic graph (DAG) is used to design an Airflow workflow. That is to say, when creating a workflow, you consider how it can be divid"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "ed into tasks that can be completed independently. The tasks are then combined into a graph to form a logical whole.\n\nThe overall logic of your workflow is based on the shape of the graph. An Airflow DAG can have multiple branches, and you can choose which ones to follow and which to skip during workflow execution.\n\nAirflow can be completely stopped, and running workflows will then resume by restarting the last unfinished task. It's important to remember that Airflow tasks can be run more than once when designing them — each task should be **idempotent**, capable of being performed multiple times without causing unintended consequences.\n</QuestionCard>\n\n<QuestionCard id=\"af-04\" number={4} question=\"Explain Airflow's architecture and its components.\" difficulty=\"medium\" topic=\"Architecture\""
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": ">\nThere are four major components to Airflow:\n\n- **Webserver** — the Airflow UI built on Flask, which provides an overview of the overall health of various DAGs and helps visualize their components and states. It also lets you manage users, roles, and configuration.\n- **Scheduler** — every few seconds, the scheduler walks over the DAGs and schedules tasks for execution.\n- **Executor** — an internal component used by the scheduler. Executors are what actually execute the tasks, while the scheduler orchestrates them. Airflow has different executor types, including `SequentialExecutor`, `LocalExecutor`, `CeleryExecutor`, and `KubernetesExecutor` — teams generally pick whichever is best suited to their use case.\n- **Worker** — workers run the tasks that the executor hands them.\n- **Metadata Da"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "tabase** — Airflow supports a range of metadata storage databases. This database holds information about DAGs, their runs, and other Airflow configuration such as users, roles, and connections. The webserver reads DAG state and run history from this database, and the scheduler is what keeps it updated.\n</QuestionCard>\n\n<QuestionCard id=\"af-05\" number={5} question=\"What are the types of executors in Airflow?\" difficulty=\"medium\" topic=\"Executors\">\nThe executors are the components that actually execute tasks, while the scheduler orchestrates them:\n\n- **SequentialExecutor** — runs one task at a time.\n- **LocalExecutor** — same idea as SequentialExecutor, but can run multiple tasks at a time.\n- **CeleryExecutor** — Celery is a Python framework for running distributed asynchronous tasks; as a r"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "esult, `CeleryExecutor` has long been part of Airflow, even before Kubernetes. It keeps a fixed number of workers on standby to take on tasks as they become available.\n- **KubernetesExecutor** — runs each task in its own Kubernetes pod. Unlike Celery, it spins up worker pods on demand, which allows for more efficient use of resources.\n\nPeople generally choose the executor that's best for their use case.\n</QuestionCard>\n\n<QuestionCard id=\"af-06\" number={6} question=\"What are the pros and cons of SequentialExecutor?\" difficulty=\"easy\" topic=\"Executors\">\n**Pros:**\n- Simple and straightforward to set up.\n- A good way to test DAGs while they're being developed.\n\n**Cons:**\n- Not scalable.\n- Can't perform multiple tasks at the same time.\n- Unsuitable for production use.\n</QuestionCard>\n\n<Question"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "Card id=\"af-07\" number={7} question=\"What are the pros and cons of LocalExecutor?\" difficulty=\"easy\" topic=\"Executors\">\n**Pros:**\n- Able to perform multiple tasks.\n- Can be used to run DAGs during development.\n\n**Cons:**\n- Not scalable.\n- Single point of failure.\n- Unsuitable for production use.\n</QuestionCard>\n\n<QuestionCard id=\"af-08\" number={8} question=\"What are the pros and cons of CeleryExecutor?\" difficulty=\"medium\" topic=\"Executors\">\n**Pros:**\n- Allows for scalability.\n- Celery manages the workers itself and creates a new one in case of failure.\n\n**Cons:**\n- Celery requires RabbitMQ/Redis for task queuing, which is redundant with what Airflow already supports.\n- Setup is more complicated due to those extra dependencies.\n</QuestionCard>\n\n<QuestionCard id=\"af-09\" number={9} question="
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "\"What are the pros and cons of KubernetesExecutor?\" difficulty=\"medium\" topic=\"Executors\">\n**Pros:**\n- Combines the scalability of CeleryExecutor with the simplicity of LocalExecutor.\n- Fine-grained control over per-task resource allocation — CPU/memory can be configured at the task level.\n\n**Cons:**\n- Airflow's Kubernetes integration is newer, and the documentation is more complicated than for the other executors.\n</QuestionCard>\n\n<QuestionCard id=\"af-10\" number={10} question=\"How do you define a workflow in Airflow?\" difficulty=\"medium\" topic=\"DAG Definition\">\nWorkflows are defined in Python files. The `DAG` class in Airflow lets you generate a directed acyclic graph, which is a representation of the workflow:\n\n```python\nfrom airflow.models import DAG\nfrom airflow.utils.dates import days"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "_ago\n\nargs = {\n    'start_date': days_ago(0),\n}\n\ndag = DAG(\n    dag_id='bash_operator_example',\n    default_args=args,\n    schedule_interval='* * * * *',\n)\n```\n\nYou can use `start_date` to launch a task on a specific date. The `schedule_interval` specifies how often the workflow is scheduled to run — `'* * * * *'` means the tasks run every minute.\n</QuestionCard>\n\n<QuestionCard id=\"af-11\" number={11} question=\"What does the cron expression `30 8 * * 1-5` mean in Airflow scheduling?\" difficulty=\"hard\" topic=\"Scheduling\">\nA cron expression is composed of 5 fields separated by spaces:\n\n| Field | Position | Allowed Values | Description |\n|---|---|---|---|\n| **Minute** | 1 | `0-59` | The minute of the hour |\n| **Hour** | 2 | `0-23` | The hour of the day |\n| **Day of Month** | 3 | `1-31` | The d"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "ay of the month |\n| **Month** | 4 | `1-12` or `JAN-DEC` | The month |\n| **Day of Week** | 5 | `0-6` or `SUN-SAT` | The day of the week (0 = Sunday) |\n\nBreaking down `schedule_interval='30 8 * * 1-5'`:\n\n1. **`30` (Minute)** — the task runs at the 30th minute of the hour (e.g., `08:30` when the hour is `8`).\n2. **`8` (Hour)** — the task runs during the 8th hour of the day, so `08:30 AM`.\n3. **`*` (Day of Month)** — every day of the month; it doesn't matter whether it's the 1st, 15th, or 30th.\n4. **`*` (Month)** — every month.\n5. **`1-5` (Day of Week)** — Monday through Friday, skipping weekends.\n\nSo this schedule fires at **8:30 AM, Monday through Friday** — for example, Monday Jan 6 2025 at 08:30, Tuesday Jan 7 2025 at 08:30, and so on for every weekday.\n\n**Real-world use case:** this patte"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "rn is common for tasks that should only run during business hours on workdays, such as sending daily reports to a team, updating a database with the previous day's data, or running data pipelines during non-peak hours.\n</QuestionCard>\n\n<QuestionCard id=\"af-12\" number={12} question=\"How do you make a module available to Airflow if you're using Docker Compose?\" difficulty=\"easy\" topic=\"Docker\">\nIf you're using Docker Compose, you need to build a custom image with your own additional dependencies in order to make the module available to Airflow. Refer to the Airflow documentation for the full reasoning and steps.\n</QuestionCard>\n\n<QuestionCard id=\"af-13\" number={13} question=\"How do you schedule a DAG in Airflow?\" difficulty=\"easy\" topic=\"Scheduling\">\nDAGs can be scheduled by passing a `timed"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "elta`, a cron expression, or one of the `@` presets — which works well for DAGs that need to run on a regular basis, though there are use cases that are hard to express \"natively\" in Airflow or that require workarounds (see the Airflow Improvement Proposals, AIPs, for ongoing work here).\n\nTo start a scheduler, simply run:\n\n```bash\nairflow scheduler\n```\n</QuestionCard>\n\n<QuestionCard id=\"af-14\" number={14} question=\"What are XComs in Airflow?\" difficulty=\"easy\" topic=\"XCom\">\nXCom (short for \"cross-communication\") are messages that allow data to be passed between tasks. Each XCom is defined by a key, a value, a timestamp, and a task/DAG id.\n</QuestionCard>\n\n<QuestionCard id=\"af-15\" number={15} question=\"What is xcom_pull in Airflow?\" difficulty=\"medium\" topic=\"XCom\">\n`xcom_push` and `xcom_pu"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "ll`, methods on Task Instances, are used to explicitly push and pull XComs to and from their storage. If the `do_xcom_push` parameter is set to `True` (the default), many operators and `@task` functions will auto-push their result into an XCom key named `return_value`.\n\nIf no key is supplied to `xcom_pull`, it uses that `return_value` key by default, which lets you write code like:\n\n```python"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "# Pulls the return_value XCom from \"pushing_task\"\nvalue = task_instance.xcom_pull(task_ids='pushing_task')\n```\n</QuestionCard>\n\n<QuestionCard id=\"af-16\" number={16} question=\"What are Jinja templates?\" difficulty=\"easy\" topic=\"Templating\">\nJinja is a templating engine that is quick, expressive, and extensible. Templates have special placeholders that let you write code that looks like Python syntax; data is then passed to the template to render the final document.\n</QuestionCard>\n\n<QuestionCard id=\"af-17\" number={17} question=\"How do you use Airflow XComs in Jinja templates?\" difficulty=\"medium\" topic=\"Templating\">\nYou can reference XComs directly inside a Jinja-templated field, such as a SQL statement passed to an operator:\n\n```sql\nSELECT * FROM {{ task_instance.xcom_pull(task_ids='foo',"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "key='table_name') }}\n```\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "## Operators, Hooks & Connections\n\nThe building blocks of a task, and how Airflow talks to external systems without hardcoding credentials.\n\n<QuestionList topic=\"Operators, Hooks & Connections\" storagePrefix=\"airflow-operators\">\n\n<QuestionCard id=\"af-18\" number={18} question=\"What is an operator in Airflow?\" difficulty=\"easy\" topic=\"Operators\">\nAn operator is a template for a single task — it defines *what* work gets done (run a Python function, execute a bash command, run a SQL query, copy a file to S3). A DAG is really a graph of operator instances wired together with dependencies; Airflow ships dozens of built-in operators (`PythonOperator`, `BashOperator`, `PostgresOperator`, `S3ToRedshiftOperator`, etc.) and providers add many more for specific systems.\n</QuestionCard>\n\n<QuestionCard"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "id=\"af-19\" number={19} question=\"What is a hook, and how does it relate to a connection?\" difficulty=\"medium\" topic=\"Hooks\">\nA **connection** stores the credentials and connection details for an external system (host, login, password, extra config) in Airflow's metadata database, referenced by a `conn_id` string rather than hardcoded values. A **hook** is the Python interface that uses a connection to actually talk to that system — `PostgresHook`, `S3Hook`, `SlackHook` — so operators are typically thin wrappers that call a hook under the hood.\n\n```python\nfrom airflow.providers.postgres.hooks.postgres import PostgresHook\n\nhook = PostgresHook(postgres_conn_id=\"my_warehouse\")\nrows = hook.get_records(\"SELECT * FROM orders LIMIT 10\")\n```\n</QuestionCard>\n\n<QuestionCard id=\"af-20\" number={20} que"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "stion=\"How do you store and use a connection, like a database or S3 credential, in Airflow?\" difficulty=\"easy\" topic=\"Connections\">\nConnections are created through the Airflow UI (Admin → Connections), the CLI (`airflow connections add`), or environment variables (`AIRFLOW_CONN_*`) — never hardcoded in DAG files. Once stored, any task references it by `conn_id`:\n\n```python\nS3Hook(aws_conn_id=\"my_s3_conn\").load_file(filename, key, bucket_name)\n```\n\nStoring credentials this way means rotating a password is a one-time change in the connection, not a search-and-replace across every DAG that uses it.\n</QuestionCard>\n\n<QuestionCard id=\"af-21\" number={21} question=\"How would you write a custom operator?\" difficulty=\"medium\" topic=\"Operators\">\nSubclass `BaseOperator` and implement `execute()`:\n\n``"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "`python\nfrom airflow.models import BaseOperator\n\nclass DataQualityCheckOperator(BaseOperator):\n    def __init__(self, table_name, min_rows, **kwargs):\n        super().__init__(**kwargs)\n        self.table_name = table_name\n        self.min_rows = min_rows\n\n    def execute(self, context):\n        count = PostgresHook().get_first(f\"SELECT COUNT(*) FROM {self.table_name}\")[0]\n        if count < self.min_rows:\n            raise ValueError(f\"{self.table_name} has only {count} rows, expected >= {self.min_rows}\")\n```\n\nWrite a custom operator when the same multi-step logic (a specific validation, a specific API call pattern) is repeated across many DAGs — it turns copy-pasted task code into one reusable, testable class.\n</QuestionCard>\n\n<QuestionCard id=\"af-22\" number={22} question=\"What are Airfl"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "ow Variables, and how do they differ from XComs?\" difficulty=\"easy\" topic=\"Variables\">\n**Variables** are key-value settings stored in Airflow's metadata database, meant for configuration that's the same across runs — an environment name, a feature flag, a file path prefix. **XComs** are per-run data passed between tasks *within a single DAG run*. The distinction: Variables are static configuration read by (potentially) any DAG; XComs are dynamic data produced and consumed by specific tasks in one run.\n\n```python\nfrom airflow.models import Variable\nenvironment = Variable.get(\"deployment_environment\", default_var=\"dev\")\n```\n\nAvoid stuffing large or frequently-changing data into Variables — they're read from the database on every access and aren't designed for that.\n</QuestionCard>\n\n</Questio"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "nList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "## Sensors\n\nTasks that wait for something to become true before the rest of the DAG proceeds.\n\n<QuestionList topic=\"Sensors\" storagePrefix=\"airflow-sensors\">\n\n<QuestionCard id=\"af-23\" number={23} question=\"What is a sensor in Airflow, and how does it differ from a regular task?\" difficulty=\"medium\" topic=\"Sensors\">\nA sensor is a special operator that waits for a condition to become true — a file to land in S3, a partition to appear in a table, another DAG to finish — before letting downstream tasks run. Unlike a regular task that does work and finishes, a sensor's job *is* the waiting; it repeatedly checks (`poke`s) the condition on an interval until it succeeds or times out.\n\n```python\nfrom airflow.sensors.filesystem import FileSensor\n\nwait_for_file = FileSensor(task_id=\"wait_for_export\","
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "filepath=\"/data/export.csv\", poke_interval=60)\n```\n</QuestionCard>\n\n<QuestionCard id=\"af-24\" number={24} question=\"What's the difference between poke mode and reschedule mode for a sensor?\" difficulty=\"hard\" topic=\"Sensors\">\nIn **poke mode** (the default), a sensor occupies a worker slot for its entire wait, repeatedly checking on `poke_interval` — fine for short waits, wasteful for long ones since that slot can't run anything else. In **reschedule mode** (`mode=\"reschedule\"`), the sensor gives up its worker slot between checks and reschedules itself, freeing that slot for other tasks while it waits — much better for sensors that might wait for hours.\n</QuestionCard>\n\n<QuestionCard id=\"af-25\" number={25} question=\"What is a deferrable operator/sensor, and what problem does it solve?\" diff"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "iculty=\"hard\" topic=\"Sensors\">\nA deferrable operator (Airflow 2.2+) suspends itself entirely and hands the waiting off to a separate lightweight **triggerer** process, freeing its worker slot completely rather than just periodically — unlike reschedule mode, which still consumes scheduler/worker resources on each check. This lets a single triggerer process efficiently manage thousands of concurrent waits (for S3 files, external task completion, etc.) that would otherwise each tie up a full worker slot.\n</QuestionCard>\n\n<QuestionCard id=\"af-26\" number={26} question=\"What is an ExternalTaskSensor used for?\" difficulty=\"medium\" topic=\"Sensors\">\n`ExternalTaskSensor` waits for a task (or whole DAG) in a *different* DAG to reach a specific state before proceeding — the standard way to express a"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "dependency between two otherwise-separate pipelines, like \"don't start the reporting DAG until the ingestion DAG's `load_warehouse` task has succeeded for the same execution date.\"\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "## Modern DAG Authoring: TaskFlow API\n\nThe `@task`-decorator style introduced in Airflow 2.0, and the newer dynamic task mapping built on top of it.\n\n<QuestionList topic=\"TaskFlow API\" storagePrefix=\"airflow-taskflow\">\n\n<QuestionCard id=\"af-27\" number={27} question=\"What is the TaskFlow API, and how does the @task decorator simplify writing DAGs?\" difficulty=\"medium\" topic=\"TaskFlow\">\n```python\nfrom airflow.decorators import dag, task\nfrom datetime import datetime\n\n@dag(schedule=\"@daily\", start_date=datetime(2024, 1, 1), catchup=False)\ndef etl_pipeline():\n    @task\n    def extract():\n        return {\"rows\": 100}\n\n    @task\n    def load(data: dict):\n        print(f\"Loading {data['rows']} rows\")\n\n    load(extract())   # dependency + XCom passing, both inferred automatically\n\netl_pipeline()\n`"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "``\n\nTaskFlow lets you write DAGs as plain Python functions with a `@task` decorator — dependencies and XCom passing are inferred from how you call the functions, instead of manually instantiating operators and wiring `>>`/`xcom_pull` by hand. It's a thinner syntax over the same underlying execution model, not a different engine.\n</QuestionCard>\n\n<QuestionCard id=\"af-28\" number={28} question=\"How does XCom passing work differently with the TaskFlow API compared to traditional operators?\" difficulty=\"medium\" topic=\"TaskFlow\">\nWith traditional operators, you explicitly call `task_instance.xcom_pull(task_ids=...)` to retrieve a value pushed by another task. With TaskFlow, simply passing one task's return value as another task's argument (`load(extract())`) automatically pushes and pulls the XC"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "om behind the scenes — the data flow reads like ordinary Python function composition, with the XCom mechanics hidden.\n</QuestionCard>\n\n<QuestionCard id=\"af-29\" number={29} question=\"What are TaskGroups, and why would you use one?\" difficulty=\"medium\" topic=\"TaskGroups\">\n```python\nfrom airflow.utils.task_group import TaskGroup\n\nwith TaskGroup(\"extract_group\") as extract_group:\n    extract_orders = PythonOperator(task_id=\"extract_orders\", ...)\n    extract_users = PythonOperator(task_id=\"extract_users\", ...)\n```\n\nA `TaskGroup` visually and logically groups related tasks in the UI (collapsible in the graph view) without changing execution semantics — purely organizational, useful once a DAG has enough tasks that a flat list becomes hard to read. It's the modern replacement for the older SubDAG"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "pattern, which had performance and locking problems.\n</QuestionCard>\n\n<QuestionCard id=\"af-30\" number={30} question=\"What is dynamic task mapping (.expand()), and when would you use it?\" difficulty=\"hard\" topic=\"Dynamic Tasks\">\n```python\n@task\ndef process_file(filename: str):\n    ...\n\n@task\ndef list_files() -> list[str]:\n    return [\"a.csv\", \"b.csv\", \"c.csv\"]   # count only known at runtime\n\nprocess_file.expand(filename=list_files())   # creates one mapped task instance per file\n```\n\nDynamic task mapping creates a variable number of task instances at runtime, based on data that isn't known until the DAG actually runs — one file discovered in S3, one partition per date range, one API page. Before this (Airflow 2.3+), you'd either hardcode a fixed number of parallel tasks or fall back to a"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "single task looping internally, losing per-item retry/visibility in the UI.\n</QuestionCard>\n\n<QuestionCard id=\"af-31\" number={31} question=\"Can you mix traditional operators and TaskFlow-decorated tasks in the same DAG?\" difficulty=\"medium\" topic=\"TaskFlow\">\nYes — `@task`-decorated functions and classic operator instances can depend on each other in the same DAG, and TaskFlow tasks can still push/pull XComs manually when needed. Most real DAGs end up mixing both: TaskFlow for custom Python logic, traditional operators for provider-specific integrations (S3, Snowflake, Slack) that don't have a natural \"just call a function\" shape.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "## Control Flow: Branching & Trigger Rules\n\nControlling which tasks actually run, beyond a simple linear chain of dependencies.\n\n<QuestionList topic=\"Branching & Trigger Rules\" storagePrefix=\"airflow-control\">\n\n<QuestionCard id=\"af-32\" number={32} question=\"How do you set task dependencies in Airflow?\" difficulty=\"easy\" topic=\"Dependencies\">\n```python\nextract >> transform >> load          # extract, then transform, then load\nextract >> [transform_a, transform_b] # both run after extract, in parallel\n[transform_a, transform_b] >> load    # load waits for both\n```\n\n`>>` sets \"runs after\" (downstream), `<<` sets \"runs before\" (upstream) — both are shorthand for `.set_downstream()`/`.set_upstream()`. Dependencies can fan out to a list (parallel branches) or fan back in (a task waiting on multi"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "ple upstream tasks).\n</QuestionCard>\n\n<QuestionCard id=\"af-33\" number={33} question=\"How does branching work with BranchPythonOperator?\" difficulty=\"medium\" topic=\"Branching\">\n```python\nfrom airflow.operators.python import BranchPythonOperator\n\ndef choose_path(**context):\n    return \"path_a\" if some_condition else \"path_b\"   # must return a task_id\n\nbranch = BranchPythonOperator(task_id=\"branch\", python_callable=choose_path)\nbranch >> [path_a, path_b]\n```\n\nThe branching function returns the `task_id` (or list of ids) that should run next; every other downstream task in that branch point is automatically skipped, not just left unscheduled. This is how a DAG expresses \"run path A or path B, never both\" based on a runtime condition.\n</QuestionCard>\n\n<QuestionCard id=\"af-34\" number={34} questi"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "on=\"What is a ShortCircuitOperator, and how does it differ from branching?\" difficulty=\"medium\" topic=\"Branching\">\n`ShortCircuitOperator` evaluates a condition and either lets execution continue (all downstream tasks proceed normally) or skips **everything** downstream if it returns falsy — it's an on/off switch for the rest of the DAG, not a choice between multiple paths like `BranchPythonOperator`. Use it for a \"should this DAG even continue past this point?\" gate (e.g., \"were there any new records at all?\") rather than routing between alternatives.\n</QuestionCard>\n\n<QuestionCard id=\"af-35\" number={35} question=\"What are trigger rules, and when would you use one other than the default?\" difficulty=\"hard\" topic=\"Trigger Rules\">\nA trigger rule decides when a task is eligible to run based o"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "n the state of its upstream tasks. The default, `all_success`, requires every upstream task to succeed. Common alternatives: `all_done` (run regardless of upstream success/failure — useful for cleanup/notification tasks), `one_failed` (run if any upstream failed — useful for alerting), and `none_failed` (run if nothing failed, even if some upstream tasks were skipped by branching).\n\n```python\nnotify = PythonOperator(task_id=\"notify\", trigger_rule=\"all_done\", python_callable=send_notification)\n```\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "## Scheduling, Backfills & Idempotency\n\nThe details behind \"when does this actually run,\" and how re-running past dates is meant to work.\n\n<QuestionList topic=\"Scheduling & Backfills\" storagePrefix=\"airflow-scheduling\">\n\n<QuestionCard id=\"af-36\" number={36} question=\"What's the difference between execution_date and data_interval in Airflow scheduling?\" difficulty=\"hard\" topic=\"Scheduling\">\nThe older `execution_date` was confusingly named — a DAG scheduled `@daily` for \"Jan 2\" actually runs *after* Jan 2 ends (processing Jan 2's data), not at the start of Jan 2, which tripped up nearly everyone. Airflow 2.2+ replaced this with explicit `data_interval_start`/`data_interval_end`, naming the time range the run is actually processing, with `logical_date` as the modern (still slightly confusing"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "but clearer) equivalent of the old term.\n</QuestionCard>\n\n<QuestionCard id=\"af-37\" number={37} question=\"What's the difference between catchup and backfill?\" difficulty=\"medium\" topic=\"Backfills\">\n**`catchup`** (a DAG-level setting) controls whether Airflow automatically creates runs for every interval between a DAG's `start_date` and now the first time it's turned on (`catchup=True`) or only starts from the current interval going forward (`catchup=False`, usually what you want). **Backfill** is a manual, on-demand action (`airflow dags backfill`) to (re)run a DAG for a specific past date range — for example, after fixing a bug, to regenerate historical outputs that were wrong.\n</QuestionCard>\n\n<QuestionCard id=\"af-38\" number={38} question=\"What is an SLA in Airflow, and what happens when"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "one is missed?\" difficulty=\"medium\" topic=\"SLAs\">\nAn SLA is a maximum expected duration for a task, set via `sla=timedelta(hours=2)`. If a task is still running (or hasn't started) past that threshold relative to the DAG's expected schedule, Airflow logs an SLA miss and can trigger a notification callback — but critically, it does **not** stop or fail the task; it's purely an alerting mechanism, not an enforcement one.\n</QuestionCard>\n\n<QuestionCard id=\"af-39\" number={39} question=\"What are pools and priority weights used for?\" difficulty=\"hard\" topic=\"Resource Management\">\nA **pool** caps how many tasks can run concurrently against a shared, limited resource (a database that can only handle 5 concurrent connections, an API with a rate limit) — tasks assigned to that pool queue once its sl"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "ot limit is reached, regardless of how much broader worker capacity is free. **`priority_weight`** breaks ties among tasks queued for the same pool or worker slots, so higher-priority work (e.g., a time-sensitive report) jumps ahead of lower-priority backlog work competing for the same constrained resource.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "## Operations, Testing & Ecosystem\n\nRunning Airflow reliably in production — testing DAGs, alerting, performance, and where it fits among other orchestrators.\n\n<QuestionList topic=\"Operations & Ecosystem\" storagePrefix=\"airflow-ops\">\n\n<QuestionCard id=\"af-40\" number={40} question=\"How do you unit test an Airflow DAG?\" difficulty=\"medium\" topic=\"Testing\">\n```python\ndef test_dag_has_no_import_errors():\n    from airflow.models import DagBag\n    dagbag = DagBag()\n    assert len(dagbag.import_errors) == 0\n\ndef test_transform_task_logic():\n    # test the underlying Python function directly — no need to run it through Airflow at all\n    assert normalize_revenue({\"revenue_cents\": 1050}) == 10.50\n```\n\nTwo layers are worth testing: DAG-integrity tests (does it parse without errors, does the expected"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "task count/structure match) using `DagBag`, and unit tests of the actual business logic inside each task's callable — which, if written well, don't need Airflow at all to test, since they're just plain functions.\n</QuestionCard>\n\n<QuestionCard id=\"af-41\" number={41} question=\"How do you set up alerting when a task fails?\" difficulty=\"easy\" topic=\"Monitoring\">\n```python\ndef notify_slack(context):\n    send_slack_message(f\"Task {context['task_instance'].task_id} failed\")\n\ndefault_args = {\"on_failure_callback\": notify_slack}\n```\n\n`on_failure_callback` (and `on_success_callback`, `sla_miss_callback`) fire automatically on the relevant event, letting you push a notification to Slack, PagerDuty, or email without polling anything. Set sensible defaults at the DAG level (`default_args`) rather tha"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "n repeating the callback on every single task.\n</QuestionCard>\n\n<QuestionCard id=\"af-42\" number={42} question=\"Why does DAG file parsing performance matter, and what's a common mistake that hurts it?\" difficulty=\"hard\" topic=\"Performance\">\nThe scheduler re-parses every DAG file on a regular interval (to pick up code changes) — if a DAG file runs slow or expensive code at **import time** (a database query, an API call, a large computation outside of any task), that cost is paid on every single parse cycle, not once per run, and can meaningfully slow down the whole scheduler across all DAGs. The fix is keeping DAG files themselves lightweight — only DAG/task *definitions* at the top level, with any real work happening inside a task's callable, which only executes when the task actually runs."
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "</QuestionCard>\n\n<QuestionCard id=\"af-43\" number={43} question=\"How does Airflow compare to Dagster or Prefect?\" difficulty=\"medium\" topic=\"Ecosystem\">\nAirflow is the most established and widely adopted, with the largest ecosystem of providers/integrations, but its DAG model is comparatively low-level about data (tasks pass small XComs, not first-class typed data assets). **Dagster** is built around \"software-defined assets\" — it tracks data products themselves, not just task execution, with stronger typing and local testability out of the box. **Prefect** emphasizes a more Pythonic, dynamic flow definition with less rigid DAG structure and easier local development. In practice, Airflow's maturity and ecosystem size are still the main reason it remains the default choice for many teams.\n<"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "/QuestionCard>\n\n<QuestionCard id=\"af-44\" number={44} question=\"What can you do with the Airflow REST API or CLI that you can't easily do from the UI?\" difficulty=\"easy\" topic=\"Operations\">\nBoth let you script and automate operations that would otherwise require manual clicks: triggering a DAG run with specific config from an external system (`airflow dags trigger` or `POST /dags/{dag_id}/dagRuns`), running backfills, managing connections/variables as part of infrastructure-as-code, and integrating DAG triggers into CI/CD pipelines — anything you want driven programmatically rather than by a person in the browser.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/orchestration/airflow/",
+    "locale": "en",
+    "title": "Airflow",
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
     "content": "## Common Interview Scenarios\n\n- **\"Walk me through how you'd design a DAG for a daily ETL pipeline.\"** Talk through breaking the pipeline into idempotent tasks, choosing a `schedule_interval`/cron expression, wiring dependencies, and how retries and backfills would behave given that tasks can run more than once.\n- **\"A task's output needs to feed into the next task's SQL query — how do you pass it along?\"** Reach for XComs (`xcom_push`/`xcom_pull`) and Jinja templating to inject the pulled value directly into a templated field like a SQL statement.\n- **\"Which executor would you pick for a production deployment, and why?\"** Compare `CeleryExecutor` vs `KubernetesExecutor` on scalability, resource isolation per task, and operational complexity (Celery needs RabbitMQ/Redis; Kubernetes needs"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
-    "content": "a cluster and more nuanced docs).\n\n---"
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "a cluster and more nuanced docs).\n- **\"A DAG needs to process a variable, unknown-ahead-of-time number of files each run.\"** This is a dynamic task mapping signal — talk through `.expand()` over a list produced by an upstream task, versus the older workaround of a single task looping internally and losing per-item retry/visibility.\n- **\"Downstream tasks should only run for certain records, not all of them.\"** Distinguish branching (`BranchPythonOperator`, choosing between alternate paths) from a `ShortCircuitOperator` (an on/off gate for everything downstream), and mention trigger rules if the scenario involves cleanup/alerting tasks that should run regardless of upstream success or failure.\n\n---"
   },
   {
     "path": "/level-3-technologies/orchestration/airflow/",
     "locale": "en",
     "title": "Airflow",
-    "description": "Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.",
-    "content": "## Further Reading\n\n- [Kubernetes](/level-3-technologies/orchestration/kubernetes/) — the container platform Airflow's `KubernetesExecutor` runs tasks on\n- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where orchestration fits into the broader curriculum"
+    "description": "Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.",
+    "content": "## Further Reading\n\n- [Kubernetes](/level-3-technologies/orchestration/kubernetes/) — the container platform Airflow's `KubernetesExecutor` runs tasks on\n- [DBT](/level-3-technologies/transformation/dbt/#interview-questions) — the transformation tool Airflow commonly orchestrates\n- [Kafka](/level-3-technologies/streaming/kafka/#interview-questions) — the streaming counterpart to Airflow's batch-oriented scheduling model\n- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where orchestration fits into the broader curriculum"
   },
   {
     "path": "/level-3-technologies/orchestration/index/",
@@ -13751,295 +14059,540 @@
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "## Apache Kafka: Distributed Event Streaming\n\n**Kafka is a distributed, partitioned, replicated commit log that decouples the systems producing data from the systems consuming it — the backbone most streaming architectures build on for durable, replayable, high-throughput messaging.**"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
-    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Consumer Groups & Rebalancing](#consumer-groups--rebalancing)\n- [Ecosystem: Connect, Streams & Schema Registry](#ecosystem-connect-streams--schema-registry)\n- [Retention, Compaction & Security](#retention-compaction--security)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "## Key Concepts\n\nA **topic** is a named stream of records, split into **partitions** that are distributed and replicated across the **brokers** in a cluster — this is how Kafka scales horizontally and survives broker failures. Every record in a partition gets a monotonically increasing **offset**, and consumers (organized into **consumer groups**) track their own read position by committing offsets rather than the broker tracking per-consumer state. That single mechanism is what lets Kafka support both queue-like delivery (one consumer group splitting partitions among its members) and pub-sub delivery (many independent consumer groups each reading the whole topic) from the same underlying log. **Producers** write records to a partition, either directly or via a partitioning key that hashes"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "to one. Durability comes from **replication**: each partition has a leader replica that serves all reads/writes and follower replicas that copy it, with the **In-Sync Replica (ISR)** set tracking which followers are caught up enough to safely take over as leader if the current one fails.\n\n---"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "## Interview Questions\n\n<QuestionList topic=\"Kafka\" storagePrefix=\"kafka\">\n\n<QuestionCard id=\"kafka-01\" number={1} question=\"What is Apache Kafka?\" difficulty=\"easy\" topic=\"Fundamentals\">\nApache Kafka is a distributed publish-subscribe messaging system originally developed at LinkedIn and written in Java and Scala. At its core it's a distributed, partitioned, and replicated commit log service — a durable, append-only sequence of records that producers write to and consumers read from independently.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-02\" number={2} question=\"What is the traditional method of transferring messages, and how does Kafka's consumer group model generalize it?\" difficulty=\"easy\" topic=\"Fundamentals\">\nTraditional messaging used two separate models:\n\n- **Queuing** — a pool of"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "consumers reads from the server, and each message goes to exactly one of them (good for scaling out work, but no consumer sees every message).\n- **Publish-Subscribe** — messages are broadcast to every consumer (good for fan-out, but you can't easily scale a single logical consumer across multiple processes).\n\nKafka's **consumer group** abstraction generalizes both: within a group, partitions are divided among members so each message is processed once per group (queue-like), while multiple independent groups can each subscribe to the same topic and get their own full copy of the stream (pub-sub-like).\n</QuestionCard>\n\n<QuestionCard id=\"kafka-03\" number={3} question=\"What are the benefits of Apache Kafka over traditional messaging techniques?\" difficulty=\"medium\" topic=\"Fundamentals\">\n- **Sc"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "alability** — scales out horizontally by adding brokers to the cluster, handling more partitions and higher throughput without downtime.\n- **Performance** — high throughput for both publishing and subscribing, using a disk structure optimized for sequential, batched writes and reads.\n- **Durability and reliability** — replicates data across multiple brokers (configurable replication factor) so data survives individual broker failures.\n- **Fault tolerance** — the distributed architecture, combined with replication, keeps the system operating even when individual components fail.\n- **Real-time processing** — producers and consumers exchange data with minimal latency, supporting real-time analytics and monitoring.\n- **Decoupling of data streams** — producers and consumers operate independentl"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "y; neither needs to know about or coordinate with the other.\n- **Replayability** — Kafka retains data for a configurable retention period, so applications can replay history or recover from errors by reprocessing.\n- **High availability** — the distributed, replicated design keeps the system available even when some brokers or partitions are temporarily unavailable.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-04\" number={4} question=\"What is the meaning of broker in Apache Kafka?\" difficulty=\"easy\" topic=\"Architecture\">\nA broker is a single server in a Kafka cluster that stores and manages data. Each broker holds a set of topic partitions, so Kafka spreads load across the cluster by distributing partitions among brokers. Brokers handle all producer and consumer read/write requests and coordina"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "te data replication to prevent data loss.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-05\" number={5} question=\"What is the maximum size of a message that Kafka can receive?\" difficulty=\"easy\" topic=\"Configuration\">\nIt's governed by two configuration parameters — `message.max.bytes` on the broker and `max.message.bytes` on the topic. By default Kafka allows messages up to 1 MB (1,048,576 bytes), but both parameters can be increased if the workload needs larger messages.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-06\" number={6} question=\"What is ZooKeeper's role in Kafka's ecosystem, and can Kafka run without it?\" difficulty=\"medium\" topic=\"Architecture\">\nZooKeeper historically managed and coordinated Kafka brokers — leader election for partitions, cluster membership, and configuration management"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": ".\n\nAs of **KRaft mode** (Kafka Raft metadata mode), Kafka can run without ZooKeeper entirely. KRaft replaces it with a built-in Raft-based consensus mechanism for managing cluster metadata, simplifying the architecture and improving scalability.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-07\" number={7} question=\"How are messages consumed by a consumer in Apache Kafka?\" difficulty=\"easy\" topic=\"Consumers\">\nKafka consumers use a **pull-based model**. A consumer subscribes to one or more topics and polls the broker at regular intervals to fetch new messages, reading them in the order they're stored within each partition. Each consumer tracks its own offset per partition — the position of the next message to read — so it can resume exactly where it left off after a restart or failure.\n</Question"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "Card>\n\n<QuestionCard id=\"kafka-08\" number={8} question=\"How can you improve the throughput of a remote consumer?\" difficulty=\"medium\" topic=\"Consumers\">\n- **Increase bandwidth** — ensure the network connection has enough capacity for the data volume.\n- **Optimize serialization** — use efficient formats to shrink the data being transmitted.\n- **Concurrency** — process data in parallel where possible.\n- **Batch processing** — batch records together to cut down on round trips.\n- **Caching** — cache frequently accessed data on the consumer side.\n- **Compression** — compress data before transmission.\n- **Optimize network routes** — use better network paths or a CDN to cut latency.\n- **Tune timeouts and buffers** — adjust network timeout and buffer size settings for the connection.\n</QuestionCar"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "d>\n\n<QuestionCard id=\"kafka-09\" number={9} question=\"How can you achieve exactly-once messaging from Kafka during data production?\" difficulty=\"hard\" topic=\"Producers\">\n1. **Enable idempotence** — set `enable.idempotence=true` on the producer so retries after network errors don't create duplicates.\n2. **Use the transactional API** — set `transactional.id` and wrap writes with `beginTransaction()`, `commitTransaction()`, and `abortTransaction()`. Either every message in the transaction is published, or none are.\n3. **Configure supporting settings** — set `acks=all` (or `-1`) so every in-sync replica acknowledges the write, tune `retries`, and set `max.in.flight.requests.per.connection=1` when using transactions to avoid reordering on retry.\n4. **Keep partitioning consistent** — if message o"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "rder matters, use a stable partitioning strategy so retries don't shuffle messages across partitions.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-10\" number={10} question=\"What is In-Sync Replicas (ISR) in Apache Kafka?\" difficulty=\"medium\" topic=\"Replication\">\nISR is the set of replicas for a partition that are fully caught up with the leader. The **leader** replica handles all reads and writes for a partition; **follower** replicas replicate its log, and once a follower has replicated everything up to the leader's last acknowledged message, it's considered in-sync.\n\nThe ISR is what makes failover safe — if the leader fails, Kafka elects a new leader only from the ISR, minimizing data loss and downtime.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-11\" number={11} question=\"How can you reduce chu"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "rn (frequent changes) in the ISR?\" difficulty=\"medium\" topic=\"Replication\">\n- **Optimize network configuration** — stable, sufficiently fast connections between brokers keep followers from falling behind and dropping out of the ISR.\n- **Adjust replica lag configuration** — `replica.lag.time.max.ms` controls how far behind a replica can fall before it's considered out of sync; tuning it changes how much slack followers get.\n- **Monitor and scale resources** — make sure every broker has enough CPU, memory, and disk I/O for its workload; overloaded brokers fall behind more easily.\n- **Use dedicated replication networks** — isolating replication traffic from other network load prevents it from being starved.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-12\" number={12} question=\"When does a broker"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "leave the ISR?\" difficulty=\"medium\" topic=\"Replication\">\n- **Falling behind** — if a replica lags the leader beyond the configured thresholds (`replica.lag.time.max.ms` or `replica.lag.max.messages`), it's removed from the ISR.\n- **Broker failure** — if a broker crashes or disconnects from the cluster, its replicas drop out of the ISR.\n- **Manual intervention** — an administrator can remove a replica manually, though this is uncommon and should be done carefully.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-13\" number={13} question=\"What does it indicate if a replica stays out of the ISR for a long time?\" difficulty=\"medium\" topic=\"Replication\">\nIt means the replica can't keep up with the leader's log updates — usually due to network issues, hardware problems, or high broker load. While it's o"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "ut of the ISR, it can't participate in acknowledging writes and can't be elected leader if the current leader fails, so it becomes a risk to partition availability and durability until it catches back up.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-14\" number={14} question=\"What happens if the preferred replica is not in the ISR list?\" difficulty=\"medium\" topic=\"Replication\">\nIf the preferred (originally-assigned leader) replica isn't in the ISR, Kafka either waits for it to catch up (depending on the configured `acks` settings) or continues serving from another broker that is in the ISR — data integrity is preserved by only using fully up-to-date replicas. Consumers configured to read only from the preferred replica may see a delay in data availability until it rejoins the ISR.\n</QuestionCar"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "d>\n\n<QuestionCard id=\"kafka-15\" number={15} question=\"What is the purpose of replication in Apache Kafka?\" difficulty=\"easy\" topic=\"Replication\">\nReplication increases data availability and durability. By copying each partition's data across multiple brokers, Kafka ensures that a single broker failure doesn't lose data — it can still be read from the other replicas. This is fundamental to fault tolerance and high availability in production.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-16\" number={16} question=\"Is it possible to get the message offset after producing to a topic?\" difficulty=\"easy\" topic=\"Producers\">\nYes. When a producer sends a message, the producer API returns metadata about it, including the offset it was assigned within the topic partition — useful for tracking exactly where"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "a given message landed.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-17\" number={17} question=\"What is the difference between Apache Kafka, Apache Storm, and Apache Flink?\" difficulty=\"medium\" topic=\"Ecosystem\">\nAll three are distributed systems for processing large volumes of data, but they serve different roles:\n\n- **Kafka** — primarily a distributed messaging/streaming platform focused on high-throughput, fault-tolerant storage and transport of streaming data. Often sits as the buffer between producers and consumers rather than doing the processing itself.\n- **Storm** — a real-time computation system built for record-by-record processing with very low latency, well suited to immediate-response use cases like real-time analytics.\n- **Flink** — a stream processing framework that also handles"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "batch processing, known for event-time processing, stateful computation, and running complex computations at in-memory speed across common cluster environments.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-18\" number={18} question=\"What are the main components of Kafka?\" difficulty=\"easy\" topic=\"Fundamentals\">\n- **Topic** — a stream of messages of the same type\n- **Producer** — publishes messages to a topic\n- **Broker** — a server that stores published messages\n- **Consumer** — subscribes to topics and pulls data from brokers\n</QuestionCard>\n\n<QuestionCard id=\"kafka-19\" number={19} question=\"What is the role of the offset in Kafka?\" difficulty=\"easy\" topic=\"Fundamentals\">\nThe offset is a unique, monotonically increasing identifier for each record within a partition — its position in that part"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "ition's log. Consumers use offsets to track which records they've already read, enabling fault-tolerant, scalable consumption: a consumer can resume from its committed offset after a restart or failure, so messages are neither lost nor reprocessed unnecessarily.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-20\" number={20} question=\"Can you explain the concept of leader and follower in the Kafka ecosystem?\" difficulty=\"easy\" topic=\"Architecture\">\nEvery partition has one broker acting as its **leader** and zero or more brokers acting as **followers**:\n\n- **Leader** — handles all read and write requests for that partition. Produced messages are written to the leader first, which stores them in order.\n- **Follower** — continuously pulls messages from the leader to stay in sync, maintaining an exac"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "t copy of its data. If the leader broker fails, one of the in-sync followers is elected as the new leader, keeping the partition available.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-21\" number={21} question=\"How do you define a partitioning key?\" difficulty=\"medium\" topic=\"Producers\">\nThe partitioning key is supplied by the producer to determine which partition a message goes to. By default Kafka uses a hash-based partitioner on the key to pick the partition ID, but a custom `Partitioner` implementation can be supplied for other routing logic.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-22\" number={22} question=\"In the Producer, when does a QueueFullException occur?\" difficulty=\"medium\" topic=\"Producers\">\nIt occurs when the producer is trying to send messages faster than the broker can handle"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "them. Since the producer doesn't block by default in this scenario, the fix is to add enough brokers/capacity to the cluster to absorb the increased load rather than let the send buffer overflow.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-23\" number={23} question=\"Can you explain the role of the Kafka Producer API?\" difficulty=\"easy\" topic=\"Producers\">\nThe Producer API lets applications send streams of records to one or more Kafka topics, handling the reliable and scalable distribution of that data across the cluster. Kafka historically exposed two producer types — `SyncProducer` and `AsyncProducer` — with the goal of surfacing all producer functionality through a single, unified client API.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "## Consumer Groups & Rebalancing\n\nWhat actually happens when consumers join, leave, or fail within a group.\n\n<QuestionList topic=\"Consumer Groups & Rebalancing\" storagePrefix=\"kafka-rebalance\">\n\n<QuestionCard id=\"kafka-24\" number={24} question=\"What is consumer group rebalancing, and when does it get triggered?\" difficulty=\"medium\" topic=\"Rebalancing\">\nRebalancing is the process of reassigning partitions among the members of a consumer group — triggered when a consumer joins, leaves (including crashing or being killed), or a subscribed topic's partition count changes. During a rebalance, consumption pauses while partitions are redistributed, which is why frequent rebalances (from flaky consumers or slow processing triggering session timeouts) directly hurt throughput.\n</QuestionCard>\n\n<Que"
+  },
+  {
+    "path": "/level-3-technologies/streaming/kafka/",
+    "locale": "en",
+    "title": "Kafka",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "stionCard id=\"kafka-25\" number={25} question=\"What's the difference between eager and cooperative sticky rebalancing?\" difficulty=\"hard\" topic=\"Rebalancing\">\n**Eager rebalancing** (the original protocol) revokes *all* partitions from *every* consumer at the start of a rebalance, then reassigns them — even consumers keeping the same partitions briefly stop processing. **Cooperative sticky rebalancing** only reassigns the specific partitions that actually need to move, letting unaffected consumers keep processing uninterrupted — significantly reducing the \"stop the world\" pause, especially in large consumer groups.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-26\" number={26} question=\"What is static group membership, and what problem does it solve?\" difficulty=\"hard\" topic=\"Rebalancing\">\nSetting"
+  },
+  {
+    "path": "/level-3-technologies/streaming/kafka/",
+    "locale": "en",
+    "title": "Kafka",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "`group.instance.id` gives a consumer a persistent identity across restarts, so a brief restart or network blip (a rolling deploy, a pod restarting) doesn't trigger a full rebalance — Kafka recognizes the returning consumer and hands it back its previous partitions once it reconnects within `session.timeout.ms`. This avoids the throughput hit of unnecessary rebalances for routine, short-lived disruptions.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-27\" number={27} question=\"What's the difference between auto-commit and manual offset commit?\" difficulty=\"medium\" topic=\"Offsets\">\nWith `enable.auto.commit=true` (the default), the client library commits the latest consumed offset on a timer, regardless of whether that record has actually finished processing — simple, but risks marking a message \""
+  },
+  {
+    "path": "/level-3-technologies/streaming/kafka/",
+    "locale": "en",
+    "title": "Kafka",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "done\" before it's safely written downstream, losing it on a crash. Manual commit (`commitSync()`/`commitAsync()`) lets you commit only after processing genuinely completes, trading a bit of code complexity for control over exactly when a message counts as consumed.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/streaming/kafka/",
+    "locale": "en",
+    "title": "Kafka",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "## Ecosystem: Connect, Streams & Schema Registry\n\nThe tools built around core Kafka for getting data in/out and enforcing message structure.\n\n<QuestionList topic=\"Ecosystem\" storagePrefix=\"kafka-ecosystem\">\n\n<QuestionCard id=\"kafka-28\" number={28} question=\"What is Kafka Connect, and what problem does it solve?\" difficulty=\"medium\" topic=\"Kafka Connect\">\nKafka Connect is a framework for moving data between Kafka and external systems (databases, S3, Elasticsearch) using pre-built, configuration-only **connectors**, instead of hand-writing a custom producer or consumer application for every integration. It handles the operational concerns (scaling, offset tracking, fault tolerance, restarts) generically, so adding a new source or destination is usually a config file, not new code.\n</Question"
+  },
+  {
+    "path": "/level-3-technologies/streaming/kafka/",
+    "locale": "en",
+    "title": "Kafka",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "Card>\n\n<QuestionCard id=\"kafka-29\" number={29} question=\"What's the difference between a source connector and a sink connector?\" difficulty=\"easy\" topic=\"Kafka Connect\">\nA **source connector** pulls data from an external system *into* a Kafka topic (a Postgres CDC connector streaming database changes in). A **sink connector** pushes data *out of* a Kafka topic into an external system (an S3 sink connector writing consumed records out as files). Both run inside the same Kafka Connect cluster, just moving data in opposite directions.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-30\" number={30} question=\"What is Kafka Streams, and how does it differ from using an external engine like Flink?\" difficulty=\"medium\" topic=\"Stream Processing\">\nKafka Streams is a Java library for building stream process"
+  },
+  {
+    "path": "/level-3-technologies/streaming/kafka/",
+    "locale": "en",
+    "title": "Kafka",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "ing applications that read from and write to Kafka topics, running as a normal application process rather than on a separate cluster — no separate job manager or cluster to operate, unlike Flink. The trade-off is scope: Kafka Streams is tightly coupled to Kafka as both source and sink and has a narrower feature set than a general-purpose engine like Flink, which can read from many sources and offers more advanced windowing/state-management capabilities.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-31\" number={31} question=\"What is Schema Registry, and why is it important for Kafka pipelines?\" difficulty=\"medium\" topic=\"Schema Registry\">\nSchema Registry is a service that stores and versions schemas (typically Avro, Protobuf, or JSON Schema) for the messages flowing through Kafka topics, and val"
+  },
+  {
+    "path": "/level-3-technologies/streaming/kafka/",
+    "locale": "en",
+    "title": "Kafka",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "idates that producers/consumers use compatible schemas. Without it, a producer can silently start sending a differently-shaped message and every consumer breaks independently and confusingly — with it, an incompatible schema change is rejected at publish time, with the failure surfacing at the actual source of the problem.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-32\" number={32} question=\"What are the schema compatibility modes (backward, forward, full) in Schema Registry?\" difficulty=\"hard\" topic=\"Schema Registry\">\n**Backward** compatibility means a new schema can read data written with the previous schema (safe to upgrade consumers first). **Forward** compatibility means old schema code can read data written with the new schema (safe to upgrade producers first). **Full** compatibility re"
+  },
+  {
+    "path": "/level-3-technologies/streaming/kafka/",
+    "locale": "en",
+    "title": "Kafka",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "quires both directions to hold. Choosing the right mode up front determines which side (producers or consumers) you're free to deploy first without coordinating a synchronized rollout.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/streaming/kafka/",
+    "locale": "en",
+    "title": "Kafka",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "## Retention, Compaction & Security\n\nHow long data actually stays in a topic, and controlling who can read or write it.\n\n<QuestionList topic=\"Retention, Compaction & Security\" storagePrefix=\"kafka-retention\">\n\n<QuestionCard id=\"kafka-33\" number={33} question=\"What retention policies does Kafka support?\" difficulty=\"easy\" topic=\"Retention\">\nRetention is controlled per topic, primarily by **time** (`retention.ms` — delete segments older than this) and **size** (`retention.bytes` — delete oldest segments once the partition exceeds this size), whichever limit is hit first. This is separate from log compaction (a different retention *strategy* entirely, not just a different limit) — a topic can use time/size-based deletion, compaction, or both together.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-"
+  },
+  {
+    "path": "/level-3-technologies/streaming/kafka/",
+    "locale": "en",
+    "title": "Kafka",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "34\" number={34} question=\"What is log compaction, and how does it differ from time/size-based retention?\" difficulty=\"hard\" topic=\"Retention\">\nLog compaction retains only the **most recent** record for each key, discarding older records with the same key regardless of age — rather than deleting whole segments based on a time/size cutoff. It's the mechanism behind Kafka's use as a changelog for things like `__consumer_offsets` or Kafka Streams' state stores, where you only care about a key's current value, not its full history of updates.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-35\" number={35} question=\"What are the trade-offs of increasing a topic's partition count?\" difficulty=\"hard\" topic=\"Partitioning\">\nMore partitions mean more parallelism (more consumers in a group can be active simu"
+  },
+  {
+    "path": "/level-3-technologies/streaming/kafka/",
+    "locale": "en",
+    "title": "Kafka",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "ltaneously) and higher potential throughput, but also more open file handles and memory overhead per broker, longer leader-election time during failover, and — critically — partition count can only be **increased**, never decreased, and increasing it changes key-to-partition hashing, which can break ordering guarantees for existing keyed data.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-36\" number={36} question=\"How do you secure a Kafka cluster — authentication, authorization, and encryption?\" difficulty=\"hard\" topic=\"Security\">\n**Authentication** verifies client identity, typically via SASL (SASL/SCRAM, SASL/GSSAPI for Kerberos) or mutual TLS. **Authorization** is handled by ACLs, granting specific principals permission to produce/consume/manage specific topics or consumer groups, rather th"
+  },
+  {
+    "path": "/level-3-technologies/streaming/kafka/",
+    "locale": "en",
+    "title": "Kafka",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "an an all-or-nothing cluster credential. **Encryption** uses TLS for data in transit between clients and brokers (and between brokers themselves); disk-level encryption handles data at rest, usually via the underlying filesystem/cloud storage layer rather than Kafka itself.\n</QuestionCard>\n\n<QuestionCard id=\"kafka-37\" number={37} question=\"What are the different producer acks settings, and what do they trade off?\" difficulty=\"medium\" topic=\"Producers\">\n- **`acks=0`** — don't wait for any broker acknowledgment; fastest, but messages can be silently lost.\n- **`acks=1`** — wait for the leader to write the message; if the leader fails before followers replicate it, it can still be lost.\n- **`acks=all`** (or `-1`) — wait for every in-sync replica to acknowledge; strongest durability guarantee,"
+  },
+  {
+    "path": "/level-3-technologies/streaming/kafka/",
+    "locale": "en",
+    "title": "Kafka",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "at the cost of higher latency.\n\nThis is the core throughput-vs-durability dial for a Kafka producer, and `acks=all` combined with a sufficient `min.insync.replicas` is what's required for the strong delivery guarantees discussed elsewhere on this page.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/streaming/kafka/",
+    "locale": "en",
+    "title": "Kafka",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
     "content": "## Common Interview Scenarios\n\n- **\"Design a Kafka pipeline for order events feeding fraud detection, analytics, and notifications.\"** Talk through topic and partition design, one consumer group per downstream system so each gets its own full copy of the stream, and the tradeoffs of partitioning by `order_id` vs. `customer_id` (ordering guarantees vs. even load distribution).\n- **\"A consumer group's lag keeps growing — how do you diagnose and fix it?\"** Check partition count vs. consumer count (a group can't have more active consumers than partitions), per-message processing time, `poll()`/batch-size tuning, and whether scaling consumers up to the partition count resolves it.\n- **\"How would you guarantee exactly-once processing from Kafka into a downstream database?\"** Idempotent producers"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
-    "content": "plus the transactional API on the write side, paired with idempotent writes downstream (upserts keyed on a dedup key, or storing the last-processed offset transactionally with the write).\n- **\"How do you handle a broker failure in production without losing data?\"** Replication factor, `min.insync.replicas`, `acks=all` on the producer, and leader election constrained to the ISR so a stale replica never becomes leader.\n\n---"
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "plus the transactional API on the write side, paired with idempotent writes downstream (upserts keyed on a dedup key, or storing the last-processed offset transactionally with the write).\n- **\"How do you handle a broker failure in production without losing data?\"** Replication factor, `min.insync.replicas`, `acks=all` on the producer, and leader election constrained to the ISR so a stale replica never becomes leader.\n- **\"Consumers keep dropping out and rejoining during routine deploys, and throughput tanks every time.\"** Point to rebalancing as the cause, and static group membership (`group.instance.id`) plus cooperative sticky rebalancing as the fix — recognizing a returning consumer instead of treating every restart as a full membership change.\n- **\"A producing team wants to add a fiel"
   },
   {
     "path": "/level-3-technologies/streaming/kafka/",
     "locale": "en",
     "title": "Kafka",
-    "description": "Apache Kafka interview questions covering topics, partitions, brokers, replication (ISR), producers, consumers, offsets, and exactly-once delivery semantics.",
-    "content": "## Further Reading\n\n- [Flink](/level-3-technologies/streaming/flink/) — the stream processing engine most commonly paired with Kafka for stateful, event-time computation\n- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where Kafka fits into the broader curriculum\n- [Change Data Capture](/level-3-technologies/ingestion/cdc/) — a common source pattern for getting data into Kafka topics in the first place"
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "d and rename another on a topic several teams consume.\"** Reach for Schema Registry and compatibility modes — talk through why adding a field is typically backward-compatible (safe) while a rename is usually a breaking change that needs a coordinated rollout or a new topic version.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/streaming/kafka/",
+    "locale": "en",
+    "title": "Kafka",
+    "description": "Apache Kafka interview questions covering partitions, replication, rebalancing, Kafka Connect, Streams, Schema Registry, retention, and security.",
+    "content": "## Further Reading\n\n- [Flink](/level-3-technologies/streaming/flink/) — the stream processing engine most commonly paired with Kafka for stateful, event-time computation\n- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where Kafka fits into the broader curriculum\n- [Change Data Capture](/level-3-technologies/ingestion/cdc/) — a common source pattern for getting data into Kafka topics in the first place\n- [Data Quality](/level-2-core-concepts/data-quality/#interview-questions) — schema drift and contract enforcement, upstream of what Schema Registry solves for Kafka specifically"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
     "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
     "content": "## DBT: Transform Data with SQL & DAGs\n\n**dbt (data build tool) lets you write transformations as SQL, then builds and runs them as a dependency-ordered DAG — turning raw warehouse tables into cleaned, tested, documented analytics tables.**"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
-    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Seeds, Sources & Project Configuration](#seeds-sources--project-configuration)\n- [Materializations & Incremental Strategies](#materializations--incremental-strategies)\n- [Jinja & Packages](#jinja--packages)\n- [Documentation, Governance & Ecosystem](#documentation-governance--ecosystem)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
     "content": "## Key Concepts\n\nA **dbt model** is just a `SELECT` statement saved as a `.sql` file; dbt compiles it, resolves dependencies via `ref()`, and materializes it in the warehouse as a **view**, **table**, or **incremental** table. Projects are typically layered into **staging** (light cleaning, close to sources), **intermediate** (reusable joins/transforms), and **marts** (business-facing fact/dimension tables) — a structure that keeps models testable and reusable. **Incremental models** avoid full rebuilds by processing only new/changed rows, which requires a well-designed `unique_key` and a deterministic \"latest record\" rule. dbt's **testing** layer (generic tests like `unique`/`not_null`/`relationships`, plus custom singular tests) and **sources** with freshness checks catch broken data ear"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
     "content": "ly, while **snapshots** capture SCD2-style history from mutable source tables. **Macros** (Jinja functions) remove repetition, and **state selection** lets CI run only the models affected by a change instead of rebuilding the whole DAG. dbt itself only transforms — it's typically one step inside a broader pipeline orchestrated by a tool like Airflow.\n\n---"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
     "content": "## Interview Questions\n\n<QuestionList topic=\"DBT\" storagePrefix=\"dbt\">\n\n<QuestionCard id=\"dbt-01\" number={1} question=\"What is dbt?\" difficulty=\"easy\" topic=\"Fundamentals\">\ndbt (data build tool) is a transformation framework where you write transformations as SQL (and Jinja-templated SQL), and dbt builds a DAG of models and runs them in the right order. It is commonly used to transform raw data into cleaned, documented, tested analytics tables in a warehouse/lakehouse.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-02\" number={2} question=\"How is dbt different from Airflow?\" difficulty=\"easy\" topic=\"Orchestration\">\nAirflow is an orchestration system that schedules and coordinates tasks of any kind. dbt focuses specifically on SQL-based transformations and their dependency graph, plus testing and d"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
     "content": "ocumentation. In practice, Airflow often runs dbt as one step of a larger pipeline (ingestion → transform → publish).\n</QuestionCard>\n\n<QuestionCard id=\"dbt-03\" number={3} question=\"What is a dbt model?\" difficulty=\"easy\" topic=\"Models\">\nA dbt model is a select query stored as a `.sql` file in the `models/` directory. dbt materializes the model into a relation in your warehouse (view/table/incremental) and manages dependencies between models.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-04\" number={4} question=\"What does ref() do?\" difficulty=\"medium\" topic=\"Models\">\n`ref('model_name')` declares a dependency on another dbt model. dbt uses it to build the DAG, order execution, and resolve the correct schema/database per environment. It also enables features like automated lineage in dbt docs.\n</Q"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
     "content": "uestionCard>\n\n<QuestionCard id=\"dbt-05\" number={5} question=\"What are the typical layers in a dbt project?\" difficulty=\"medium\" topic=\"Project Structure\">\nA common pattern is:\n- **staging** — light cleaning and renaming, close to sources\n- **intermediate** — reusable transformations and joins\n- **marts** — business-facing fact/dimension tables and metrics-ready datasets\n\nThis makes models easier to test, reuse, and maintain.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-06\" number={6} question=\"What is a materialization in dbt?\" difficulty=\"easy\" topic=\"Materializations\">\nA materialization defines how dbt builds a model in the warehouse (for example, as a view, table, or incremental table). It controls the build strategy and how changes are applied over time.\n</QuestionCard>\n\n<QuestionCard id=\"db"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
     "content": "t-07\" number={7} question=\"When would you use view vs. table materializations?\" difficulty=\"medium\" topic=\"Materializations\">\nViews are useful for fast iteration and when compute cost per query is acceptable. Tables are useful when queries are expensive or many downstream queries reuse the same result. The trade-off is storage cost and the need to keep tables updated.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-08\" number={8} question=\"What is an incremental model and what problems does it solve?\" difficulty=\"medium\" topic=\"Incremental Models\">\nAn incremental model only processes new or changed data instead of rebuilding the entire table each run. It reduces runtime and cost for large datasets. It requires correct keys and logic to avoid duplicates and missed updates.\n</QuestionCard>\n\n<Question"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
     "content": "Card id=\"dbt-09\" number={9} question=\"How do you design a reliable unique_key?\" difficulty=\"hard\" topic=\"Incremental Models\">\nThe `unique_key` should uniquely identify a record in the target table, usually a stable business key or a surrogate key derived from stable columns. If the source can update records, you also need a deterministic \"latest record\" rule (for example, using an `updated_at` column) so merges are correct.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-10\" number={10} question=\"What are dbt tests and what types exist?\" difficulty=\"medium\" topic=\"Testing\">\ndbt supports:\n- **generic tests** (built-in or custom): `unique`, `not_null`, `accepted_values`, `relationships`\n- **singular tests**: custom SQL queries that should return zero failing rows\n\nTests run as queries in the warehous"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
     "content": "e and fail the run if assertions are violated.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-11\" number={11} question=\"What are sources in dbt and how do you test them?\" difficulty=\"medium\" topic=\"Testing\">\nSources declare upstream tables and their metadata in `sources.yml`. You can test sources with freshness checks and column-level tests (like `not_null`) to detect broken ingestion or schema drift early.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-12\" number={12} question=\"What are snapshots in dbt and when would you use them?\" difficulty=\"medium\" topic=\"Snapshots\">\nSnapshots capture slowly changing dimension history by tracking changes in source records over time. They are useful when you need point-in-time analysis or to implement SCD2-style history from mutable source tables.\n</QuestionCard>\n\n<Qu"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
     "content": "estionCard id=\"dbt-13\" number={13} question=\"What are macros in dbt and when should you use them?\" difficulty=\"medium\" topic=\"Macros\">\nMacros are Jinja functions that generate SQL. Use them to avoid repetition (standardized column selection, reusable filters, dynamic SQL) and to keep business logic consistent across models. Overusing macros for complex logic can hurt readability and debugging.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-14\" number={14} question=\"What is dbt state selection?\" difficulty=\"hard\" topic=\"CI/CD\">\nState selection runs only models that changed (and their dependents) compared to a previous artifact state. In CI, this reduces runtime by avoiding full rebuilds, while still validating that changes compile, run, and pass tests for affected parts of the DAG.\n</QuestionCard>"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
     "content": "<QuestionCard id=\"dbt-15\" number={15} question=\"How do you approach CI/CD for dbt projects?\" difficulty=\"medium\" topic=\"CI/CD\">\nA common approach is:\n- **in CI**: `dbt deps`, `dbt compile`, run selected models/tests (state-based or tags)\n- **in CD**: deploy artifacts and run scheduled jobs in production\n\nYou usually also enforce code review, documentation, and data tests for critical marts.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "## Seeds, Sources & Project Configuration\n\nThe parts of a dbt project that aren't models — static data, environment config, and runtime parameters.\n\n<QuestionList topic=\"Seeds, Sources & Config\" storagePrefix=\"dbt-config\">\n\n<QuestionCard id=\"dbt-16\" number={16} question=\"What are seeds in dbt, and when should you use one?\" difficulty=\"easy\" topic=\"Seeds\">\nA seed is a CSV file in the `seeds/` directory that dbt loads into the warehouse as a table via `dbt seed`. They're meant for small, static, rarely-changing reference data you control directly — a country-code-to-region mapping, a list of holiday dates — not for actual source data, which should come from a real ingestion pipeline instead.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-17\" number={17} question=\"What are environments and targets in"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "dbt (profiles.yml), and why do they matter?\" difficulty=\"medium\" topic=\"Configuration\">\nA `target` in `profiles.yml` defines a specific connection (dev, staging, prod) — its warehouse, schema, and credentials — and dbt commands run against whichever target is active. This lets the same model code build into a personal dev schema while developing and into the shared production schema when deployed, without changing a single line of SQL.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-18\" number={18} question=\"What are dbt variables, and how do you use them?\" difficulty=\"medium\" topic=\"Configuration\">\n```yaml"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "# dbt_project.yml\nvars:\n  start_date: '2024-01-01'\n```\n```sql\n{% if var('is_full_refresh', false) %} ... {% endif %}\n```\n```bash\ndbt run --vars '{\"start_date\": \"2024-06-01\"}'\n```\nVariables let you parameterize model logic without hardcoding values — a cutoff date, a feature flag, an environment-specific limit — set as defaults in `dbt_project.yml` and optionally overridden per invocation with `--vars`.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-19\" number={19} question=\"What are exposures, and why declare them?\" difficulty=\"medium\" topic=\"Documentation\">\nAn exposure declares a downstream consumer of dbt models — a BI dashboard, an ML pipeline, a reverse-ETL sync — as a first-class object in `dbt docs`, linked to the specific models it depends on. Declaring them means anyone changing a model ca"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "n see, right in the DAG/docs, which dashboards or downstream systems that change might break, instead of finding out from an angry Slack message after the dashboard goes blank.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-20\" number={20} question=\"What is the purpose of dbt_project.yml, and what kinds of settings live there?\" difficulty=\"easy\" topic=\"Configuration\">\n`dbt_project.yml` is the project-wide configuration file — it sets the project name, declares folder paths (`model-paths`, `seed-paths`), and configures default materializations, tags, and variables per directory (e.g., all models under `models/marts/` default to `materialized: table`). Model-level `.yml` files can still override these project-wide defaults for a specific model.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "## Materializations & Incremental Strategies\n\nGoing deeper than view/table/incremental — the fourth materialization type, and how incremental models actually apply changes.\n\n<QuestionList topic=\"Materializations & Incremental Strategies\" storagePrefix=\"dbt-materializations\">\n\n<QuestionCard id=\"dbt-21\" number={21} question=\"What is an ephemeral materialization, and when would you use one?\" difficulty=\"medium\" topic=\"Materializations\">\nAn ephemeral model isn't built as its own view or table in the warehouse at all — it's inlined as a CTE into every model that references it via `ref()`. Use it for a small, intermediate transformation step that exists purely to keep upstream models readable and DRY, but that nobody needs to query directly or that doesn't justify the overhead of its own databas"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "e object.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-22\" number={22} question=\"What incremental strategies does dbt support, and how do you choose between them?\" difficulty=\"hard\" topic=\"Incremental Models\">\n- **`merge`** (most warehouses) — upserts: updates matching rows on `unique_key`, inserts new ones. The most common choice when the warehouse supports it natively.\n- **`delete+insert`** — deletes rows matching the incremental batch's keys, then inserts the new batch. Useful when `merge` isn't available or efficient for the target.\n- **`append`** — just inserts new rows, no update/delete logic at all. Only correct when source rows are truly immutable and never revised (pure event logs).\n\nThe choice mostly comes down to what the target warehouse supports efficiently and whether source record"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "s can actually change after the fact.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-23\" number={23} question=\"When and why would you run a full refresh on an incremental model?\" difficulty=\"medium\" topic=\"Incremental Models\">\n```bash\ndbt run --full-refresh --select my_incremental_model\n```\nA full refresh drops and rebuilds the entire table from scratch instead of processing only new/changed rows — needed when the incremental logic itself changes (a new column, a changed `unique_key`), when you suspect the incremental table has drifted from what the logic would now produce, or the first time a model is ever run.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-24\" number={24} question=\"What are dbt model contracts, and what do they enforce?\" difficulty=\"hard\" topic=\"Contracts\">\n```yaml\nmodels:\n  - name: ord"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "ers\n    config:\n      contract: {enforced: true}\n    columns:\n      - name: order_id\n        data_type: string\n        constraints: [{type: not_null}]\n```\nA model contract declares the exact column names, types, and constraints a model must produce — dbt validates the built model against this contract and **fails the build** if reality doesn't match, rather than silently letting a schema change flow downstream. It's the mechanism that turns a data contract (see [Data Quality](/level-2-core-concepts/data-quality/#interview-questions)) from a documented agreement into something dbt itself actively enforces.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-25\" number={25} question=\"What are pre-hooks and post-hooks used for?\" difficulty=\"medium\" topic=\"Hooks\">\n```yaml\n{{ config(\n    pre_hook=\"INSERT IN"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "TO audit_log (model, started_at) VALUES ('{{ this }}', current_timestamp)\",\n    post_hook=\"GRANT SELECT ON {{ this }} TO ROLE analyst\"\n) }}\n```\n`pre_hook`/`post_hook` run arbitrary SQL immediately before or after a model builds — common uses are audit logging, granting permissions on the freshly-built table, or refreshing a downstream materialized view. They're an escape hatch for warehouse operations that don't fit naturally into \"define a `SELECT` and let dbt build it.\"\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "## Jinja & Packages\n\nTemplating and reusable code — how dbt generates SQL dynamically and shares logic across projects.\n\n<QuestionList topic=\"Jinja & Packages\" storagePrefix=\"dbt-jinja\">\n\n<QuestionCard id=\"dbt-26\" number={26} question=\"How do Jinja control structures (if/for) get used inside a dbt model?\" difficulty=\"medium\" topic=\"Jinja\">\n```sql\nSELECT\n    order_id,\n    {% for status in [\"pending\", \"shipped\", \"cancelled\"] %}\n    SUM(CASE WHEN status = '{{ status }}' THEN 1 ELSE 0 END) AS {{ status }}_count{{ \",\" if not loop.last }}\n    {% endfor %}\nFROM orders\nGROUP BY order_id\n```\nJinja `{% %}` blocks run at **compile time**, generating the final SQL text before it's ever sent to the warehouse — a `{% for %}` loop here writes out one `SUM(CASE...)` column per status without hand-typing e"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "ach one, and `{% if %}` can conditionally include entire blocks of SQL based on a variable or target.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-27\" number={27} question=\"What is dbt_utils, and what's an example of a macro from it you'd actually use?\" difficulty=\"medium\" topic=\"Packages\">\n`dbt_utils` is the most widely-used community package, providing macros for things nearly every project needs but dbt Core doesn't ship natively — `dbt_utils.generate_surrogate_key()` (hash multiple columns into one surrogate key), `dbt_utils.date_spine()` (generate a row per date in a range, useful for a date dimension), and generic tests like `dbt_utils.unique_combination_of_columns`. Reaching for it first avoids reinventing well-tested utility macros from scratch.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-28\""
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "number={28} question=\"How would you write a custom generic test?\" difficulty=\"hard\" topic=\"Testing\">\n```sql\n-- macros/test_is_positive.sql\n{% test is_positive(model, column_name) %}\nSELECT *\nFROM {{ model }}\nWHERE {{ column_name }} <= 0\n{% endtest %}\n```\n```yaml\ncolumns:\n  - name: amount\n    tests: [is_positive]\n```\nA custom generic test is a macro following the `test_<name>` naming convention that returns a query — like any dbt test, it fails if that query returns any rows. Writing your own is worthwhile once the same non-standard business rule (positive amounts, valid enum-like values not covered by `accepted_values`) needs to be checked across many models.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-29\" number={29} question=\"How do you manage third-party dbt packages in a project?\" difficul"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "ty=\"easy\" topic=\"Packages\">\n```yaml"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "# packages.yml\npackages:\n  - package: dbt-labs/dbt_utils\n    version: [\">=1.0.0\", \"<2.0.0\"]\n```\nDeclare packages in `packages.yml` with a version range, then run `dbt deps` to install them into `dbt_packages/` — this keeps the dependency list explicit and version-pinned (usually committed alongside a lockfile) rather than implicitly relying on whatever happens to already be installed.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "## Documentation, Governance & Ecosystem\n\nGenerating docs, controlling test severity, access control, and where dbt is headed beyond SQL models.\n\n<QuestionList topic=\"Documentation & Ecosystem\" storagePrefix=\"dbt-ecosystem\">\n\n<QuestionCard id=\"dbt-30\" number={30} question=\"How does dbt documentation generation work, and what does it produce?\" difficulty=\"easy\" topic=\"Documentation\">\n`dbt docs generate` introspects the project (model SQL, `.yml` descriptions, test definitions, and the warehouse's actual column metadata) and produces a static site with searchable model/column descriptions and an interactive DAG lineage graph — served locally with `dbt docs serve` or hosted for the whole team. Documentation quality is only as good as the `description:` fields authors actually fill in in each"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "model's `.yml` file.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-31\" number={31} question=\"What's the difference between warn and error severity on a dbt test?\" difficulty=\"easy\" topic=\"Testing\">\n```yaml\ntests:\n  - not_null:\n      config: {severity: warn}\n```\nAn `error`-severity test (the default) fails the entire `dbt build`/`dbt test` run when it fails. A `warn`-severity test logs a warning but lets the run continue — useful for checks that are informative but not yet reliable enough (or not yet important enough) to block a deploy, without losing visibility into the issue entirely.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-32\" number={32} question=\"What are grants in dbt, and why configure them in code rather than manually?\" difficulty=\"medium\" topic=\"Governance\">\n```yaml\nmodels:\n  - name: reven"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "ue_mart\n    config:\n      grants:\n        select: [\"role:analyst\", \"role:bi_tool\"]\n```\nThe `grants` config applies warehouse permissions (who can `SELECT` on a model) as part of the build itself, rather than someone remembering to run a `GRANT` statement manually after every deploy. Defining access in code means it's version-controlled, reviewed like any other change, and automatically reapplied if a table gets rebuilt from scratch.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-33\" number={33} question=\"What's the difference between dbt Core and dbt Cloud?\" difficulty=\"easy\" topic=\"Ecosystem\">\n**dbt Core** is the open-source CLI — you run it yourself, on your own infrastructure or orchestrator (often triggered by Airflow). **dbt Cloud** is the managed SaaS product built on top of it, adding a sch"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "eduler, hosted docs, an IDE, and the Semantic Layer, aimed at teams that don't want to build and operate that infrastructure themselves. The underlying model/test/macro code is the same either way — the difference is entirely in how and where it's run and managed.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-34\" number={34} question=\"What are dbt Python models, and when would you reach for one over SQL?\" difficulty=\"hard\" topic=\"Python Models\">\nOn warehouses that support it (Snowflake, Databricks, BigQuery), a dbt model can be a `.py` file returning a DataFrame instead of a `.sql` file — it still participates in the same `ref()`/DAG/testing system as SQL models. Reach for one when the transformation genuinely needs something SQL is awkward at — a statistical/ML computation, a complex text-parsin"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "g step, calling a Python library — not as a general substitute for logic that's perfectly expressible in SQL, which stays simpler and more portable across warehouses.\n</QuestionCard>\n\n<QuestionCard id=\"dbt-35\" number={35} question=\"What is the dbt Semantic Layer / MetricFlow, and what problem does it solve?\" difficulty=\"hard\" topic=\"Semantic Layer\">\nThe Semantic Layer lets you define metrics (revenue, active users) once in code, with their aggregation logic and dimensions, and have every BI tool and query pull a **consistent** value for that metric instead of each tool/analyst re-implementing the same calculation slightly differently. MetricFlow is the engine that compiles a metric query into the correct SQL against the underlying marts — it directly targets the classic \"why do these two d"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "ashboards show different revenue\" problem by making the metric definition the single source of truth.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/transformation/dbt/",
+    "locale": "en",
+    "title": "DBT",
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
     "content": "## Common Interview Scenarios\n\n- **\"A dbt model takes 40 minutes to build every night and it's only getting slower.\"** Talk through switching it from a table to an incremental materialization, choosing a reliable `unique_key`, and using state selection so CI doesn't rebuild the whole DAG on every PR.\n- **\"How would you catch a broken upstream schema before it reaches your marts?\"** Discuss declaring the table as a dbt source, adding freshness checks and column tests (`not_null`, `relationships`), and failing the run loudly rather than silently propagating bad data downstream.\n- **\"You need point-in-time history for a dimension that only exists as a mutable table in the source system.\"** Explain dbt snapshots as the SCD2 mechanism, and how they differ from just re-running a model that alway"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
-    "content": "s reflects \"now.\"\n\n---"
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "s reflects \"now.\"\n- **\"Two BI dashboards show different revenue numbers, built from the same marts.\"** Point to the Semantic Layer/MetricFlow as the structural fix — a single defined metric every tool queries — rather than a one-off SQL reconciliation, and mention model contracts as the related mechanism for catching a schema mismatch before it causes the same kind of silent drift.\n- **\"A model change needs to not break a downstream dashboard nobody on the data team directly owns.\"** Talk through exposures (declaring that dependency explicitly in docs) combined with state-based CI selection, so anyone changing the upstream model sees the affected downstream consumer before merging, not after it breaks.\n\n---"
   },
   {
     "path": "/level-3-technologies/transformation/dbt/",
     "locale": "en",
     "title": "DBT",
-    "description": "dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.",
-    "content": "## Further Reading\n\n- [Data Modeling](/level-2-core-concepts/data-modeling/) — the star schema and SCD concepts dbt marts and snapshots implement\n- [SQL Interview Questions](/level-1-foundations/sql/theory/) — the query patterns dbt models are built from\n- [Airflow](/level-3-technologies/orchestration/airflow/) — the orchestrator that commonly triggers dbt runs in production"
+    "description": "dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.",
+    "content": "## Further Reading\n\n- [Data Modeling](/level-2-core-concepts/data-modeling/) — the star schema and SCD concepts dbt marts and snapshots implement\n- [Data Quality](/level-2-core-concepts/data-quality/#interview-questions) — where dbt tests fit into a broader validation strategy\n- [SQL Interview Questions](/level-1-foundations/sql/theory/) — the query patterns dbt models are built from\n- [Airflow](/level-3-technologies/orchestration/airflow/) — the orchestrator that commonly triggers dbt runs in production"
   },
   {
     "path": "/level-3-technologies/transformation/index/",

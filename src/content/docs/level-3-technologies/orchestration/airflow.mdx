@@ -1,6 +1,6 @@
 ---
 title: Airflow
-description: Apache Airflow interview questions covering DAGs, executors, the scheduler, XComs, Jinja templating, and cron-based scheduling.
+description: Apache Airflow interview questions covering DAGs, executors, sensors, hooks, the TaskFlow API, dynamic task mapping, branching, and scheduling.
 ---
 
 import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
@@ -13,6 +13,12 @@ import QuestionList from '../../../../components/mdx/QuestionList.astro';
 ## Table of Contents
 - [Key Concepts](#key-concepts)
 - [Interview Questions](#interview-questions)
+- [Operators, Hooks & Connections](#operators-hooks--connections)
+- [Sensors](#sensors)
+- [Modern DAG Authoring: TaskFlow API](#modern-dag-authoring-taskflow-api)
+- [Control Flow: Branching & Trigger Rules](#control-flow-branching--trigger-rules)
+- [Scheduling, Backfills & Idempotency](#scheduling-backfills--idempotency)
+- [Operations, Testing & Ecosystem](#operations-testing--ecosystem)
 - [Common Interview Scenarios](#common-interview-scenarios)
 - [Further Reading](#further-reading)
 
@@ -200,15 +206,307 @@ SELECT * FROM {{ task_instance.xcom_pull(task_ids='foo', key='table_name') }}
 
 ---
 
+## Operators, Hooks & Connections
+
+The building blocks of a task, and how Airflow talks to external systems without hardcoding credentials.
+
+<QuestionList topic="Operators, Hooks & Connections" storagePrefix="airflow-operators">
+
+<QuestionCard id="af-18" number={18} question="What is an operator in Airflow?" difficulty="easy" topic="Operators">
+An operator is a template for a single task — it defines *what* work gets done (run a Python function, execute a bash command, run a SQL query, copy a file to S3). A DAG is really a graph of operator instances wired together with dependencies; Airflow ships dozens of built-in operators (`PythonOperator`, `BashOperator`, `PostgresOperator`, `S3ToRedshiftOperator`, etc.) and providers add many more for specific systems.
+</QuestionCard>
+
+<QuestionCard id="af-19" number={19} question="What is a hook, and how does it relate to a connection?" difficulty="medium" topic="Hooks">
+A **connection** stores the credentials and connection details for an external system (host, login, password, extra config) in Airflow's metadata database, referenced by a `conn_id` string rather than hardcoded values. A **hook** is the Python interface that uses a connection to actually talk to that system — `PostgresHook`, `S3Hook`, `SlackHook` — so operators are typically thin wrappers that call a hook under the hood.
+
+```python
+from airflow.providers.postgres.hooks.postgres import PostgresHook
+
+hook = PostgresHook(postgres_conn_id="my_warehouse")
+rows = hook.get_records("SELECT * FROM orders LIMIT 10")
+```
+</QuestionCard>
+
+<QuestionCard id="af-20" number={20} question="How do you store and use a connection, like a database or S3 credential, in Airflow?" difficulty="easy" topic="Connections">
+Connections are created through the Airflow UI (Admin → Connections), the CLI (`airflow connections add`), or environment variables (`AIRFLOW_CONN_*`) — never hardcoded in DAG files. Once stored, any task references it by `conn_id`:
+
+```python
+S3Hook(aws_conn_id="my_s3_conn").load_file(filename, key, bucket_name)
+```
+
+Storing credentials this way means rotating a password is a one-time change in the connection, not a search-and-replace across every DAG that uses it.
+</QuestionCard>
+
+<QuestionCard id="af-21" number={21} question="How would you write a custom operator?" difficulty="medium" topic="Operators">
+Subclass `BaseOperator` and implement `execute()`:
+
+```python
+from airflow.models import BaseOperator
+
+class DataQualityCheckOperator(BaseOperator):
+    def __init__(self, table_name, min_rows, **kwargs):
+        super().__init__(**kwargs)
+        self.table_name = table_name
+        self.min_rows = min_rows
+
+    def execute(self, context):
+        count = PostgresHook().get_first(f"SELECT COUNT(*) FROM {self.table_name}")[0]
+        if count < self.min_rows:
+            raise ValueError(f"{self.table_name} has only {count} rows, expected >= {self.min_rows}")
+```
+
+Write a custom operator when the same multi-step logic (a specific validation, a specific API call pattern) is repeated across many DAGs — it turns copy-pasted task code into one reusable, testable class.
+</QuestionCard>
+
+<QuestionCard id="af-22" number={22} question="What are Airflow Variables, and how do they differ from XComs?" difficulty="easy" topic="Variables">
+**Variables** are key-value settings stored in Airflow's metadata database, meant for configuration that's the same across runs — an environment name, a feature flag, a file path prefix. **XComs** are per-run data passed between tasks *within a single DAG run*. The distinction: Variables are static configuration read by (potentially) any DAG; XComs are dynamic data produced and consumed by specific tasks in one run.
+
+```python
+from airflow.models import Variable
+environment = Variable.get("deployment_environment", default_var="dev")
+```
+
+Avoid stuffing large or frequently-changing data into Variables — they're read from the database on every access and aren't designed for that.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Sensors
+
+Tasks that wait for something to become true before the rest of the DAG proceeds.
+
+<QuestionList topic="Sensors" storagePrefix="airflow-sensors">
+
+<QuestionCard id="af-23" number={23} question="What is a sensor in Airflow, and how does it differ from a regular task?" difficulty="medium" topic="Sensors">
+A sensor is a special operator that waits for a condition to become true — a file to land in S3, a partition to appear in a table, another DAG to finish — before letting downstream tasks run. Unlike a regular task that does work and finishes, a sensor's job *is* the waiting; it repeatedly checks (`poke`s) the condition on an interval until it succeeds or times out.
+
+```python
+from airflow.sensors.filesystem import FileSensor
+
+wait_for_file = FileSensor(task_id="wait_for_export", filepath="/data/export.csv", poke_interval=60)
+```
+</QuestionCard>
+
+<QuestionCard id="af-24" number={24} question="What's the difference between poke mode and reschedule mode for a sensor?" difficulty="hard" topic="Sensors">
+In **poke mode** (the default), a sensor occupies a worker slot for its entire wait, repeatedly checking on `poke_interval` — fine for short waits, wasteful for long ones since that slot can't run anything else. In **reschedule mode** (`mode="reschedule"`), the sensor gives up its worker slot between checks and reschedules itself, freeing that slot for other tasks while it waits — much better for sensors that might wait for hours.
+</QuestionCard>
+
+<QuestionCard id="af-25" number={25} question="What is a deferrable operator/sensor, and what problem does it solve?" difficulty="hard" topic="Sensors">
+A deferrable operator (Airflow 2.2+) suspends itself entirely and hands the waiting off to a separate lightweight **triggerer** process, freeing its worker slot completely rather than just periodically — unlike reschedule mode, which still consumes scheduler/worker resources on each check. This lets a single triggerer process efficiently manage thousands of concurrent waits (for S3 files, external task completion, etc.) that would otherwise each tie up a full worker slot.
+</QuestionCard>
+
+<QuestionCard id="af-26" number={26} question="What is an ExternalTaskSensor used for?" difficulty="medium" topic="Sensors">
+`ExternalTaskSensor` waits for a task (or whole DAG) in a *different* DAG to reach a specific state before proceeding — the standard way to express a dependency between two otherwise-separate pipelines, like "don't start the reporting DAG until the ingestion DAG's `load_warehouse` task has succeeded for the same execution date."
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Modern DAG Authoring: TaskFlow API
+
+The `@task`-decorator style introduced in Airflow 2.0, and the newer dynamic task mapping built on top of it.
+
+<QuestionList topic="TaskFlow API" storagePrefix="airflow-taskflow">
+
+<QuestionCard id="af-27" number={27} question="What is the TaskFlow API, and how does the @task decorator simplify writing DAGs?" difficulty="medium" topic="TaskFlow">
+```python
+from airflow.decorators import dag, task
+from datetime import datetime
+
+@dag(schedule="@daily", start_date=datetime(2024, 1, 1), catchup=False)
+def etl_pipeline():
+    @task
+    def extract():
+        return {"rows": 100}
+
+    @task
+    def load(data: dict):
+        print(f"Loading {data['rows']} rows")
+
+    load(extract())   # dependency + XCom passing, both inferred automatically
+
+etl_pipeline()
+```
+
+TaskFlow lets you write DAGs as plain Python functions with a `@task` decorator — dependencies and XCom passing are inferred from how you call the functions, instead of manually instantiating operators and wiring `>>`/`xcom_pull` by hand. It's a thinner syntax over the same underlying execution model, not a different engine.
+</QuestionCard>
+
+<QuestionCard id="af-28" number={28} question="How does XCom passing work differently with the TaskFlow API compared to traditional operators?" difficulty="medium" topic="TaskFlow">
+With traditional operators, you explicitly call `task_instance.xcom_pull(task_ids=...)` to retrieve a value pushed by another task. With TaskFlow, simply passing one task's return value as another task's argument (`load(extract())`) automatically pushes and pulls the XCom behind the scenes — the data flow reads like ordinary Python function composition, with the XCom mechanics hidden.
+</QuestionCard>
+
+<QuestionCard id="af-29" number={29} question="What are TaskGroups, and why would you use one?" difficulty="medium" topic="TaskGroups">
+```python
+from airflow.utils.task_group import TaskGroup
+
+with TaskGroup("extract_group") as extract_group:
+    extract_orders = PythonOperator(task_id="extract_orders", ...)
+    extract_users = PythonOperator(task_id="extract_users", ...)
+```
+
+A `TaskGroup` visually and logically groups related tasks in the UI (collapsible in the graph view) without changing execution semantics — purely organizational, useful once a DAG has enough tasks that a flat list becomes hard to read. It's the modern replacement for the older SubDAG pattern, which had performance and locking problems.
+</QuestionCard>
+
+<QuestionCard id="af-30" number={30} question="What is dynamic task mapping (.expand()), and when would you use it?" difficulty="hard" topic="Dynamic Tasks">
+```python
+@task
+def process_file(filename: str):
+    ...
+
+@task
+def list_files() -> list[str]:
+    return ["a.csv", "b.csv", "c.csv"]   # count only known at runtime
+
+process_file.expand(filename=list_files())   # creates one mapped task instance per file
+```
+
+Dynamic task mapping creates a variable number of task instances at runtime, based on data that isn't known until the DAG actually runs — one file discovered in S3, one partition per date range, one API page. Before this (Airflow 2.3+), you'd either hardcode a fixed number of parallel tasks or fall back to a single task looping internally, losing per-item retry/visibility in the UI.
+</QuestionCard>
+
+<QuestionCard id="af-31" number={31} question="Can you mix traditional operators and TaskFlow-decorated tasks in the same DAG?" difficulty="medium" topic="TaskFlow">
+Yes — `@task`-decorated functions and classic operator instances can depend on each other in the same DAG, and TaskFlow tasks can still push/pull XComs manually when needed. Most real DAGs end up mixing both: TaskFlow for custom Python logic, traditional operators for provider-specific integrations (S3, Snowflake, Slack) that don't have a natural "just call a function" shape.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Control Flow: Branching & Trigger Rules
+
+Controlling which tasks actually run, beyond a simple linear chain of dependencies.
+
+<QuestionList topic="Branching & Trigger Rules" storagePrefix="airflow-control">
+
+<QuestionCard id="af-32" number={32} question="How do you set task dependencies in Airflow?" difficulty="easy" topic="Dependencies">
+```python
+extract >> transform >> load          # extract, then transform, then load
+extract >> [transform_a, transform_b] # both run after extract, in parallel
+[transform_a, transform_b] >> load    # load waits for both
+```
+
+`>>` sets "runs after" (downstream), `<<` sets "runs before" (upstream) — both are shorthand for `.set_downstream()`/`.set_upstream()`. Dependencies can fan out to a list (parallel branches) or fan back in (a task waiting on multiple upstream tasks).
+</QuestionCard>
+
+<QuestionCard id="af-33" number={33} question="How does branching work with BranchPythonOperator?" difficulty="medium" topic="Branching">
+```python
+from airflow.operators.python import BranchPythonOperator
+
+def choose_path(**context):
+    return "path_a" if some_condition else "path_b"   # must return a task_id
+
+branch = BranchPythonOperator(task_id="branch", python_callable=choose_path)
+branch >> [path_a, path_b]
+```
+
+The branching function returns the `task_id` (or list of ids) that should run next; every other downstream task in that branch point is automatically skipped, not just left unscheduled. This is how a DAG expresses "run path A or path B, never both" based on a runtime condition.
+</QuestionCard>
+
+<QuestionCard id="af-34" number={34} question="What is a ShortCircuitOperator, and how does it differ from branching?" difficulty="medium" topic="Branching">
+`ShortCircuitOperator` evaluates a condition and either lets execution continue (all downstream tasks proceed normally) or skips **everything** downstream if it returns falsy — it's an on/off switch for the rest of the DAG, not a choice between multiple paths like `BranchPythonOperator`. Use it for a "should this DAG even continue past this point?" gate (e.g., "were there any new records at all?") rather than routing between alternatives.
+</QuestionCard>
+
+<QuestionCard id="af-35" number={35} question="What are trigger rules, and when would you use one other than the default?" difficulty="hard" topic="Trigger Rules">
+A trigger rule decides when a task is eligible to run based on the state of its upstream tasks. The default, `all_success`, requires every upstream task to succeed. Common alternatives: `all_done` (run regardless of upstream success/failure — useful for cleanup/notification tasks), `one_failed` (run if any upstream failed — useful for alerting), and `none_failed` (run if nothing failed, even if some upstream tasks were skipped by branching).
+
+```python
+notify = PythonOperator(task_id="notify", trigger_rule="all_done", python_callable=send_notification)
+```
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Scheduling, Backfills & Idempotency
+
+The details behind "when does this actually run," and how re-running past dates is meant to work.
+
+<QuestionList topic="Scheduling & Backfills" storagePrefix="airflow-scheduling">
+
+<QuestionCard id="af-36" number={36} question="What's the difference between execution_date and data_interval in Airflow scheduling?" difficulty="hard" topic="Scheduling">
+The older `execution_date` was confusingly named — a DAG scheduled `@daily` for "Jan 2" actually runs *after* Jan 2 ends (processing Jan 2's data), not at the start of Jan 2, which tripped up nearly everyone. Airflow 2.2+ replaced this with explicit `data_interval_start`/`data_interval_end`, naming the time range the run is actually processing, with `logical_date` as the modern (still slightly confusing but clearer) equivalent of the old term.
+</QuestionCard>
+
+<QuestionCard id="af-37" number={37} question="What's the difference between catchup and backfill?" difficulty="medium" topic="Backfills">
+**`catchup`** (a DAG-level setting) controls whether Airflow automatically creates runs for every interval between a DAG's `start_date` and now the first time it's turned on (`catchup=True`) or only starts from the current interval going forward (`catchup=False`, usually what you want). **Backfill** is a manual, on-demand action (`airflow dags backfill`) to (re)run a DAG for a specific past date range — for example, after fixing a bug, to regenerate historical outputs that were wrong.
+</QuestionCard>
+
+<QuestionCard id="af-38" number={38} question="What is an SLA in Airflow, and what happens when one is missed?" difficulty="medium" topic="SLAs">
+An SLA is a maximum expected duration for a task, set via `sla=timedelta(hours=2)`. If a task is still running (or hasn't started) past that threshold relative to the DAG's expected schedule, Airflow logs an SLA miss and can trigger a notification callback — but critically, it does **not** stop or fail the task; it's purely an alerting mechanism, not an enforcement one.
+</QuestionCard>
+
+<QuestionCard id="af-39" number={39} question="What are pools and priority weights used for?" difficulty="hard" topic="Resource Management">
+A **pool** caps how many tasks can run concurrently against a shared, limited resource (a database that can only handle 5 concurrent connections, an API with a rate limit) — tasks assigned to that pool queue once its slot limit is reached, regardless of how much broader worker capacity is free. **`priority_weight`** breaks ties among tasks queued for the same pool or worker slots, so higher-priority work (e.g., a time-sensitive report) jumps ahead of lower-priority backlog work competing for the same constrained resource.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Operations, Testing & Ecosystem
+
+Running Airflow reliably in production — testing DAGs, alerting, performance, and where it fits among other orchestrators.
+
+<QuestionList topic="Operations & Ecosystem" storagePrefix="airflow-ops">
+
+<QuestionCard id="af-40" number={40} question="How do you unit test an Airflow DAG?" difficulty="medium" topic="Testing">
+```python
+def test_dag_has_no_import_errors():
+    from airflow.models import DagBag
+    dagbag = DagBag()
+    assert len(dagbag.import_errors) == 0
+
+def test_transform_task_logic():
+    # test the underlying Python function directly — no need to run it through Airflow at all
+    assert normalize_revenue({"revenue_cents": 1050}) == 10.50
+```
+
+Two layers are worth testing: DAG-integrity tests (does it parse without errors, does the expected task count/structure match) using `DagBag`, and unit tests of the actual business logic inside each task's callable — which, if written well, don't need Airflow at all to test, since they're just plain functions.
+</QuestionCard>
+
+<QuestionCard id="af-41" number={41} question="How do you set up alerting when a task fails?" difficulty="easy" topic="Monitoring">
+```python
+def notify_slack(context):
+    send_slack_message(f"Task {context['task_instance'].task_id} failed")
+
+default_args = {"on_failure_callback": notify_slack}
+```
+
+`on_failure_callback` (and `on_success_callback`, `sla_miss_callback`) fire automatically on the relevant event, letting you push a notification to Slack, PagerDuty, or email without polling anything. Set sensible defaults at the DAG level (`default_args`) rather than repeating the callback on every single task.
+</QuestionCard>
+
+<QuestionCard id="af-42" number={42} question="Why does DAG file parsing performance matter, and what's a common mistake that hurts it?" difficulty="hard" topic="Performance">
+The scheduler re-parses every DAG file on a regular interval (to pick up code changes) — if a DAG file runs slow or expensive code at **import time** (a database query, an API call, a large computation outside of any task), that cost is paid on every single parse cycle, not once per run, and can meaningfully slow down the whole scheduler across all DAGs. The fix is keeping DAG files themselves lightweight — only DAG/task *definitions* at the top level, with any real work happening inside a task's callable, which only executes when the task actually runs.
+</QuestionCard>
+
+<QuestionCard id="af-43" number={43} question="How does Airflow compare to Dagster or Prefect?" difficulty="medium" topic="Ecosystem">
+Airflow is the most established and widely adopted, with the largest ecosystem of providers/integrations, but its DAG model is comparatively low-level about data (tasks pass small XComs, not first-class typed data assets). **Dagster** is built around "software-defined assets" — it tracks data products themselves, not just task execution, with stronger typing and local testability out of the box. **Prefect** emphasizes a more Pythonic, dynamic flow definition with less rigid DAG structure and easier local development. In practice, Airflow's maturity and ecosystem size are still the main reason it remains the default choice for many teams.
+</QuestionCard>
+
+<QuestionCard id="af-44" number={44} question="What can you do with the Airflow REST API or CLI that you can't easily do from the UI?" difficulty="easy" topic="Operations">
+Both let you script and automate operations that would otherwise require manual clicks: triggering a DAG run with specific config from an external system (`airflow dags trigger` or `POST /dags/{dag_id}/dagRuns`), running backfills, managing connections/variables as part of infrastructure-as-code, and integrating DAG triggers into CI/CD pipelines — anything you want driven programmatically rather than by a person in the browser.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
 ## Common Interview Scenarios
 
 - **"Walk me through how you'd design a DAG for a daily ETL pipeline."** Talk through breaking the pipeline into idempotent tasks, choosing a `schedule_interval`/cron expression, wiring dependencies, and how retries and backfills would behave given that tasks can run more than once.
 - **"A task's output needs to feed into the next task's SQL query — how do you pass it along?"** Reach for XComs (`xcom_push`/`xcom_pull`) and Jinja templating to inject the pulled value directly into a templated field like a SQL statement.
 - **"Which executor would you pick for a production deployment, and why?"** Compare `CeleryExecutor` vs `KubernetesExecutor` on scalability, resource isolation per task, and operational complexity (Celery needs RabbitMQ/Redis; Kubernetes needs a cluster and more nuanced docs).
+- **"A DAG needs to process a variable, unknown-ahead-of-time number of files each run."** This is a dynamic task mapping signal — talk through `.expand()` over a list produced by an upstream task, versus the older workaround of a single task looping internally and losing per-item retry/visibility.
+- **"Downstream tasks should only run for certain records, not all of them."** Distinguish branching (`BranchPythonOperator`, choosing between alternate paths) from a `ShortCircuitOperator` (an on/off gate for everything downstream), and mention trigger rules if the scenario involves cleanup/alerting tasks that should run regardless of upstream success or failure.
 
 ---
 
 ## Further Reading
 
 - [Kubernetes](/level-3-technologies/orchestration/kubernetes/) — the container platform Airflow's `KubernetesExecutor` runs tasks on
+- [DBT](/level-3-technologies/transformation/dbt/#interview-questions) — the transformation tool Airflow commonly orchestrates
+- [Kafka](/level-3-technologies/streaming/kafka/#interview-questions) — the streaming counterpart to Airflow's batch-oriented scheduling model
 - [Data Engineering Roadmap](/roadmaps/data-engineering/) — where orchestration fits into the broader curriculum

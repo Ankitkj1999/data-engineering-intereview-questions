@@ -1,6 +1,6 @@
 ---
 title: DBT
-description: dbt interview questions covering models, ref(), materializations, incremental models, tests, snapshots, macros, and CI/CD workflows for data engineers.
+description: dbt interview questions covering models, seeds, materializations, incremental strategies, contracts, Jinja, packages, and the Semantic Layer.
 ---
 
 import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
@@ -13,6 +13,10 @@ import QuestionList from '../../../../components/mdx/QuestionList.astro';
 ## Table of Contents
 - [Key Concepts](#key-concepts)
 - [Interview Questions](#interview-questions)
+- [Seeds, Sources & Project Configuration](#seeds-sources--project-configuration)
+- [Materializations & Incremental Strategies](#materializations--incremental-strategies)
+- [Jinja & Packages](#jinja--packages)
+- [Documentation, Governance & Ecosystem](#documentation-governance--ecosystem)
 - [Common Interview Scenarios](#common-interview-scenarios)
 - [Further Reading](#further-reading)
 
@@ -105,16 +109,213 @@ You usually also enforce code review, documentation, and data tests for critical
 
 ---
 
+## Seeds, Sources & Project Configuration
+
+The parts of a dbt project that aren't models — static data, environment config, and runtime parameters.
+
+<QuestionList topic="Seeds, Sources & Config" storagePrefix="dbt-config">
+
+<QuestionCard id="dbt-16" number={16} question="What are seeds in dbt, and when should you use one?" difficulty="easy" topic="Seeds">
+A seed is a CSV file in the `seeds/` directory that dbt loads into the warehouse as a table via `dbt seed`. They're meant for small, static, rarely-changing reference data you control directly — a country-code-to-region mapping, a list of holiday dates — not for actual source data, which should come from a real ingestion pipeline instead.
+</QuestionCard>
+
+<QuestionCard id="dbt-17" number={17} question="What are environments and targets in dbt (profiles.yml), and why do they matter?" difficulty="medium" topic="Configuration">
+A `target` in `profiles.yml` defines a specific connection (dev, staging, prod) — its warehouse, schema, and credentials — and dbt commands run against whichever target is active. This lets the same model code build into a personal dev schema while developing and into the shared production schema when deployed, without changing a single line of SQL.
+</QuestionCard>
+
+<QuestionCard id="dbt-18" number={18} question="What are dbt variables, and how do you use them?" difficulty="medium" topic="Configuration">
+```yaml
+# dbt_project.yml
+vars:
+  start_date: '2024-01-01'
+```
+```sql
+{% if var('is_full_refresh', false) %} ... {% endif %}
+```
+```bash
+dbt run --vars '{"start_date": "2024-06-01"}'
+```
+Variables let you parameterize model logic without hardcoding values — a cutoff date, a feature flag, an environment-specific limit — set as defaults in `dbt_project.yml` and optionally overridden per invocation with `--vars`.
+</QuestionCard>
+
+<QuestionCard id="dbt-19" number={19} question="What are exposures, and why declare them?" difficulty="medium" topic="Documentation">
+An exposure declares a downstream consumer of dbt models — a BI dashboard, an ML pipeline, a reverse-ETL sync — as a first-class object in `dbt docs`, linked to the specific models it depends on. Declaring them means anyone changing a model can see, right in the DAG/docs, which dashboards or downstream systems that change might break, instead of finding out from an angry Slack message after the dashboard goes blank.
+</QuestionCard>
+
+<QuestionCard id="dbt-20" number={20} question="What is the purpose of dbt_project.yml, and what kinds of settings live there?" difficulty="easy" topic="Configuration">
+`dbt_project.yml` is the project-wide configuration file — it sets the project name, declares folder paths (`model-paths`, `seed-paths`), and configures default materializations, tags, and variables per directory (e.g., all models under `models/marts/` default to `materialized: table`). Model-level `.yml` files can still override these project-wide defaults for a specific model.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Materializations & Incremental Strategies
+
+Going deeper than view/table/incremental — the fourth materialization type, and how incremental models actually apply changes.
+
+<QuestionList topic="Materializations & Incremental Strategies" storagePrefix="dbt-materializations">
+
+<QuestionCard id="dbt-21" number={21} question="What is an ephemeral materialization, and when would you use one?" difficulty="medium" topic="Materializations">
+An ephemeral model isn't built as its own view or table in the warehouse at all — it's inlined as a CTE into every model that references it via `ref()`. Use it for a small, intermediate transformation step that exists purely to keep upstream models readable and DRY, but that nobody needs to query directly or that doesn't justify the overhead of its own database object.
+</QuestionCard>
+
+<QuestionCard id="dbt-22" number={22} question="What incremental strategies does dbt support, and how do you choose between them?" difficulty="hard" topic="Incremental Models">
+- **`merge`** (most warehouses) — upserts: updates matching rows on `unique_key`, inserts new ones. The most common choice when the warehouse supports it natively.
+- **`delete+insert`** — deletes rows matching the incremental batch's keys, then inserts the new batch. Useful when `merge` isn't available or efficient for the target.
+- **`append`** — just inserts new rows, no update/delete logic at all. Only correct when source rows are truly immutable and never revised (pure event logs).
+
+The choice mostly comes down to what the target warehouse supports efficiently and whether source records can actually change after the fact.
+</QuestionCard>
+
+<QuestionCard id="dbt-23" number={23} question="When and why would you run a full refresh on an incremental model?" difficulty="medium" topic="Incremental Models">
+```bash
+dbt run --full-refresh --select my_incremental_model
+```
+A full refresh drops and rebuilds the entire table from scratch instead of processing only new/changed rows — needed when the incremental logic itself changes (a new column, a changed `unique_key`), when you suspect the incremental table has drifted from what the logic would now produce, or the first time a model is ever run.
+</QuestionCard>
+
+<QuestionCard id="dbt-24" number={24} question="What are dbt model contracts, and what do they enforce?" difficulty="hard" topic="Contracts">
+```yaml
+models:
+  - name: orders
+    config:
+      contract: {enforced: true}
+    columns:
+      - name: order_id
+        data_type: string
+        constraints: [{type: not_null}]
+```
+A model contract declares the exact column names, types, and constraints a model must produce — dbt validates the built model against this contract and **fails the build** if reality doesn't match, rather than silently letting a schema change flow downstream. It's the mechanism that turns a data contract (see [Data Quality](/level-2-core-concepts/data-quality/#interview-questions)) from a documented agreement into something dbt itself actively enforces.
+</QuestionCard>
+
+<QuestionCard id="dbt-25" number={25} question="What are pre-hooks and post-hooks used for?" difficulty="medium" topic="Hooks">
+```yaml
+{{ config(
+    pre_hook="INSERT INTO audit_log (model, started_at) VALUES ('{{ this }}', current_timestamp)",
+    post_hook="GRANT SELECT ON {{ this }} TO ROLE analyst"
+) }}
+```
+`pre_hook`/`post_hook` run arbitrary SQL immediately before or after a model builds — common uses are audit logging, granting permissions on the freshly-built table, or refreshing a downstream materialized view. They're an escape hatch for warehouse operations that don't fit naturally into "define a `SELECT` and let dbt build it."
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Jinja & Packages
+
+Templating and reusable code — how dbt generates SQL dynamically and shares logic across projects.
+
+<QuestionList topic="Jinja & Packages" storagePrefix="dbt-jinja">
+
+<QuestionCard id="dbt-26" number={26} question="How do Jinja control structures (if/for) get used inside a dbt model?" difficulty="medium" topic="Jinja">
+```sql
+SELECT
+    order_id,
+    {% for status in ["pending", "shipped", "cancelled"] %}
+    SUM(CASE WHEN status = '{{ status }}' THEN 1 ELSE 0 END) AS {{ status }}_count{{ "," if not loop.last }}
+    {% endfor %}
+FROM orders
+GROUP BY order_id
+```
+Jinja `{% %}` blocks run at **compile time**, generating the final SQL text before it's ever sent to the warehouse — a `{% for %}` loop here writes out one `SUM(CASE...)` column per status without hand-typing each one, and `{% if %}` can conditionally include entire blocks of SQL based on a variable or target.
+</QuestionCard>
+
+<QuestionCard id="dbt-27" number={27} question="What is dbt_utils, and what's an example of a macro from it you'd actually use?" difficulty="medium" topic="Packages">
+`dbt_utils` is the most widely-used community package, providing macros for things nearly every project needs but dbt Core doesn't ship natively — `dbt_utils.generate_surrogate_key()` (hash multiple columns into one surrogate key), `dbt_utils.date_spine()` (generate a row per date in a range, useful for a date dimension), and generic tests like `dbt_utils.unique_combination_of_columns`. Reaching for it first avoids reinventing well-tested utility macros from scratch.
+</QuestionCard>
+
+<QuestionCard id="dbt-28" number={28} question="How would you write a custom generic test?" difficulty="hard" topic="Testing">
+```sql
+-- macros/test_is_positive.sql
+{% test is_positive(model, column_name) %}
+SELECT *
+FROM {{ model }}
+WHERE {{ column_name }} <= 0
+{% endtest %}
+```
+```yaml
+columns:
+  - name: amount
+    tests: [is_positive]
+```
+A custom generic test is a macro following the `test_<name>` naming convention that returns a query — like any dbt test, it fails if that query returns any rows. Writing your own is worthwhile once the same non-standard business rule (positive amounts, valid enum-like values not covered by `accepted_values`) needs to be checked across many models.
+</QuestionCard>
+
+<QuestionCard id="dbt-29" number={29} question="How do you manage third-party dbt packages in a project?" difficulty="easy" topic="Packages">
+```yaml
+# packages.yml
+packages:
+  - package: dbt-labs/dbt_utils
+    version: [">=1.0.0", "<2.0.0"]
+```
+Declare packages in `packages.yml` with a version range, then run `dbt deps` to install them into `dbt_packages/` — this keeps the dependency list explicit and version-pinned (usually committed alongside a lockfile) rather than implicitly relying on whatever happens to already be installed.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Documentation, Governance & Ecosystem
+
+Generating docs, controlling test severity, access control, and where dbt is headed beyond SQL models.
+
+<QuestionList topic="Documentation & Ecosystem" storagePrefix="dbt-ecosystem">
+
+<QuestionCard id="dbt-30" number={30} question="How does dbt documentation generation work, and what does it produce?" difficulty="easy" topic="Documentation">
+`dbt docs generate` introspects the project (model SQL, `.yml` descriptions, test definitions, and the warehouse's actual column metadata) and produces a static site with searchable model/column descriptions and an interactive DAG lineage graph — served locally with `dbt docs serve` or hosted for the whole team. Documentation quality is only as good as the `description:` fields authors actually fill in in each model's `.yml` file.
+</QuestionCard>
+
+<QuestionCard id="dbt-31" number={31} question="What's the difference between warn and error severity on a dbt test?" difficulty="easy" topic="Testing">
+```yaml
+tests:
+  - not_null:
+      config: {severity: warn}
+```
+An `error`-severity test (the default) fails the entire `dbt build`/`dbt test` run when it fails. A `warn`-severity test logs a warning but lets the run continue — useful for checks that are informative but not yet reliable enough (or not yet important enough) to block a deploy, without losing visibility into the issue entirely.
+</QuestionCard>
+
+<QuestionCard id="dbt-32" number={32} question="What are grants in dbt, and why configure them in code rather than manually?" difficulty="medium" topic="Governance">
+```yaml
+models:
+  - name: revenue_mart
+    config:
+      grants:
+        select: ["role:analyst", "role:bi_tool"]
+```
+The `grants` config applies warehouse permissions (who can `SELECT` on a model) as part of the build itself, rather than someone remembering to run a `GRANT` statement manually after every deploy. Defining access in code means it's version-controlled, reviewed like any other change, and automatically reapplied if a table gets rebuilt from scratch.
+</QuestionCard>
+
+<QuestionCard id="dbt-33" number={33} question="What's the difference between dbt Core and dbt Cloud?" difficulty="easy" topic="Ecosystem">
+**dbt Core** is the open-source CLI — you run it yourself, on your own infrastructure or orchestrator (often triggered by Airflow). **dbt Cloud** is the managed SaaS product built on top of it, adding a scheduler, hosted docs, an IDE, and the Semantic Layer, aimed at teams that don't want to build and operate that infrastructure themselves. The underlying model/test/macro code is the same either way — the difference is entirely in how and where it's run and managed.
+</QuestionCard>
+
+<QuestionCard id="dbt-34" number={34} question="What are dbt Python models, and when would you reach for one over SQL?" difficulty="hard" topic="Python Models">
+On warehouses that support it (Snowflake, Databricks, BigQuery), a dbt model can be a `.py` file returning a DataFrame instead of a `.sql` file — it still participates in the same `ref()`/DAG/testing system as SQL models. Reach for one when the transformation genuinely needs something SQL is awkward at — a statistical/ML computation, a complex text-parsing step, calling a Python library — not as a general substitute for logic that's perfectly expressible in SQL, which stays simpler and more portable across warehouses.
+</QuestionCard>
+
+<QuestionCard id="dbt-35" number={35} question="What is the dbt Semantic Layer / MetricFlow, and what problem does it solve?" difficulty="hard" topic="Semantic Layer">
+The Semantic Layer lets you define metrics (revenue, active users) once in code, with their aggregation logic and dimensions, and have every BI tool and query pull a **consistent** value for that metric instead of each tool/analyst re-implementing the same calculation slightly differently. MetricFlow is the engine that compiles a metric query into the correct SQL against the underlying marts — it directly targets the classic "why do these two dashboards show different revenue" problem by making the metric definition the single source of truth.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
 ## Common Interview Scenarios
 
 - **"A dbt model takes 40 minutes to build every night and it's only getting slower."** Talk through switching it from a table to an incremental materialization, choosing a reliable `unique_key`, and using state selection so CI doesn't rebuild the whole DAG on every PR.
 - **"How would you catch a broken upstream schema before it reaches your marts?"** Discuss declaring the table as a dbt source, adding freshness checks and column tests (`not_null`, `relationships`), and failing the run loudly rather than silently propagating bad data downstream.
 - **"You need point-in-time history for a dimension that only exists as a mutable table in the source system."** Explain dbt snapshots as the SCD2 mechanism, and how they differ from just re-running a model that always reflects "now."
+- **"Two BI dashboards show different revenue numbers, built from the same marts."** Point to the Semantic Layer/MetricFlow as the structural fix — a single defined metric every tool queries — rather than a one-off SQL reconciliation, and mention model contracts as the related mechanism for catching a schema mismatch before it causes the same kind of silent drift.
+- **"A model change needs to not break a downstream dashboard nobody on the data team directly owns."** Talk through exposures (declaring that dependency explicitly in docs) combined with state-based CI selection, so anyone changing the upstream model sees the affected downstream consumer before merging, not after it breaks.
 
 ---
 
 ## Further Reading
 
 - [Data Modeling](/level-2-core-concepts/data-modeling/) — the star schema and SCD concepts dbt marts and snapshots implement
+- [Data Quality](/level-2-core-concepts/data-quality/#interview-questions) — where dbt tests fit into a broader validation strategy
 - [SQL Interview Questions](/level-1-foundations/sql/theory/) — the query patterns dbt models are built from
 - [Airflow](/level-3-technologies/orchestration/airflow/) — the orchestrator that commonly triggers dbt runs in production

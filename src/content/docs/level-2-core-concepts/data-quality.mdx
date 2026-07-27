@@ -1,6 +1,6 @@
 ---
 title: Data Quality
-description: Data quality interview questions covering dimensions, freshness, validation, schema drift, data contracts, and how to design checks that catch silent failures.
+description: Data quality interview questions covering dimensions, validation, Great Expectations and dbt tests, deduplication, distribution drift, and quality ownership.
 ---
 
 import QuestionCard from '../../../components/mdx/QuestionCard.astro';
@@ -13,6 +13,9 @@ import QuestionList from '../../../components/mdx/QuestionList.astro';
 ## Table of Contents
 - [Key Concepts](#key-concepts)
 - [Interview Questions](#interview-questions)
+- [Tooling & Frameworks](#tooling--frameworks)
+- [Practical Validation Techniques](#practical-validation-techniques)
+- [Metrics, Ownership & Trust](#metrics-ownership--trust)
 - [Common Interview Scenarios](#common-interview-scenarios)
 - [Further Reading](#further-reading)
 
@@ -119,12 +122,132 @@ Common failures include:
 
 ---
 
+## Tooling & Frameworks
+
+The actual libraries and workflows teams use to define and run checks, rather than writing ad-hoc validation SQL every time.
+
+<QuestionList topic="Tooling & Frameworks" storagePrefix="dq-tools">
+
+<QuestionCard id="dq-16" number={16} question="What is Great Expectations, and what problem does it solve?" difficulty="medium" topic="Tooling">
+Great Expectations is a Python framework for defining data quality rules ("expectations" — `expect_column_values_to_not_be_null`, `expect_column_values_to_be_between`) as declarative, version-controllable code rather than one-off SQL scripts. Expectations are grouped into **suites** and run via **checkpoints**, producing a human-readable validation report — it solves the problem of quality checks living as tribal knowledge or scattered scripts by making them a first-class, testable, shareable artifact.
+</QuestionCard>
+
+<QuestionCard id="dq-17" number={17} question="How do dbt's built-in tests (unique, not_null, relationships, accepted_values) work?" difficulty="easy" topic="Tooling">
+```yaml
+models:
+  - name: orders
+    columns:
+      - name: order_id
+        tests: [unique, not_null]
+      - name: status
+        tests:
+          - accepted_values: {values: ["pending", "shipped", "cancelled"]}
+      - name: customer_id
+        tests:
+          - relationships: {to: ref('customers'), field: customer_id}
+```
+Each test compiles to a SQL query that should return **zero rows** if the data is valid — `dbt test` runs them after a build and fails the run if any query returns rows. They're declared alongside the model definition, so the quality rule lives right next to the transformation it's validating.
+</QuestionCard>
+
+<QuestionCard id="dq-18" number={18} question="When would you choose a dedicated framework like Great Expectations over dbt tests?" difficulty="medium" topic="Tooling">
+dbt tests are ideal when checks are simple, SQL-expressible, and already living inside a dbt project — low friction, no extra tooling. Reach for Great Expectations (or a similar dedicated framework) when you need checks outside a dbt-managed warehouse (raw files, a data lake, a non-dbt pipeline), richer statistical expectations, or standalone validation reports/documentation independent of any single transformation tool.
+</QuestionCard>
+
+<QuestionCard id="dq-19" number={19} question="How do you integrate data quality checks into a CI/CD pipeline?" difficulty="medium" topic="Tooling">
+Run checks against a representative sample or a full staging dataset as part of the build/deploy pipeline — for dbt, `dbt build` runs models and tests together, failing the pipeline before a broken model reaches production. The key design decision is *what blocks deployment versus what just alerts*: schema-breaking changes and critical table failures should block merges, while softer statistical checks (mild distribution shifts) are often better as warnings that don't halt every deploy.
+</QuestionCard>
+
+<QuestionCard id="dq-20" number={20} question="What is data profiling, and why is it the first step before writing quality checks for a new dataset?" difficulty="easy" topic="Profiling">
+Profiling means computing summary statistics on a dataset before you know what to check — null rates per column, distinct value counts, min/max/mean, common patterns in string columns. It matters because you can't write meaningful checks (what's a "normal" null rate? what values are actually valid?) without first understanding what the data actually looks like; skipping profiling leads to either checks that are too loose to catch real problems or so strict they fail on legitimate data.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Practical Validation Techniques
+
+Specific problems that come up once you move past "check for nulls" into real production datasets.
+
+<QuestionList topic="Practical Validation Techniques" storagePrefix="dq-practical">
+
+<QuestionCard id="dq-21" number={21} question="How do you check referential integrity in a warehouse that doesn't enforce foreign keys?" difficulty="medium" topic="Referential Integrity">
+Most analytical warehouses accept (but don't enforce) foreign key declarations, so referential integrity has to be checked explicitly — typically an anti-join: rows in the child table whose key doesn't exist in the parent table.
+
+```sql
+SELECT o.customer_id
+FROM orders o
+LEFT JOIN customers c ON o.customer_id = c.customer_id
+WHERE c.customer_id IS NULL   -- orphaned foreign keys
+```
+
+Run this as a scheduled check (or a dbt `relationships` test) rather than relying on the database to reject bad writes, since the warehouse itself won't.
+</QuestionCard>
+
+<QuestionCard id="dq-22" number={22} question="What techniques do you use to detect duplicate records at scale?" difficulty="hard" topic="Deduplication">
+For exact duplicates, hash the row's relevant columns and check for repeated hash values — cheaper than comparing every column pairwise. For duplicates that differ slightly (a retry that changed a timestamp), define a business key (the columns that should uniquely identify a record) and check *that* for uniqueness instead of the whole row. At large scale, a window function is the standard SQL pattern for both detecting and resolving duplicates:
+
+```sql
+SELECT *, ROW_NUMBER() OVER (PARTITION BY business_key ORDER BY updated_at DESC) AS rn
+FROM table
+QUALIFY rn = 1   -- keep only the most recent version of each key
+```
+</QuestionCard>
+
+<QuestionCard id="dq-23" number={23} question="How do you detect distribution drift in a column's values over time?" difficulty="hard" topic="Statistical Checks">
+Compare a statistical summary of today's batch against a rolling historical baseline — mean/median/standard deviation for numeric columns, or the distribution of category frequencies for categorical ones — and alert when the difference exceeds a threshold (a fixed percentage, or a statistical distance measure like population stability index for more rigorous setups). This catches problems row-level checks can't: every row can individually be "valid" while the overall shape of the data has still shifted in a way that signals an upstream change.
+</QuestionCard>
+
+<QuestionCard id="dq-24" number={24} question="What data quality challenges are unique to streaming pipelines compared to batch?" difficulty="hard" topic="Streaming">
+Batch checks run against a complete, stable dataset; streaming checks have to work against data that's still arriving, with no natural "batch is done" moment to validate against. This means checks need to run over rolling windows rather than a fixed dataset, tolerate legitimately late/out-of-order events without false-alarming, and use approximate techniques (sketches for distinct counts, running aggregates) since holding the full stream in memory to validate it isn't an option.
+</QuestionCard>
+
+<QuestionCard id="dq-25" number={25} question="How do you decide between NULL, an empty string, and a sentinel value for missing data?" difficulty="medium" topic="Data Modeling">
+Use **NULL** for "value doesn't exist / unknown," reserving it for genuine absence rather than overloading it with multiple meanings. Use an **empty string** only when "known to be empty" is itself meaningful and distinct from "unknown" (a middle name field where you've confirmed the person has none, vs. one you simply haven't collected). Avoid ad-hoc **sentinel values** ("N/A", -1, 9999) in the data itself wherever possible — they're invisible to standard NULL-handling logic (COUNT, aggregates, joins) and silently corrupt results unless every downstream consumer knows to filter them out; if you need a placeholder in a dimension for exactly this reason, use the "Unknown member" pattern instead.
+</QuestionCard>
+
+<QuestionCard id="dq-26" number={26} question="Where in a medallion (bronze/silver/gold) pipeline should quality gates actually enforce checks?" difficulty="medium" topic="Pipeline Design">
+Light structural checks (can it be parsed, does it match the expected raw schema) belong at bronze, right on ingestion, so malformed source data is caught immediately rather than propagating. The bulk of validation — not-null, referential integrity, business rules, deduplication — belongs at the bronze-to-silver transition, since silver is meant to be the clean, trusted layer everything else builds on. Gold-layer checks are usually reconciliation-style (do these aggregates tie back to silver correctly) rather than re-validating row-level rules that should have already been caught upstream.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Metrics, Ownership & Trust
+
+Beyond individual checks — how you decide how much quality investment a dataset deserves, and who's responsible when it fails.
+
+<QuestionList topic="Metrics, Ownership & Trust" storagePrefix="dq-trust">
+
+<QuestionCard id="dq-27" number={27} question="How do you build a data quality score, and what would it be based on?" difficulty="medium" topic="Metrics">
+A simple, defensible approach: weight each quality dimension (completeness, validity, freshness, uniqueness) by how much it matters for that specific dataset, compute a pass rate for each from your existing checks, and combine into a single 0-100 score per table. The value isn't the exact number — it's giving stakeholders a trend line ("this table's score dropped from 98 to 85 last week") that's easier to act on than a wall of individual pass/fail check results.
+</QuestionCard>
+
+<QuestionCard id="dq-28" number={28} question="How do you decide how much quality investment a dataset actually needs?" difficulty="medium" topic="Prioritization">
+Scale checks to the dataset's actual blast radius: a table feeding an executive dashboard or a financial report justifies deep validation, reconciliation, and tight SLAs; an internal exploratory table a few analysts use occasionally doesn't need the same investment. Treating every table as equally critical is how quality programs burn effort on low-value checks while genuinely important tables stay under-covered — usage and downstream dependency count are the practical signals for where to spend the effort.
+</QuestionCard>
+
+<QuestionCard id="dq-29" number={29} question="Who should own a data quality failure — the producing team or the consuming team?" difficulty="medium" topic="Ownership">
+The producing team owns fixing the *source* of the problem (a broken upstream job, a schema change that wasn't communicated), since they're the only ones who can actually correct it at the root. The consuming team typically owns detecting and surfacing the failure fast (their checks, their dashboards break first) and communicating impact — a data contract is what ties these together in advance, so this isn't negotiated fresh during every incident.
+</QuestionCard>
+
+<QuestionCard id="dq-30" number={30} question="How do you build stakeholder trust in data after a high-profile quality incident?" difficulty="medium" topic="Trust">
+Be transparent about what happened and why, rather than quietly fixing it — a short incident writeup (what broke, what was affected, what's changing) does more for trust than silence. Follow up with a durable fix (a new check that would have caught it, not just a one-time patch), and make quality *visible* going forward — a quality score, a status page, or a badge on documented tables — so trust is rebuilt on demonstrated reliability over time rather than a single reassurance.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
 ## Common Interview Scenarios
 
 - **"A dashboard's revenue number dropped 20% overnight — walk me through how you'd investigate."** Tests freshness/volume checks, anomaly detection, and reconciliation instincts.
 - **"Design the minimum set of quality checks you'd add to a new fact table before it ships to production."** Tests knowledge of freshness, volume, primary key uniqueness, not-null, and referential integrity checks.
 - **"A producing team wants to rename a column — how do you prevent that from breaking five downstream dashboards?"** Tests understanding of contracts, schema drift detection, and CI enforcement.
 - **"Your quality checks are so noisy that the on-call engineer has started ignoring them — how do you fix that?"** Tests dynamic thresholds, multi-signal alerting, and clear ownership.
+- **"You've inherited a table with no existing quality checks — where do you start?"** Tests the profiling-first instinct: understand null rates, distinct counts, and value ranges before writing a single check, then prioritize based on how critical and widely-used the table actually is.
+- **"Two teams' dashboards show different revenue totals from what should be the same underlying data."** Tests reconciliation instincts and referential-integrity thinking — walk through checking for a duplicated join, a dropped filter, or an orphaned foreign key causing rows to silently disappear from one side.
 
 ---
 
@@ -132,4 +255,6 @@ Common failures include:
 
 - [Data Governance](/level-2-core-concepts/data-governance/) — ownership and access controls that complement quality practices
 - [Data Warehousing](/level-2-core-concepts/data-warehousing/) — where these checks get enforced at the platform level
+- [Observability](/level-4-advanced/observability/#interview-questions) — monitoring, alerting, and incident response once checks are in place
+- [DBT](/level-3-technologies/transformation/dbt/#interview-questions) — where dbt-native tests actually get defined and run
 - [Data Engineering Roadmap](/roadmaps/data-engineering/) — where data quality fits into the broader curriculum
