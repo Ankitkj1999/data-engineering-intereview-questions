@@ -1,6 +1,6 @@
 ---
 title: CDC
-description: Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.
+description: Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.
 ---
 
 import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
@@ -13,6 +13,9 @@ import QuestionList from '../../../../components/mdx/QuestionList.astro';
 ## Table of Contents
 - [Key Concepts](#key-concepts)
 - [Interview Questions](#interview-questions)
+- [CDC Tools in Practice](#cdc-tools-in-practice)
+- [CDC Beyond Relational Databases](#cdc-beyond-relational-databases)
+- [Operational Patterns & Trade-offs](#operational-patterns--trade-offs)
 - [Common Interview Scenarios](#common-interview-scenarios)
 - [Further Reading](#further-reading)
 
@@ -115,12 +118,92 @@ Good pipelines treat CDC as "production software" with strong observability and 
 
 ---
 
+## CDC Tools in Practice
+
+The actual software teams run for log-based CDC, and the operational details that separate a demo from a production deployment.
+
+<QuestionList topic="CDC Tools" storagePrefix="cdc-tools">
+
+<QuestionCard id="cdc-16" number={16} question="What is Debezium, and how does it fit with Kafka Connect?" difficulty="medium" topic="Tooling">
+Debezium is the most widely-used open-source CDC tool — it ships as a set of Kafka Connect **source connectors**, one per database engine (Postgres, MySQL, MongoDB, SQL Server), each reading that database's specific log format (WAL, binlog, oplog) and publishing standardized change events to Kafka topics. It doesn't replace Kafka Connect; it plugs into it, so you get Connect's generic scaling/fault-tolerance machinery for free rather than Debezium reimplementing it.
+</QuestionCard>
+
+<QuestionCard id="cdc-17" number={17} question="How does Debezium take an initial snapshot without locking the source table for the whole duration?" difficulty="hard" topic="Snapshotting">
+Older snapshot modes held a lock (at least briefly) to establish a consistent starting point before streaming incremental changes. Debezium's **incremental snapshot** avoids this by chunking the table into small primary-key ranges and reading each chunk with ordinary low-impact queries, watermarking each chunk against the ongoing change stream so concurrent writes during the snapshot are correctly reconciled — without ever taking a long-held lock on the whole table.
+</QuestionCard>
+
+<QuestionCard id="cdc-18" number={18} question="What's the difference between a self-hosted tool like Debezium and a managed service like AWS DMS or Fivetran?" difficulty="medium" topic="Tooling">
+Debezium requires you to run and operate the Kafka Connect cluster (and Kafka itself) yourself — more control and no per-connector vendor cost, but real operational overhead. **AWS DMS** and **Fivetran** are managed CDC services: you configure a source and destination and the vendor operates the pipeline, at the cost of less control over internals, per-connector/volume pricing, and being limited to whatever source/destination combinations the vendor supports. The choice is largely a build-vs-buy trade-off scaled by team size and how many source systems need connecting.
+</QuestionCard>
+
+<QuestionCard id="cdc-19" number={19} question="What is a heartbeat mechanism in a CDC connector, and why does it matter?" difficulty="hard" topic="Reliability">
+A heartbeat is a synthetic, periodic write the connector makes (or asks to be made) purely so its position in the log keeps advancing even when the actual tables it cares about see no real changes for a while. Without one, a quiet source can cause the log position to appear stuck, which on some databases risks the transaction log growing unboundedly (Postgres WAL retained for a replication slot that's "behind") or the connector's offset looking artificially stale to monitoring.
+</QuestionCard>
+
+<QuestionCard id="cdc-20" number={20} question="How do you handle DDL changes (like ALTER TABLE) appearing in the CDC stream?" difficulty="hard" topic="Schema Evolution">
+Log-based CDC tools typically parse DDL statements from the log alongside row changes and can emit schema-change events (often to a separate schema history topic) so downstream consumers know a column was added, dropped, or retyped. The pipeline needs an explicit policy for each: auto-propagate additive changes to downstream tables, but pause and alert a human for destructive changes (drops, incompatible type changes) rather than silently applying them and corrupting the target schema.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## CDC Beyond Relational Databases
+
+Change capture where there's no WAL or binlog — document stores and managed NoSQL each expose their own change mechanism.
+
+<QuestionList topic="Beyond Relational" storagePrefix="cdc-nosql">
+
+<QuestionCard id="cdc-21" number={21} question="How does CDC work for MongoDB, using change streams?" difficulty="medium" topic="NoSQL CDC">
+MongoDB's **change streams** API lets an application subscribe directly to insert/update/delete/replace events on a collection, backed internally by MongoDB's own replication oplog — no external log-parsing tool required, unlike relational WAL/binlog CDC. The trade-off: change streams need a replica set (or sharded cluster) to exist at all, and resuming after a disconnect relies on a **resume token**, which is only valid as long as the oplog hasn't rolled past that point.
+</QuestionCard>
+
+<QuestionCard id="cdc-22" number={22} question="How does CDC work for DynamoDB, using DynamoDB Streams?" difficulty="medium" topic="NoSQL CDC">
+DynamoDB Streams captures an ordered, near-real-time log of item-level changes for a table (available for a rolling 24-hour window), typically consumed by a Lambda function or the Kinesis Client Library. Since DynamoDB has no concept of a general-purpose transaction log the way a relational database does, streams are the *only* CDC mechanism available — there's no equivalent of parsing a WAL directly.
+</QuestionCard>
+
+<QuestionCard id="cdc-23" number={23} question="What changes about CDC design when the source isn't a traditional relational database?" difficulty="medium" topic="NoSQL CDC">
+The core problems (ordering, idempotency, delivery semantics, schema evolution) stay the same, but the *mechanism* is entirely source-specific and non-transferable — there's no generic "read the log" approach across a document store, a wide-column store, and a relational database, each exposes its own native change API (change streams, streams, WAL/binlog) with its own retention limits and resume semantics. Schema evolution is also a bigger practical challenge for CDC from schema-flexible sources (documents can vary field-to-field), needing more defensive downstream handling than a relational source with a single evolving table schema.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Operational Patterns & Trade-offs
+
+Running CDC across many tables reliably, and deciding when it's the right tool at all.
+
+<QuestionList topic="Operational Patterns" storagePrefix="cdc-ops">
+
+<QuestionCard id="cdc-24" number={24} question="How do you coordinate CDC across multiple tables that need to stay transactionally consistent downstream?" difficulty="hard" topic="Consistency">
+Log-based CDC preserves the source's original commit order across tables (since it reads one linear transaction log), so as long as downstream processing applies changes in that same order — rather than processing each table's stream independently and out of sync with the others — multi-table transactional consistency is preserved. The common mistake is fanning out each table to its own independent consumer with no shared ordering guarantee, which can leave downstream tables briefly inconsistent with each other even though each individually is correct.
+</QuestionCard>
+
+<QuestionCard id="cdc-25" number={25} question="How do you achieve high availability for a CDC connector so a single instance failure doesn't stop the pipeline?" difficulty="hard" topic="Reliability">
+Run the connector on a framework that supports distributed, fault-tolerant execution (Kafka Connect in distributed mode) so a worker failing gets its tasks reassigned automatically, with offsets persisted externally (in a Kafka topic, not the failed worker's local memory) so the new instance resumes from the correct position rather than restarting the whole capture. For the source database side, some CDC tools (Debezium on Postgres) also need to handle replication slot ownership carefully, since only one consumer can hold a given slot at a time.
+</QuestionCard>
+
+<QuestionCard id="cdc-26" number={26} question="How do you compact a stream of CDC events into a single current-state table efficiently?" difficulty="medium" topic="Compaction">
+Rather than applying every single event as an individual write (expensive at high change volume), batch events by primary key over a short window and keep only the latest event per key before writing — a merge/upsert of the deduplicated batch is far cheaper than one write per raw event. This is conceptually the same idea as Kafka's log compaction, just applied at the pipeline's write stage instead of relying on the broker to do it.
+</QuestionCard>
+
+<QuestionCard id="cdc-27" number={27} question="How do you decide between CDC and simpler periodic batch replication for a given source?" difficulty="medium" topic="Trade-offs">
+Reach for CDC when freshness genuinely matters (minutes, not hours), the source is too large or too write-heavy for repeated full/incremental batch scans to be practical, or you need a durable history of every change, not just current state. Simpler periodic batch extraction (a nightly full load, or an incremental pull keyed on an `updated_at` column) is often the right call when the source is small, changes infrequently, or the team doesn't want the operational overhead of running and monitoring a CDC connector for a use case that daily freshness would satisfy just as well.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
 ## Common Interview Scenarios
 
 - **"Design a CDC pipeline from Postgres into a warehouse that must stay under 1 minute of freshness lag."** Talk through log-based capture (WAL), a snapshot-then-incremental bootstrap, idempotent merge on primary key + LSN, and how you'd monitor end-to-end lag.
 - **"Two teams built two CDC consumers off the same stream and their row counts disagree."** Walk through duplicate causes (retries/rebalances without idempotent writes), out-of-order updates being applied non-deterministically, and inconsistent delete handling between the two consumers.
 - **"The source database just underwent a breaking schema change mid-stream — what happens to your pipeline?"** Discuss schema registries, compatibility policies, why downstream tables should tolerate additive changes, and how you'd alert on breaking changes before they corrupt production data.
 - **"How would you avoid the dual-write problem when an application needs to update its database and publish an event?"** This is the outbox pattern — walk through why writing the event to a table in the same transaction, then letting CDC capture and publish it, is safer than writing to the database and a message queue separately.
+- **"The source table needs an initial load of 500M rows, and you can't afford to lock it."** Point to incremental/chunked snapshotting (Debezium's approach) — reading small primary-key ranges with ordinary queries and watermarking each chunk against the live change stream, instead of a single long-held lock.
+- **"A source database has been quiet for hours and monitoring is flagging the CDC connector as stuck."** Talk through the heartbeat mechanism — a synthetic periodic write keeping the log position moving — versus an actual failure, and why a quiet source can otherwise look identical to a stalled connector.
 
 ---
 
@@ -128,4 +211,6 @@ Good pipelines treat CDC as "production software" with strong observability and 
 
 - [Flume](/level-3-technologies/ingestion/flume/) — a log-collection alternative to CDC for streaming ingestion
 - [NiFi](/level-3-technologies/ingestion/nifi/) — a flow-based tool often used to route and transform CDC streams
-- [Kafka](/level-3-technologies/streaming/kafka/) — the most common transport layer for CDC event streams
+- [Kafka](/level-3-technologies/streaming/kafka/#interview-questions) — the most common transport layer for CDC event streams, including the Kafka Connect framework Debezium runs on
+- [MongoDB](/level-3-technologies/databases/mongodb/#interview-questions) — change streams, the source-specific CDC mechanism used there
+- [DynamoDB](/level-3-technologies/databases/dynamodb/#interview-questions) — DynamoDB Streams, the equivalent mechanism for that source

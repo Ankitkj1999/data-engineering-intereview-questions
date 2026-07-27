@@ -1,6 +1,6 @@
 ---
 title: Data Governance
-description: Data governance interview questions covering ownership, RBAC/ABAC, PII handling, masking, auditability, GDPR deletion, and retention policy enforcement.
+description: Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.
 ---
 
 import QuestionCard from '../../../components/mdx/QuestionCard.astro';
@@ -13,6 +13,9 @@ import QuestionList from '../../../components/mdx/QuestionList.astro';
 ## Table of Contents
 - [Key Concepts](#key-concepts)
 - [Interview Questions](#interview-questions)
+- [Classification & Modern Governance Models](#classification--modern-governance-models)
+- [Tooling & Automation](#tooling--automation)
+- [Compliance Frameworks & Process](#compliance-frameworks--process)
 - [Common Interview Scenarios](#common-interview-scenarios)
 - [Further Reading](#further-reading)
 
@@ -86,12 +89,106 @@ Retention policies define how long data is kept and when it must be deleted or a
 
 ---
 
+## Classification & Modern Governance Models
+
+How sensitivity gets labeled, and how governance changes shape once a platform grows past one central team.
+
+<QuestionList topic="Classification & Modern Models" storagePrefix="dg-modern">
+
+<QuestionCard id="dg-13" number={13} question="What is data classification, and what tiers does a typical scheme use?" difficulty="easy" topic="Classification">
+Data classification labels datasets (or individual columns) by sensitivity, so access controls, masking rules, and retention policies can be applied consistently based on that label rather than decided ad hoc per table. A common scheme: **Public** (no restriction), **Internal** (company-only), **Confidential** (restricted to specific teams/roles), and **Restricted** (PII/PHI, tightest controls, often legally regulated) — each tier mapping to a concrete, enforced set of access and handling rules.
+</QuestionCard>
+
+<QuestionCard id="dg-14" number={14} question="What is data mesh, and how does it change the governance model compared to a centralized team?" difficulty="hard" topic="Data Mesh">
+Data mesh distributes data ownership to the domain teams that actually produce the data (treating each domain's output as a "data product" they're responsible for), instead of a single central data team owning ingestion, quality, and governance for everything. Governance shifts from "the central team enforces every rule" to **federated computational governance** — global standards (security, compliance, interoperability) are defined centrally, but enforced automatically through shared tooling/platforms, while domain-specific decisions stay with the domain teams.
+</QuestionCard>
+
+<QuestionCard id="dg-15" number={15} question="What is federated computational governance in a data mesh?" difficulty="hard" topic="Data Mesh">
+It's the mechanism that keeps a decentralized data mesh from becoming ungoverned chaos: a small set of global rules (schema standards, security policies, PII handling) are defined once by a federated group (representatives from each domain, not one central authority), then **enforced automatically** by the platform itself — automated policy checks, standardized catalog registration — rather than manually policed for every domain's every dataset.
+</QuestionCard>
+
+<QuestionCard id="dg-16" number={16} question="What's the difference between anonymization and pseudonymization?" difficulty="hard" topic="Compliance">
+**Anonymization** irreversibly removes the ability to re-identify an individual — done correctly, the data falls outside the scope of regulations like GDPR entirely, but it's often destructive to analytical value and genuinely hard to guarantee (re-identification via combining "anonymized" fields is a known risk). **Pseudonymization** replaces identifying fields with a token or key, but the mapping back to the real identity still exists somewhere — it reduces risk and is often required by regulation, but the data is still considered personal data because re-identification remains possible.
+</QuestionCard>
+
+<QuestionCard id="dg-17" number={17} question="What is a data product, and how does governance apply differently to it than to a raw table?" difficulty="medium" topic="Data Mesh">
+A data product is a dataset treated with the same discipline as a customer-facing product: it has a defined owner, a documented interface (schema/contract), quality SLAs, and discoverability — not just "a table that happens to exist." Governance for a data product is largely self-contained and owned by the producing domain (they're accountable for its contract and quality), whereas governance for an ungoverned raw table typically falls back to whatever central policy applies by default, with no one specifically accountable for its fitness for use.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Tooling & Automation
+
+Turning governance from documented policy into something the platform actually enforces.
+
+<QuestionList topic="Tooling & Automation" storagePrefix="dg-tooling">
+
+<QuestionCard id="dg-18" number={18} question="What do data catalog tools like DataHub or Collibra actually provide beyond a spreadsheet of tables?" difficulty="medium" topic="Tooling">
+They automatically ingest metadata (schemas, ownership, usage stats) directly from the warehouse/pipelines rather than relying on someone to manually maintain a document, so the catalog doesn't silently go stale the way a spreadsheet does. They also add lineage graphs connecting datasets to their upstream/downstream dependencies, search and discovery, and often plug into access-request workflows and classification tagging — turning a static inventory into a live, queryable system of record.
+</QuestionCard>
+
+<QuestionCard id="dg-19" number={19} question="What is policy-as-code, and how does it apply to access governance?" difficulty="hard" topic="Automation">
+```yaml
+# example: an access policy defined declaratively, not granted manually
+policy: deny
+  if: resource.classification == "restricted"
+     and not user.has_role("data-steward")
+```
+Policy-as-code defines access rules as version-controlled, testable configuration (often using a tool like Open Policy Agent) rather than permissions granted manually through a UI. This makes access policy reviewable in the same pull-request process as any other code change, consistently enforced across every system that respects it, and auditable — you can see exactly when and why a rule changed, not just infer it from who currently has access.
+</QuestionCard>
+
+<QuestionCard id="dg-20" number={20} question="How would you automate detection of PII in a dataset you didn't design?" difficulty="medium" topic="Automation">
+Combine pattern-based scanning (regexes for emails, SSNs, phone numbers, credit card formats) with column-name heuristics (`email`, `ssn`, `dob`) and, for higher confidence, a trained classifier on sampled values. Automated scanning is a starting point, not a final answer — it needs a human review step for ambiguous cases, since it will both miss context-dependent PII and occasionally flag something that isn't (a column named `user_id` that's actually a random UUID, not identifying on its own).
+</QuestionCard>
+
+<QuestionCard id="dg-21" number={21} question="What is an access request/approval workflow, and why not just grant broad access upfront?" difficulty="easy" topic="Access Control">
+An access request workflow requires someone to explicitly request access to a specific dataset, with an owner or steward approving it (often time-bound, sometimes requiring a business justification), rather than everyone getting broad default access. Granting broad access upfront is simpler operationally but violates least-privilege — it makes audits meaningless (everyone can see everything, so "who accessed this" tells you nothing useful) and makes revoking access when someone changes teams or leaves nearly impossible to reason about.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Compliance Frameworks & Process
+
+Beyond GDPR — comparing regulatory regimes, and the organizational processes that make governance stick.
+
+<QuestionList topic="Compliance & Process" storagePrefix="dg-compliance">
+
+<QuestionCard id="dg-22" number={22} question="How does GDPR differ from CCPA from a data engineering perspective?" difficulty="hard" topic="Compliance">
+Both require honoring deletion and access requests, but **GDPR** (EU) is opt-in by default (you generally need a lawful basis and often explicit consent to process personal data at all) and applies more broadly to "personal data." **CCPA** (California) is more opt-out oriented (processing is generally allowed unless the consumer opts out, particularly of *sale* of their data) and is narrower in some respects but still requires similar underlying capabilities — knowing what personal data you hold about someone and being able to delete or export it on request.
+</QuestionCard>
+
+<QuestionCard id="dg-23" number={23} question="What is consent management, and how does it affect what a pipeline is allowed to process?" difficulty="medium" topic="Compliance">
+Consent management tracks what each user has actually agreed to (marketing use, analytics, third-party sharing) as its own structured, queryable data — not just a one-time checkbox that's forgotten. A pipeline that ingests or transforms personal data needs to check current consent state before processing for a given purpose, and needs to handle consent being **withdrawn** after the fact, which usually means the same deletion/reprocessing machinery used for a "right to be forgotten" request.
+</QuestionCard>
+
+<QuestionCard id="dg-24" number={24} question="What is a Data Protection Impact Assessment (DPIA), and when is one required?" difficulty="hard" topic="Compliance">
+A DPIA is a structured assessment of the privacy risk a new system or process introduces before it launches — what personal data it touches, what could go wrong, and what mitigations are in place — required under GDPR for processing likely to result in high risk to individuals (large-scale sensitive data processing, systematic profiling). For a data engineering team, this means privacy review becomes a design-time gate for certain new pipelines, not something bolted on after the fact.
+</QuestionCard>
+
+<QuestionCard id="dg-25" number={25} question="How do you measure whether a governance program is actually working?" difficulty="medium" topic="Governance Maturity">
+Track concrete, observable signals rather than "we wrote a policy document": percentage of datasets with an assigned owner and complete catalog metadata, time-to-fulfill for access requests and deletion requests, number of datasets with an enforced classification tag, and audit findings from access reviews. A governance program with no metrics is one nobody can tell is failing until an incident (a compliance violation, a "nobody owns this" fire drill) forces the question.
+</QuestionCard>
+
+<QuestionCard id="dg-26" number={26} question="How would you design a RACI matrix for a new data domain?" difficulty="medium" topic="Process">
+A RACI matrix maps each governance activity (defining the schema, approving access, responding to a quality incident, honoring a deletion request) to who is **R**esponsible (does the work), **A**ccountable (final approval, usually the data owner), **C**onsulted (has input beforehand), and **I**nformed (told after the fact) — for a new domain, this is worth doing explicitly up front specifically to avoid the common failure mode where an incident happens and three teams each assume another team owns the response.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
 ## Common Interview Scenarios
 
 - **"A new analyst asks to see raw customer PII 'just to debug a report' — how do you respond?"** Tests least privilege, masking/tokenization, and role boundaries.
 - **"Legal asks you to delete a specific user's data across the entire warehouse for a GDPR request — walk through your approach."** Tests the raw/derived layer deletion strategy and audit trail.
 - **"Two teams have different definitions of 'active user' in their dashboards — how do you fix that at the platform level?"** Tests business glossary thinking and conformed definitions.
 - **"Design the ownership model for a new data domain with three producing teams and ten consuming teams."** Tests owner/steward/custodian role design.
+- **"Your company is moving from a central data team to a data mesh model — what changes about governance?"** Tests federated computational governance thinking: which rules stay centrally enforced (security, compliance, interoperability standards) versus which decisions move to the domain teams now accountable as data product owners.
+- **"How would you prove to an auditor that access to a restricted dataset is actually controlled, not just documented?"** Tests policy-as-code and access-request-workflow thinking — pointing to enforced, version-controlled rules and a queryable request/approval trail, not a policy document nobody checks against reality.
 
 ---
 
@@ -99,4 +196,5 @@ Retention policies define how long data is kept and when it must be deleted or a
 
 - [Data Quality](/level-2-core-concepts/data-quality/) — the trust and correctness practices governance builds on
 - [Data Warehousing](/level-2-core-concepts/data-warehousing/) — where access controls and catalogs get implemented
+- [Observability](/level-4-advanced/observability/#interview-questions) — data lineage and incident response, adjacent to but distinct from governance's ownership/access focus
 - [Data Engineering Roadmap](/roadmaps/data-engineering/) — where governance fits into the broader curriculum

@@ -1578,99 +1578,211 @@
     "path": "/level-2-core-concepts/data-governance/",
     "locale": "en",
     "title": "Data Governance",
-    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, masking, auditability, GDPR deletion, and retention policy enforcement.",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
     "content": "import QuestionCard from '../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../components/mdx/QuestionList.astro';"
   },
   {
     "path": "/level-2-core-concepts/data-governance/",
     "locale": "en",
     "title": "Data Governance",
-    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, masking, auditability, GDPR deletion, and retention policy enforcement.",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
     "content": "## Data Governance: Ownership, Access & Compliance\n\n**Data governance is the set of processes, policies, and roles that make data discoverable, trusted, secure, and compliant as a platform scales beyond a single team.**"
   },
   {
     "path": "/level-2-core-concepts/data-governance/",
     "locale": "en",
     "title": "Data Governance",
-    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, masking, auditability, GDPR deletion, and retention policy enforcement.",
-    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Classification & Modern Governance Models](#classification--modern-governance-models)\n- [Tooling & Automation](#tooling--automation)\n- [Compliance Frameworks & Process](#compliance-frameworks--process)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
   },
   {
     "path": "/level-2-core-concepts/data-governance/",
     "locale": "en",
     "title": "Data Governance",
-    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, masking, auditability, GDPR deletion, and retention policy enforcement.",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
     "content": "## Key Concepts\n\nGovernance starts with clear ownership: a **data owner** is accountable for a dataset's business meaning, a **data steward** maintains its quality and metadata day to day, and a **data custodian** operates the underlying platform. On top of ownership sits access control — **RBAC** grants permissions to roles, while **ABAC** evaluates dynamic attributes (department, region, sensitivity) for more flexible but harder-to-manage policies — plus finer-grained row- and column-level security for multi-tenant and PII-heavy datasets. A **data catalog** ties it together by making datasets discoverable, with lineage, owners, and freshness in one place, while a **business glossary** aligns what terms actually mean. Governance also has to answer compliance questions: how PII/PHI gets ma"
   },
   {
     "path": "/level-2-core-concepts/data-governance/",
     "locale": "en",
     "title": "Data Governance",
-    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, masking, auditability, GDPR deletion, and retention policy enforcement.",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
     "content": "sked or tokenized, how access is audited, how GDPR deletion requests get honored across raw and derived layers, and how retention policies get enforced with expiry and lifecycle rules.\n\n---"
   },
   {
     "path": "/level-2-core-concepts/data-governance/",
     "locale": "en",
     "title": "Data Governance",
-    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, masking, auditability, GDPR deletion, and retention policy enforcement.",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
     "content": "## Interview Questions\n\n<QuestionList topic=\"Data Governance\" storagePrefix=\"data-governance\">\n\n<QuestionCard id=\"dg-01\" number={1} question=\"What is data governance and why does it matter?\" difficulty=\"easy\" topic=\"Fundamentals\">\nData governance is the set of processes, policies, and responsibilities that ensure data is discoverable, trusted, secure, and used correctly. It matters because data platforms scale to many teams; without governance, definitions diverge, access becomes risky, and compliance issues appear. Good governance enables faster, safer self-service analytics.\n</QuestionCard>\n\n<QuestionCard id=\"dg-02\" number={2} question=\"What is the difference between governance and security?\" difficulty=\"medium\" topic=\"Fundamentals\">\nSecurity focuses on preventing unauthorized access and"
   },
   {
     "path": "/level-2-core-concepts/data-governance/",
     "locale": "en",
     "title": "Data Governance",
-    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, masking, auditability, GDPR deletion, and retention policy enforcement.",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
     "content": "ensuring confidentiality/integrity (access controls, encryption). Governance includes security but also covers ownership, definitions, quality, lifecycle, and change management. Governance answers \"who owns this data and what does it mean,\" not just \"who can access it.\"\n</QuestionCard>\n\n<QuestionCard id=\"dg-03\" number={3} question=\"What are common roles in data governance (owner/steward/custodian)?\" difficulty=\"easy\" topic=\"Roles\">\nCommon roles are:\n\n- **data owner** — accountable for the dataset and its business definition\n- **data steward** — maintains quality, metadata, and processes\n- **data custodian** — operates the technical platform (storage, access, backups)\n\nClear roles prevent \"nobody owns it\" incidents.\n</QuestionCard>\n\n<QuestionCard id=\"dg-04\" number={4} question=\"What is a d"
   },
   {
     "path": "/level-2-core-concepts/data-governance/",
     "locale": "en",
     "title": "Data Governance",
-    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, masking, auditability, GDPR deletion, and retention policy enforcement.",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
     "content": "ata catalog and what should it contain?\" difficulty=\"easy\" topic=\"Cataloging\">\nA data catalog is an inventory of datasets with searchable metadata. It typically contains dataset descriptions, owners, lineage, classifications, freshness/SLA, schema, and links to dashboards. A good catalog reduces time to discovery and improves trust and reuse.\n</QuestionCard>\n\n<QuestionCard id=\"dg-05\" number={5} question=\"What is business glossary vs. technical metadata?\" difficulty=\"medium\" topic=\"Metadata\">\nA business glossary defines business terms (for example \"active user,\" \"net revenue\") and their approved definitions. Technical metadata describes datasets and fields (schemas, types, partitions, lineage). Both are needed: glossary aligns meaning, technical metadata enables implementation and discovery"
   },
   {
     "path": "/level-2-core-concepts/data-governance/",
     "locale": "en",
     "title": "Data Governance",
-    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, masking, auditability, GDPR deletion, and retention policy enforcement.",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
     "content": ".\n</QuestionCard>\n\n<QuestionCard id=\"dg-06\" number={6} question=\"RBAC vs. ABAC: what is the difference?\" difficulty=\"medium\" topic=\"Access Control\">\nRBAC (Role-Based Access Control) grants permissions to roles (analyst, engineer) and assigns users to roles. ABAC (Attribute-Based Access Control) uses attributes (department, region, sensitivity) to evaluate policies dynamically. ABAC is more flexible but can be harder to manage without good tooling.\n</QuestionCard>\n\n<QuestionCard id=\"dg-07\" number={7} question=\"What is row-level and column-level security?\" difficulty=\"medium\" topic=\"Access Control\">\nRow-level security restricts which rows a user can see (for example only their region). Column-level security restricts which columns are visible (for example hide salary or PII). These controls"
   },
   {
     "path": "/level-2-core-concepts/data-governance/",
     "locale": "en",
     "title": "Data Governance",
-    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, masking, auditability, GDPR deletion, and retention policy enforcement.",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
     "content": "are important for multi-tenant analytics and compliance.\n</QuestionCard>\n\n<QuestionCard id=\"dg-08\" number={8} question=\"How do you handle PII/PHI data in analytics platforms?\" difficulty=\"hard\" topic=\"Compliance\">\nYou classify sensitive fields, minimize exposure, and enforce least privilege. Common controls include encryption, masking/tokenization, column-level access, and auditing. You also ensure downstream marts only include necessary fields and implement secure sharing patterns.\n</QuestionCard>\n\n<QuestionCard id=\"dg-09\" number={9} question=\"What is data masking and tokenization?\" difficulty=\"medium\" topic=\"Compliance\">\nMasking hides sensitive values (for example showing only the last 4 digits) while keeping the dataset usable. Tokenization replaces sensitive values with tokens that can"
   },
   {
     "path": "/level-2-core-concepts/data-governance/",
     "locale": "en",
     "title": "Data Governance",
-    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, masking, auditability, GDPR deletion, and retention policy enforcement.",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
     "content": "be detokenized only with access to a secure mapping. Tokenization is useful when analytics needs stable identifiers without exposing raw PII.\n</QuestionCard>\n\n<QuestionCard id=\"dg-10\" number={10} question=\"How do you implement auditability for data access?\" difficulty=\"medium\" topic=\"Auditing\">\nYou log access events (who queried what, when, from where) and retain logs per policy. You also track permission changes and administrative actions. Audit logs should be queryable for investigations and compliance reporting.\n</QuestionCard>\n\n<QuestionCard id=\"dg-11\" number={11} question=\"How do you handle GDPR “right to be forgotten” in a lakehouse/warehouse?\" difficulty=\"hard\" topic=\"Compliance\">\nYou need a process to delete or anonymize personal data across raw, derived, and serving layers. This"
   },
   {
     "path": "/level-2-core-concepts/data-governance/",
     "locale": "en",
     "title": "Data Governance",
-    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, masking, auditability, GDPR deletion, and retention policy enforcement.",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
     "content": "can involve targeted deletes (where supported), reprocessing from raw logs without the user, or storing personal data separately to allow deletion without rewriting large datasets. You also document what is feasible given retention and legal constraints.\n</QuestionCard>\n\n<QuestionCard id=\"dg-12\" number={12} question=\"What are data retention policies and how do you enforce them?\" difficulty=\"medium\" topic=\"Retention\">\nRetention policies define how long data is kept and when it must be deleted or archived. Enforcement can be implemented with partition expiry jobs, lifecycle rules on object storage, snapshot expiration, and access reviews. Retention must align with legal requirements and business needs.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-2-core-concepts/data-governance/",
     "locale": "en",
     "title": "Data Governance",
-    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, masking, auditability, GDPR deletion, and retention policy enforcement.",
-    "content": "## Common Interview Scenarios\n\n- **\"A new analyst asks to see raw customer PII 'just to debug a report' — how do you respond?\"** Tests least privilege, masking/tokenization, and role boundaries.\n- **\"Legal asks you to delete a specific user's data across the entire warehouse for a GDPR request — walk through your approach.\"** Tests the raw/derived layer deletion strategy and audit trail.\n- **\"Two teams have different definitions of 'active user' in their dashboards — how do you fix that at the platform level?\"** Tests business glossary thinking and conformed definitions.\n- **\"Design the ownership model for a new data domain with three producing teams and ten consuming teams.\"** Tests owner/steward/custodian role design.\n\n---"
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "## Classification & Modern Governance Models\n\nHow sensitivity gets labeled, and how governance changes shape once a platform grows past one central team.\n\n<QuestionList topic=\"Classification & Modern Models\" storagePrefix=\"dg-modern\">\n\n<QuestionCard id=\"dg-13\" number={13} question=\"What is data classification, and what tiers does a typical scheme use?\" difficulty=\"easy\" topic=\"Classification\">\nData classification labels datasets (or individual columns) by sensitivity, so access controls, masking rules, and retention policies can be applied consistently based on that label rather than decided ad hoc per table. A common scheme: **Public** (no restriction), **Internal** (company-only), **Confidential** (restricted to specific teams/roles), and **Restricted** (PII/PHI, tightest controls, often"
   },
   {
     "path": "/level-2-core-concepts/data-governance/",
     "locale": "en",
     "title": "Data Governance",
-    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, masking, auditability, GDPR deletion, and retention policy enforcement.",
-    "content": "## Further Reading\n\n- [Data Quality](/level-2-core-concepts/data-quality/) — the trust and correctness practices governance builds on\n- [Data Warehousing](/level-2-core-concepts/data-warehousing/) — where access controls and catalogs get implemented\n- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where governance fits into the broader curriculum"
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "legally regulated) — each tier mapping to a concrete, enforced set of access and handling rules.\n</QuestionCard>\n\n<QuestionCard id=\"dg-14\" number={14} question=\"What is data mesh, and how does it change the governance model compared to a centralized team?\" difficulty=\"hard\" topic=\"Data Mesh\">\nData mesh distributes data ownership to the domain teams that actually produce the data (treating each domain's output as a \"data product\" they're responsible for), instead of a single central data team owning ingestion, quality, and governance for everything. Governance shifts from \"the central team enforces every rule\" to **federated computational governance** — global standards (security, compliance, interoperability) are defined centrally, but enforced automatically through shared tooling/platfor"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "ms, while domain-specific decisions stay with the domain teams.\n</QuestionCard>\n\n<QuestionCard id=\"dg-15\" number={15} question=\"What is federated computational governance in a data mesh?\" difficulty=\"hard\" topic=\"Data Mesh\">\nIt's the mechanism that keeps a decentralized data mesh from becoming ungoverned chaos: a small set of global rules (schema standards, security policies, PII handling) are defined once by a federated group (representatives from each domain, not one central authority), then **enforced automatically** by the platform itself — automated policy checks, standardized catalog registration — rather than manually policed for every domain's every dataset.\n</QuestionCard>\n\n<QuestionCard id=\"dg-16\" number={16} question=\"What's the difference between anonymization and pseudonymizat"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "ion?\" difficulty=\"hard\" topic=\"Compliance\">\n**Anonymization** irreversibly removes the ability to re-identify an individual — done correctly, the data falls outside the scope of regulations like GDPR entirely, but it's often destructive to analytical value and genuinely hard to guarantee (re-identification via combining \"anonymized\" fields is a known risk). **Pseudonymization** replaces identifying fields with a token or key, but the mapping back to the real identity still exists somewhere — it reduces risk and is often required by regulation, but the data is still considered personal data because re-identification remains possible.\n</QuestionCard>\n\n<QuestionCard id=\"dg-17\" number={17} question=\"What is a data product, and how does governance apply differently to it than to a raw table?\" d"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "ifficulty=\"medium\" topic=\"Data Mesh\">\nA data product is a dataset treated with the same discipline as a customer-facing product: it has a defined owner, a documented interface (schema/contract), quality SLAs, and discoverability — not just \"a table that happens to exist.\" Governance for a data product is largely self-contained and owned by the producing domain (they're accountable for its contract and quality), whereas governance for an ungoverned raw table typically falls back to whatever central policy applies by default, with no one specifically accountable for its fitness for use.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "## Tooling & Automation\n\nTurning governance from documented policy into something the platform actually enforces.\n\n<QuestionList topic=\"Tooling & Automation\" storagePrefix=\"dg-tooling\">\n\n<QuestionCard id=\"dg-18\" number={18} question=\"What do data catalog tools like DataHub or Collibra actually provide beyond a spreadsheet of tables?\" difficulty=\"medium\" topic=\"Tooling\">\nThey automatically ingest metadata (schemas, ownership, usage stats) directly from the warehouse/pipelines rather than relying on someone to manually maintain a document, so the catalog doesn't silently go stale the way a spreadsheet does. They also add lineage graphs connecting datasets to their upstream/downstream dependencies, search and discovery, and often plug into access-request workflows and classification tagging —"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "turning a static inventory into a live, queryable system of record.\n</QuestionCard>\n\n<QuestionCard id=\"dg-19\" number={19} question=\"What is policy-as-code, and how does it apply to access governance?\" difficulty=\"hard\" topic=\"Automation\">\n```yaml"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "# example: an access policy defined declaratively, not granted manually\npolicy: deny\n  if: resource.classification == \"restricted\"\n     and not user.has_role(\"data-steward\")\n```\nPolicy-as-code defines access rules as version-controlled, testable configuration (often using a tool like Open Policy Agent) rather than permissions granted manually through a UI. This makes access policy reviewable in the same pull-request process as any other code change, consistently enforced across every system that respects it, and auditable — you can see exactly when and why a rule changed, not just infer it from who currently has access.\n</QuestionCard>\n\n<QuestionCard id=\"dg-20\" number={20} question=\"How would you automate detection of PII in a dataset you didn't design?\" difficulty=\"medium\" topic=\"Automati"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "on\">\nCombine pattern-based scanning (regexes for emails, SSNs, phone numbers, credit card formats) with column-name heuristics (`email`, `ssn`, `dob`) and, for higher confidence, a trained classifier on sampled values. Automated scanning is a starting point, not a final answer — it needs a human review step for ambiguous cases, since it will both miss context-dependent PII and occasionally flag something that isn't (a column named `user_id` that's actually a random UUID, not identifying on its own).\n</QuestionCard>\n\n<QuestionCard id=\"dg-21\" number={21} question=\"What is an access request/approval workflow, and why not just grant broad access upfront?\" difficulty=\"easy\" topic=\"Access Control\">\nAn access request workflow requires someone to explicitly request access to a specific dataset, wi"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "th an owner or steward approving it (often time-bound, sometimes requiring a business justification), rather than everyone getting broad default access. Granting broad access upfront is simpler operationally but violates least-privilege — it makes audits meaningless (everyone can see everything, so \"who accessed this\" tells you nothing useful) and makes revoking access when someone changes teams or leaves nearly impossible to reason about.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "## Compliance Frameworks & Process\n\nBeyond GDPR — comparing regulatory regimes, and the organizational processes that make governance stick.\n\n<QuestionList topic=\"Compliance & Process\" storagePrefix=\"dg-compliance\">\n\n<QuestionCard id=\"dg-22\" number={22} question=\"How does GDPR differ from CCPA from a data engineering perspective?\" difficulty=\"hard\" topic=\"Compliance\">\nBoth require honoring deletion and access requests, but **GDPR** (EU) is opt-in by default (you generally need a lawful basis and often explicit consent to process personal data at all) and applies more broadly to \"personal data.\" **CCPA** (California) is more opt-out oriented (processing is generally allowed unless the consumer opts out, particularly of *sale* of their data) and is narrower in some respects but still require"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "s similar underlying capabilities — knowing what personal data you hold about someone and being able to delete or export it on request.\n</QuestionCard>\n\n<QuestionCard id=\"dg-23\" number={23} question=\"What is consent management, and how does it affect what a pipeline is allowed to process?\" difficulty=\"medium\" topic=\"Compliance\">\nConsent management tracks what each user has actually agreed to (marketing use, analytics, third-party sharing) as its own structured, queryable data — not just a one-time checkbox that's forgotten. A pipeline that ingests or transforms personal data needs to check current consent state before processing for a given purpose, and needs to handle consent being **withdrawn** after the fact, which usually means the same deletion/reprocessing machinery used for a \"right"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "to be forgotten\" request.\n</QuestionCard>\n\n<QuestionCard id=\"dg-24\" number={24} question=\"What is a Data Protection Impact Assessment (DPIA), and when is one required?\" difficulty=\"hard\" topic=\"Compliance\">\nA DPIA is a structured assessment of the privacy risk a new system or process introduces before it launches — what personal data it touches, what could go wrong, and what mitigations are in place — required under GDPR for processing likely to result in high risk to individuals (large-scale sensitive data processing, systematic profiling). For a data engineering team, this means privacy review becomes a design-time gate for certain new pipelines, not something bolted on after the fact.\n</QuestionCard>\n\n<QuestionCard id=\"dg-25\" number={25} question=\"How do you measure whether a governanc"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "e program is actually working?\" difficulty=\"medium\" topic=\"Governance Maturity\">\nTrack concrete, observable signals rather than \"we wrote a policy document\": percentage of datasets with an assigned owner and complete catalog metadata, time-to-fulfill for access requests and deletion requests, number of datasets with an enforced classification tag, and audit findings from access reviews. A governance program with no metrics is one nobody can tell is failing until an incident (a compliance violation, a \"nobody owns this\" fire drill) forces the question.\n</QuestionCard>\n\n<QuestionCard id=\"dg-26\" number={26} question=\"How would you design a RACI matrix for a new data domain?\" difficulty=\"medium\" topic=\"Process\">\nA RACI matrix maps each governance activity (defining the schema, approving access"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": ", responding to a quality incident, honoring a deletion request) to who is **R**esponsible (does the work), **A**ccountable (final approval, usually the data owner), **C**onsulted (has input beforehand), and **I**nformed (told after the fact) — for a new domain, this is worth doing explicitly up front specifically to avoid the common failure mode where an incident happens and three teams each assume another team owns the response.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "## Common Interview Scenarios\n\n- **\"A new analyst asks to see raw customer PII 'just to debug a report' — how do you respond?\"** Tests least privilege, masking/tokenization, and role boundaries.\n- **\"Legal asks you to delete a specific user's data across the entire warehouse for a GDPR request — walk through your approach.\"** Tests the raw/derived layer deletion strategy and audit trail.\n- **\"Two teams have different definitions of 'active user' in their dashboards — how do you fix that at the platform level?\"** Tests business glossary thinking and conformed definitions.\n- **\"Design the ownership model for a new data domain with three producing teams and ten consuming teams.\"** Tests owner/steward/custodian role design.\n- **\"Your company is moving from a central data team to a data mesh mo"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "del — what changes about governance?\"** Tests federated computational governance thinking: which rules stay centrally enforced (security, compliance, interoperability standards) versus which decisions move to the domain teams now accountable as data product owners.\n- **\"How would you prove to an auditor that access to a restricted dataset is actually controlled, not just documented?\"** Tests policy-as-code and access-request-workflow thinking — pointing to enforced, version-controlled rules and a queryable request/approval trail, not a policy document nobody checks against reality.\n\n---"
+  },
+  {
+    "path": "/level-2-core-concepts/data-governance/",
+    "locale": "en",
+    "title": "Data Governance",
+    "description": "Data governance interview questions covering ownership, RBAC/ABAC, PII handling, data mesh, policy-as-code, GDPR/CCPA compliance, and governance maturity.",
+    "content": "## Further Reading\n\n- [Data Quality](/level-2-core-concepts/data-quality/) — the trust and correctness practices governance builds on\n- [Data Warehousing](/level-2-core-concepts/data-warehousing/) — where access controls and catalogs get implemented\n- [Observability](/level-4-advanced/observability/#interview-questions) — data lineage and incident response, adjacent to but distinct from governance's ownership/access focus\n- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where governance fits into the broader curriculum"
   },
   {
     "path": "/level-2-core-concepts/data-modeling/",
@@ -12274,127 +12386,218 @@
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
     "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
     "content": "## Apache Iceberg: Open Table Format\n\n**Apache Iceberg is an open table format for large analytics datasets that adds transactional guarantees, consistent snapshots, and safe schema/partition evolution on top of files like Parquet — so multiple engines can read and write the same tables safely.**"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
-    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Advanced Iceberg Features](#advanced-iceberg-features)\n- [Catalogs, Governance & Multi-Engine Operations](#catalogs-governance--multi-engine-operations)\n- [Operational Patterns](#operational-patterns)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
     "content": "## Key Concepts\n\nIceberg tracks table state through **snapshots** — each commit produces a new snapshot referencing a set of data and delete files via manifest lists/manifests, which is what enables consistent reads and **time travel**. Writers use **optimistic concurrency control**, retrying commits if the base snapshot has moved. Two design choices set Iceberg apart from a plain folder of Parquet files: **hidden partitioning** (partitioning is metadata-driven, e.g. `day(ts)`, not baked into folder paths) and field-ID-based **schema evolution**, both of which allow **partition evolution** and schema changes without rewriting historical data. Deletes are handled via **equality** and **positional delete files** rather than rewriting whole data files, and ongoing **table maintenance** — comp"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
     "content": "action, manifest rewriting, snapshot expiration, orphan file removal — keeps metadata and the small-files problem under control. A **catalog** (Hive metastore, REST catalog, AWS Glue, etc.) tracks where each table's metadata lives.\n\n---"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
     "content": "## Interview Questions\n\n<QuestionList topic=\"Iceberg\" storagePrefix=\"iceberg\">\n\n<QuestionCard id=\"iceberg-01\" number={1} question=\"What is Apache Iceberg?\" difficulty=\"easy\" topic=\"Fundamentals\">\nApache Iceberg is an open table format for large analytics datasets. It defines how table metadata, snapshots, and data files are managed so multiple engines can read and write the same tables safely. Iceberg tables are usually stored on object storage (S3/GCS/ADLS) with files like Parquet, but the table semantics — transactions, schema/partition evolution — come from Iceberg's own metadata layer.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-02\" number={2} question=\"What problems does Iceberg solve compared to plain Parquet datasets?\" difficulty=\"medium\" topic=\"Fundamentals\">\nA plain Parquet \"datase"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
     "content": "t in folders\" lacks transactional guarantees and consistent metadata. Iceberg adds ACID-like commits, consistent snapshots, reliable schema/partition evolution, and query planning features like partition pruning based on metadata. It also supports deletes and updates in a table-like way, rather than requiring you to rewrite everything.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-03\" number={3} question=\"What is a snapshot in Iceberg?\" difficulty=\"medium\" topic=\"Snapshots\">\nA snapshot is a point-in-time view of the table. Each commit creates a new snapshot that references a set of data and delete files through metadata (manifest lists/manifests). Readers can query a specific snapshot to get consistent results even while writers continue to append or modify the table.\n</QuestionCard>\n\n<Questi"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
     "content": "onCard id=\"iceberg-04\" number={4} question=\"What is time travel and why is it useful?\" difficulty=\"medium\" topic=\"Time Travel\">\nTime travel means querying the table \"as of\" a previous snapshot (or timestamp). It's useful for debugging regressions, auditing changes, reproducing past reports, and safe backfills — computing against a stable snapshot and then committing a new one.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-05\" number={5} question=\"How does Iceberg handle concurrent writes?\" difficulty=\"hard\" topic=\"Concurrency\">\nIceberg typically uses optimistic concurrency control. Writers create new metadata based on a known current snapshot and then attempt to commit; if the base snapshot changed in the meantime, the commit may conflict and must be retried. This prevents silent lost updates"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
     "content": "and keeps commits atomic.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-06\" number={6} question=\"What is hidden partitioning in Iceberg?\" difficulty=\"medium\" topic=\"Partitioning\">\nHidden partitioning means partitioning is defined at the table metadata level (for example `day(ts)`), not as user-managed folder paths. Engines can still prune partitions, but you're not tied to a physical directory layout. This makes partition evolution safer and avoids leaking storage details into query logic.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-07\" number={7} question=\"What is partition evolution and why is it important?\" difficulty=\"medium\" topic=\"Partitioning\">\nPartition evolution allows changing the partition spec over time — for example switching from `day(ts)` to `month(ts)`, or adding a new partiti"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
     "content": "on field — without rewriting all historical data. It matters because real datasets change: query patterns evolve, and the \"right\" partitioning today may not be right in a year.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-08\" number={8} question=\"How does schema evolution work in Iceberg?\" difficulty=\"medium\" topic=\"Schema\">\nIceberg tracks columns by unique field IDs, enabling safe add/drop/rename operations without breaking readers. Schema evolution can be applied while keeping historical snapshots queryable. Some changes, like certain type changes, depend on engine support and can still be risky if consumers assume a fixed schema.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-09\" number={9} question=\"What are equality deletes and positional deletes?\" difficulty=\"hard\" topic=\"Deletes\">\nDeletes"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
     "content": "in Iceberg can be represented as separate delete files:\n\n- **Equality deletes** — delete rows matching a key predicate (for example `id = 123`).\n- **Positional deletes** — delete specific row positions in data files.\n\nThey allow deletes without rewriting full data files, but too many delete files can hurt read performance until they're compacted.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-10\" number={10} question=\"How do upserts/merges work with Iceberg?\" difficulty=\"hard\" topic=\"DML\">\nUpserts are usually implemented by engines (Spark, Flink, Trino) using `MERGE INTO` semantics, which may create new data files and delete files. The exact behavior depends on the engine and write mode. Operationally, merges are often followed by maintenance jobs to compact data files and remove old snapshot"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
     "content": "s.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-11\" number={11} question=\"Why does the small files problem happen, and how do you mitigate it?\" difficulty=\"medium\" topic=\"Maintenance\">\nSmall files appear when many writers write tiny batches, or when streaming jobs checkpoint frequently. Too many files increase planning overhead and reduce scan efficiency. Mitigations include setting target file sizes, batching writes, and running compaction/rewrite jobs to merge files.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-12\" number={12} question=\"What maintenance operations are common for Iceberg tables?\" difficulty=\"medium\" topic=\"Maintenance\">\nCommon maintenance includes:\n\n- Rewriting data files (compaction) to hit target file sizes.\n- Rewriting manifests to reduce metadata overhead.\n- Expiring old"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
     "content": "snapshots to control metadata growth.\n- Removing orphan files.\n\nThese jobs keep query planning fast and storage cost under control.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-13\" number={13} question=\"What is an Iceberg catalog, and what options exist?\" difficulty=\"medium\" topic=\"Catalogs\">\nA catalog stores table metadata pointers and namespace information. Common options include the Hive metastore, a REST catalog, and cloud-native catalogs (for example AWS Glue). Catalog choice affects authorization, interoperability across engines, and operational complexity.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-14\" number={14} question=\"How would you migrate an existing dataset to Iceberg?\" difficulty=\"hard\" topic=\"Migration\">\nYou typically create an Iceberg table schema and then either:\n\n- Regist"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
     "content": "er existing files in place (where supported), if they already conform to the expected layout.\n- Rewrite the data into Iceberg using an engine (Spark/Flink) for safety.\n\nAfter migration, validate row counts, key constraints, and query performance, then switch readers over to the new table.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-15\" number={15} question=\"Iceberg vs. Delta vs. Hudi: when would you choose Iceberg?\" difficulty=\"hard\" topic=\"Comparison\">\nIceberg is a strong choice when you need an open, engine-agnostic table format with robust metadata, time travel, and evolution features. It fits well in environments with multiple query engines (Spark + Trino + Flink) and a preference for open standards. The best choice still depends on your stack, operational tooling, and update/CDC requir"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
     "content": "ements.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "## Advanced Iceberg Features\n\nBeyond the basics — the mechanics that show up once a team runs Iceberg at real production scale.\n\n<QuestionList topic=\"Advanced Features\" storagePrefix=\"iceberg-advanced\">\n\n<QuestionCard id=\"iceberg-16\" number={16} question=\"What is copy-on-write vs. merge-on-read for updates/deletes in Iceberg, and how do you choose?\" difficulty=\"hard\" topic=\"DML\">\n**Copy-on-write** rewrites entire affected data files immediately when a row changes — reads stay simple and fast (no delete files to reconcile), but writes are expensive, especially for small updates touching large files. **Merge-on-read** just writes a small delete file referencing the changed rows, deferring the expensive rewrite to a later compaction — writes are cheap, but every read has to reconcile data fil"
+  },
+  {
+    "path": "/level-3-technologies/formats/iceberg/",
+    "locale": "en",
+    "title": "Iceberg",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "es against pending deletes until compaction catches up. Choose copy-on-write for read-heavy tables with infrequent updates, merge-on-read for write-heavy tables (frequent upserts, CDC ingestion) where write latency matters more.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-17\" number={17} question=\"What are branches and tags in Iceberg, and how do they enable the Write-Audit-Publish pattern?\" difficulty=\"hard\" topic=\"Branching\">\nBranches and tags are named references to specific snapshots — a branch can keep advancing (like a git branch), while a tag pins one snapshot permanently (for a monthly archive, say). **Write-Audit-Publish** uses this directly: write new data to a branch (not the main table), run quality/audit checks against that branch in isolation, and only then fast-forward the ma"
+  },
+  {
+    "path": "/level-3-technologies/formats/iceberg/",
+    "locale": "en",
+    "title": "Iceberg",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "in branch to include it — so bad data never becomes visible to readers of the main table in the first place.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-18\" number={18} question=\"What is sort order in Iceberg, and how does it differ from partitioning?\" difficulty=\"medium\" topic=\"Optimization\">\nPartitioning determines which **files** a query needs to scan at all (coarse-grained pruning); sort order determines how rows are physically ordered **within** those files, which enables finer-grained skipping via file-level column statistics (min/max per file) — a query filtering on a sorted column can skip whole files whose min/max range excludes the filter, even within a single partition. The two are complementary: partitioning narrows down which files to open, sort order narrows down which of thos"
+  },
+  {
+    "path": "/level-3-technologies/formats/iceberg/",
+    "locale": "en",
+    "title": "Iceberg",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "e opened files are worth reading further.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-19\" number={19} question=\"What are manifest lists and manifests, and how do they form Iceberg's metadata tree?\" difficulty=\"hard\" topic=\"Metadata\">\nA **manifest** lists a set of data (or delete) files along with per-file statistics (partition values, row counts, column bounds) used for pruning. A **manifest list** is a snapshot's index of which manifests belong to it. The hierarchy — snapshot → manifest list → manifests → data files — is what lets query planning avoid touching actual data files at all for the pruning phase, since everything needed to decide which files matter lives in this metadata tree.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-20\" number={20} question=\"What are Puffin files, and what do"
+  },
+  {
+    "path": "/level-3-technologies/formats/iceberg/",
+    "locale": "en",
+    "title": "Iceberg",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "they store?\" difficulty=\"hard\" topic=\"Metadata\">\nPuffin is a file format for storing additional statistics and indexes that don't fit into the standard manifest structure — most notably, information used for improved planning like column-level distinct-value sketches (for cardinality estimation) or secondary indexes. They're an extension point: additional optimization metadata layered on top of the core snapshot/manifest model rather than a replacement for it.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/formats/iceberg/",
+    "locale": "en",
+    "title": "Iceberg",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "## Catalogs, Governance & Multi-Engine Operations\n\nWhere table metadata lives, and how Iceberg behaves when several tools share the same tables.\n\n<QuestionList topic=\"Catalogs & Multi-Engine\" storagePrefix=\"iceberg-catalog\">\n\n<QuestionCard id=\"iceberg-21\" number={21} question=\"What is the Iceberg REST catalog, and why has it become the preferred option over Hive metastore?\" difficulty=\"medium\" topic=\"Catalogs\">\nThe REST catalog exposes catalog operations (list tables, load metadata, commit changes) over a standard HTTP API instead of requiring every engine to speak a specific protocol like Hive's Thrift interface. This decouples engines from any specific catalog implementation — a REST catalog server can be backed by anything (a database, cloud object storage) behind the scenes — making it"
+  },
+  {
+    "path": "/level-3-technologies/formats/iceberg/",
+    "locale": "en",
+    "title": "Iceberg",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "simpler to add support in new engines and easier to run as a lightweight, cloud-native service instead of operating a full Hive metastore.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-22\" number={22} question=\"Can you commit changes across multiple Iceberg tables in a single atomic transaction?\" difficulty=\"hard\" topic=\"Transactions\">\nYes — multi-table transactions let several tables' changes commit together atomically (all succeed or none do), useful when a logical unit of work spans more than one table (updating a fact table and a related aggregate table consistently). Support and exact API depend on the catalog and engine in use; it's a newer capability relative to Iceberg's original single-table transaction model, not universally available everywhere yet.\n</QuestionCard>\n\n<QuestionCard"
+  },
+  {
+    "path": "/level-3-technologies/formats/iceberg/",
+    "locale": "en",
+    "title": "Iceberg",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "id=\"iceberg-23\" number={23} question=\"Does Iceberg support views, and how does that help in multi-engine environments?\" difficulty=\"medium\" topic=\"Views\">\nYes — the Iceberg view specification defines views with engine-specific SQL dialect variants stored in the same metadata/catalog system as tables, so a view created in one engine can be resolved and queried correctly by a different engine, rather than each engine needing its own separate, incompatible view definitions. This extends Iceberg's \"one shared metadata layer, many engines\" model from tables to views as well.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-24\" number={24} question=\"What's the difference between Iceberg format v1 and v2?\" difficulty=\"hard\" topic=\"Spec Versions\">\n**V1** supports append-only and copy-on-write style tabl"
+  },
+  {
+    "path": "/level-3-technologies/formats/iceberg/",
+    "locale": "en",
+    "title": "Iceberg",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "es without row-level delete files. **V2** adds row-level deletes (both equality and positional delete files), enabling efficient merge-on-read updates and deletes without rewriting entire data files. A table's format version is a property of the table itself, and upgrading is generally one-directional — engines need v2 support to correctly interpret delete files, so mixed-engine environments need to confirm every engine involved actually supports the version in use.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/formats/iceberg/",
+    "locale": "en",
+    "title": "Iceberg",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "## Operational Patterns\n\nRunning Iceberg with continuous writers, tuning it for write-heavy workloads, and rewriting tables safely.\n\n<QuestionList topic=\"Operational Patterns\" storagePrefix=\"iceberg-ops\">\n\n<QuestionCard id=\"iceberg-25\" number={25} question=\"How do streaming writers like Flink handle continuous writes into an Iceberg table?\" difficulty=\"hard\" topic=\"Streaming\">\nA streaming sink batches incoming records over a checkpoint interval and commits them as a new Iceberg snapshot at each checkpoint, rather than committing per-record (which would create the small-files problem almost immediately). This ties Iceberg's commit granularity to the stream processor's own checkpointing, so a table being fed by Flink typically sees one new snapshot per checkpoint interval, with compaction ru"
+  },
+  {
+    "path": "/level-3-technologies/formats/iceberg/",
+    "locale": "en",
+    "title": "Iceberg",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "nning separately to consolidate the resulting files over time.\n</QuestionCard>\n\n<QuestionCard id=\"iceberg-26\" number={26} question=\"What Iceberg table properties would you tune for a high-write-volume table?\" difficulty=\"hard\" topic=\"Configuration\">\nTarget file size (`write.target-file-size-bytes`) to control how large compacted files end up, the delete file mode (copy-on-write vs. merge-on-read, per the earlier trade-off) matched to the actual write pattern, commit retry settings for optimistic concurrency conflicts under high concurrent write load, and snapshot expiration frequency/retention so metadata doesn't grow unbounded from a high commit rate. Getting these wrong on a high-volume table is exactly how the small-files and metadata-bloat problems show up in practice.\n</QuestionCard>"
+  },
+  {
+    "path": "/level-3-technologies/formats/iceberg/",
+    "locale": "en",
+    "title": "Iceberg",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "<QuestionCard id=\"iceberg-27\" number={27} question=\"How do you safely rewrite an entire Iceberg table (e.g., changing file format or fixing a widespread data issue) without downtime for readers?\" difficulty=\"hard\" topic=\"Migration\">\nBecause readers always query against a specific snapshot, you can write the entire rewritten dataset as new data files and commit it as a new snapshot — existing readers mid-query continue safely against the old snapshot they started with, and new queries simply pick up the new one the moment it's committed. This is the same optimistic-commit mechanism that makes ordinary writes safe, just applied to a full-table rewrite instead of an incremental change — there's no window where the table is partially rewritten from a reader's perspective.\n</QuestionCard>\n\n</Q"
+  },
+  {
+    "path": "/level-3-technologies/formats/iceberg/",
+    "locale": "en",
+    "title": "Iceberg",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "uestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/formats/iceberg/",
+    "locale": "en",
+    "title": "Iceberg",
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
     "content": "## Common Interview Scenarios\n\n- **\"You have multiple engines — Spark, Trino, Flink — that all need to read and write the same tables. How do you avoid stepping on each other?\"** Discuss Iceberg's catalog-based metadata, snapshot isolation, and optimistic concurrency control, which let independent engines commit safely against the same table.\n- **\"A partitioning scheme chosen a year ago no longer matches query patterns — what are your options?\"** Walk through partition evolution: changing the partition spec going forward without rewriting historical data, thanks to hidden partitioning decoupling logical partitions from physical layout.\n- **\"Query planning on an Iceberg table has gotten slow over time — what would you check?\"** Talk through snapshot/manifest bloat from frequent small commit"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
-    "content": "s, too many delete files from upserts, and the maintenance jobs (compaction, manifest rewrite, snapshot expiration) that address each.\n\n---"
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "s, too many delete files from upserts, and the maintenance jobs (compaction, manifest rewrite, snapshot expiration) that address each.\n- **\"You need to run data quality checks on new data before it's visible to any downstream reader.\"** This is the Write-Audit-Publish pattern — write to a branch, audit it in isolation, then fast-forward the main branch only once it passes, so bad data is never visible on the table readers actually query.\n- **\"A high-volume streaming job keeps writing tiny files into an Iceberg table, and query planning is getting slower every week.\"** Talk through checkpoint-driven commit granularity from the streaming writer, target file size configuration, and running compaction on a schedule rather than only reactively once planning is already painful.\n\n---"
   },
   {
     "path": "/level-3-technologies/formats/iceberg/",
     "locale": "en",
     "title": "Iceberg",
-    "description": "Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.",
-    "content": "## Further Reading\n\n- [Delta Lake](/level-3-technologies/formats/delta/) — the other major open table format, with a similar ACID/time-travel feature set but a different metadata design\n- [Parquet](/level-3-technologies/formats/parquet/) — the columnar file format Iceberg tables are commonly built on top of\n- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where storage formats fit into the broader curriculum"
+    "description": "Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.",
+    "content": "## Further Reading\n\n- [Delta Lake](/level-3-technologies/formats/delta/) — the other major open table format, with a similar ACID/time-travel feature set but a different metadata design\n- [Parquet](/level-3-technologies/formats/parquet/) — the columnar file format Iceberg tables are commonly built on top of\n- [Flink](/level-3-technologies/streaming/flink/) — a common streaming writer into Iceberg tables via checkpoint-driven commits\n- [Data Engineering Roadmap](/roadmaps/data-engineering/) — where storage formats fit into the broader curriculum"
   },
   {
     "path": "/level-3-technologies/formats/index/",
@@ -12561,127 +12764,218 @@
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
     "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
     "content": "## CDC: Capturing and Streaming Database Changes\n\n**Change Data Capture (CDC) streams row-level inserts, updates, and deletes out of a source system in near real time, replacing expensive full-table batch scans with a continuous, ordered log of what changed.**"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
-    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [CDC Tools in Practice](#cdc-tools-in-practice)\n- [CDC Beyond Relational Databases](#cdc-beyond-relational-databases)\n- [Operational Patterns & Trade-offs](#operational-patterns--trade-offs)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
     "content": "## Key Concepts\n\nCDC captures row-level changes (inserts, updates, deletes) from a source system and streams them downstream, most commonly by reading the database's transaction log (WAL/binlog) rather than repeatedly scanning full tables. A production CDC pipeline almost always needs both a **snapshot** (a consistent baseline of existing rows) and **incremental** capture (an ongoing stream of changes from a log position/offset onward). Correctness hinges on a handful of hard problems: **delivery semantics** (at-least-once is the realistic default, made safe with idempotent writes), **ordering** (per-key or per-partition, since events can arrive out of order or be retried), **offset/watermark management** (durably tracking how far you've processed), **schema evolution**, and **delete handl"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
     "content": "ing** (hard delete, soft delete, or full history). Patterns like the **outbox pattern** sidestep dual-write problems by writing business events to a table CDC can capture in the same transaction as the application write. Because of all this, mature teams treat CDC pipelines as production software — with lag monitoring, safe backfill strategies, and strong observability — rather than a \"just wire it up\" integration.\n\n---"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
     "content": "## Interview Questions\n\n<QuestionList topic=\"CDC\" storagePrefix=\"cdc\">\n\n<QuestionCard id=\"cdc-01\" number={1} question=\"What is CDC (Change Data Capture)?\" difficulty=\"easy\" topic=\"Fundamentals\">\nCDC is a technique to capture row-level changes (inserts, updates, deletes) from a source system and stream them downstream. In databases, CDC is commonly log-based (reading the WAL/binlog) so it can capture changes without repeatedly scanning full tables. CDC pipelines often feed event logs (append-only) and/or materialized current-state tables.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-02\" number={2} question=\"When would you choose CDC over batch ingestion?\" difficulty=\"easy\" topic=\"Fundamentals\">\nChoose CDC when you need low-latency updates, continuous incremental processing, or a reliable change h"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
     "content": "istory. CDC is also useful when full-table scans are too expensive because the source is large or changes frequently. Batch ingestion is often simpler when latency requirements are relaxed and operational complexity should be minimized.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-03\" number={3} question=\"What are common CDC sources (WAL/binlog/triggers) and their trade-offs?\" difficulty=\"medium\" topic=\"Sources\">\nCommon sources are:\n- **Database logs (WAL/binlog)** — low overhead and high fidelity, but requires elevated privileges and careful offset handling\n- **Triggers** — can work without log access, but adds write overhead and is easy to break\n- **Timestamp-based queries** — simple but can miss updates or create duplicates if clocks/transactions behave unexpectedly\n\nLog-based CDC is usually"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
     "content": "preferred for production at scale.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-04\" number={4} question=\"What is the difference between snapshot and incremental CDC?\" difficulty=\"medium\" topic=\"Snapshotting\">\nA snapshot reads an initial consistent baseline of existing rows. Incremental CDC then streams changes after that baseline using a log position/offset. Many systems require both: snapshot for bootstrap, incremental for ongoing updates.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-05\" number={5} question=\"What delivery semantics exist (at-most-once/at-least-once/exactly-once)?\" difficulty=\"medium\" topic=\"Semantics\">\nAt-most-once can lose messages but avoids duplicates. At-least-once avoids loss but can produce duplicates on retries. Exactly-once is hard to achieve end-to-end; many systems instead"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
     "content": "implement \"effectively once\" by combining at-least-once delivery with idempotent writes and deterministic merge logic.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-06\" number={6} question=\"How do you make CDC ingestion idempotent?\" difficulty=\"hard\" topic=\"Idempotency\">\nYou make downstream writes idempotent by using stable keys (primary key + source LSN/transaction id) and applying deterministic upsert/merge logic. A common pattern is to load changes into an append-only raw log, then build current-state tables using \"latest per key\" logic. Idempotency must hold across retries and replays.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-07\" number={7} question=\"How do you handle deletes in CDC pipelines?\" difficulty=\"medium\" topic=\"Deletes\">\nDeletes may appear as explicit delete events, tombstones, or a \""
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
     "content": "before image\" without an \"after image.\" Downstream you can:\n- apply hard deletes (remove the row)\n- apply soft deletes (an `is_deleted` flag with `deleted_at`)\n- keep full history (append-only) and compute current state with delete logic\n\nThe choice depends on compliance requirements, analytics needs, and downstream consumers.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-08\" number={8} question=\"How do you handle updates when the source does not provide full row images?\" difficulty=\"hard\" topic=\"Updates\">\nIf updates are partial (only changed columns), you often need to reconstruct the full row by joining against previous state. Some CDC tools can be configured to emit before/after images; if not, current-state reconstruction becomes part of your pipeline. You must also handle out-of-order update"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
     "content": "s carefully.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-09\" number={9} question=\"What is ordering and why is it hard in CDC?\" difficulty=\"hard\" topic=\"Ordering\">\nOrdering means applying changes in the same order they happened in the source. It is hard because events can be partitioned (across multiple tables/partitions), delivered out of order, or retried. Correctness often requires per-key ordering (or per-partition ordering) using source transaction metadata.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-10\" number={10} question=\"What is a watermark/offset and where should it be stored?\" difficulty=\"medium\" topic=\"Offsets\">\nAn offset (watermark) is the position in the source log (or stream) up to which changes have been processed. It should be stored durably in the ingestion system's connector stat"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
     "content": "e store and, for reliability, often also in your platform (for example, a control table) so you can audit and recover. Offsets must be updated atomically with downstream writes to avoid gaps or duplicates.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-11\" number={11} question=\"How do you handle schema evolution with CDC?\" difficulty=\"medium\" topic=\"Schema Evolution\">\nYou need a strategy for compatible changes (additive columns) and breaking changes (renames, type changes). Common tools include schema registries and compatibility policies, plus strict validation in CI. Downstream tables should tolerate additive fields, and pipelines should alert on breaking changes before production data is corrupted.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-12\" number={12} question=\"What is the outbox pattern and w"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
     "content": "hy is it useful?\" difficulty=\"medium\" topic=\"Patterns\">\nThe outbox pattern writes business events into an \"outbox\" table in the same transaction as the application write. CDC then captures the outbox changes and publishes them reliably. This avoids dual-write problems where the database update succeeds but the event publish fails (or vice versa).\n</QuestionCard>\n\n<QuestionCard id=\"cdc-13\" number={13} question=\"How do you monitor CDC lag and where can lag come from?\" difficulty=\"medium\" topic=\"Monitoring\">\nLag can come from several layers:\n- **source** — heavy write load, log retention limits\n- **connector** — slow polling, backpressure, failures\n- **broker/stream** — throughput limits, partition hotspots\n- **downstream** — slow merges/compaction, expensive transformations\n\nYou monitor lag"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
     "content": "using source LSN vs. processed LSN, consumer offsets, and end-to-end freshness in target tables.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-14\" number={14} question=\"How do you design a safe backfill/reprocessing strategy for CDC?\" difficulty=\"hard\" topic=\"Backfill\">\nA safe strategy usually separates raw change storage from derived tables. You keep the raw CDC log (immutable) and rebuild derived current-state/marts from it when needed. For backfills, you often run in a separate environment or commit to new snapshots/versions, then switch consumers over after validation.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-15\" number={15} question=\"What are the most common failure modes in CDC pipelines?\" difficulty=\"medium\" topic=\"Reliability\">\nCommon issues include:\n- duplicates due to retries/rebalances\n-"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
     "content": "missed events due to offset mismanagement or log retention\n- schema drift/breaking changes\n- incorrect delete handling\n- out-of-order application of updates\n\nGood pipelines treat CDC as \"production software\" with strong observability and tests.\n</QuestionCard>\n\n</QuestionList>\n\n---"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": "## CDC Tools in Practice\n\nThe actual software teams run for log-based CDC, and the operational details that separate a demo from a production deployment.\n\n<QuestionList topic=\"CDC Tools\" storagePrefix=\"cdc-tools\">\n\n<QuestionCard id=\"cdc-16\" number={16} question=\"What is Debezium, and how does it fit with Kafka Connect?\" difficulty=\"medium\" topic=\"Tooling\">\nDebezium is the most widely-used open-source CDC tool — it ships as a set of Kafka Connect **source connectors**, one per database engine (Postgres, MySQL, MongoDB, SQL Server), each reading that database's specific log format (WAL, binlog, oplog) and publishing standardized change events to Kafka topics. It doesn't replace Kafka Connect; it plugs into it, so you get Connect's generic scaling/fault-tolerance machinery for free rather tha"
+  },
+  {
+    "path": "/level-3-technologies/ingestion/cdc/",
+    "locale": "en",
+    "title": "CDC",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": "n Debezium reimplementing it.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-17\" number={17} question=\"How does Debezium take an initial snapshot without locking the source table for the whole duration?\" difficulty=\"hard\" topic=\"Snapshotting\">\nOlder snapshot modes held a lock (at least briefly) to establish a consistent starting point before streaming incremental changes. Debezium's **incremental snapshot** avoids this by chunking the table into small primary-key ranges and reading each chunk with ordinary low-impact queries, watermarking each chunk against the ongoing change stream so concurrent writes during the snapshot are correctly reconciled — without ever taking a long-held lock on the whole table.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-18\" number={18} question=\"What's the difference betwee"
+  },
+  {
+    "path": "/level-3-technologies/ingestion/cdc/",
+    "locale": "en",
+    "title": "CDC",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": "n a self-hosted tool like Debezium and a managed service like AWS DMS or Fivetran?\" difficulty=\"medium\" topic=\"Tooling\">\nDebezium requires you to run and operate the Kafka Connect cluster (and Kafka itself) yourself — more control and no per-connector vendor cost, but real operational overhead. **AWS DMS** and **Fivetran** are managed CDC services: you configure a source and destination and the vendor operates the pipeline, at the cost of less control over internals, per-connector/volume pricing, and being limited to whatever source/destination combinations the vendor supports. The choice is largely a build-vs-buy trade-off scaled by team size and how many source systems need connecting.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-19\" number={19} question=\"What is a heartbeat mechanism in a CDC"
+  },
+  {
+    "path": "/level-3-technologies/ingestion/cdc/",
+    "locale": "en",
+    "title": "CDC",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": "connector, and why does it matter?\" difficulty=\"hard\" topic=\"Reliability\">\nA heartbeat is a synthetic, periodic write the connector makes (or asks to be made) purely so its position in the log keeps advancing even when the actual tables it cares about see no real changes for a while. Without one, a quiet source can cause the log position to appear stuck, which on some databases risks the transaction log growing unboundedly (Postgres WAL retained for a replication slot that's \"behind\") or the connector's offset looking artificially stale to monitoring.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-20\" number={20} question=\"How do you handle DDL changes (like ALTER TABLE) appearing in the CDC stream?\" difficulty=\"hard\" topic=\"Schema Evolution\">\nLog-based CDC tools typically parse DDL statements fr"
+  },
+  {
+    "path": "/level-3-technologies/ingestion/cdc/",
+    "locale": "en",
+    "title": "CDC",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": "om the log alongside row changes and can emit schema-change events (often to a separate schema history topic) so downstream consumers know a column was added, dropped, or retyped. The pipeline needs an explicit policy for each: auto-propagate additive changes to downstream tables, but pause and alert a human for destructive changes (drops, incompatible type changes) rather than silently applying them and corrupting the target schema.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/ingestion/cdc/",
+    "locale": "en",
+    "title": "CDC",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": "## CDC Beyond Relational Databases\n\nChange capture where there's no WAL or binlog — document stores and managed NoSQL each expose their own change mechanism.\n\n<QuestionList topic=\"Beyond Relational\" storagePrefix=\"cdc-nosql\">\n\n<QuestionCard id=\"cdc-21\" number={21} question=\"How does CDC work for MongoDB, using change streams?\" difficulty=\"medium\" topic=\"NoSQL CDC\">\nMongoDB's **change streams** API lets an application subscribe directly to insert/update/delete/replace events on a collection, backed internally by MongoDB's own replication oplog — no external log-parsing tool required, unlike relational WAL/binlog CDC. The trade-off: change streams need a replica set (or sharded cluster) to exist at all, and resuming after a disconnect relies on a **resume token**, which is only valid as long"
+  },
+  {
+    "path": "/level-3-technologies/ingestion/cdc/",
+    "locale": "en",
+    "title": "CDC",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": "as the oplog hasn't rolled past that point.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-22\" number={22} question=\"How does CDC work for DynamoDB, using DynamoDB Streams?\" difficulty=\"medium\" topic=\"NoSQL CDC\">\nDynamoDB Streams captures an ordered, near-real-time log of item-level changes for a table (available for a rolling 24-hour window), typically consumed by a Lambda function or the Kinesis Client Library. Since DynamoDB has no concept of a general-purpose transaction log the way a relational database does, streams are the *only* CDC mechanism available — there's no equivalent of parsing a WAL directly.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-23\" number={23} question=\"What changes about CDC design when the source isn't a traditional relational database?\" difficulty=\"medium\" topic=\"NoSQL CDC"
+  },
+  {
+    "path": "/level-3-technologies/ingestion/cdc/",
+    "locale": "en",
+    "title": "CDC",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": "\">\nThe core problems (ordering, idempotency, delivery semantics, schema evolution) stay the same, but the *mechanism* is entirely source-specific and non-transferable — there's no generic \"read the log\" approach across a document store, a wide-column store, and a relational database, each exposes its own native change API (change streams, streams, WAL/binlog) with its own retention limits and resume semantics. Schema evolution is also a bigger practical challenge for CDC from schema-flexible sources (documents can vary field-to-field), needing more defensive downstream handling than a relational source with a single evolving table schema.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/ingestion/cdc/",
+    "locale": "en",
+    "title": "CDC",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": "## Operational Patterns & Trade-offs\n\nRunning CDC across many tables reliably, and deciding when it's the right tool at all.\n\n<QuestionList topic=\"Operational Patterns\" storagePrefix=\"cdc-ops\">\n\n<QuestionCard id=\"cdc-24\" number={24} question=\"How do you coordinate CDC across multiple tables that need to stay transactionally consistent downstream?\" difficulty=\"hard\" topic=\"Consistency\">\nLog-based CDC preserves the source's original commit order across tables (since it reads one linear transaction log), so as long as downstream processing applies changes in that same order — rather than processing each table's stream independently and out of sync with the others — multi-table transactional consistency is preserved. The common mistake is fanning out each table to its own independent consumer"
+  },
+  {
+    "path": "/level-3-technologies/ingestion/cdc/",
+    "locale": "en",
+    "title": "CDC",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": "with no shared ordering guarantee, which can leave downstream tables briefly inconsistent with each other even though each individually is correct.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-25\" number={25} question=\"How do you achieve high availability for a CDC connector so a single instance failure doesn't stop the pipeline?\" difficulty=\"hard\" topic=\"Reliability\">\nRun the connector on a framework that supports distributed, fault-tolerant execution (Kafka Connect in distributed mode) so a worker failing gets its tasks reassigned automatically, with offsets persisted externally (in a Kafka topic, not the failed worker's local memory) so the new instance resumes from the correct position rather than restarting the whole capture. For the source database side, some CDC tools (Debezium on Postgre"
+  },
+  {
+    "path": "/level-3-technologies/ingestion/cdc/",
+    "locale": "en",
+    "title": "CDC",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": "s) also need to handle replication slot ownership carefully, since only one consumer can hold a given slot at a time.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-26\" number={26} question=\"How do you compact a stream of CDC events into a single current-state table efficiently?\" difficulty=\"medium\" topic=\"Compaction\">\nRather than applying every single event as an individual write (expensive at high change volume), batch events by primary key over a short window and keep only the latest event per key before writing — a merge/upsert of the deduplicated batch is far cheaper than one write per raw event. This is conceptually the same idea as Kafka's log compaction, just applied at the pipeline's write stage instead of relying on the broker to do it.\n</QuestionCard>\n\n<QuestionCard id=\"cdc-27\" number={"
+  },
+  {
+    "path": "/level-3-technologies/ingestion/cdc/",
+    "locale": "en",
+    "title": "CDC",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": "27} question=\"How do you decide between CDC and simpler periodic batch replication for a given source?\" difficulty=\"medium\" topic=\"Trade-offs\">\nReach for CDC when freshness genuinely matters (minutes, not hours), the source is too large or too write-heavy for repeated full/incremental batch scans to be practical, or you need a durable history of every change, not just current state. Simpler periodic batch extraction (a nightly full load, or an incremental pull keyed on an `updated_at` column) is often the right call when the source is small, changes infrequently, or the team doesn't want the operational overhead of running and monitoring a CDC connector for a use case that daily freshness would satisfy just as well.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/ingestion/cdc/",
+    "locale": "en",
+    "title": "CDC",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
     "content": "## Common Interview Scenarios\n\n- **\"Design a CDC pipeline from Postgres into a warehouse that must stay under 1 minute of freshness lag.\"** Talk through log-based capture (WAL), a snapshot-then-incremental bootstrap, idempotent merge on primary key + LSN, and how you'd monitor end-to-end lag.\n- **\"Two teams built two CDC consumers off the same stream and their row counts disagree.\"** Walk through duplicate causes (retries/rebalances without idempotent writes), out-of-order updates being applied non-deterministically, and inconsistent delete handling between the two consumers.\n- **\"The source database just underwent a breaking schema change mid-stream — what happens to your pipeline?\"** Discuss schema registries, compatibility policies, why downstream tables should tolerate additive changes"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
-    "content": ", and how you'd alert on breaking changes before they corrupt production data.\n- **\"How would you avoid the dual-write problem when an application needs to update its database and publish an event?\"** This is the outbox pattern — walk through why writing the event to a table in the same transaction, then letting CDC capture and publish it, is safer than writing to the database and a message queue separately.\n\n---"
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": ", and how you'd alert on breaking changes before they corrupt production data.\n- **\"How would you avoid the dual-write problem when an application needs to update its database and publish an event?\"** This is the outbox pattern — walk through why writing the event to a table in the same transaction, then letting CDC capture and publish it, is safer than writing to the database and a message queue separately.\n- **\"The source table needs an initial load of 500M rows, and you can't afford to lock it.\"** Point to incremental/chunked snapshotting (Debezium's approach) — reading small primary-key ranges with ordinary queries and watermarking each chunk against the live change stream, instead of a single long-held lock.\n- **\"A source database has been quiet for hours and monitoring is flagging th"
   },
   {
     "path": "/level-3-technologies/ingestion/cdc/",
     "locale": "en",
     "title": "CDC",
-    "description": "Change Data Capture interview questions covering log-based CDC, delivery semantics, idempotency, schema evolution, and the outbox pattern for engineers.",
-    "content": "## Further Reading\n\n- [Flume](/level-3-technologies/ingestion/flume/) — a log-collection alternative to CDC for streaming ingestion\n- [NiFi](/level-3-technologies/ingestion/nifi/) — a flow-based tool often used to route and transform CDC streams\n- [Kafka](/level-3-technologies/streaming/kafka/) — the most common transport layer for CDC event streams"
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": "e CDC connector as stuck.\"** Talk through the heartbeat mechanism — a synthetic periodic write keeping the log position moving — versus an actual failure, and why a quiet source can otherwise look identical to a stalled connector.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/ingestion/cdc/",
+    "locale": "en",
+    "title": "CDC",
+    "description": "Change Data Capture interview questions covering Debezium, incremental snapshotting, NoSQL change streams, connector HA, and CDC vs. batch trade-offs.",
+    "content": "## Further Reading\n\n- [Flume](/level-3-technologies/ingestion/flume/) — a log-collection alternative to CDC for streaming ingestion\n- [NiFi](/level-3-technologies/ingestion/nifi/) — a flow-based tool often used to route and transform CDC streams\n- [Kafka](/level-3-technologies/streaming/kafka/#interview-questions) — the most common transport layer for CDC event streams, including the Kafka Connect framework Debezium runs on\n- [MongoDB](/level-3-technologies/databases/mongodb/#interview-questions) — change streams, the source-specific CDC mechanism used there\n- [DynamoDB](/level-3-technologies/databases/dynamodb/#interview-questions) — DynamoDB Streams, the equivalent mechanism for that source"
   },
   {
     "path": "/level-3-technologies/ingestion/flume/",

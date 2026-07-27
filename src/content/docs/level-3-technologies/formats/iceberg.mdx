@@ -1,6 +1,6 @@
 ---
 title: Iceberg
-description: Apache Iceberg interview questions covering snapshots, time travel, hidden partitioning, schema/partition evolution, deletes, and table maintenance.
+description: Apache Iceberg interview questions covering copy-on-write vs merge-on-read, branching/WAP, REST catalogs, format versions, and streaming writes.
 ---
 
 import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
@@ -13,6 +13,9 @@ import QuestionList from '../../../../components/mdx/QuestionList.astro';
 ## Table of Contents
 - [Key Concepts](#key-concepts)
 - [Interview Questions](#interview-questions)
+- [Advanced Iceberg Features](#advanced-iceberg-features)
+- [Catalogs, Governance & Multi-Engine Operations](#catalogs-governance--multi-engine-operations)
+- [Operational Patterns](#operational-patterns)
 - [Common Interview Scenarios](#common-interview-scenarios)
 - [Further Reading](#further-reading)
 
@@ -109,11 +112,91 @@ Iceberg is a strong choice when you need an open, engine-agnostic table format w
 
 ---
 
+## Advanced Iceberg Features
+
+Beyond the basics — the mechanics that show up once a team runs Iceberg at real production scale.
+
+<QuestionList topic="Advanced Features" storagePrefix="iceberg-advanced">
+
+<QuestionCard id="iceberg-16" number={16} question="What is copy-on-write vs. merge-on-read for updates/deletes in Iceberg, and how do you choose?" difficulty="hard" topic="DML">
+**Copy-on-write** rewrites entire affected data files immediately when a row changes — reads stay simple and fast (no delete files to reconcile), but writes are expensive, especially for small updates touching large files. **Merge-on-read** just writes a small delete file referencing the changed rows, deferring the expensive rewrite to a later compaction — writes are cheap, but every read has to reconcile data files against pending deletes until compaction catches up. Choose copy-on-write for read-heavy tables with infrequent updates, merge-on-read for write-heavy tables (frequent upserts, CDC ingestion) where write latency matters more.
+</QuestionCard>
+
+<QuestionCard id="iceberg-17" number={17} question="What are branches and tags in Iceberg, and how do they enable the Write-Audit-Publish pattern?" difficulty="hard" topic="Branching">
+Branches and tags are named references to specific snapshots — a branch can keep advancing (like a git branch), while a tag pins one snapshot permanently (for a monthly archive, say). **Write-Audit-Publish** uses this directly: write new data to a branch (not the main table), run quality/audit checks against that branch in isolation, and only then fast-forward the main branch to include it — so bad data never becomes visible to readers of the main table in the first place.
+</QuestionCard>
+
+<QuestionCard id="iceberg-18" number={18} question="What is sort order in Iceberg, and how does it differ from partitioning?" difficulty="medium" topic="Optimization">
+Partitioning determines which **files** a query needs to scan at all (coarse-grained pruning); sort order determines how rows are physically ordered **within** those files, which enables finer-grained skipping via file-level column statistics (min/max per file) — a query filtering on a sorted column can skip whole files whose min/max range excludes the filter, even within a single partition. The two are complementary: partitioning narrows down which files to open, sort order narrows down which of those opened files are worth reading further.
+</QuestionCard>
+
+<QuestionCard id="iceberg-19" number={19} question="What are manifest lists and manifests, and how do they form Iceberg's metadata tree?" difficulty="hard" topic="Metadata">
+A **manifest** lists a set of data (or delete) files along with per-file statistics (partition values, row counts, column bounds) used for pruning. A **manifest list** is a snapshot's index of which manifests belong to it. The hierarchy — snapshot → manifest list → manifests → data files — is what lets query planning avoid touching actual data files at all for the pruning phase, since everything needed to decide which files matter lives in this metadata tree.
+</QuestionCard>
+
+<QuestionCard id="iceberg-20" number={20} question="What are Puffin files, and what do they store?" difficulty="hard" topic="Metadata">
+Puffin is a file format for storing additional statistics and indexes that don't fit into the standard manifest structure — most notably, information used for improved planning like column-level distinct-value sketches (for cardinality estimation) or secondary indexes. They're an extension point: additional optimization metadata layered on top of the core snapshot/manifest model rather than a replacement for it.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Catalogs, Governance & Multi-Engine Operations
+
+Where table metadata lives, and how Iceberg behaves when several tools share the same tables.
+
+<QuestionList topic="Catalogs & Multi-Engine" storagePrefix="iceberg-catalog">
+
+<QuestionCard id="iceberg-21" number={21} question="What is the Iceberg REST catalog, and why has it become the preferred option over Hive metastore?" difficulty="medium" topic="Catalogs">
+The REST catalog exposes catalog operations (list tables, load metadata, commit changes) over a standard HTTP API instead of requiring every engine to speak a specific protocol like Hive's Thrift interface. This decouples engines from any specific catalog implementation — a REST catalog server can be backed by anything (a database, cloud object storage) behind the scenes — making it simpler to add support in new engines and easier to run as a lightweight, cloud-native service instead of operating a full Hive metastore.
+</QuestionCard>
+
+<QuestionCard id="iceberg-22" number={22} question="Can you commit changes across multiple Iceberg tables in a single atomic transaction?" difficulty="hard" topic="Transactions">
+Yes — multi-table transactions let several tables' changes commit together atomically (all succeed or none do), useful when a logical unit of work spans more than one table (updating a fact table and a related aggregate table consistently). Support and exact API depend on the catalog and engine in use; it's a newer capability relative to Iceberg's original single-table transaction model, not universally available everywhere yet.
+</QuestionCard>
+
+<QuestionCard id="iceberg-23" number={23} question="Does Iceberg support views, and how does that help in multi-engine environments?" difficulty="medium" topic="Views">
+Yes — the Iceberg view specification defines views with engine-specific SQL dialect variants stored in the same metadata/catalog system as tables, so a view created in one engine can be resolved and queried correctly by a different engine, rather than each engine needing its own separate, incompatible view definitions. This extends Iceberg's "one shared metadata layer, many engines" model from tables to views as well.
+</QuestionCard>
+
+<QuestionCard id="iceberg-24" number={24} question="What's the difference between Iceberg format v1 and v2?" difficulty="hard" topic="Spec Versions">
+**V1** supports append-only and copy-on-write style tables without row-level delete files. **V2** adds row-level deletes (both equality and positional delete files), enabling efficient merge-on-read updates and deletes without rewriting entire data files. A table's format version is a property of the table itself, and upgrading is generally one-directional — engines need v2 support to correctly interpret delete files, so mixed-engine environments need to confirm every engine involved actually supports the version in use.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Operational Patterns
+
+Running Iceberg with continuous writers, tuning it for write-heavy workloads, and rewriting tables safely.
+
+<QuestionList topic="Operational Patterns" storagePrefix="iceberg-ops">
+
+<QuestionCard id="iceberg-25" number={25} question="How do streaming writers like Flink handle continuous writes into an Iceberg table?" difficulty="hard" topic="Streaming">
+A streaming sink batches incoming records over a checkpoint interval and commits them as a new Iceberg snapshot at each checkpoint, rather than committing per-record (which would create the small-files problem almost immediately). This ties Iceberg's commit granularity to the stream processor's own checkpointing, so a table being fed by Flink typically sees one new snapshot per checkpoint interval, with compaction running separately to consolidate the resulting files over time.
+</QuestionCard>
+
+<QuestionCard id="iceberg-26" number={26} question="What Iceberg table properties would you tune for a high-write-volume table?" difficulty="hard" topic="Configuration">
+Target file size (`write.target-file-size-bytes`) to control how large compacted files end up, the delete file mode (copy-on-write vs. merge-on-read, per the earlier trade-off) matched to the actual write pattern, commit retry settings for optimistic concurrency conflicts under high concurrent write load, and snapshot expiration frequency/retention so metadata doesn't grow unbounded from a high commit rate. Getting these wrong on a high-volume table is exactly how the small-files and metadata-bloat problems show up in practice.
+</QuestionCard>
+
+<QuestionCard id="iceberg-27" number={27} question="How do you safely rewrite an entire Iceberg table (e.g., changing file format or fixing a widespread data issue) without downtime for readers?" difficulty="hard" topic="Migration">
+Because readers always query against a specific snapshot, you can write the entire rewritten dataset as new data files and commit it as a new snapshot — existing readers mid-query continue safely against the old snapshot they started with, and new queries simply pick up the new one the moment it's committed. This is the same optimistic-commit mechanism that makes ordinary writes safe, just applied to a full-table rewrite instead of an incremental change — there's no window where the table is partially rewritten from a reader's perspective.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
 ## Common Interview Scenarios
 
 - **"You have multiple engines — Spark, Trino, Flink — that all need to read and write the same tables. How do you avoid stepping on each other?"** Discuss Iceberg's catalog-based metadata, snapshot isolation, and optimistic concurrency control, which let independent engines commit safely against the same table.
 - **"A partitioning scheme chosen a year ago no longer matches query patterns — what are your options?"** Walk through partition evolution: changing the partition spec going forward without rewriting historical data, thanks to hidden partitioning decoupling logical partitions from physical layout.
 - **"Query planning on an Iceberg table has gotten slow over time — what would you check?"** Talk through snapshot/manifest bloat from frequent small commits, too many delete files from upserts, and the maintenance jobs (compaction, manifest rewrite, snapshot expiration) that address each.
+- **"You need to run data quality checks on new data before it's visible to any downstream reader."** This is the Write-Audit-Publish pattern — write to a branch, audit it in isolation, then fast-forward the main branch only once it passes, so bad data is never visible on the table readers actually query.
+- **"A high-volume streaming job keeps writing tiny files into an Iceberg table, and query planning is getting slower every week."** Talk through checkpoint-driven commit granularity from the streaming writer, target file size configuration, and running compaction on a schedule rather than only reactively once planning is already painful.
 
 ---
 
@@ -121,4 +204,5 @@ Iceberg is a strong choice when you need an open, engine-agnostic table format w
 
 - [Delta Lake](/level-3-technologies/formats/delta/) — the other major open table format, with a similar ACID/time-travel feature set but a different metadata design
 - [Parquet](/level-3-technologies/formats/parquet/) — the columnar file format Iceberg tables are commonly built on top of
+- [Flink](/level-3-technologies/streaming/flink/) — a common streaming writer into Iceberg tables via checkpoint-driven commits
 - [Data Engineering Roadmap](/roadmaps/data-engineering/) — where storage formats fit into the broader curriculum
