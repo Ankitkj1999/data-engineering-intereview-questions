@@ -1,0 +1,92 @@
+---
+title: Data Engineering Lifecycle
+description: Interview questions on the data engineering lifecycle — generation, ingestion, processing, storage, serving, and consumption — and how failures propagate between stages.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## Data Engineering Lifecycle: From Raw Data to Business Decisions
+
+**The data engineering lifecycle is the repeatable journey data takes from where it's created to where it's used — generation, ingestion, processing, storage, serving, and consumption — and each stage's output is the next stage's input, so a failure anywhere upstream propagates through everything downstream of it.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The lifecycle runs in one direction: **Generation → Ingestion → Processing → Storage → Serving → Consumption**. Data is *generated* by source systems (application databases, APIs, logs, IoT devices), *ingested* into the platform in batch or streaming mode, *processed* through cleaning, transformation, and enrichment, *stored* in a warehouse, lake, or lakehouse suited to how it'll be queried, *served* to consumers through query engines or APIs, and finally *consumed* by analysts, data scientists, and applications. Two ideas cut across every stage: **each handoff is a contract** — a schema, a freshness expectation, a grain — that the next stage relies on, so quietly changing it upstream breaks things downstream without warning; and **the lifecycle isn't strictly linear in practice** — processing can happen before or after storage (ETL vs. ELT), and modern platforms increasingly blend batch and streaming ingestion rather than choosing one exclusively.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Data Engineering Lifecycle" storagePrefix="data-engineering-lifecycle">
+
+<QuestionCard id="del-01" number={1} question="What are the six stages of the data engineering lifecycle, in order?" difficulty="easy" topic="Fundamentals">
+**Generation → Ingestion → Processing → Storage → Serving → Consumption.** Data is created in a source system, brought into the platform, cleaned and transformed, stored in a queryable form, exposed to consumers, and finally used by people or applications to make decisions.
+</QuestionCard>
+
+<QuestionCard id="del-02" number={2} question="What happens at the generation stage, and why does a data engineer need to understand the source system, not just the data it produces?" difficulty="easy" topic="Generation">
+Generation is where data is created — application databases, third-party APIs, application logs, IoT/sensor devices. Understanding the source system matters because it determines *how* data can be reliably extracted: a database with no change-tracking forces expensive full scans, while one with change data capture support enables efficient incremental ingestion.
+</QuestionCard>
+
+<QuestionCard id="del-03" number={3} question="What's the difference between batch and streaming ingestion, and how do teams typically decide between them?" difficulty="medium" topic="Ingestion">
+Batch ingestion collects and moves data on a schedule (hourly, daily); streaming ingestion moves each event as it happens, typically through a message broker like Kafka. The decision comes down to latency requirements versus complexity cost — streaming gets data available in seconds but requires more operational maturity (schema management, backpressure handling, exactly-once semantics); batch is simpler to build and debug but data is only as fresh as the last run.
+</QuestionCard>
+
+<QuestionCard id="del-04" number={4} question="What kinds of work happen during the processing stage?" difficulty="medium" topic="Processing">
+Cleaning (deduplication, handling nulls and malformed records), transformation (reshaping data into the schema consumers need), and enrichment (joining in reference data or computing derived fields). This is also where business logic gets encoded — the definition of a "completed order" or an "active user" typically lives in this stage's transformation code.
+</QuestionCard>
+
+<QuestionCard id="del-05" number={5} question="What's the difference between ETL and ELT, and why has ELT become more common?" difficulty="medium" topic="Processing">
+ETL transforms data *before* loading it into the destination; ELT loads raw data first and transforms it *inside* the destination (typically a warehouse) using SQL. ELT has become more common because modern cloud warehouses have enough compute to make in-warehouse transformation cheap and fast, and keeping raw data around makes it possible to re-derive a transformation without re-extracting from the source.
+</QuestionCard>
+
+<QuestionCard id="del-06" number={6} question="How do you decide where processed data should be stored — warehouse, lake, or lakehouse?" difficulty="medium" topic="Storage">
+It depends on the shape of the data and how it'll be queried: a warehouse suits structured data and fast SQL analytics, a lake suits large volumes of raw or semi/unstructured data at lower cost, and a lakehouse tries to get warehouse-grade query performance and ACID guarantees directly on lake storage. The choice is really about matching storage cost and query pattern, not picking whichever is newest.
+</QuestionCard>
+
+<QuestionCard id="del-07" number={7} question="What does the serving stage involve, and who or what is it built for?" difficulty="easy" topic="Serving">
+Serving is making stored data available to whoever needs to consume it — through a query engine for ad hoc SQL, a BI tool's semantic layer for dashboards, or an API for applications that need low-latency lookups. It's built for very different access patterns depending on the consumer, which is why the same underlying dataset often gets served through more than one path.
+</QuestionCard>
+
+<QuestionCard id="del-08" number={8} question="Who consumes data at the final stage, and what do their needs typically look like?" difficulty="easy" topic="Consumption">
+Analysts consume it through dashboards and ad hoc queries, data scientists consume it as training data or feature inputs, and applications consume it through APIs to power product features. Each has different tolerance for latency and different expectations about data freshness and schema stability — which is why "the pipeline is done" doesn't mean the same thing for every consumer.
+</QuestionCard>
+
+<QuestionCard id="del-09" number={9} question="Why is it said that a data quality issue early in the lifecycle propagates through everything downstream of it?" difficulty="medium" topic="Fundamentals">
+Because each stage's output feeds the next stage as input — a bad value that enters at generation or ingestion gets copied, joined, and aggregated at every later stage, showing up in a dashboard or model far removed from where it originated. That's why fixing quality issues as close to the source as possible is far cheaper than catching them downstream, where the same bad value has already multiplied into dozens of derived tables.
+</QuestionCard>
+
+<QuestionCard id="del-10" number={10} question="What's a schema change at the source, and why is it one of the most common ways the lifecycle breaks in practice?" difficulty="medium" topic="Fundamentals">
+A schema change is when a source system adds, removes, renames, or retypes a field — often without notifying the data team, since it looks like a purely internal change to whoever made it. It's a common failure point because ingestion, processing, and storage all implicitly depend on the previous schema; an unannounced change can silently drop data, break a transformation, or corrupt a downstream metric.
+</QuestionCard>
+
+<QuestionCard id="del-11" number={11} question="Is the lifecycle always strictly linear in a real system?" difficulty="hard" topic="Fundamentals">
+No — real platforms often blend patterns. Processing can happen before storage (ETL) or after (ELT); some data streams through processing and serving nearly simultaneously for near-real-time use cases while other data sits raw for hours before a scheduled batch job touches it. The six stages are a useful mental model for reasoning about where a problem originates, not a rigid pipeline every dataset must follow in the same order.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Walk me through what happens to a single event, from the moment it's generated to the moment an analyst sees it in a dashboard."** Trace all six stages in order, naming a concrete tool or pattern at each step (e.g., CDC at ingestion, dbt at processing, a warehouse at storage).
+- **"A dashboard shows a number that doesn't match what a stakeholder expects — how do you find where in the lifecycle it went wrong?"** Describe working backward from consumption through serving, storage, processing, ingestion, to generation, checking each handoff's contract (schema, freshness, grain) until the mismatch is isolated.
+- **"When would you choose streaming ingestion over batch for a new pipeline?"** Anchor the answer in the actual latency requirement of the downstream use case, not a general preference — streaming is only worth its added operational complexity when near-real-time data genuinely changes what a consumer can do with it.
+- **"How would you design a pipeline to be resilient to an upstream schema change?"** Talk through schema validation at ingestion, alerting on unexpected structure changes, and treating raw/landed data as immutable so a broken transformation can be fixed and rerun without re-extracting from the source.
+
+---
+
+## Further Reading
+
+- [What is Data Engineering](/level-2-core-concepts/what-is-data-engineering/) — the lifecycle summarized in context of the role's core responsibilities
+- [Data Modeling](/level-2-core-concepts/data-modeling/) — the schema design work that shapes the processing and storage stages
+- [Choosing the Right Technologies](/level-2-core-concepts/choosing-the-right-technologies/) — how to pick tools for each lifecycle stage

@@ -1,0 +1,92 @@
+---
+title: Skills and Responsibilities
+description: Interview questions on the technical and soft skills a data engineer needs, how responsibilities scale from junior to senior, and how interviewers probe for both.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## Skills and Responsibilities: What a Data Engineer Actually Owns
+
+**A data engineer's skill set splits into two halves — the technical toolkit (SQL, a general-purpose language, cloud platforms, data modeling, distributed systems) and the operational ownership (infrastructure, pipelines, data quality, performance) that toolkit is used to deliver — and interviewers probe both, not just the first.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The technical skill set breaks into a few layers: **query and transformation languages** (SQL is non-negotiable, Python is the default scripting language, Java/Scala matter when working directly with JVM-based engines like Spark or Kafka), **cloud platform fluency** (AWS, GCP, or Azure — whichever the org runs on, since modern data infrastructure is rarely on-prem anymore), and **systems knowledge** (data modeling for structuring data well, distributed systems fundamentals like partitioning and consistency for reasoning about scale and failure). Responsibility, meanwhile, isn't static — it scales with seniority. A junior data engineer typically owns well-scoped pipeline tasks inside an existing architecture; a senior or staff engineer owns architectural decisions, cross-team data contracts, and the operational health (on-call, incident response) of the platforms other teams depend on. Soft skills — communicating trade-offs to non-technical stakeholders, writing documentation, negotiating data contracts with upstream/downstream teams — are what separates someone who can write a pipeline from someone who can be trusted to own one.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Skills and Responsibilities" storagePrefix="skills-and-responsibilities">
+
+<QuestionCard id="sar-01" number={1} question="What are the core technical skill areas a data engineer needs?" difficulty="easy" topic="Skills">
+Four areas cover most of the job: **query/transformation languages** (SQL always, Python almost always), **a general-purpose or JVM language** for building and operating pipeline code, **cloud platform skills** (storage, compute, managed data services), and **systems knowledge** — data modeling and distributed systems fundamentals for reasoning about scale, consistency, and failure modes.
+</QuestionCard>
+
+<QuestionCard id="sar-02" number={2} question="Why is SQL treated as non-negotiable rather than just one skill among many?" difficulty="easy" topic="Skills">
+Because it's the interface almost every layer of the stack shares — warehouses, lakehouses, streaming engines, and BI tools all speak SQL. A data engineer who can't write efficient SQL can't reason about query plans, can't debug slow transformations, and can't communicate with analysts and scientists in the language they already use.
+</QuestionCard>
+
+<QuestionCard id="sar-03" number={3} question="Why is Python usually the default language, and when does that default change?" difficulty="easy" topic="Skills">
+Python wins by default because of its ecosystem — orchestration tools (Airflow), transformation frameworks (dbt, Spark's PySpark API), and cloud SDKs are all Python-first, and its readability lowers the bar for cross-team collaboration. The default shifts toward Java or Scala when working close to JVM-native engines (Spark, Kafka, Flink) where the native API is more complete, more performant, or where the surrounding team's codebase is already JVM-based.
+</QuestionCard>
+
+<QuestionCard id="sar-04" number={4} question="What cloud platform skills matter, and why can't they be treated as optional?" difficulty="medium" topic="Skills">
+Object storage, managed compute (serverless functions, managed Spark/warehouse services), IAM/permissions, and networking basics (VPCs, security groups) matter because virtually no modern data platform runs fully on-prem. A data engineer who only knows the theory of pipelines but can't provision or secure the infrastructure that runs them can't operate independently on a real team.
+</QuestionCard>
+
+<QuestionCard id="sar-05" number={5} question="What distributed systems concepts should a data engineer be comfortable with, and why?" difficulty="medium" topic="Skills">
+Partitioning (splitting data/work across nodes), replication, consistency models, and the CAP theorem's trade-offs matter because most data infrastructure at any real scale is a distributed system. Without this grounding, a data engineer can't reason about why a pipeline handles a schema change gracefully in one system but causes a full reprocess in another, or why a "simple" join becomes a multi-hour shuffle at scale.
+</QuestionCard>
+
+<QuestionCard id="sar-06" number={6} question="What are the four core responsibility areas a data engineer owns day to day?" difficulty="easy" topic="Responsibilities">
+**Data infrastructure** (reliable, scalable storage and compute systems), **pipeline architecture** (designing the ETL/ELT workflows that move and transform data), **data quality** (accuracy and consistency as data flows through the platform), and **performance optimization** (keeping queries and transformations efficient as volume and usage grow). These are the same four areas covered on the [What is Data Engineering](/level-2-core-concepts/what-is-data-engineering/) page — this page goes deeper into how they scale with seniority and show up day to day.
+</QuestionCard>
+
+<QuestionCard id="sar-07" number={7} question="How does a junior data engineer's scope of responsibility typically differ from a senior or staff engineer's?" difficulty="medium" topic="Responsibilities">
+A junior engineer typically owns well-scoped tasks inside an existing architecture — building a new ingestion job, fixing a broken transformation, adding tests to a pipeline. A senior or staff engineer owns the architecture itself — deciding whether a new use case needs a new pipeline pattern or storage layer, setting data contracts between teams, and being accountable for the operational health of systems other teams silently depend on.
+</QuestionCard>
+
+<QuestionCard id="sar-08" number={8} question="What does operational ownership — on-call, incident response — look like for a data engineer?" difficulty="medium" topic="Responsibilities">
+It means being the person paged when a pipeline fails, a dashboard shows stale data, or a downstream cost alert fires — and being expected to diagnose root cause under time pressure, not just patch the symptom. Senior engineers are additionally expected to reduce the *rate* of incidents over time: adding monitoring, alerting, and safeguards so the same failure mode doesn't recur.
+</QuestionCard>
+
+<QuestionCard id="sar-09" number={9} question="Why do soft skills — communication, documentation, negotiating data contracts — matter for a technical role?" difficulty="medium" topic="Skills">
+Because a pipeline's output is consumed by people who didn't build it. A data engineer regularly has to explain a trade-off to a non-technical stakeholder, document a schema so another team can self-serve instead of filing tickets, and negotiate what "freshness" or "grain" a dataset needs to support before building it. Without those skills, technically sound work still creates friction and rework.
+</QuestionCard>
+
+<QuestionCard id="sar-10" number={10} question="How does data governance and security fit into a data engineer's responsibilities?" difficulty="medium" topic="Responsibilities">
+Data engineers are usually the ones implementing access controls, PII handling, and retention policies at the infrastructure level — governance rules that legal or a data governance team defines but engineering has to enforce in the pipelines and storage layers themselves. That makes security and compliance awareness part of the job, not a separate specialty.
+</QuestionCard>
+
+<QuestionCard id="sar-11" number={11} question="How do interviewers typically probe for both the technical and responsibility sides of this role?" difficulty="medium" topic="Interviewing">
+Technical skills get tested directly — SQL exercises, a coding problem, a system design walkthrough. Responsibility and ownership get tested through behavioral questions: "tell me about a pipeline that broke in production," "how did you handle a disagreement with a stakeholder about requirements," or "describe a time you had to make a trade-off between speed and data quality." Strong candidates answer both halves, not just the technical one.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Walk me through the skills you'd expect on a data engineering job posting, and why each one is there."** Group them into languages/tools, cloud platform skills, and systems knowledge, and explain what gap each closes rather than just listing them.
+- **"How would your day-to-day responsibilities change if you moved from a junior to a senior data engineer role?"** Contrast task-level ownership (build this pipeline) against architecture-level ownership (decide what pattern this class of pipeline should use, and be accountable when it breaks).
+- **"Tell me about a time you had to explain a technical trade-off to a non-technical stakeholder."** Use it to demonstrate the communication half of the role — not just that you made the right technical call, but that you got buy-in for it.
+- **"How do you think about data quality as part of your responsibilities, versus something a separate QA function handles?"** Frame data quality as owned by the data engineer at the source, since fixing it upstream is far cheaper than every downstream team catching it independently.
+
+---
+
+## Further Reading
+
+- [What is Data Engineering](/level-2-core-concepts/what-is-data-engineering/) — the four core responsibility areas this page expands on
+- [Data Engineering Lifecycle](/level-2-core-concepts/data-engineering-lifecycle/) — where these skills get applied, stage by stage
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — the full curriculum these skills map to

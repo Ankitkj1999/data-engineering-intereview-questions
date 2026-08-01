@@ -1,0 +1,92 @@
+---
+title: Choosing the Right Technologies
+description: Interview questions on how data engineers evaluate managed vs. self-hosted, build vs. buy, batch vs. streaming, and warehouse vs. lake technology trade-offs.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## Choosing the Right Technologies: A Trade-Off Framework
+
+**Picking a data technology is rarely about which tool is "best" in the abstract — it's about matching a tool's trade-offs (managed vs. self-hosted, cost vs. control, latency vs. complexity) against a team's actual scale, skill set, and budget, which is why the same problem can have a different right answer at two different companies.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Every technology choice in data engineering trades off along a handful of recurring axes: **managed vs. self-hosted** (operational burden vs. cost and control), **build vs. buy** (engineering time vs. vendor lock-in and licensing cost), **open source vs. proprietary** (flexibility and no licensing fees vs. official support and polish), and workload-specific trade-offs like **batch vs. streaming** (simplicity vs. latency) and **warehouse vs. lake vs. lakehouse** (query performance and cost vs. flexibility with raw and unstructured data). None of these trade-offs resolve the same way twice — a five-person startup and a 500-engineer platform team will reasonably land on opposite answers for the same question, because team size, existing skill set, and how much operational overhead the org can absorb are as much a part of the decision as the technology itself.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Choosing the Right Technologies" storagePrefix="choosing-the-right-technologies">
+
+<QuestionCard id="crt-01" number={1} question="What's the core trade-off between a managed service and a self-hosted one?" difficulty="easy" topic="Managed vs Self-Hosted">
+A managed service (e.g., a cloud data warehouse, a managed Kafka offering) trades cost and some control for lower operational burden — the vendor handles scaling, patching, and uptime. Self-hosting trades that convenience for full control and often lower direct cost at scale, at the price of needing the in-house expertise to operate it reliably.
+</QuestionCard>
+
+<QuestionCard id="crt-02" number={2} question="When does self-hosting a technology like Kafka or Spark actually make sense over a managed offering?" difficulty="medium" topic="Managed vs Self-Hosted">
+It makes sense when the team already has deep operational expertise in that system, when usage is large and steady enough that managed pricing becomes disproportionately expensive, or when specific configuration/tuning needs aren't well supported by the managed version. For most teams without dedicated platform engineers, though, the operational cost of self-hosting outweighs the savings.
+</QuestionCard>
+
+<QuestionCard id="crt-03" number={3} question="How should a team think about the build vs. buy decision for data tooling?" difficulty="medium" topic="Build vs Buy">
+Buy (or use an existing open-source tool) by default — building custom tooling only pays off when the problem is genuinely core to the business or when no existing tool fits the specific requirement well. Building means owning maintenance indefinitely; buying means accepting vendor lock-in and licensing cost. The mistake to avoid is building something generic that a mature open-source or vendor tool already solves well.
+</QuestionCard>
+
+<QuestionCard id="crt-04" number={4} question="What's the risk of vendor lock-in, and how do teams mitigate it when they still choose a proprietary tool?" difficulty="medium" topic="Build vs Buy">
+Lock-in means migrating away later becomes expensive — in re-engineering effort, data egress cost, and retraining. Teams mitigate it by preferring tools built on open standards where possible (e.g., an open table format like Parquet or Iceberg underneath a proprietary compute layer), and by being deliberate about which layers of the stack they're willing to lock into versus which need to stay portable.
+</QuestionCard>
+
+<QuestionCard id="crt-05" number={5} question="What's the practical difference between choosing an open-source tool and a proprietary one, beyond licensing cost?" difficulty="medium" topic="Open Source vs Proprietary">
+Open source generally offers more flexibility and no licensing fees, but support falls on the team itself unless they pay for a vendor-backed distribution. Proprietary tools trade that flexibility for official support, more polished tooling, and often faster time-to-value — at the cost of licensing spend and less control over the roadmap.
+</QuestionCard>
+
+<QuestionCard id="crt-06" number={6} question="How does team skill set factor into a technology choice, independent of the technology's own merits?" difficulty="medium" topic="Team Fit">
+A technically superior tool the team doesn't know how to operate well often performs worse in practice than a "good enough" tool the team is already fluent in — because operational mistakes, slow debugging, and misconfiguration erase the theoretical advantage. Interviewers want to see that a candidate weighs the team's actual skill set as a real constraint, not an afterthought.
+</QuestionCard>
+
+<QuestionCard id="crt-07" number={7} question="How do you decide between batch and streaming processing for a given use case?" difficulty="medium" topic="Workload Trade-offs">
+Start from the actual latency requirement, not a general preference for one over the other: if the downstream use case only checks data once a day, batch is simpler to build, debug, and reason about. If a business decision genuinely depends on data being seconds old — fraud detection, real-time personalization — the added operational complexity of streaming (schema management, backpressure, exactly-once semantics) is worth paying for.
+</QuestionCard>
+
+<QuestionCard id="crt-08" number={8} question="How do you choose between a data warehouse, a data lake, and a lakehouse for a new storage layer?" difficulty="medium" topic="Workload Trade-offs">
+Match the choice to the shape of the data and how it'll be queried: a warehouse suits structured data and fast, predictable SQL analytics; a lake suits large volumes of raw, semi-, or unstructured data at lower storage cost; a lakehouse aims for warehouse-grade query performance and ACID transactions directly on lake storage, useful when a team wants one system instead of maintaining both.
+</QuestionCard>
+
+<QuestionCard id="crt-09" number={9} question="What role does cost play in choosing a technology, beyond just the sticker price of a service?" difficulty="medium" topic="Cost">
+Total cost includes compute and storage pricing, but also engineering time to operate it, the cost of mistakes during a learning curve, and migration cost if the choice turns out wrong. A cheaper-looking managed service can be more expensive overall if it requires significant custom tooling to fit the team's workflow, and a "free" open-source tool isn't free once the engineering hours to run it reliably are counted.
+</QuestionCard>
+
+<QuestionCard id="crt-10" number={10} question="How should a team's current scale and expected growth trajectory influence a technology choice?" difficulty="medium" topic="Team Fit">
+Choosing for current scale keeps complexity proportional to actual need — over-engineering for hypothetical future scale (e.g., adopting Kafka before there's any streaming use case) adds operational burden with no present payoff. Choosing with growth in mind matters when a migration later would be genuinely painful (e.g., a storage format or schema convention that's expensive to change retroactively) — those decisions deserve more forward-looking weight than ones that are cheap to revisit.
+</QuestionCard>
+
+<QuestionCard id="crt-11" number={11} question="Why can the same technology decision reasonably go two different ways at two different companies?" difficulty="hard" topic="Team Fit">
+Because the trade-offs — team size, existing skill set, budget, growth stage, risk tolerance — aren't fixed properties of the technology, they're properties of the org evaluating it. A five-person startup optimizing for speed and low overhead will often reasonably choose a fully managed stack, while a large platform team with dedicated infrastructure engineers may reasonably self-host the same category of tool for cost and control at scale. Neither is wrong; they're solving for different constraints.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Would you recommend Snowflake, Redshift, or BigQuery for a new project — and how would you decide?"** Don't default to a name — walk through the team's existing cloud provider, expected query patterns, and pricing model fit, referencing concrete trade-offs from pages like [Snowflake](/level-3-technologies/data-warehouses/snowflake/), [Redshift](/level-3-technologies/data-warehouses/redshift/), and [BigQuery](/level-3-technologies/data-warehouses/bigquery/).
+- **"A stakeholder wants real-time dashboards — do you reach for Kafka and streaming, or is batch good enough?"** Push back on the premise first: clarify what "real-time" actually needs to mean for the business decision being made, then justify [Kafka](/level-3-technologies/streaming/kafka/) only if a genuine sub-minute latency requirement exists.
+- **"How would you choose between self-hosting Airflow and using a managed orchestration service?"** Weigh the team's existing DevOps maturity and the operational cost of running [Airflow](/level-3-technologies/orchestration/airflow/) reliably against the premium of a managed offering.
+- **"Walk me through how you'd choose a table format for a new lakehouse project."** Compare open formats like [Delta Lake](/level-3-technologies/formats/delta/) and [Iceberg](/level-3-technologies/formats/iceberg/) on ecosystem fit, existing engine compatibility, and how locked-in the choice makes the team to one compute layer.
+
+---
+
+## Further Reading
+
+- [Data Engineering Lifecycle](/level-2-core-concepts/data-engineering-lifecycle/) — the stages each technology choice in this page actually supports
+- [Cost Optimization](/level-4-advanced/cost-optimization/) — a deeper look at the cost side of these trade-offs
+- [Data Engineering Roadmap](/roadmaps/data-engineering/) — the full catalog of technologies these trade-offs apply to
