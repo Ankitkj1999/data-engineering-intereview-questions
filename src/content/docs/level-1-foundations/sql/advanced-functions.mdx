@@ -1,0 +1,156 @@
+---
+title: Advanced Functions
+description: Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Advanced Functions: String, Math, Date, and Conditional Logic
+
+**Beyond the core clauses, SQL's built-in functions are what let a query reshape and reason about values inline — cleaning up text, doing date arithmetic, and branching on conditions — without pulling data out into application code first.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [String Functions](#string-functions)
+- [Math Functions](#math-functions)
+- [Date & Time Functions](#date--time-functions)
+- [CASE](#case)
+- [COALESCE / NULLIF](#coalesce--nullif)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+SQL's built-in function library covers a handful of recurring needs: **string functions** (`CONCAT`, `SUBSTRING`, `TRIM`, `UPPER`/`LOWER`) for cleaning and reshaping text, **math functions** (`ROUND`, `FLOOR`, `CEILING`, `ABS`, `MOD`) for numeric transformation, and **date/time functions** (`DATEADD`, `DATEDIFF`, `DATE_TRUNC`) for date arithmetic and formatting — all of which vary more in exact syntax between vendors than almost any other part of SQL, so the concept transfers but the precise function name often doesn't. `CASE` adds conditional branching directly inside a query, and `COALESCE`/`NULLIF` are the two small, purpose-built functions for handling `NULL` explicitly rather than letting it propagate silently through a calculation.
+
+---
+
+## String Functions
+
+<QuestionList topic="String Functions" storagePrefix="advanced-functions-string">
+
+<QuestionCard id="strf-01" number={1} question="What are the most commonly used SQL string functions, and what does each do?" difficulty="easy" topic="String Functions">
+`CONCAT` joins strings together, `LENGTH`/`LEN` returns character count, `SUBSTRING` extracts part of a string, `REPLACE` swaps occurrences of one substring for another, `UPPER`/`LOWER` change case, and `TRIM` removes leading/trailing whitespace (or another specified character).
+</QuestionCard>
+
+<QuestionCard id="strf-02" number={2} question="How does SUBSTRING work, and how do its arguments differ across databases?" difficulty="medium" topic="String Functions">
+`SUBSTRING(string, start, length)` extracts `length` characters starting at position `start` (most databases use 1-based indexing, not 0-based). The exact function name and argument order can vary — `SUBSTR` in some databases, and some dialects make the length argument optional (defaulting to "rest of the string") — so it's worth double-checking a specific database's syntax rather than assuming it matches another.
+</QuestionCard>
+
+<QuestionCard id="strf-03" number={3} question="What's the difference between TRIM, LTRIM, and RTRIM?" difficulty="easy" topic="String Functions">
+`TRIM` removes leading and trailing whitespace (or a specified character) from both ends of a string. `LTRIM` removes it only from the left (start), and `RTRIM` only from the right (end) — useful when only one side's padding is a known problem, like trailing spaces from a fixed-width import.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Math Functions
+
+<QuestionList topic="Math Functions" storagePrefix="advanced-functions-math">
+
+<QuestionCard id="mathf-01" number={1} question="What are the common SQL math functions, and what does each compute?" difficulty="easy" topic="Math Functions">
+`FLOOR` rounds down to the nearest integer, `CEILING`/`CEIL` rounds up, `ROUND` rounds to the nearest integer (or a specified number of decimal places), `ABS` returns the absolute value, and `MOD` (or the `%` operator) returns the remainder of a division.
+</QuestionCard>
+
+<QuestionCard id="mathf-02" number={2} question="What's the difference between FLOOR and ROUND when working with a value like 4.7?" difficulty="easy" topic="Math Functions">
+`FLOOR(4.7)` always rounds down, returning `4`, regardless of how close the value is to `5`. `ROUND(4.7)` rounds to the nearest integer using standard rounding rules, returning `5`. The distinction matters wherever "always round down" (e.g., how many full boxes fit) is a genuinely different requirement from "round to the closest value."
+</QuestionCard>
+
+<QuestionCard id="mathf-03" number={3} question="What does MOD do, and where does it commonly show up in queries?" difficulty="medium" topic="Math Functions">
+`MOD(a, b)` (or `a % b`) returns the remainder of `a` divided by `b`. It shows up in bucketing/partitioning logic (e.g., `WHERE MOD(id, 10) = 0` to sample every 10th row), and in identifying even/odd values or cyclical groupings like "every 7th day."
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Date & Time Functions
+
+<QuestionList topic="Date & Time Functions" storagePrefix="advanced-functions-date-time">
+
+<QuestionCard id="dtf-01" number={1} question="What are common SQL date/time functions, and what does each do?" difficulty="easy" topic="Date & Time Functions">
+Functions for getting the current date/time (`CURRENT_DATE`, `CURRENT_TIMESTAMP`/`NOW()`), adding or subtracting an interval (`DATEADD`/`DATE_ADD`), computing the difference between two dates (`DATEDIFF`), extracting a specific part like year or month (`EXTRACT`/`DATEPART`), and truncating a timestamp to a coarser unit (`DATE_TRUNC`).
+</QuestionCard>
+
+<QuestionCard id="dtf-02" number={2} question="How do you add or subtract an interval from a date, and how does the syntax differ across databases?" difficulty="medium" topic="Date & Time Functions">
+PostgreSQL uses interval arithmetic directly: `order_date + INTERVAL '7 days'`. SQL Server uses `DATEADD(day, 7, order_date)`. MySQL uses `DATE_ADD(order_date, INTERVAL 7 DAY)`. The concept — shift a date by some amount — is universal, but the exact syntax is one of the least portable parts of SQL between vendors.
+</QuestionCard>
+
+<QuestionCard id="dtf-03" number={3} question="How would you truncate a timestamp down to the day or month for grouping purposes?" difficulty="medium" topic="Date & Time Functions">
+`DATE_TRUNC('month', order_timestamp)` (PostgreSQL) rounds a timestamp down to the start of its containing month, which is exactly what's needed when `GROUP BY`-ing timestamps into monthly buckets — grouping by the raw timestamp would produce a separate group for every distinct second instead of one per month.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## CASE
+
+<QuestionList topic="CASE" storagePrefix="advanced-functions-case">
+
+<QuestionCard id="casefn-01" number={1} question="What is a CASE expression, and what's the difference between simple CASE and searched CASE?" difficulty="easy" topic="CASE">
+`CASE` adds conditional branching to a query, evaluating to a value depending on which condition is true. **Simple CASE** compares one expression against several values (`CASE status WHEN 'A' THEN 'Active' WHEN 'I' THEN 'Inactive' END`); **searched CASE** evaluates independent boolean conditions in order (`CASE WHEN price > 100 THEN 'Expensive' WHEN price > 50 THEN 'Moderate' ELSE 'Cheap' END`), which is more flexible since each branch's condition can involve entirely different columns.
+</QuestionCard>
+
+<QuestionCard id="casefn-02" number={2} question="Write a CASE expression that buckets order totals into 'Small', 'Medium', and 'Large'." difficulty="medium" topic="CASE">
+```sql
+SELECT order_id,
+  CASE
+    WHEN total < 50 THEN 'Small'
+    WHEN total < 200 THEN 'Medium'
+    ELSE 'Large'
+  END AS order_size
+FROM orders;
+```
+Conditions are checked top to bottom, and the first one that matches wins — which is why `total < 200` doesn't need to also exclude values under 50; those were already caught by the first `WHEN`.
+</QuestionCard>
+
+<QuestionCard id="casefn-03" number={3} question="What happens if no WHEN condition matches and there's no ELSE?" difficulty="medium" topic="CASE">
+The `CASE` expression returns `NULL` for that row. An explicit `ELSE` is good practice specifically to avoid this — without one, a row that falls through every condition silently gets `NULL` instead of a value that makes the "uncovered case" obvious.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## COALESCE / NULLIF
+
+<QuestionList topic="COALESCE / NULLIF" storagePrefix="advanced-functions-coalesce-nullif">
+
+<QuestionCard id="coal-01" number={1} question="What does COALESCE do?" difficulty="easy" topic="COALESCE / NULLIF">
+`COALESCE(a, b, c, ...)` returns the first non-`NULL` value among its arguments, evaluated left to right. It's most commonly used to substitute a default for a potentially `NULL` column: `COALESCE(phone_number, 'N/A')`, or to fall back through a chain of increasingly generic sources: `COALESCE(preferred_name, first_name, 'Unknown')`.
+</QuestionCard>
+
+<QuestionCard id="coal-02" number={2} question="What does NULLIF do, and give a practical use case?" difficulty="medium" topic="COALESCE / NULLIF">
+`NULLIF(a, b)` returns `NULL` if `a` equals `b`, otherwise returns `a`. A common use is turning a sentinel "no value" placeholder (like an empty string or a `0` used to mean "not set") into a real `NULL` so it's treated consistently by aggregate functions and `IS NULL` checks: `NULLIF(discount_pct, 0)`.
+</QuestionCard>
+
+<QuestionCard id="coal-03" number={3} question="How would you combine COALESCE and NULLIF to safely divide two columns without a divide-by-zero error?" difficulty="hard" topic="COALESCE / NULLIF">
+```sql
+SELECT total_revenue / NULLIF(total_orders, 0) AS avg_order_value
+```
+`NULLIF(total_orders, 0)` converts a `0` denominator into `NULL`, which makes the division return `NULL` instead of raising a divide-by-zero error. Wrapping the whole expression in `COALESCE(..., 0)` on the outside can then convert that resulting `NULL` into a reportable `0` if that's the desired fallback for "no orders yet."
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Write a query to categorize customers as 'New', 'Returning', or 'VIP' based on their order count."** A direct `CASE` expression prompt, testing whether conditions are ordered correctly and whether an `ELSE` is included.
+- **"How would you standardize a messy `phone` column that has some NULLs, some empty strings, and inconsistent formatting?"** A chance to combine `COALESCE`, `NULLIF`, `TRIM`, and possibly `REPLACE` in one cleanup expression.
+- **"Compute the average order value per month, safely handling months with zero orders."** Forces `DATE_TRUNC` for the monthly grouping and `NULLIF`/`COALESCE` for the safe division.
+- **"Why did a date comparison that worked in one database fail after migrating to another?"** A prompt to discuss how date/time function syntax is one of the least portable parts of SQL across vendors.
+
+---
+
+## Further Reading
+
+- [SQL Data Types](/level-1-foundations/sql/sql-data-types/) — the string, numeric, and date/time types these functions operate on
+- [Aggregate Queries](/level-1-foundations/sql/aggregate-queries/) — how COALESCE is commonly paired with SUM/AVG to handle empty groups
+- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including window functions built on similar conditional logic

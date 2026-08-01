@@ -1,0 +1,109 @@
+---
+title: Views
+description: Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Views: Virtual Tables Built From Saved Queries
+
+**A view is a saved query that behaves like a table for everything downstream — but nothing about it is stored, which is exactly what makes it useful for simplifying complex logic and controlling access, and exactly what limits its performance benefit compared to actually materializing the data.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Creating Views](#creating-views)
+- [Modifying Views](#modifying-views)
+- [Dropping Views](#dropping-views)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A view is a named, saved `SELECT` query that can be queried as if it were a table — `CREATE VIEW active_customers AS SELECT ... FROM customers WHERE status = 'active'` lets anyone write `SELECT * FROM active_customers` afterward without repeating the underlying logic. Critically, a standard view stores no data of its own: every time it's queried, the database re-runs the underlying `SELECT` against the current state of the base tables. That makes views useful for two main things — **simplifying repeated complex logic** (hiding a messy multi-table join behind a simple name) and **access control** (granting a user permission to query a view that only exposes certain columns or rows, without granting access to the full underlying table). It's also the key difference from a **materialized view**, which does store its result physically and needs to be refreshed — trading some staleness for real performance gains a plain view can't offer.
+
+---
+
+## Creating Views
+
+<QuestionList topic="Creating Views" storagePrefix="views-creating">
+
+<QuestionCard id="cv-01" number={1} question="What is a view, and what problem does it solve?" difficulty="easy" topic="Creating Views">
+A view is a saved `SELECT` query, stored under a name, that can be queried like a table. It solves the problem of repeating the same complex join or filtering logic across many queries — wrapping it once behind a view means every consumer writes a simple `SELECT * FROM view_name` instead of re-deriving the same multi-table logic each time.
+</QuestionCard>
+
+<QuestionCard id="cv-02" number={2} question="Write a CREATE VIEW statement that wraps a join into a reusable object." difficulty="medium" topic="Creating Views">
+```sql
+CREATE VIEW customer_order_summary AS
+SELECT c.id, c.name, COUNT(o.id) AS order_count, SUM(o.total) AS lifetime_value
+FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.id
+GROUP BY c.id, c.name;
+```
+Anyone can now query `SELECT * FROM customer_order_summary WHERE lifetime_value > 1000` without needing to know or repeat the join and aggregation underneath.
+</QuestionCard>
+
+<QuestionCard id="cv-03" number={3} question="Is a standard view's data physically stored, or computed on each query?" difficulty="medium" topic="Creating Views">
+Computed fresh on each query — a standard view has no storage of its own; it's purely a saved query definition that gets substituted in and re-executed against the live base tables every time it's referenced. This is different from a **materialized view**, which does physically store its result and must be explicitly refreshed to reflect new data, trading freshness for query speed.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Modifying Views
+
+<QuestionList topic="Modifying Views" storagePrefix="views-modifying">
+
+<QuestionCard id="mv-01" number={1} question="How do you modify an existing view's definition?" difficulty="easy" topic="Modifying Views">
+Most databases support `CREATE OR REPLACE VIEW view_name AS <new query>`, which redefines the view in place. Some databases instead require (or additionally support) `ALTER VIEW`, and if neither is available, the fallback is `DROP VIEW` followed by a fresh `CREATE VIEW`.
+</QuestionCard>
+
+<QuestionCard id="mv-02" number={2} question="What's the difference between CREATE OR REPLACE VIEW and DROP + CREATE VIEW?" difficulty="medium" topic="Modifying Views">
+`CREATE OR REPLACE VIEW` updates the definition while preserving the view's existing permissions and any dependent objects that reference it. `DROP VIEW` followed by `CREATE VIEW` removes the view entirely first — any grants on it are lost and need to be reapplied, and anything that depended on the view will briefly (or permanently, if the drop isn't followed by a successful recreate) fail to resolve.
+</QuestionCard>
+
+<QuestionCard id="mv-03" number={3} question="What restrictions typically exist on CREATE OR REPLACE VIEW?" difficulty="hard" topic="Modifying Views">
+Many databases only allow the replacement if the new query's output columns are compatible with the original — commonly requiring the same column names and types, in the same order, with new columns only allowed to be appended at the end. Removing a column or reordering existing ones is often rejected, requiring a full `DROP` and `CREATE` instead.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Dropping Views
+
+<QuestionList topic="Dropping Views" storagePrefix="views-dropping">
+
+<QuestionCard id="dv-01" number={1} question="What does DROP VIEW do, and does it affect the underlying tables?" difficulty="easy" topic="Dropping Views">
+`DROP VIEW view_name` removes the view's saved definition. It has no effect whatsoever on the underlying base tables or their data — a view is just a stored query, so dropping it only removes that stored query, not anything it reads from.
+</QuestionCard>
+
+<QuestionCard id="dv-02" number={2} question="What happens if you try to DROP a view that other views depend on?" difficulty="medium" topic="Dropping Views">
+Depending on the database, it either blocks the drop (protecting the dependent view from suddenly referencing something that no longer exists) or requires `CASCADE` to explicitly drop the dependent views along with it — the same referential-safety pattern used for foreign keys and dependent tables.
+</QuestionCard>
+
+<QuestionCard id="dv-03" number={3} question="Can you insert, update, or delete through a view, and what limits that?" difficulty="hard" topic="Dropping Views">
+Simple views based on a single table with no aggregation, `DISTINCT`, or `GROUP BY` are often updatable — a write through the view passes through to the underlying table. Views involving joins, aggregates, or set operations usually aren't updatable, because there's no unambiguous way to translate a change to the view's output back into a specific change on the underlying base table(s).
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Why would you use a view instead of just saving the query text somewhere for people to copy?"** Discuss reusability, centralized logic (one place to fix a bug or change a definition), and access control — none of which a copy-pasted query provides.
+- **"A view used to expose columns A, B, C — a teammate wants to remove column B. What's the safest way to do that?"** Walk through why `CREATE OR REPLACE VIEW` often can't remove or reorder columns, and why `DROP` + `CREATE` (with attention to re-granting permissions) is usually required instead.
+- **"When would you reach for a materialized view instead of a regular view?"** Discuss the trade-off: a materialized view trades some data freshness (it needs refreshing) for real performance gains on an expensive underlying query, which a plain view — recomputed every time — can never provide.
+- **"Design a view that lets a support team see customer contact info but not payment details."** A practical access-control scenario: a view exposing only the permitted columns, with `GRANT SELECT` on the view instead of the underlying table.
+
+---
+
+## Further Reading
+
+- [Data Definition Language (DDL)](/level-1-foundations/sql/ddl/) — the schema-level commands views are declared alongside
+- [JOIN Queries](/level-1-foundations/sql/join-queries/) — the kind of logic views are most commonly used to wrap and simplify
+- [Indexes](/level-1-foundations/sql/indexes/) — how materialized views differ from regular ones in terms of performance and storage

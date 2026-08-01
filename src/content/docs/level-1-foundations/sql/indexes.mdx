@@ -1,0 +1,85 @@
+---
+title: Indexes
+description: Interview questions on SQL indexes — creating and managing indexes, partial and covering indexes, and how the query planner decides whether to use one.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Indexes: Speeding Up Queries at the Cost of Writes and Storage
+
+**An index is a separate, ordered data structure the database maintains alongside a table specifically to make lookups fast — and like every optimization, it's a trade-off: faster reads, in exchange for extra storage and slower writes, since every index has to be updated on every insert, update, and delete.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Managing Indexes](#managing-indexes)
+- [Query Optimization with Indexes](#query-optimization-with-indexes)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Without an index, finding rows matching a condition requires a **full table scan** — checking every row. An index (most commonly a B-tree) maintains a sorted structure mapping column values to row locations, so the database can jump almost directly to matching rows instead of scanning everything. That speed isn't free: every index adds storage overhead and slows down writes, since an `INSERT`/`UPDATE`/`DELETE` has to update every index on the table, not just the table's own data. Whether a query actually *uses* an available index is decided by the query planner, based on cost estimates — and a very common interview trap is assuming an index automatically helps: on a small table, or when a condition matches a large fraction of rows, a full scan can genuinely be faster than the overhead of using the index.
+
+---
+
+## Managing Indexes
+
+<QuestionList topic="Managing Indexes" storagePrefix="indexes-managing">
+
+<QuestionCard id="midx-01" number={1} question="What is an index, and what trade-off does it introduce?" difficulty="easy" topic="Managing Indexes">
+An index is an auxiliary data structure — typically a B-tree — that the database maintains to speed up lookups on a column or set of columns, avoiding a full table scan for queries that filter, join, or sort on it. The trade-off: extra disk space per index, and slower writes, since every `INSERT`/`UPDATE`/`DELETE` has to keep every relevant index in sync with the table.
+</QuestionCard>
+
+<QuestionCard id="midx-02" number={2} question="How do you create an index, and what's a composite index?" difficulty="easy" topic="Managing Indexes">
+`CREATE INDEX idx_name ON table (column)` creates a single-column index. A **composite index** spans multiple columns — `CREATE INDEX idx_name ON table (col1, col2)` — and is useful when queries commonly filter or sort on that same combination together; column order in a composite index matters, since it can efficiently serve queries filtering on a leading prefix of the columns but not ones that skip the first column.
+</QuestionCard>
+
+<QuestionCard id="midx-03" number={3} question="What is a partial index, and when would you use one?" difficulty="medium" topic="Managing Indexes">
+A partial index only covers rows matching a specified condition: `CREATE INDEX idx_active ON users (email) WHERE status = 'active'`. It's useful when queries consistently filter on a subset of rows (like only active users) — the index stays smaller and cheaper to maintain than indexing the whole table, since inactive rows never need to appear in it.
+</QuestionCard>
+
+<QuestionCard id="midx-04" number={4} question="What is a covering index?" difficulty="medium" topic="Managing Indexes">
+A covering index includes every column a specific query needs — both the filtering/sorting columns and the columns being selected — so the database can satisfy the entire query from the index alone, without a separate lookup back to the table's actual data ("index-only scan"). It trades additional index size for eliminating that extra lookup step.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Query Optimization with Indexes
+
+<QuestionList topic="Query Optimization with Indexes" storagePrefix="indexes-query-optimization">
+
+<QuestionCard id="qoi-01" number={1} question="How does the query planner decide whether to use an index?" difficulty="medium" topic="Query Optimization">
+The planner estimates the cost of each available strategy — using a specific index, using a different index, or doing a full table scan — based on statistics about the table's size and the data's distribution, then picks whichever it estimates will be cheapest. It's a cost-based decision, not a guarantee that an existing index will automatically be used just because it technically could be.
+</QuestionCard>
+
+<QuestionCard id="qoi-02" number={2} question="What does EXPLAIN / EXPLAIN ANALYZE show, and how do you read it?" difficulty="medium" topic="Query Optimization">
+`EXPLAIN` shows the query planner's chosen execution plan without running the query — which tables are scanned, whether an index is used, and the join strategy. `EXPLAIN ANALYZE` actually runs the query and adds real timing and row-count numbers alongside the estimates, which is what makes it possible to spot where an estimate was wrong (e.g., the planner expected 10 rows but the step actually processed 100,000).
+</QuestionCard>
+
+<QuestionCard id="qoi-03" number={3} question="Why might an index exist but still not be used by a query?" difficulty="hard" topic="Query Optimization">
+A few common reasons: the planner estimates a full scan is actually cheaper (common when the condition matches a large fraction of the table, or the table is small enough that the difference doesn't matter), the query applies a function to the indexed column (`WHERE LOWER(email) = ...` won't use a plain index on `email` unless a matching functional index exists), the query filters on a column that isn't the leading column of a composite index, or the table's statistics are stale and the planner's cost estimate is simply wrong.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A query is slow, and the column it filters on has an index — why might the index not be helping?"** Walk through the common reasons: a function wrapped around the column, filtering on a non-leading column of a composite index, or the planner genuinely estimating a scan is cheaper.
+- **"You're about to add an index to speed up a report query — what's the cost of doing that?"** Discuss the write-side trade-off: every index added slows down inserts/updates/deletes on that table, so indexes should be added deliberately, not reflexively.
+- **"Design an index strategy for a table that's frequently filtered on (status, created_at) together."** A prompt for a composite index `(status, created_at)`, with a discussion of why column order matters and whether a partial index (e.g., only `status = 'active'`) might be even more efficient.
+- **"Walk me through reading an EXPLAIN ANALYZE output where the estimated row count is wildly different from the actual row count."** Use it to discuss stale statistics, and how that mismatch is often the root cause of a planner choosing a bad execution plan.
+
+---
+
+## Further Reading
+
+- [Data Definition Language (DDL)](/level-1-foundations/sql/ddl/) — where CREATE INDEX fits alongside other schema-defining commands
+- [Views](/level-1-foundations/sql/views/) — how a materialized view's stored result compares to an index as a different performance trade-off
+- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including how indexing interacts with joins and sharding at scale

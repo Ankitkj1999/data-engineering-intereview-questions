@@ -798,6 +798,153 @@
     "content": "00000000004 — binary floating point can't represent 0.1 exactly\r\n\r\nfrom decimal import Decimal\r\nDecimal(\"0.1\") + Decimal(\"0.2\")  # Decimal('0.3') — exact\r\n```\r\n\r\nFloats use binary floating-point representation, which can't exactly represent most decimal fractions — fine for scientific/statistical data where tiny rounding error doesn't matter, but risky for money or anything requiring exact decimal arithmetic. Use `Decimal` (constructed from strings, not floats, to avoid importing the float's own imprecision) for financial calculations, and be explicit about rounding rules rather than relying on default float behavior.\r\n</QuestionCard>\r\n\r\n</QuestionList>"
   },
   {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "## Advanced Functions: String, Math, Date, and Conditional Logic\n\n**Beyond the core clauses, SQL's built-in functions are what let a query reshape and reason about values inline — cleaning up text, doing date arithmetic, and branching on conditions — without pulling data out into application code first.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [String Functions](#string-functions)\n- [Math Functions](#math-functions)\n- [Date & Time Functions](#date--time-functions)\n- [CASE](#case)\n- [COALESCE / NULLIF](#coalesce--nullif)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "## Key Concepts\n\nSQL's built-in function library covers a handful of recurring needs: **string functions** (`CONCAT`, `SUBSTRING`, `TRIM`, `UPPER`/`LOWER`) for cleaning and reshaping text, **math functions** (`ROUND`, `FLOOR`, `CEILING`, `ABS`, `MOD`) for numeric transformation, and **date/time functions** (`DATEADD`, `DATEDIFF`, `DATE_TRUNC`) for date arithmetic and formatting — all of which vary more in exact syntax between vendors than almost any other part of SQL, so the concept transfers but the precise function name often doesn't. `CASE` adds conditional branching directly inside a query, and `COALESCE`/`NULLIF` are the two small, purpose-built functions for handling `NULL` explicitly rather than letting it propagate silently through a calculation.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "## String Functions\n\n<QuestionList topic=\"String Functions\" storagePrefix=\"advanced-functions-string\">\n\n<QuestionCard id=\"strf-01\" number={1} question=\"What are the most commonly used SQL string functions, and what does each do?\" difficulty=\"easy\" topic=\"String Functions\">\n`CONCAT` joins strings together, `LENGTH`/`LEN` returns character count, `SUBSTRING` extracts part of a string, `REPLACE` swaps occurrences of one substring for another, `UPPER`/`LOWER` change case, and `TRIM` removes leading/trailing whitespace (or another specified character).\n</QuestionCard>\n\n<QuestionCard id=\"strf-02\" number={2} question=\"How does SUBSTRING work, and how do its arguments differ across databases?\" difficulty=\"medium\" topic=\"String Functions\">\n`SUBSTRING(string, start, length)` extracts `length` charac"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "ters starting at position `start` (most databases use 1-based indexing, not 0-based). The exact function name and argument order can vary — `SUBSTR` in some databases, and some dialects make the length argument optional (defaulting to \"rest of the string\") — so it's worth double-checking a specific database's syntax rather than assuming it matches another.\n</QuestionCard>\n\n<QuestionCard id=\"strf-03\" number={3} question=\"What's the difference between TRIM, LTRIM, and RTRIM?\" difficulty=\"easy\" topic=\"String Functions\">\n`TRIM` removes leading and trailing whitespace (or a specified character) from both ends of a string. `LTRIM` removes it only from the left (start), and `RTRIM` only from the right (end) — useful when only one side's padding is a known problem, like trailing spaces from a fixe"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "d-width import.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "## Math Functions\n\n<QuestionList topic=\"Math Functions\" storagePrefix=\"advanced-functions-math\">\n\n<QuestionCard id=\"mathf-01\" number={1} question=\"What are the common SQL math functions, and what does each compute?\" difficulty=\"easy\" topic=\"Math Functions\">\n`FLOOR` rounds down to the nearest integer, `CEILING`/`CEIL` rounds up, `ROUND` rounds to the nearest integer (or a specified number of decimal places), `ABS` returns the absolute value, and `MOD` (or the `%` operator) returns the remainder of a division.\n</QuestionCard>\n\n<QuestionCard id=\"mathf-02\" number={2} question=\"What's the difference between FLOOR and ROUND when working with a value like 4.7?\" difficulty=\"easy\" topic=\"Math Functions\">\n`FLOOR(4.7)` always rounds down, returning `4`, regardless of how close the value is to `5`. `R"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "OUND(4.7)` rounds to the nearest integer using standard rounding rules, returning `5`. The distinction matters wherever \"always round down\" (e.g., how many full boxes fit) is a genuinely different requirement from \"round to the closest value.\"\n</QuestionCard>\n\n<QuestionCard id=\"mathf-03\" number={3} question=\"What does MOD do, and where does it commonly show up in queries?\" difficulty=\"medium\" topic=\"Math Functions\">\n`MOD(a, b)` (or `a % b`) returns the remainder of `a` divided by `b`. It shows up in bucketing/partitioning logic (e.g., `WHERE MOD(id, 10) = 0` to sample every 10th row), and in identifying even/odd values or cyclical groupings like \"every 7th day.\"\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "## Date & Time Functions\n\n<QuestionList topic=\"Date & Time Functions\" storagePrefix=\"advanced-functions-date-time\">\n\n<QuestionCard id=\"dtf-01\" number={1} question=\"What are common SQL date/time functions, and what does each do?\" difficulty=\"easy\" topic=\"Date & Time Functions\">\nFunctions for getting the current date/time (`CURRENT_DATE`, `CURRENT_TIMESTAMP`/`NOW()`), adding or subtracting an interval (`DATEADD`/`DATE_ADD`), computing the difference between two dates (`DATEDIFF`), extracting a specific part like year or month (`EXTRACT`/`DATEPART`), and truncating a timestamp to a coarser unit (`DATE_TRUNC`).\n</QuestionCard>\n\n<QuestionCard id=\"dtf-02\" number={2} question=\"How do you add or subtract an interval from a date, and how does the syntax differ across databases?\" difficulty=\"medium\""
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "topic=\"Date & Time Functions\">\nPostgreSQL uses interval arithmetic directly: `order_date + INTERVAL '7 days'`. SQL Server uses `DATEADD(day, 7, order_date)`. MySQL uses `DATE_ADD(order_date, INTERVAL 7 DAY)`. The concept — shift a date by some amount — is universal, but the exact syntax is one of the least portable parts of SQL between vendors.\n</QuestionCard>\n\n<QuestionCard id=\"dtf-03\" number={3} question=\"How would you truncate a timestamp down to the day or month for grouping purposes?\" difficulty=\"medium\" topic=\"Date & Time Functions\">\n`DATE_TRUNC('month', order_timestamp)` (PostgreSQL) rounds a timestamp down to the start of its containing month, which is exactly what's needed when `GROUP BY`-ing timestamps into monthly buckets — grouping by the raw timestamp would produce a separate"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "group for every distinct second instead of one per month.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "## CASE\n\n<QuestionList topic=\"CASE\" storagePrefix=\"advanced-functions-case\">\n\n<QuestionCard id=\"casefn-01\" number={1} question=\"What is a CASE expression, and what's the difference between simple CASE and searched CASE?\" difficulty=\"easy\" topic=\"CASE\">\n`CASE` adds conditional branching to a query, evaluating to a value depending on which condition is true. **Simple CASE** compares one expression against several values (`CASE status WHEN 'A' THEN 'Active' WHEN 'I' THEN 'Inactive' END`); **searched CASE** evaluates independent boolean conditions in order (`CASE WHEN price > 100 THEN 'Expensive' WHEN price > 50 THEN 'Moderate' ELSE 'Cheap' END`), which is more flexible since each branch's condition can involve entirely different columns.\n</QuestionCard>\n\n<QuestionCard id=\"casefn-02\" number={2"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "} question=\"Write a CASE expression that buckets order totals into 'Small', 'Medium', and 'Large'.\" difficulty=\"medium\" topic=\"CASE\">\n```sql\nSELECT order_id,\n  CASE\n    WHEN total < 50 THEN 'Small'\n    WHEN total < 200 THEN 'Medium'\n    ELSE 'Large'\n  END AS order_size\nFROM orders;\n```\nConditions are checked top to bottom, and the first one that matches wins — which is why `total < 200` doesn't need to also exclude values under 50; those were already caught by the first `WHEN`.\n</QuestionCard>\n\n<QuestionCard id=\"casefn-03\" number={3} question=\"What happens if no WHEN condition matches and there's no ELSE?\" difficulty=\"medium\" topic=\"CASE\">\nThe `CASE` expression returns `NULL` for that row. An explicit `ELSE` is good practice specifically to avoid this — without one, a row that falls throug"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "h every condition silently gets `NULL` instead of a value that makes the \"uncovered case\" obvious.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "## COALESCE / NULLIF\n\n<QuestionList topic=\"COALESCE / NULLIF\" storagePrefix=\"advanced-functions-coalesce-nullif\">\n\n<QuestionCard id=\"coal-01\" number={1} question=\"What does COALESCE do?\" difficulty=\"easy\" topic=\"COALESCE / NULLIF\">\n`COALESCE(a, b, c, ...)` returns the first non-`NULL` value among its arguments, evaluated left to right. It's most commonly used to substitute a default for a potentially `NULL` column: `COALESCE(phone_number, 'N/A')`, or to fall back through a chain of increasingly generic sources: `COALESCE(preferred_name, first_name, 'Unknown')`.\n</QuestionCard>\n\n<QuestionCard id=\"coal-02\" number={2} question=\"What does NULLIF do, and give a practical use case?\" difficulty=\"medium\" topic=\"COALESCE / NULLIF\">\n`NULLIF(a, b)` returns `NULL` if `a` equals `b`, otherwise returns"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "`a`. A common use is turning a sentinel \"no value\" placeholder (like an empty string or a `0` used to mean \"not set\") into a real `NULL` so it's treated consistently by aggregate functions and `IS NULL` checks: `NULLIF(discount_pct, 0)`.\n</QuestionCard>\n\n<QuestionCard id=\"coal-03\" number={3} question=\"How would you combine COALESCE and NULLIF to safely divide two columns without a divide-by-zero error?\" difficulty=\"hard\" topic=\"COALESCE / NULLIF\">\n```sql\nSELECT total_revenue / NULLIF(total_orders, 0) AS avg_order_value\n```\n`NULLIF(total_orders, 0)` converts a `0` denominator into `NULL`, which makes the division return `NULL` instead of raising a divide-by-zero error. Wrapping the whole expression in `COALESCE(..., 0)` on the outside can then convert that resulting `NULL` into a reportable"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "`0` if that's the desired fallback for \"no orders yet.\"\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "## Common Interview Scenarios\n\n- **\"Write a query to categorize customers as 'New', 'Returning', or 'VIP' based on their order count.\"** A direct `CASE` expression prompt, testing whether conditions are ordered correctly and whether an `ELSE` is included.\n- **\"How would you standardize a messy `phone` column that has some NULLs, some empty strings, and inconsistent formatting?\"** A chance to combine `COALESCE`, `NULLIF`, `TRIM`, and possibly `REPLACE` in one cleanup expression.\n- **\"Compute the average order value per month, safely handling months with zero orders.\"** Forces `DATE_TRUNC` for the monthly grouping and `NULLIF`/`COALESCE` for the safe division.\n- **\"Why did a date comparison that worked in one database fail after migrating to another?\"** A prompt to discuss how date/time func"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "tion syntax is one of the least portable parts of SQL across vendors.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-functions/",
+    "locale": "en",
+    "title": "Advanced Functions",
+    "description": "Interview questions on SQL built-in functions — string, math, and date/time functions, CASE expressions, and COALESCE/NULLIF for handling NULLs.",
+    "content": "## Further Reading\n\n- [SQL Data Types](/level-1-foundations/sql/sql-data-types/) — the string, numeric, and date/time types these functions operate on\n- [Aggregate Queries](/level-1-foundations/sql/aggregate-queries/) — how COALESCE is commonly paired with SUM/AVG to handle empty groups\n- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including window functions built on similar conditional logic"
+  },
+  {
     "path": "/level-1-foundations/sql/aggregate-queries/",
     "locale": "en",
     "title": "Aggregate Queries",
@@ -1492,6 +1639,104 @@
     "locale": "en",
     "title": "",
     "content": "## Further Reading\r\n\r\n- [Data Modeling](/level-2-core-concepts/data-modeling/) — star/snowflake schemas and normalization in practice\r\n- [Data Warehousing](/level-2-core-concepts/data-warehousing/) — how SQL is used at the warehouse layer\r\n- [Data Structures](/level-1-foundations/data-structure/) — the algorithmic-problem counterpart to SQL query problems"
+  },
+  {
+    "path": "/level-1-foundations/sql/indexes/",
+    "locale": "en",
+    "title": "Indexes",
+    "description": "Interview questions on SQL indexes — creating and managing indexes, partial and covering indexes, and how the query planner decides whether to use one.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/indexes/",
+    "locale": "en",
+    "title": "Indexes",
+    "description": "Interview questions on SQL indexes — creating and managing indexes, partial and covering indexes, and how the query planner decides whether to use one.",
+    "content": "## Indexes: Speeding Up Queries at the Cost of Writes and Storage\n\n**An index is a separate, ordered data structure the database maintains alongside a table specifically to make lookups fast — and like every optimization, it's a trade-off: faster reads, in exchange for extra storage and slower writes, since every index has to be updated on every insert, update, and delete.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/indexes/",
+    "locale": "en",
+    "title": "Indexes",
+    "description": "Interview questions on SQL indexes — creating and managing indexes, partial and covering indexes, and how the query planner decides whether to use one.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Managing Indexes](#managing-indexes)\n- [Query Optimization with Indexes](#query-optimization-with-indexes)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/indexes/",
+    "locale": "en",
+    "title": "Indexes",
+    "description": "Interview questions on SQL indexes — creating and managing indexes, partial and covering indexes, and how the query planner decides whether to use one.",
+    "content": "## Key Concepts\n\nWithout an index, finding rows matching a condition requires a **full table scan** — checking every row. An index (most commonly a B-tree) maintains a sorted structure mapping column values to row locations, so the database can jump almost directly to matching rows instead of scanning everything. That speed isn't free: every index adds storage overhead and slows down writes, since an `INSERT`/`UPDATE`/`DELETE` has to update every index on the table, not just the table's own data. Whether a query actually *uses* an available index is decided by the query planner, based on cost estimates — and a very common interview trap is assuming an index automatically helps: on a small table, or when a condition matches a large fraction of rows, a full scan can genuinely be faster than"
+  },
+  {
+    "path": "/level-1-foundations/sql/indexes/",
+    "locale": "en",
+    "title": "Indexes",
+    "description": "Interview questions on SQL indexes — creating and managing indexes, partial and covering indexes, and how the query planner decides whether to use one.",
+    "content": "the overhead of using the index.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/indexes/",
+    "locale": "en",
+    "title": "Indexes",
+    "description": "Interview questions on SQL indexes — creating and managing indexes, partial and covering indexes, and how the query planner decides whether to use one.",
+    "content": "## Managing Indexes\n\n<QuestionList topic=\"Managing Indexes\" storagePrefix=\"indexes-managing\">\n\n<QuestionCard id=\"midx-01\" number={1} question=\"What is an index, and what trade-off does it introduce?\" difficulty=\"easy\" topic=\"Managing Indexes\">\nAn index is an auxiliary data structure — typically a B-tree — that the database maintains to speed up lookups on a column or set of columns, avoiding a full table scan for queries that filter, join, or sort on it. The trade-off: extra disk space per index, and slower writes, since every `INSERT`/`UPDATE`/`DELETE` has to keep every relevant index in sync with the table.\n</QuestionCard>\n\n<QuestionCard id=\"midx-02\" number={2} question=\"How do you create an index, and what's a composite index?\" difficulty=\"easy\" topic=\"Managing Indexes\">\n`CREATE INDEX i"
+  },
+  {
+    "path": "/level-1-foundations/sql/indexes/",
+    "locale": "en",
+    "title": "Indexes",
+    "description": "Interview questions on SQL indexes — creating and managing indexes, partial and covering indexes, and how the query planner decides whether to use one.",
+    "content": "dx_name ON table (column)` creates a single-column index. A **composite index** spans multiple columns — `CREATE INDEX idx_name ON table (col1, col2)` — and is useful when queries commonly filter or sort on that same combination together; column order in a composite index matters, since it can efficiently serve queries filtering on a leading prefix of the columns but not ones that skip the first column.\n</QuestionCard>\n\n<QuestionCard id=\"midx-03\" number={3} question=\"What is a partial index, and when would you use one?\" difficulty=\"medium\" topic=\"Managing Indexes\">\nA partial index only covers rows matching a specified condition: `CREATE INDEX idx_active ON users (email) WHERE status = 'active'`. It's useful when queries consistently filter on a subset of rows (like only active users) — the"
+  },
+  {
+    "path": "/level-1-foundations/sql/indexes/",
+    "locale": "en",
+    "title": "Indexes",
+    "description": "Interview questions on SQL indexes — creating and managing indexes, partial and covering indexes, and how the query planner decides whether to use one.",
+    "content": "index stays smaller and cheaper to maintain than indexing the whole table, since inactive rows never need to appear in it.\n</QuestionCard>\n\n<QuestionCard id=\"midx-04\" number={4} question=\"What is a covering index?\" difficulty=\"medium\" topic=\"Managing Indexes\">\nA covering index includes every column a specific query needs — both the filtering/sorting columns and the columns being selected — so the database can satisfy the entire query from the index alone, without a separate lookup back to the table's actual data (\"index-only scan\"). It trades additional index size for eliminating that extra lookup step.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/indexes/",
+    "locale": "en",
+    "title": "Indexes",
+    "description": "Interview questions on SQL indexes — creating and managing indexes, partial and covering indexes, and how the query planner decides whether to use one.",
+    "content": "## Query Optimization with Indexes\n\n<QuestionList topic=\"Query Optimization with Indexes\" storagePrefix=\"indexes-query-optimization\">\n\n<QuestionCard id=\"qoi-01\" number={1} question=\"How does the query planner decide whether to use an index?\" difficulty=\"medium\" topic=\"Query Optimization\">\nThe planner estimates the cost of each available strategy — using a specific index, using a different index, or doing a full table scan — based on statistics about the table's size and the data's distribution, then picks whichever it estimates will be cheapest. It's a cost-based decision, not a guarantee that an existing index will automatically be used just because it technically could be.\n</QuestionCard>\n\n<QuestionCard id=\"qoi-02\" number={2} question=\"What does EXPLAIN / EXPLAIN ANALYZE show, and how do"
+  },
+  {
+    "path": "/level-1-foundations/sql/indexes/",
+    "locale": "en",
+    "title": "Indexes",
+    "description": "Interview questions on SQL indexes — creating and managing indexes, partial and covering indexes, and how the query planner decides whether to use one.",
+    "content": "you read it?\" difficulty=\"medium\" topic=\"Query Optimization\">\n`EXPLAIN` shows the query planner's chosen execution plan without running the query — which tables are scanned, whether an index is used, and the join strategy. `EXPLAIN ANALYZE` actually runs the query and adds real timing and row-count numbers alongside the estimates, which is what makes it possible to spot where an estimate was wrong (e.g., the planner expected 10 rows but the step actually processed 100,000).\n</QuestionCard>\n\n<QuestionCard id=\"qoi-03\" number={3} question=\"Why might an index exist but still not be used by a query?\" difficulty=\"hard\" topic=\"Query Optimization\">\nA few common reasons: the planner estimates a full scan is actually cheaper (common when the condition matches a large fraction of the table, or the t"
+  },
+  {
+    "path": "/level-1-foundations/sql/indexes/",
+    "locale": "en",
+    "title": "Indexes",
+    "description": "Interview questions on SQL indexes — creating and managing indexes, partial and covering indexes, and how the query planner decides whether to use one.",
+    "content": "able is small enough that the difference doesn't matter), the query applies a function to the indexed column (`WHERE LOWER(email) = ...` won't use a plain index on `email` unless a matching functional index exists), the query filters on a column that isn't the leading column of a composite index, or the table's statistics are stale and the planner's cost estimate is simply wrong.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/indexes/",
+    "locale": "en",
+    "title": "Indexes",
+    "description": "Interview questions on SQL indexes — creating and managing indexes, partial and covering indexes, and how the query planner decides whether to use one.",
+    "content": "## Common Interview Scenarios\n\n- **\"A query is slow, and the column it filters on has an index — why might the index not be helping?\"** Walk through the common reasons: a function wrapped around the column, filtering on a non-leading column of a composite index, or the planner genuinely estimating a scan is cheaper.\n- **\"You're about to add an index to speed up a report query — what's the cost of doing that?\"** Discuss the write-side trade-off: every index added slows down inserts/updates/deletes on that table, so indexes should be added deliberately, not reflexively.\n- **\"Design an index strategy for a table that's frequently filtered on (status, created_at) together.\"** A prompt for a composite index `(status, created_at)`, with a discussion of why column order matters and whether a part"
+  },
+  {
+    "path": "/level-1-foundations/sql/indexes/",
+    "locale": "en",
+    "title": "Indexes",
+    "description": "Interview questions on SQL indexes — creating and managing indexes, partial and covering indexes, and how the query planner decides whether to use one.",
+    "content": "ial index (e.g., only `status = 'active'`) might be even more efficient.\n- **\"Walk me through reading an EXPLAIN ANALYZE output where the estimated row count is wildly different from the actual row count.\"** Use it to discuss stale statistics, and how that mismatch is often the root cause of a planner choosing a bad execution plan.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/indexes/",
+    "locale": "en",
+    "title": "Indexes",
+    "description": "Interview questions on SQL indexes — creating and managing indexes, partial and covering indexes, and how the query planner decides whether to use one.",
+    "content": "## Further Reading\n\n- [Data Definition Language (DDL)](/level-1-foundations/sql/ddl/) — where CREATE INDEX fits alongside other schema-defining commands\n- [Views](/level-1-foundations/sql/views/) — how a materialized view's stored result compares to an index as a different performance trade-off\n- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including how indexing interacts with joins and sharding at scale"
   },
   {
     "path": "/level-1-foundations/sql/join-queries/",
@@ -2859,6 +3104,118 @@
     "locale": "en",
     "title": "",
     "content": "pattern, then fix it by keeping transactions short, accessing tables in a consistent order, and reducing lock scope.\r\n</QuestionCard>\r\n\r\n</QuestionList>"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "## Views: Virtual Tables Built From Saved Queries\n\n**A view is a saved query that behaves like a table for everything downstream — but nothing about it is stored, which is exactly what makes it useful for simplifying complex logic and controlling access, and exactly what limits its performance benefit compared to actually materializing the data.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Creating Views](#creating-views)\n- [Modifying Views](#modifying-views)\n- [Dropping Views](#dropping-views)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "## Key Concepts\n\nA view is a named, saved `SELECT` query that can be queried as if it were a table — `CREATE VIEW active_customers AS SELECT ... FROM customers WHERE status = 'active'` lets anyone write `SELECT * FROM active_customers` afterward without repeating the underlying logic. Critically, a standard view stores no data of its own: every time it's queried, the database re-runs the underlying `SELECT` against the current state of the base tables. That makes views useful for two main things — **simplifying repeated complex logic** (hiding a messy multi-table join behind a simple name) and **access control** (granting a user permission to query a view that only exposes certain columns or rows, without granting access to the full underlying table). It's also the key difference from a **"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "materialized view**, which does store its result physically and needs to be refreshed — trading some staleness for real performance gains a plain view can't offer.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "## Creating Views\n\n<QuestionList topic=\"Creating Views\" storagePrefix=\"views-creating\">\n\n<QuestionCard id=\"cv-01\" number={1} question=\"What is a view, and what problem does it solve?\" difficulty=\"easy\" topic=\"Creating Views\">\nA view is a saved `SELECT` query, stored under a name, that can be queried like a table. It solves the problem of repeating the same complex join or filtering logic across many queries — wrapping it once behind a view means every consumer writes a simple `SELECT * FROM view_name` instead of re-deriving the same multi-table logic each time.\n</QuestionCard>\n\n<QuestionCard id=\"cv-02\" number={2} question=\"Write a CREATE VIEW statement that wraps a join into a reusable object.\" difficulty=\"medium\" topic=\"Creating Views\">\n```sql\nCREATE VIEW customer_order_summary AS\nSELECT"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "c.id, c.name, COUNT(o.id) AS order_count, SUM(o.total) AS lifetime_value\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.id\nGROUP BY c.id, c.name;\n```\nAnyone can now query `SELECT * FROM customer_order_summary WHERE lifetime_value > 1000` without needing to know or repeat the join and aggregation underneath.\n</QuestionCard>\n\n<QuestionCard id=\"cv-03\" number={3} question=\"Is a standard view's data physically stored, or computed on each query?\" difficulty=\"medium\" topic=\"Creating Views\">\nComputed fresh on each query — a standard view has no storage of its own; it's purely a saved query definition that gets substituted in and re-executed against the live base tables every time it's referenced. This is different from a **materialized view**, which does physically store its result and m"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "ust be explicitly refreshed to reflect new data, trading freshness for query speed.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "## Modifying Views\n\n<QuestionList topic=\"Modifying Views\" storagePrefix=\"views-modifying\">\n\n<QuestionCard id=\"mv-01\" number={1} question=\"How do you modify an existing view's definition?\" difficulty=\"easy\" topic=\"Modifying Views\">\nMost databases support `CREATE OR REPLACE VIEW view_name AS <new query>`, which redefines the view in place. Some databases instead require (or additionally support) `ALTER VIEW`, and if neither is available, the fallback is `DROP VIEW` followed by a fresh `CREATE VIEW`.\n</QuestionCard>\n\n<QuestionCard id=\"mv-02\" number={2} question=\"What's the difference between CREATE OR REPLACE VIEW and DROP + CREATE VIEW?\" difficulty=\"medium\" topic=\"Modifying Views\">\n`CREATE OR REPLACE VIEW` updates the definition while preserving the view's existing permissions and any depend"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "ent objects that reference it. `DROP VIEW` followed by `CREATE VIEW` removes the view entirely first — any grants on it are lost and need to be reapplied, and anything that depended on the view will briefly (or permanently, if the drop isn't followed by a successful recreate) fail to resolve.\n</QuestionCard>\n\n<QuestionCard id=\"mv-03\" number={3} question=\"What restrictions typically exist on CREATE OR REPLACE VIEW?\" difficulty=\"hard\" topic=\"Modifying Views\">\nMany databases only allow the replacement if the new query's output columns are compatible with the original — commonly requiring the same column names and types, in the same order, with new columns only allowed to be appended at the end. Removing a column or reordering existing ones is often rejected, requiring a full `DROP` and `CREAT"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "E` instead.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "## Dropping Views\n\n<QuestionList topic=\"Dropping Views\" storagePrefix=\"views-dropping\">\n\n<QuestionCard id=\"dv-01\" number={1} question=\"What does DROP VIEW do, and does it affect the underlying tables?\" difficulty=\"easy\" topic=\"Dropping Views\">\n`DROP VIEW view_name` removes the view's saved definition. It has no effect whatsoever on the underlying base tables or their data — a view is just a stored query, so dropping it only removes that stored query, not anything it reads from.\n</QuestionCard>\n\n<QuestionCard id=\"dv-02\" number={2} question=\"What happens if you try to DROP a view that other views depend on?\" difficulty=\"medium\" topic=\"Dropping Views\">\nDepending on the database, it either blocks the drop (protecting the dependent view from suddenly referencing something that no longer exists)"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "or requires `CASCADE` to explicitly drop the dependent views along with it — the same referential-safety pattern used for foreign keys and dependent tables.\n</QuestionCard>\n\n<QuestionCard id=\"dv-03\" number={3} question=\"Can you insert, update, or delete through a view, and what limits that?\" difficulty=\"hard\" topic=\"Dropping Views\">\nSimple views based on a single table with no aggregation, `DISTINCT`, or `GROUP BY` are often updatable — a write through the view passes through to the underlying table. Views involving joins, aggregates, or set operations usually aren't updatable, because there's no unambiguous way to translate a change to the view's output back into a specific change on the underlying base table(s).\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "## Common Interview Scenarios\n\n- **\"Why would you use a view instead of just saving the query text somewhere for people to copy?\"** Discuss reusability, centralized logic (one place to fix a bug or change a definition), and access control — none of which a copy-pasted query provides.\n- **\"A view used to expose columns A, B, C — a teammate wants to remove column B. What's the safest way to do that?\"** Walk through why `CREATE OR REPLACE VIEW` often can't remove or reorder columns, and why `DROP` + `CREATE` (with attention to re-granting permissions) is usually required instead.\n- **\"When would you reach for a materialized view instead of a regular view?\"** Discuss the trade-off: a materialized view trades some data freshness (it needs refreshing) for real performance gains on an expensive u"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "nderlying query, which a plain view — recomputed every time — can never provide.\n- **\"Design a view that lets a support team see customer contact info but not payment details.\"** A practical access-control scenario: a view exposing only the permitted columns, with `GRANT SELECT` on the view instead of the underlying table.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/views/",
+    "locale": "en",
+    "title": "Views",
+    "description": "Interview questions on SQL views — creating, modifying, and dropping views, updatable views, and how views differ from materialized views.",
+    "content": "## Further Reading\n\n- [Data Definition Language (DDL)](/level-1-foundations/sql/ddl/) — the schema-level commands views are declared alongside\n- [JOIN Queries](/level-1-foundations/sql/join-queries/) — the kind of logic views are most commonly used to wrap and simplify\n- [Indexes](/level-1-foundations/sql/indexes/) — how materialized views differ from regular ones in terms of performance and storage"
   },
   {
     "path": "/level-2-core-concepts/choosing-the-right-technologies/",

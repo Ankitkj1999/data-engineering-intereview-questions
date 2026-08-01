@@ -122,21 +122,21 @@ const ROADMAP = [
     { id:"correlated-sub", label:"Correlated Subqueries",           desc:"Subqueries that reference columns from the outer query — evaluated per row.", link:"/level-1-foundations/sql/subqueries/#correlated-subqueries" },
     { id:"scalar-sub",     label:"Scalar Subquery",                 desc:"Returns a single value — used in SELECT list or WHERE conditions.", link:"/level-1-foundations/sql/subqueries/#scalar-subquery" },
   ]},
-  { id:"adv-functions", label:"Advanced Functions", desc:"Built-in functions for string manipulation, math, dates, and conditional logic.", subs:[
-    { id:"string-fns",     label:"String Functions",                desc:"CONCAT, LENGTH, SUBSTRING, REPLACE, UPPER, LOWER, TRIM, LIKE." },
-    { id:"math-fns",       label:"Math Functions",                  desc:"FLOOR, CEILING, ROUND, ABS, MOD — rounding and numeric operations." },
-    { id:"date-fns",       label:"Date & Time Functions",           desc:"DATE, TIME, TIMESTAMP, DATEPART, DATEADD — date arithmetic and formatting." },
-    { id:"case",           label:"CASE",                            desc:"Conditional logic inside SQL — simple CASE vs searched CASE." },
-    { id:"coalesce",       label:"COALESCE / NULLIF",               desc:"COALESCE returns the first non-NULL value; NULLIF returns NULL when two values are equal." },
+  { id:"adv-functions", label:"Advanced Functions", desc:"Built-in functions for string manipulation, math, dates, and conditional logic.", link:"/level-1-foundations/sql/advanced-functions/", subs:[
+    { id:"string-fns",     label:"String Functions",                desc:"CONCAT, LENGTH, SUBSTRING, REPLACE, UPPER, LOWER, TRIM, LIKE.", link:"/level-1-foundations/sql/advanced-functions/#string-functions" },
+    { id:"math-fns",       label:"Math Functions",                  desc:"FLOOR, CEILING, ROUND, ABS, MOD — rounding and numeric operations.", link:"/level-1-foundations/sql/advanced-functions/#math-functions" },
+    { id:"date-fns",       label:"Date & Time Functions",           desc:"DATE, TIME, TIMESTAMP, DATEPART, DATEADD — date arithmetic and formatting.", link:"/level-1-foundations/sql/advanced-functions/#date--time-functions" },
+    { id:"case",           label:"CASE",                            desc:"Conditional logic inside SQL — simple CASE vs searched CASE.", link:"/level-1-foundations/sql/advanced-functions/#case" },
+    { id:"coalesce",       label:"COALESCE / NULLIF",               desc:"COALESCE returns the first non-NULL value; NULLIF returns NULL when two values are equal.", link:"/level-1-foundations/sql/advanced-functions/#coalesce--nullif" },
   ]},
-  { id:"views", label:"Views", desc:"Virtual tables based on saved queries — simplifying complex queries and access control.", subs:[
-    { id:"creating-views", label:"Creating Views",                  desc:"CREATE VIEW — wrapping complex joins and logic into a reusable object." },
-    { id:"modifying-views",label:"Modifying Views",                 desc:"CREATE OR REPLACE VIEW and ALTER VIEW depending on the database." },
-    { id:"dropping-views", label:"Dropping Views",                  desc:"DROP VIEW — removing views without affecting the underlying tables." },
+  { id:"views", label:"Views", desc:"Virtual tables based on saved queries — simplifying complex queries and access control.", link:"/level-1-foundations/sql/views/", subs:[
+    { id:"creating-views", label:"Creating Views",                  desc:"CREATE VIEW — wrapping complex joins and logic into a reusable object.", link:"/level-1-foundations/sql/views/#creating-views" },
+    { id:"modifying-views",label:"Modifying Views",                 desc:"CREATE OR REPLACE VIEW and ALTER VIEW depending on the database.", link:"/level-1-foundations/sql/views/#modifying-views" },
+    { id:"dropping-views", label:"Dropping Views",                  desc:"DROP VIEW — removing views without affecting the underlying tables.", link:"/level-1-foundations/sql/views/#dropping-views" },
   ]},
-  { id:"indexes", label:"Indexes", desc:"Data structures that speed up queries at the cost of write overhead and storage.", subs:[
-    { id:"managing-idx",   label:"Managing Indexes",                desc:"CREATE INDEX, DROP INDEX, partial indexes, and covering indexes." },
-    { id:"query-opt-idx",  label:"Query Optimization with Indexes", desc:"How the query planner uses indexes — EXPLAIN / ANALYZE output." },
+  { id:"indexes", label:"Indexes", desc:"Data structures that speed up queries at the cost of write overhead and storage.", link:"/level-1-foundations/sql/indexes/", subs:[
+    { id:"managing-idx",   label:"Managing Indexes",                desc:"CREATE INDEX, DROP INDEX, partial indexes, and covering indexes.", link:"/level-1-foundations/sql/indexes/#managing-indexes" },
+    { id:"query-opt-idx",  label:"Query Optimization with Indexes", desc:"How the query planner uses indexes — EXPLAIN / ANALYZE output.", link:"/level-1-foundations/sql/indexes/#query-optimization-with-indexes" },
   ]},
   { id:"transactions", label:"Transactions", desc:"Grouping SQL statements into atomic units of work that succeed or fail together.", subs:[
     { id:"begin",          label:"BEGIN",                           desc:"Starting a transaction — implicit vs explicit transaction management." },
