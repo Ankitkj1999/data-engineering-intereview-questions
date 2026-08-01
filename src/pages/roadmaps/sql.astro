@@ -95,12 +95,12 @@ const ROADMAP = [
     { id:"update",         label:"UPDATE",                          desc:"Modifying existing rows — always use WHERE to avoid full-table updates.", link:"/level-1-foundations/sql/dml/#update" },
     { id:"delete",         label:"DELETE",                          desc:"Removing rows — differences between DELETE, TRUNCATE, and DROP.", link:"/level-1-foundations/sql/dml/#delete" },
   ]},
-  { id:"aggregate", label:"Aggregate Queries", desc:"Computing summary statistics across groups of rows.", subs:[
-    { id:"count",          label:"COUNT",                           desc:"COUNT(*) vs COUNT(col) — handling NULLs in aggregation." },
-    { id:"sum",            label:"SUM",                             desc:"Summing numeric columns, using with COALESCE for NULL safety." },
-    { id:"avg",            label:"AVG",                             desc:"Arithmetic mean — note that AVG ignores NULLs automatically." },
-    { id:"min",            label:"MIN",                             desc:"Finding the smallest value in a column or expression." },
-    { id:"max",            label:"MAX",                             desc:"Finding the largest value in a column or expression." },
+  { id:"aggregate", label:"Aggregate Queries", desc:"Computing summary statistics across groups of rows.", link:"/level-1-foundations/sql/aggregate-queries/", subs:[
+    { id:"count",          label:"COUNT",                           desc:"COUNT(*) vs COUNT(col) — handling NULLs in aggregation.", link:"/level-1-foundations/sql/aggregate-queries/#count" },
+    { id:"sum",            label:"SUM",                             desc:"Summing numeric columns, using with COALESCE for NULL safety.", link:"/level-1-foundations/sql/aggregate-queries/#sum" },
+    { id:"avg",            label:"AVG",                             desc:"Arithmetic mean — note that AVG ignores NULLs automatically.", link:"/level-1-foundations/sql/aggregate-queries/#avg" },
+    { id:"min",            label:"MIN",                             desc:"Finding the smallest value in a column or expression.", link:"/level-1-foundations/sql/aggregate-queries/#min" },
+    { id:"max",            label:"MAX",                             desc:"Finding the largest value in a column or expression.", link:"/level-1-foundations/sql/aggregate-queries/#max" },
   ]},
   { id:"constraints", label:"Data Constraints", desc:"Rules enforced by the database engine to maintain data integrity.", subs:[
     { id:"primary-key",    label:"Primary Key",                     desc:"Uniquely identifies each row — auto-increment, composite keys." },

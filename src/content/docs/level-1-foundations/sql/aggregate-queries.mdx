@@ -1,0 +1,144 @@
+---
+title: Aggregate Queries
+description: Interview questions on SQL aggregate functions — COUNT, SUM, AVG, MIN, and MAX — and how each one handles NULL values and interacts with GROUP BY.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Aggregate Queries: COUNT, SUM, AVG, MIN, and MAX
+
+**Aggregate functions collapse many rows into a single summary value — a count, a total, an average, a smallest or largest — and the one detail that separates a correct aggregate query from a subtly wrong one is almost always how each function treats NULL.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [COUNT](#count)
+- [SUM](#sum)
+- [AVG](#avg)
+- [MIN](#min)
+- [MAX](#max)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Aggregate functions compute one value across a set of rows — either the whole table, or per group when paired with `GROUP BY`. All five (`COUNT`, `SUM`, `AVG`, `MIN`, `MAX`) share one important rule: **they ignore `NULL` values**, except for the specific case of `COUNT(*)`, which counts rows regardless of whether any column is `NULL`. That distinction — `COUNT(*)` counts rows, `COUNT(column)` counts non-`NULL` values in that column — trips people up constantly, and it's the same underlying reason `AVG` divides by the number of non-`NULL` values rather than the total row count. When an aggregate runs over zero matching rows, `COUNT` returns `0`, but `SUM`, `AVG`, `MIN`, and `MAX` all return `NULL` — there's no sensible sum, average, minimum, or maximum of an empty set, but there is a sensible count (zero).
+
+---
+
+## COUNT
+
+<QuestionList topic="COUNT" storagePrefix="aggregate-queries-count">
+
+<QuestionCard id="agg-count-01" number={1} question="What's the difference between COUNT(*) and COUNT(column)?" difficulty="easy" topic="COUNT">
+`COUNT(*)` counts every row in the group, regardless of `NULL` values in any column. `COUNT(column)` counts only the rows where that specific column is *not* `NULL` — so `COUNT(*)` and `COUNT(email)` can return different numbers if some rows have a `NULL` email.
+</QuestionCard>
+
+<QuestionCard id="agg-count-02" number={2} question="What does COUNT(DISTINCT column) do?" difficulty="easy" topic="COUNT">
+It counts the number of *unique*, non-`NULL` values in that column, rather than every non-`NULL` row. `COUNT(DISTINCT department_id)` on an employees table returns the number of distinct departments represented, not the number of employees.
+</QuestionCard>
+
+<QuestionCard id="agg-count-03" number={3} question="What does COUNT return when applied to a group or table with zero matching rows?" difficulty="medium" topic="COUNT">
+`0` — unlike the other aggregate functions, `COUNT` always has a well-defined answer for an empty set: there are zero rows (or zero non-`NULL` values), which is a valid, meaningful number rather than an undefined one.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## SUM
+
+<QuestionList topic="SUM" storagePrefix="aggregate-queries-sum">
+
+<QuestionCard id="agg-sum-01" number={1} question="What does SUM do, and how does it treat NULL values?" difficulty="easy" topic="SUM">
+`SUM` adds up all the non-`NULL` values in a numeric column. `NULL` values are simply skipped — they aren't treated as zero, they're excluded from the calculation entirely, which matters if you were assuming a `NULL` would contribute `0` to the total.
+</QuestionCard>
+
+<QuestionCard id="agg-sum-02" number={2} question="Why would you use COALESCE with SUM?" difficulty="medium" topic="SUM">
+`COALESCE(SUM(column), 0)` substitutes `0` for the result when `SUM` would otherwise return `NULL` — which happens when there are no matching rows at all, or every value in the column is `NULL`. It's common in reporting queries where downstream code expects a number, not a `NULL`, for groups with no activity.
+</QuestionCard>
+
+<QuestionCard id="agg-sum-03" number={3} question="What does SUM return when there are no rows to sum?" difficulty="medium" topic="SUM">
+`NULL` — an empty set has no sensible total, so `SUM` returns `NULL` rather than `0`. This is a common source of bugs when the result is used directly in arithmetic without a `COALESCE` guard, since anything added to `NULL` is also `NULL`.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## AVG
+
+<QuestionList topic="AVG" storagePrefix="aggregate-queries-avg">
+
+<QuestionCard id="agg-avg-01" number={1} question="What does AVG compute, and how does it handle NULL values?" difficulty="easy" topic="AVG">
+`AVG` computes the arithmetic mean of a numeric column, and like `SUM`, it automatically ignores `NULL` values — both in the total and in the count used as the divisor. So `AVG` effectively divides the sum of non-`NULL` values by the *count of non-`NULL` values*, not by the total row count.
+</QuestionCard>
+
+<QuestionCard id="agg-avg-02" number={2} question="How would AVG's result differ from manually computing SUM(column) / COUNT(*)?" difficulty="medium" topic="AVG">
+If the column has any `NULL` values, `SUM(column) / COUNT(*)` divides by the *total* row count (including rows where the column is `NULL`), producing a smaller number than the true average of the non-`NULL` values. `AVG(column)` divides by `COUNT(column)` instead — the non-`NULL` count — so the two can diverge whenever `NULL`s are present.
+</QuestionCard>
+
+<QuestionCard id="agg-avg-03" number={3} question="What does AVG return over an empty set or a column of all NULLs?" difficulty="medium" topic="AVG">
+`NULL` — with zero non-`NULL` values to average, there's no meaningful result to return, the same reasoning that applies to `SUM` and `MIN`/`MAX` over an empty set.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## MIN
+
+<QuestionList topic="MIN" storagePrefix="aggregate-queries-min">
+
+<QuestionCard id="agg-min-01" number={1} question="What does MIN do, and does it work on non-numeric columns?" difficulty="easy" topic="MIN">
+`MIN` returns the smallest value in a column or expression across the group. It isn't limited to numbers — it works on dates (earliest date), strings (lexicographically first), and any other type that has a defined ordering, always ignoring `NULL` values in the comparison.
+</QuestionCard>
+
+<QuestionCard id="agg-min-02" number={2} question="How would you find the row with the minimum value in a column, not just the minimum value itself?" difficulty="medium" topic="MIN">
+`MIN` alone only returns the value, not the rest of that row's data. To get the full row, either filter with a subquery (`WHERE price = (SELECT MIN(price) FROM products)`), or use `ORDER BY price ASC LIMIT 1`, which is often more efficient since it can stop scanning after finding the first match if an index supports the sort order.
+</QuestionCard>
+
+<QuestionCard id="agg-min-03" number={3} question="What does MIN return over an empty group?" difficulty="medium" topic="MIN">
+`NULL` — there's no smallest value in an empty set, so `MIN` (like `MAX`, `SUM`, and `AVG`) returns `NULL` rather than some arbitrary default.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## MAX
+
+<QuestionList topic="MAX" storagePrefix="aggregate-queries-max">
+
+<QuestionCard id="agg-max-01" number={1} question="What does MAX do, and where does it commonly show up outside of pure reporting queries?" difficulty="easy" topic="MAX">
+`MAX` returns the largest value in a column or expression across the group, ignoring `NULL`s, and works on any orderable type (numbers, dates, strings). Beyond reporting, it commonly shows up in finding the most recent record per group (`MAX(created_at)` per user) or the current version of a row in a slowly-changing or event-sourced table.
+</QuestionCard>
+
+<QuestionCard id="agg-max-02" number={2} question="How would you find, per group, the row containing the MAX value — not just the MAX value itself?" difficulty="medium" topic="MAX">
+A common pattern: join the table back to a subquery that computes `MAX(value)` grouped by the same key, matching on both the group key and the max value. Alternatively, a window function like `ROW_NUMBER() OVER (PARTITION BY group_col ORDER BY value DESC)` filtered to rank `1` avoids the self-join and handles ties more explicitly.
+</QuestionCard>
+
+<QuestionCard id="agg-max-03" number={3} question="Can MIN and MAX be used without GROUP BY?" difficulty="easy" topic="MAX">
+Yes — without `GROUP BY`, the whole result set is treated as a single group, so `SELECT MAX(price) FROM products` returns one row with the single highest price across the entire table, the same way any aggregate function behaves without explicit grouping.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Why did COUNT(*) and COUNT(email) return different numbers on the same table?"** Walk through `COUNT(*)` counting all rows versus `COUNT(column)` counting only non-`NULL` values in that column — a very common real-world gotcha.
+- **"Write a query to find each department's average salary, treating employees with no recorded salary as 0 instead of ignoring them."** A prompt to test `COALESCE(salary, 0)` inside `AVG()` versus relying on `AVG`'s default NULL-skipping behavior — and being able to explain why the two give different answers.
+- **"How would you find the most recent order for each customer?"** A classic "MAX per group" problem — walk through the self-join-to-a-subquery approach and the window-function alternative, and discuss when each is preferable.
+- **"What does SUM(discount) return for an order with no discount rows at all, and why might that break downstream code?"** Use it to explain why `SUM` returns `NULL` (not `0`) over an empty set, and why `COALESCE` is standard practice in reporting queries.
+
+---
+
+## Further Reading
+
+- [Basic SQL Syntax](/level-1-foundations/sql/basic-syntax/) — the GROUP BY and HAVING clauses these aggregate functions are almost always paired with
+- [SQL Operators](/level-1-foundations/sql/sql-operators/) — how NULL-safe comparisons interact with aggregate results
+- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including window functions built on these same aggregates
