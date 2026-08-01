@@ -1,0 +1,79 @@
+---
+title: SQL Keywords
+description: Interview questions on SQL keyword categories — DDL, DML, DCL, and TCL — and what each group of reserved words is responsible for.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## SQL Keywords: DDL, DML, DCL, and TCL Explained
+
+**Every SQL keyword falls into one of a small number of categories based on what it actually changes — schema, data, permissions, or transaction state — and recognizing which bucket a statement belongs to is a fast way to reason about its blast radius before running it.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+SQL keywords are **reserved words** the database parser assigns special meaning to — they can't be used as ordinary identifiers (table or column names) without special quoting, because the parser needs to recognize them unambiguously. They group into four categories: **DDL** (Data Definition Language: `CREATE`, `ALTER`, `DROP` — manages schema structure), **DML** (Data Manipulation Language: `INSERT`, `UPDATE`, `DELETE`, and often `SELECT` — manages the data itself), **DCL** (Data Control Language: `GRANT`, `REVOKE` — manages who can do what), and **TCL** (Transaction Control Language: `COMMIT`, `ROLLBACK`, `SAVEPOINT` — manages transaction boundaries). The category matters practically, not just academically: DDL statements typically auto-commit and can't be rolled back the way DML can, DCL requires elevated privileges to run, and TCL is what lets a sequence of DML statements succeed or fail together.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="SQL Keywords" storagePrefix="sql-keywords">
+
+<QuestionCard id="kw-01" number={1} question="What are SQL keywords, and why are they reserved?" difficulty="easy" topic="Fundamentals">
+SQL keywords are words the SQL parser assigns fixed, special meaning to — `SELECT`, `WHERE`, `CREATE`, and so on. They're reserved because the parser needs to distinguish them unambiguously from identifiers (table names, column names); if `SELECT` could also be a column name without special handling, the parser couldn't tell which meaning was intended in a given position.
+</QuestionCard>
+
+<QuestionCard id="kw-02" number={2} question="What is DDL, and which keywords belong to it?" difficulty="easy" topic="DDL">
+DDL (Data Definition Language) manages the structure of the database itself — tables, indexes, constraints — rather than the rows inside them. Core keywords: `CREATE` (make a new object), `ALTER` (modify an existing one), `DROP` (remove one), and `TRUNCATE` (empty a table's data while keeping its structure).
+</QuestionCard>
+
+<QuestionCard id="kw-03" number={3} question="What is DML, and which keywords belong to it?" difficulty="easy" topic="DML">
+DML (Data Manipulation Language) manages the rows within existing tables. Core keywords: `INSERT` (add rows), `UPDATE` (modify existing rows), and `DELETE` (remove rows). `SELECT` is sometimes grouped here and sometimes classified separately as DQL (Data Query Language), since it reads data rather than manipulating it.
+</QuestionCard>
+
+<QuestionCard id="kw-04" number={4} question="What is DCL, and which keywords belong to it?" difficulty="easy" topic="DCL">
+DCL (Data Control Language) manages permissions — who is allowed to do what. Core keywords: `GRANT` (give a user or role a privilege, like `SELECT` or `INSERT` on a table) and `REVOKE` (take a previously granted privilege away). Running DCL statements typically requires administrative privileges the average application user doesn't have.
+</QuestionCard>
+
+<QuestionCard id="kw-05" number={5} question="What is TCL, and which keywords belong to it?" difficulty="easy" topic="TCL">
+TCL (Transaction Control Language) manages the boundaries of a transaction. Core keywords: `BEGIN`/`START TRANSACTION` (start one), `COMMIT` (make its changes permanent), `ROLLBACK` (undo everything since the transaction started), and `SAVEPOINT` (mark a point within a transaction you can roll back to without undoing the whole thing).
+</QuestionCard>
+
+<QuestionCard id="kw-06" number={6} question="Is SELECT part of DML — why or why not?" difficulty="medium" topic="Fundamentals">
+It depends on the classification scheme. Many textbooks and vendors group `SELECT` under DML since it operates on data. Others carve out a separate category, DQL (Data Query Language), specifically for `SELECT`, on the reasoning that it only reads data and never modifies it — a meaningfully different risk profile than `INSERT`/`UPDATE`/`DELETE`. Either answer is defensible in an interview as long as you can explain the distinction.
+</QuestionCard>
+
+<QuestionCard id="kw-07" number={7} question="What's the difference between DELETE, TRUNCATE, and DROP, and which categories do they belong to?" difficulty="medium" topic="DDL vs DML">
+`DELETE` is DML — it removes specific rows (optionally filtered by `WHERE`), can be rolled back within a transaction, and fires row-level triggers. `TRUNCATE` is DDL — it removes all rows at once by deallocating the table's data pages rather than deleting row by row, is typically faster, but in many databases can't be selectively filtered and may auto-commit. `DROP` is also DDL — it removes the table (or other object) entirely, structure included, not just its data.
+</QuestionCard>
+
+<QuestionCard id="kw-08" number={8} question="Why does knowing a keyword's category help you reason about its behavior?" difficulty="medium" topic="Fundamentals">
+The category is a shortcut for predicting behavior you'd otherwise have to look up per-statement: DDL statements often auto-commit and can't be undone with `ROLLBACK` the way DML can; DCL requires elevated privileges most application connections don't have; and TCL is what determines whether a batch of DML statements succeeds or fails as a unit. Recognizing the category before running an unfamiliar statement is a quick way to gauge how reversible and how privileged it is.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Categorize these five keywords: CREATE, SELECT, GRANT, COMMIT, DELETE."** A quick fluency check — `CREATE` is DDL, `SELECT` is DML/DQL, `GRANT` is DCL, `COMMIT` is TCL, `DELETE` is DML.
+- **"Why might TRUNCATE be riskier to run in production than DELETE, even though both remove data?"** Explain that `TRUNCATE`'s DDL status often means it can't be rolled back the same way, may skip row-level triggers, and removes everything at once with no `WHERE` clause to scope it.
+- **"A junior engineer asks why they can't run a GRANT statement — what do you tell them?"** Use it to explain DCL's privilege requirements, and why permission management is deliberately separated from everyday DML access.
+
+---
+
+## Further Reading
+
+- [What are Relational Databases?](/level-1-foundations/sql/relational-databases/) — the table and schema concepts DDL keywords operate on
+- [SQL Data Types](/level-1-foundations/sql/sql-data-types/) — what DDL statements like `CREATE TABLE` actually declare per column
+- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including transactions and constraints

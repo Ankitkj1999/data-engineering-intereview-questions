@@ -1,0 +1,83 @@
+---
+title: Relational Databases
+description: Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## What Are Relational Databases: Tables, Keys, and the Relational Model
+
+**A relational database organizes data into tables of rows and columns, linked to each other through keys rather than duplicated everywhere they're needed — the structural idea every SQL query and every RDBMS is ultimately built on top of.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The **relational model**, introduced by Edgar Codd in 1970, represents data as **tables** (also called relations) — each table a fixed set of columns (attributes) and any number of rows (records). A **primary key** uniquely identifies each row in a table, and a **foreign key** in one table points to a primary key in another, which is what lets related data live in separate tables instead of being duplicated everywhere it's needed. That separation is deliberate: it's how a relational database enforces **referential integrity** — the guarantee that a foreign key always points to a row that actually exists — and how it avoids the update anomalies that come from copying the same fact into a dozen places. Relationships between tables come in a few shapes: **one-to-many** (one department, many employees) needs only a foreign key on the "many" side, while **many-to-many** (students and courses) needs a third junction table holding a foreign key to each side.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="Relational Databases" storagePrefix="relational-databases">
+
+<QuestionCard id="rdb-01" number={1} question="What is a relational database?" difficulty="easy" topic="Fundamentals">
+A relational database is a database that stores data in tables — structured collections of rows and columns — and represents relationships between different pieces of data through keys rather than by nesting or duplicating data. It's the model underlying virtually every SQL database: PostgreSQL, MySQL, SQL Server, Oracle, and the managed cloud warehouses built on similar principles.
+</QuestionCard>
+
+<QuestionCard id="rdb-02" number={2} question="Who introduced the relational model, and what problem was it solving?" difficulty="easy" topic="Fundamentals">
+Edgar F. Codd introduced the relational model in a 1970 paper while at IBM. Before it, databases were typically hierarchical or network-based, requiring applications to know the physical structure and navigation paths of the data. Codd's insight was that data could be represented purely as tables with logical relationships, letting a query language describe *what* data you want without specifying *how* to physically traverse it to get there.
+</QuestionCard>
+
+<QuestionCard id="rdb-03" number={3} question="What are tables, rows, and columns in the relational model?" difficulty="easy" topic="Fundamentals">
+A **table** represents one entity type (e.g., `employees`). Each **column** defines an attribute of that entity with a fixed data type (e.g., `name`, `hire_date`, `salary`). Each **row** is one instance of that entity — one specific employee, with a value for every column. Every row in a table shares the same columns, which is what makes the table queryable as a uniform set.
+</QuestionCard>
+
+<QuestionCard id="rdb-04" number={4} question="What is a primary key, and why must it be unique?" difficulty="easy" topic="Keys">
+A primary key is one or more columns whose value uniquely identifies a row within a table — no two rows can share the same primary key value, and it can't be `NULL`. It has to be unique because it's the handle every other part of the system uses to refer to that exact row: foreign keys reference it, indexes are frequently built on it, and joins rely on it resolving to exactly one row.
+</QuestionCard>
+
+<QuestionCard id="rdb-05" number={5} question="What is a foreign key, and what does it enforce?" difficulty="easy" topic="Keys">
+A foreign key is a column (or columns) in one table that references the primary key of another table — for example, an `orders.customer_id` column referencing `customers.id`. It enforces **referential integrity**: the database won't let you insert an order with a `customer_id` that doesn't exist in the `customers` table, and by default won't let you delete a customer that still has orders referencing them (unless a cascade rule says otherwise).
+</QuestionCard>
+
+<QuestionCard id="rdb-06" number={6} question="What's the difference between a one-to-many and a many-to-many relationship, and how is many-to-many implemented?" difficulty="medium" topic="Relationships">
+A one-to-many relationship (one department has many employees) is implemented with a single foreign key on the "many" side — `employees.department_id`. A many-to-many relationship (students enroll in many courses, courses have many students) can't be represented with a single foreign key on either side, since neither table has one row per relationship; instead it requires a **junction table** (e.g., `enrollments`) holding a foreign key to each side, with each row representing one specific student-course pairing.
+</QuestionCard>
+
+<QuestionCard id="rdb-07" number={7} question="What is a schema, and why does defining one upfront matter?" difficulty="medium" topic="Fundamentals">
+A schema is the definition of a table's structure — its columns, their data types, and its constraints (primary key, foreign keys, `NOT NULL`, etc.) — declared before any data is inserted. Defining it upfront matters because the database then enforces it on every write: a row that violates the schema (wrong type, missing required value, duplicate key) is rejected at insert time rather than silently corrupting downstream data.
+</QuestionCard>
+
+<QuestionCard id="rdb-08" number={8} question="Why store data across multiple related tables instead of one big table?" difficulty="medium" topic="Design">
+Splitting data across related tables — normalization — avoids duplicating the same fact in many places. If a customer's address lived on every one of their orders instead of once in a `customers` table, updating it would mean rewriting every order row, and a partial update would leave the data inconsistent. Separate, related tables mean each fact is stored once and referenced everywhere it's needed.
+</QuestionCard>
+
+<QuestionCard id="rdb-09" number={9} question="What is referential integrity?" difficulty="medium" topic="Keys">
+Referential integrity is the guarantee that a foreign key value always corresponds to an existing row in the referenced table — no "dangling" foreign keys pointing at rows that were deleted or never existed. The database enforces it automatically once a foreign key constraint is declared, rejecting inserts/updates that would violate it and controlling what happens on delete via rules like `ON DELETE CASCADE` or `ON DELETE RESTRICT`.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Design a simple schema for an e-commerce system with customers, orders, and products."** Walk through identifying the entities, their primary keys, the one-to-many relationships (customer → orders), and the many-to-many relationship (orders ↔ products) that needs a junction table (`order_items`).
+- **"What happens if you try to delete a customer who still has orders?"** Explain referential integrity — the database blocks the delete by default, unless a cascade or set-null rule was explicitly configured on the foreign key.
+- **"Why not just store everything in one giant table?"** Use it to explain normalization's payoff: avoiding duplicated facts and the update anomalies that come with them, at the cost of needing joins to reassemble the full picture.
+
+---
+
+## Further Reading
+
+- [RDBMS Benefits & Limitations](/level-1-foundations/sql/rdbms-benefits-and-limitations/) — what this table/key structure buys you, and where it starts to strain at scale
+- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including joins and normalization in depth
+- [Data Modeling](/level-2-core-concepts/data-modeling/) — schema design patterns that build on these same table and key concepts

@@ -345,12 +345,21 @@ const ROADMAP = [
 
 `link` is optional on both topic and subtopic objects. When present, the drawer panel renders a "Learn more →" link below the `desc` paragraph, pointing into the actual content site rather than leaving the roadmap as a disconnected checklist.
 
-Priority order when deciding a topic's `link`:
-1. **A page we maintain that covers this exact topic** — link to it directly (e.g. roadmap topic "What is Data Engineering" → `/level-2-core-concepts/what-is-data-engineering/`).
-2. **A section within a page we maintain** — anchor-link into it (e.g. roadmap topic "Window Functions" → `/level-1-foundations/sql/#window-functions`), matching an actual `##`/`###` heading on that page.
-3. **Nothing of ours covers it yet** — omit `link` rather than pointing externally. Only link externally for topics that will never get their own page here (e.g. a specific third-party tool we don't otherwise document).
+**The core rule: a roadmap `link` must point to a page — or a heading-scoped section of a page — that is *dedicated* to that exact node's subject.** The roadmap's job is to let someone who wants to go deep on, say, "SQL vs NoSQL Databases" land on something that treats that subject in full — not to redirect them into a big multi-topic page and leave them to find the one relevant paragraph themselves.
 
-Do not invent a page-per-leaf-topic to satisfy this — most roadmaps have 80-200+ leaf topics (SQL: 89, Python: 77, Data Engineering: 148, AWS: 226), far more than warrant individual pages. `link` is populated opportunistically as matching content pages already exist, not as a mandate to write one page per roadmap node.
+This distinction matters because the site runs two content tracks with different jobs, and it's easy to conflate them when picking a `link`:
+
+- **Interview-prep pages** (`level-1-foundations/`, `level-2-core-concepts/`, `level-3-technologies/`, `level-4-advanced/`, governed by `CONTENT_GUIDELINES.md`) answer *"can this person answer this in an interview."* They're organized by topic, and one page (e.g. `sql/theory.mdx`) can legitimately bundle dozens of small, loosely-related questions together for that purpose.
+- **Roadmap `link` targets** answer a different question: *"I want to actually learn this specific thing — where do I go."* A big bundled interview-prep page satisfies the first job, not the second, even if one of its 40 questions happens to touch the roadmap node's subject.
+
+Priority order when deciding a topic's `link`:
+1. **A page we maintain that is wholly about this exact topic** — link to it directly (e.g. roadmap topic "What is Data Engineering" → `/level-2-core-concepts/what-is-data-engineering/`, roadmap topic "Apache Kafka" → `/level-3-technologies/streaming/kafka/`). This is the default target — nearly every existing `link` in the roadmaps is this case.
+2. **A clearly-scoped section within a page we maintain, where that section — not just one question buried inside it — is dedicated to the topic.** Anchor-link into it (e.g. a `### Window Functions` heading that has several questions all specifically about window functions), matching an actual `##`/`###` heading on that page. If the best match you can find is a single question living inside a much broader, multi-topic section, that does **not** qualify — treat it the same as case 3.
+3. **Nothing of ours gives this topic dedicated treatment yet** — omit `link` rather than pointing at a shallow or off-target match, and rather than linking externally. Only link externally for topics that will never get their own page here (e.g. a specific third-party tool we don't otherwise document).
+
+> **Mistake to avoid** (this happened once, for SQL's "Learn the Basics" section — documented here so it doesn't repeat): several distinct roadmap subtopics ("SQL vs NoSQL Databases", "Data Types", "Operators") were linked to anchors inside `theory.mdx`'s general Q&A sections, on the reasoning that a matching question technically existed somewhere on the page. That satisfied rule 2's letter but not its intent — the target sections are broad, multi-topic interview-prep grab-bags, not focused treatments of those individual subjects. The fix was to remove those anchor links and write dedicated pages instead.
+
+Do not invent a page-per-leaf-topic reflexively, though — most roadmaps have 80-200+ leaf topics (SQL: 89, Python: 77, Data Engineering: 148, AWS: 226), far more than warrant individual pages. `link` is populated opportunistically as matching dedicated content already exists, or deliberately when a specific, bounded cluster of roadmap nodes (e.g. a roadmap's opening "Introduction" or "Learn the Basics" section) is chosen for investment — never as a mandate to eventually cover every node.
 
 ### Converting `topics` array into `desc`
 
@@ -436,4 +445,4 @@ Find the existing roadmaps sidebar group (look for the entries for Data Engineer
 
 ---
 
-**Last Updated**: July 21, 2026
+**Last Updated**: August 1, 2026

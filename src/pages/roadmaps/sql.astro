@@ -68,12 +68,12 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 <script>
 const ROADMAP = [
   { id:"learn-basics", label:"Learn the Basics", desc:"Core concepts of relational databases and the SQL language — where every journey starts.", subs:[
-    { id:"what-are-rdb",   label:"What are Relational Databases?",  desc:"Tables, rows, columns, and the relational model introduced by Edgar Codd." },
-    { id:"rdbms-limits",   label:"RDBMS Benefits & Limitations",    desc:"ACID properties, scalability trade-offs, and when to choose a relational DB." },
-    { id:"sql-keywords",   label:"SQL Keywords",                    desc:"Reserved words: SELECT, FROM, WHERE, JOIN, GROUP BY, ORDER BY, HAVING, etc." },
-    { id:"sql-vs-nosql",   label:"SQL vs NoSQL Databases",          desc:"When to use relational vs document, key-value, column, or graph databases." },
-    { id:"data-types",     label:"Data Types",                      desc:"INT, VARCHAR, TEXT, DATE, TIMESTAMP, BOOLEAN, DECIMAL, and vendor-specific types." },
-    { id:"operators",      label:"Operators",                       desc:"Arithmetic, comparison, logical (AND/OR/NOT), BETWEEN, IN, LIKE, IS NULL." },
+    { id:"what-are-rdb",   label:"What are Relational Databases?",  desc:"Tables, rows, columns, and the relational model introduced by Edgar Codd.", link:"/level-1-foundations/sql/relational-databases/" },
+    { id:"rdbms-limits",   label:"RDBMS Benefits & Limitations",    desc:"ACID properties, scalability trade-offs, and when to choose a relational DB.", link:"/level-1-foundations/sql/rdbms-benefits-and-limitations/" },
+    { id:"sql-keywords",   label:"SQL Keywords",                    desc:"Reserved words: SELECT, FROM, WHERE, JOIN, GROUP BY, ORDER BY, HAVING, etc.", link:"/level-1-foundations/sql/sql-keywords/" },
+    { id:"sql-vs-nosql",   label:"SQL vs NoSQL Databases",          desc:"When to use relational vs document, key-value, column, or graph databases.", link:"/level-1-foundations/sql/sql-vs-nosql/" },
+    { id:"data-types",     label:"Data Types",                      desc:"INT, VARCHAR, TEXT, DATE, TIMESTAMP, BOOLEAN, DECIMAL, and vendor-specific types.", link:"/level-1-foundations/sql/sql-data-types/" },
+    { id:"operators",      label:"Operators",                       desc:"Arithmetic, comparison, logical (AND/OR/NOT), BETWEEN, IN, LIKE, IS NULL.", link:"/level-1-foundations/sql/sql-operators/" },
   ]},
   { id:"basic-syntax", label:"Basic SQL Syntax", desc:"The fundamental SELECT statement and its clauses — how to read data from tables.", subs:[
     { id:"select",         label:"SELECT",                          desc:"Retrieving columns, using aliases, DISTINCT, and selecting all with *." },

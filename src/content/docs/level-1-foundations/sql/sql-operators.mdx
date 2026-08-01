@@ -1,0 +1,84 @@
+---
+title: SQL Operators
+description: Interview questions on SQL operators — arithmetic, comparison, logical, BETWEEN, IN, LIKE wildcards, and NULL-safe comparisons.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## SQL Operators: Comparison, Logical, and Pattern Matching
+
+**Operators are what turn a SQL statement's raw values into the conditions that decide which rows get selected, updated, or deleted — and a surprising number of query bugs trace back to a single operator behaving differently than expected, especially around NULL.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+SQL operators split into a few functional groups: **arithmetic** (`+ - * / %`) for numeric calculation, **comparison** (`= <> < > <= >=`) for evaluating conditions, **logical** (`AND`, `OR`, `NOT`) for combining conditions, and a set of purpose-built operators for common filtering patterns — `BETWEEN` for inclusive ranges, `IN` for membership in a list, and `LIKE` with wildcards (`%`, `_`) for pattern matching on text. The one recurring trap across almost all of them is **NULL**: it represents "unknown," not a value, so any comparison against `NULL` using `=` or `<>` evaluates to unknown (effectively excluded) rather than true or false — which is why SQL provides the dedicated `IS NULL` / `IS NOT NULL` operators instead of relying on standard comparison.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="SQL Operators" storagePrefix="sql-operators">
+
+<QuestionCard id="op-01" number={1} question="What categories of operators does SQL provide?" difficulty="easy" topic="Fundamentals">
+**Arithmetic** (`+`, `-`, `*`, `/`, `%`), **comparison** (`=`, `<>`/`!=`, `<`, `>`, `<=`, `>=`), **logical** (`AND`, `OR`, `NOT`), and a set of specialized filtering operators: `BETWEEN`, `IN`, `LIKE`, and the NULL-safe `IS NULL`/`IS NOT NULL`.
+</QuestionCard>
+
+<QuestionCard id="op-02" number={2} question="What are the arithmetic operators, and where do they commonly show up in queries?" difficulty="easy" topic="Arithmetic">
+`+`, `-`, `*`, `/` for addition, subtraction, multiplication, and division, and `%` (or `MOD`) for remainder. They show up most often in computed columns (`price * quantity AS total`), in aggregate expressions, and in `WHERE` clauses filtering on a derived value rather than a stored one.
+</QuestionCard>
+
+<QuestionCard id="op-03" number={3} question="What are the comparison operators, and how does NULL interact with them?" difficulty="medium" topic="Comparison">
+`=`, `<>`/`!=`, `<`, `>`, `<=`, `>=` compare two values. `NULL` breaks the usual true/false logic: `NULL = NULL` does not evaluate to true — it evaluates to unknown, because `NULL` represents an unknown value, and comparing two unknowns can't logically resolve to "equal." Any row where a comparison involving `NULL` evaluates to unknown gets excluded from the result, which surprises people who expect `WHERE col = NULL` to match NULL rows.
+</QuestionCard>
+
+<QuestionCard id="op-04" number={4} question="What do the logical operators AND, OR, NOT do, and how does operator precedence affect a query with mixed AND/OR?" difficulty="medium" topic="Logical">
+`AND` requires both conditions to be true, `OR` requires at least one, `NOT` inverts a condition. `AND` has higher precedence than `OR`, so `WHERE a OR b AND c` evaluates as `WHERE a OR (b AND c)`, not `(a OR b) AND c` — a common source of bugs when a query mixes both without explicit parentheses to force the intended grouping.
+</QuestionCard>
+
+<QuestionCard id="op-05" number={5} question="What does the BETWEEN operator do, and is it inclusive or exclusive?" difficulty="easy" topic="Filtering">
+`BETWEEN a AND b` filters for values in the range from `a` to `b`, **inclusive** on both ends — `price BETWEEN 10 AND 20` matches a price of exactly 10 or exactly 20 as well as everything in between. It works on numbers, dates, and even strings (lexicographic comparison), and is shorthand for `col >= a AND col <= b`.
+</QuestionCard>
+
+<QuestionCard id="op-06" number={6} question="What does the IN operator do, and when is it preferable to a chain of OR conditions?" difficulty="easy" topic="Filtering">
+`IN (v1, v2, v3, ...)` matches a column against any value in a given list — shorthand for `col = v1 OR col = v2 OR col = v3`. It's preferable whenever the list has more than a couple of values: it's more readable, less error-prone to write correctly, and can also take a subquery (`IN (SELECT ...)`) rather than a static list.
+</QuestionCard>
+
+<QuestionCard id="op-07" number={7} question="How does the LIKE operator work, and what do % and _ wildcards match?" difficulty="easy" topic="Pattern Matching">
+`LIKE` performs pattern matching on text. `%` matches any sequence of characters (including zero), and `_` matches exactly one character. `name LIKE 'A%'` matches any name starting with "A"; `name LIKE '_ohn'` matches any 4-character name ending in "ohn" (like "John"). Matching is case-sensitive or insensitive depending on the database's default collation.
+</QuestionCard>
+
+<QuestionCard id="op-08" number={8} question="Why must you use IS NULL / IS NOT NULL instead of = NULL?" difficulty="medium" topic="NULL Handling">
+Because `NULL` represents an unknown value rather than a comparable value, standard comparison operators (`=`, `<>`) against `NULL` always evaluate to unknown rather than true, even when comparing `NULL` to `NULL` itself — so `WHERE col = NULL` silently returns zero rows instead of matching anything. `IS NULL`/`IS NOT NULL` are special-purpose operators built specifically to test for the presence or absence of a value, sidestepping that three-valued logic entirely.
+</QuestionCard>
+
+<QuestionCard id="op-09" number={9} question="Does SQL short-circuit AND/OR the way general-purpose programming languages do?" difficulty="hard" topic="Logical">
+Not reliably — unlike languages like Python or JavaScript, standard SQL doesn't guarantee left-to-right short-circuit evaluation of `AND`/`OR`, because the query optimizer is free to reorder or evaluate conditions in whatever order it determines is most efficient. This matters in practice: code that relies on a first condition "protecting" a second one from running (e.g., checking a value isn't zero before dividing by it) isn't guaranteed to be safe in SQL the way it would be in application code.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A query with `WHERE status = NULL` returns no rows even though there are rows with a NULL status — why?"** Walk through NULL's three-valued logic and why `IS NULL` is required instead.
+- **"Write a query to find all products priced between $10 and $50, in the Electronics or Toys category."** A natural prompt to combine `BETWEEN`, `IN`, and correct `AND`/`OR` grouping with parentheses.
+- **"How would you find all customers whose email ends in '@gmail.com'?"** Use it to test `LIKE` with the `%` wildcard: `email LIKE '%@gmail.com'`.
+- **"Why might relying on short-circuit evaluation in a WHERE clause be risky in SQL?"** Explain that the optimizer can reorder conditions, so a guard condition meant to prevent an error in a later condition isn't guaranteed to run first.
+
+---
+
+## Further Reading
+
+- [SQL Data Types](/level-1-foundations/sql/sql-data-types/) — how operator behavior (especially comparison and BETWEEN) depends on the underlying type
+- [SQL Keywords](/level-1-foundations/sql/sql-keywords/) — where these operators fit within WHERE, HAVING, and JOIN clauses
+- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including joins and aggregate functions

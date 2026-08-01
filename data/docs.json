@@ -936,6 +936,615 @@
     "content": "es-03\",\"sql-prac-dates-04\",\"sql-prac-dates-05\"],\r\n  },\r\n]} />"
   },
   {
+    "path": "/level-1-foundations/sql/rdbms-benefits-and-limitations/",
+    "locale": "en",
+    "title": "RDBMS Benefits & Limitations",
+    "description": "Interview questions on RDBMS benefits and limitations — ACID properties, vertical vs horizontal scaling trade-offs, and when to choose a relational database.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/rdbms-benefits-and-limitations/",
+    "locale": "en",
+    "title": "RDBMS Benefits & Limitations",
+    "description": "Interview questions on RDBMS benefits and limitations — ACID properties, vertical vs horizontal scaling trade-offs, and when to choose a relational database.",
+    "content": "## RDBMS Benefits and Limitations: When to Choose (and Outgrow) a Relational Database\n\n**An RDBMS trades some flexibility and horizontal scalability for strong consistency guarantees and a rigorously enforced schema — a trade that's right for most transactional systems and starts to strain only at a specific kind of scale.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/rdbms-benefits-and-limitations/",
+    "locale": "en",
+    "title": "RDBMS Benefits & Limitations",
+    "description": "Interview questions on RDBMS benefits and limitations — ACID properties, vertical vs horizontal scaling trade-offs, and when to choose a relational database.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/rdbms-benefits-and-limitations/",
+    "locale": "en",
+    "title": "RDBMS Benefits & Limitations",
+    "description": "Interview questions on RDBMS benefits and limitations — ACID properties, vertical vs horizontal scaling trade-offs, and when to choose a relational database.",
+    "content": "## Key Concepts\n\nThe core benefit of an RDBMS is **ACID** — Atomicity, Consistency, Isolation, Durability — the set of guarantees that make a transaction either fully happen or not happen at all, even under concurrent access or a crash mid-write. That's paired with a **fixed, enforced schema** (bad data gets rejected at write time, not discovered later) and a mature, standardized query language with decades of tooling, optimizers, and operational experience behind it. The limitations show up as scale grows past what a single, more powerful machine can handle: RDBMSs traditionally scale **vertically** (a bigger server) rather than **horizontally** (more servers), a rigid schema makes fast-changing or semi-structured data awkward to model, and enforcing strong consistency across many machine"
+  },
+  {
+    "path": "/level-1-foundations/sql/rdbms-benefits-and-limitations/",
+    "locale": "en",
+    "title": "RDBMS Benefits & Limitations",
+    "description": "Interview questions on RDBMS benefits and limitations — ACID properties, vertical vs horizontal scaling trade-offs, and when to choose a relational database.",
+    "content": "s gets expensive — which is exactly the gap NoSQL and distributed systems were built to fill.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/rdbms-benefits-and-limitations/",
+    "locale": "en",
+    "title": "RDBMS Benefits & Limitations",
+    "description": "Interview questions on RDBMS benefits and limitations — ACID properties, vertical vs horizontal scaling trade-offs, and when to choose a relational database.",
+    "content": "## Interview Questions\n\n<QuestionList topic=\"RDBMS Benefits & Limitations\" storagePrefix=\"rdbms-benefits-and-limitations\">\n\n<QuestionCard id=\"rbl-01\" number={1} question=\"What are the core benefits of using an RDBMS?\" difficulty=\"easy\" topic=\"Benefits\">\nStrong consistency guarantees through ACID transactions, a schema that's enforced at write time rather than discovered as a runtime error later, a standardized and widely-known query language (SQL), and decades of mature tooling — query optimizers, replication, backup/recovery, monitoring — built around the relational model.\n</QuestionCard>\n\n<QuestionCard id=\"rbl-02\" number={2} question=\"What does ACID stand for, and why does it matter?\" difficulty=\"easy\" topic=\"ACID\">\n**Atomicity, Consistency, Isolation, Durability.** Together they guarant"
+  },
+  {
+    "path": "/level-1-foundations/sql/rdbms-benefits-and-limitations/",
+    "locale": "en",
+    "title": "RDBMS Benefits & Limitations",
+    "description": "Interview questions on RDBMS benefits and limitations — ACID properties, vertical vs horizontal scaling trade-offs, and when to choose a relational database.",
+    "content": "ee that a transaction either fully completes or has no effect at all, that the database moves from one valid state to another, that concurrent transactions don't corrupt each other's view of the data, and that a committed transaction survives a crash. It matters because it's what lets application code trust the database instead of re-implementing that safety itself.\n</QuestionCard>\n\n<QuestionCard id=\"rbl-03\" number={3} question=\"Explain atomicity with an example.\" difficulty=\"medium\" topic=\"ACID\">\nAtomicity means a transaction is all-or-nothing. Classic example: transferring money between two bank accounts requires debiting one account and crediting another — atomicity guarantees that if the crediting step fails, the debit is rolled back too, so the transaction never leaves money \"in trans"
+  },
+  {
+    "path": "/level-1-foundations/sql/rdbms-benefits-and-limitations/",
+    "locale": "en",
+    "title": "RDBMS Benefits & Limitations",
+    "description": "Interview questions on RDBMS benefits and limitations — ACID properties, vertical vs horizontal scaling trade-offs, and when to choose a relational database.",
+    "content": "it\" or duplicated.\n</QuestionCard>\n\n<QuestionCard id=\"rbl-04\" number={4} question=\"Explain consistency in ACID.\" difficulty=\"medium\" topic=\"ACID\">\nConsistency means a transaction can only bring the database from one valid state to another valid state — it can't violate constraints, foreign keys, or defined rules, even temporarily as far as anything outside the transaction can observe. If a transaction would break a constraint (e.g., insert an order for a customer that doesn't exist), the whole transaction is rejected rather than partially applied.\n</QuestionCard>\n\n<QuestionCard id=\"rbl-05\" number={5} question=\"Explain isolation and why isolation levels exist.\" difficulty=\"medium\" topic=\"ACID\">\nIsolation means concurrent transactions shouldn't see each other's uncommitted changes, so the ou"
+  },
+  {
+    "path": "/level-1-foundations/sql/rdbms-benefits-and-limitations/",
+    "locale": "en",
+    "title": "RDBMS Benefits & Limitations",
+    "description": "Interview questions on RDBMS benefits and limitations — ACID properties, vertical vs horizontal scaling trade-offs, and when to choose a relational database.",
+    "content": "tcome looks as if transactions ran one at a time even though they actually overlapped. Isolation levels (`READ COMMITTED`, `REPEATABLE READ`, `SERIALIZABLE`, etc.) exist because full isolation is expensive — each level trades some strictness for performance, and picking the right one depends on what anomalies (dirty reads, non-repeatable reads, phantom reads) a given workload can tolerate.\n</QuestionCard>\n\n<QuestionCard id=\"rbl-06\" number={6} question=\"Explain durability.\" difficulty=\"easy\" topic=\"ACID\">\nDurability means once a transaction is committed, its changes survive — even a power loss or crash immediately afterward won't lose it. RDBMSs typically achieve this by writing to a write-ahead log (WAL) on durable storage before acknowledging the commit, so the change can be replayed from"
+  },
+  {
+    "path": "/level-1-foundations/sql/rdbms-benefits-and-limitations/",
+    "locale": "en",
+    "title": "RDBMS Benefits & Limitations",
+    "description": "Interview questions on RDBMS benefits and limitations — ACID properties, vertical vs horizontal scaling trade-offs, and when to choose a relational database.",
+    "content": "the log if the in-memory state is lost.\n</QuestionCard>\n\n<QuestionCard id=\"rbl-07\" number={7} question=\"What are the main limitations of an RDBMS at scale?\" difficulty=\"medium\" topic=\"Limitations\">\nTraditional RDBMSs scale vertically more naturally than horizontally, so there's a ceiling set by how large a single machine can get. A fixed schema makes it awkward to store fast-changing, semi-structured, or highly variable data. And maintaining strong consistency across many nodes (if you do try to distribute an RDBMS) adds coordination overhead that limits write throughput compared to systems designed for eventual consistency.\n</QuestionCard>\n\n<QuestionCard id=\"rbl-08\" number={8} question=\"What's the difference between vertical and horizontal scaling, and why do RDBMSs traditionally favor v"
+  },
+  {
+    "path": "/level-1-foundations/sql/rdbms-benefits-and-limitations/",
+    "locale": "en",
+    "title": "RDBMS Benefits & Limitations",
+    "description": "Interview questions on RDBMS benefits and limitations — ACID properties, vertical vs horizontal scaling trade-offs, and when to choose a relational database.",
+    "content": "ertical?\" difficulty=\"medium\" topic=\"Scaling\">\nVertical scaling means adding more resources (CPU, RAM, faster disks) to a single machine; horizontal scaling means adding more machines and distributing the load across them. RDBMSs traditionally favor vertical scaling because ACID transactions and joins are much simpler to guarantee on a single node — distributing them across machines while preserving the same consistency guarantees is a genuinely hard distributed-systems problem, one that only some newer distributed SQL systems (e.g., CockroachDB, Google Spanner) have solved.\n</QuestionCard>\n\n<QuestionCard id=\"rbl-09\" number={9} question=\"When would you choose an RDBMS over a NoSQL system, and vice versa?\" difficulty=\"medium\" topic=\"Trade-offs\">\nChoose an RDBMS when data is structured, rela"
+  },
+  {
+    "path": "/level-1-foundations/sql/rdbms-benefits-and-limitations/",
+    "locale": "en",
+    "title": "RDBMS Benefits & Limitations",
+    "description": "Interview questions on RDBMS benefits and limitations — ACID properties, vertical vs horizontal scaling trade-offs, and when to choose a relational database.",
+    "content": "tionships matter (foreign keys, joins), and transactional correctness is critical — financial records, order systems, anything where \"partially applied\" is unacceptable. Lean toward NoSQL when the schema is highly variable or evolving fast, write throughput needs to scale horizontally beyond what a single machine can handle, or the access pattern is simple enough (key-value lookups, for example) that relational features add overhead without adding value.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/rdbms-benefits-and-limitations/",
+    "locale": "en",
+    "title": "RDBMS Benefits & Limitations",
+    "description": "Interview questions on RDBMS benefits and limitations — ACID properties, vertical vs horizontal scaling trade-offs, and when to choose a relational database.",
+    "content": "## Common Interview Scenarios\n\n- **\"Walk me through what ACID actually protects against, one letter at a time.\"** Use a concrete transaction (a bank transfer, an order placement) and show what specifically breaks if each property is missing.\n- **\"Your RDBMS is hitting a scaling wall — what are your options before rearchitecting to NoSQL?\"** Talk through read replicas, caching, connection pooling, query/index optimization, and vertical scaling headroom before jumping to \"switch databases.\"\n- **\"When would you deliberately choose a weaker isolation level than SERIALIZABLE?\"** Explain the performance trade-off — most workloads use `READ COMMITTED` because full serializability adds locking overhead the application doesn't actually need.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/rdbms-benefits-and-limitations/",
+    "locale": "en",
+    "title": "RDBMS Benefits & Limitations",
+    "description": "Interview questions on RDBMS benefits and limitations — ACID properties, vertical vs horizontal scaling trade-offs, and when to choose a relational database.",
+    "content": "## Further Reading\n\n- [What are Relational Databases?](/level-1-foundations/sql/relational-databases/) — the table/key structure these guarantees are built on top of\n- [SQL vs NoSQL Databases](/level-1-foundations/sql/sql-vs-nosql/) — the other side of this trade-off, and when it tips toward NoSQL\n- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including transactions and scalability"
+  },
+  {
+    "path": "/level-1-foundations/sql/relational-databases/",
+    "locale": "en",
+    "title": "Relational Databases",
+    "description": "Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/relational-databases/",
+    "locale": "en",
+    "title": "Relational Databases",
+    "description": "Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.",
+    "content": "## What Are Relational Databases: Tables, Keys, and the Relational Model\n\n**A relational database organizes data into tables of rows and columns, linked to each other through keys rather than duplicated everywhere they're needed — the structural idea every SQL query and every RDBMS is ultimately built on top of.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/relational-databases/",
+    "locale": "en",
+    "title": "Relational Databases",
+    "description": "Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/relational-databases/",
+    "locale": "en",
+    "title": "Relational Databases",
+    "description": "Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.",
+    "content": "## Key Concepts\n\nThe **relational model**, introduced by Edgar Codd in 1970, represents data as **tables** (also called relations) — each table a fixed set of columns (attributes) and any number of rows (records). A **primary key** uniquely identifies each row in a table, and a **foreign key** in one table points to a primary key in another, which is what lets related data live in separate tables instead of being duplicated everywhere it's needed. That separation is deliberate: it's how a relational database enforces **referential integrity** — the guarantee that a foreign key always points to a row that actually exists — and how it avoids the update anomalies that come from copying the same fact into a dozen places. Relationships between tables come in a few shapes: **one-to-many** (one d"
+  },
+  {
+    "path": "/level-1-foundations/sql/relational-databases/",
+    "locale": "en",
+    "title": "Relational Databases",
+    "description": "Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.",
+    "content": "epartment, many employees) needs only a foreign key on the \"many\" side, while **many-to-many** (students and courses) needs a third junction table holding a foreign key to each side.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/relational-databases/",
+    "locale": "en",
+    "title": "Relational Databases",
+    "description": "Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.",
+    "content": "## Interview Questions\n\n<QuestionList topic=\"Relational Databases\" storagePrefix=\"relational-databases\">\n\n<QuestionCard id=\"rdb-01\" number={1} question=\"What is a relational database?\" difficulty=\"easy\" topic=\"Fundamentals\">\nA relational database is a database that stores data in tables — structured collections of rows and columns — and represents relationships between different pieces of data through keys rather than by nesting or duplicating data. It's the model underlying virtually every SQL database: PostgreSQL, MySQL, SQL Server, Oracle, and the managed cloud warehouses built on similar principles.\n</QuestionCard>\n\n<QuestionCard id=\"rdb-02\" number={2} question=\"Who introduced the relational model, and what problem was it solving?\" difficulty=\"easy\" topic=\"Fundamentals\">\nEdgar F. Codd"
+  },
+  {
+    "path": "/level-1-foundations/sql/relational-databases/",
+    "locale": "en",
+    "title": "Relational Databases",
+    "description": "Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.",
+    "content": "introduced the relational model in a 1970 paper while at IBM. Before it, databases were typically hierarchical or network-based, requiring applications to know the physical structure and navigation paths of the data. Codd's insight was that data could be represented purely as tables with logical relationships, letting a query language describe *what* data you want without specifying *how* to physically traverse it to get there.\n</QuestionCard>\n\n<QuestionCard id=\"rdb-03\" number={3} question=\"What are tables, rows, and columns in the relational model?\" difficulty=\"easy\" topic=\"Fundamentals\">\nA **table** represents one entity type (e.g., `employees`). Each **column** defines an attribute of that entity with a fixed data type (e.g., `name`, `hire_date`, `salary`). Each **row** is one instance"
+  },
+  {
+    "path": "/level-1-foundations/sql/relational-databases/",
+    "locale": "en",
+    "title": "Relational Databases",
+    "description": "Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.",
+    "content": "of that entity — one specific employee, with a value for every column. Every row in a table shares the same columns, which is what makes the table queryable as a uniform set.\n</QuestionCard>\n\n<QuestionCard id=\"rdb-04\" number={4} question=\"What is a primary key, and why must it be unique?\" difficulty=\"easy\" topic=\"Keys\">\nA primary key is one or more columns whose value uniquely identifies a row within a table — no two rows can share the same primary key value, and it can't be `NULL`. It has to be unique because it's the handle every other part of the system uses to refer to that exact row: foreign keys reference it, indexes are frequently built on it, and joins rely on it resolving to exactly one row.\n</QuestionCard>\n\n<QuestionCard id=\"rdb-05\" number={5} question=\"What is a foreign key, and"
+  },
+  {
+    "path": "/level-1-foundations/sql/relational-databases/",
+    "locale": "en",
+    "title": "Relational Databases",
+    "description": "Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.",
+    "content": "what does it enforce?\" difficulty=\"easy\" topic=\"Keys\">\nA foreign key is a column (or columns) in one table that references the primary key of another table — for example, an `orders.customer_id` column referencing `customers.id`. It enforces **referential integrity**: the database won't let you insert an order with a `customer_id` that doesn't exist in the `customers` table, and by default won't let you delete a customer that still has orders referencing them (unless a cascade rule says otherwise).\n</QuestionCard>\n\n<QuestionCard id=\"rdb-06\" number={6} question=\"What's the difference between a one-to-many and a many-to-many relationship, and how is many-to-many implemented?\" difficulty=\"medium\" topic=\"Relationships\">\nA one-to-many relationship (one department has many employees) is impleme"
+  },
+  {
+    "path": "/level-1-foundations/sql/relational-databases/",
+    "locale": "en",
+    "title": "Relational Databases",
+    "description": "Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.",
+    "content": "nted with a single foreign key on the \"many\" side — `employees.department_id`. A many-to-many relationship (students enroll in many courses, courses have many students) can't be represented with a single foreign key on either side, since neither table has one row per relationship; instead it requires a **junction table** (e.g., `enrollments`) holding a foreign key to each side, with each row representing one specific student-course pairing.\n</QuestionCard>\n\n<QuestionCard id=\"rdb-07\" number={7} question=\"What is a schema, and why does defining one upfront matter?\" difficulty=\"medium\" topic=\"Fundamentals\">\nA schema is the definition of a table's structure — its columns, their data types, and its constraints (primary key, foreign keys, `NOT NULL`, etc.) — declared before any data is inserted."
+  },
+  {
+    "path": "/level-1-foundations/sql/relational-databases/",
+    "locale": "en",
+    "title": "Relational Databases",
+    "description": "Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.",
+    "content": "Defining it upfront matters because the database then enforces it on every write: a row that violates the schema (wrong type, missing required value, duplicate key) is rejected at insert time rather than silently corrupting downstream data.\n</QuestionCard>\n\n<QuestionCard id=\"rdb-08\" number={8} question=\"Why store data across multiple related tables instead of one big table?\" difficulty=\"medium\" topic=\"Design\">\nSplitting data across related tables — normalization — avoids duplicating the same fact in many places. If a customer's address lived on every one of their orders instead of once in a `customers` table, updating it would mean rewriting every order row, and a partial update would leave the data inconsistent. Separate, related tables mean each fact is stored once and referenced everyw"
+  },
+  {
+    "path": "/level-1-foundations/sql/relational-databases/",
+    "locale": "en",
+    "title": "Relational Databases",
+    "description": "Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.",
+    "content": "here it's needed.\n</QuestionCard>\n\n<QuestionCard id=\"rdb-09\" number={9} question=\"What is referential integrity?\" difficulty=\"medium\" topic=\"Keys\">\nReferential integrity is the guarantee that a foreign key value always corresponds to an existing row in the referenced table — no \"dangling\" foreign keys pointing at rows that were deleted or never existed. The database enforces it automatically once a foreign key constraint is declared, rejecting inserts/updates that would violate it and controlling what happens on delete via rules like `ON DELETE CASCADE` or `ON DELETE RESTRICT`.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/relational-databases/",
+    "locale": "en",
+    "title": "Relational Databases",
+    "description": "Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.",
+    "content": "## Common Interview Scenarios\n\n- **\"Design a simple schema for an e-commerce system with customers, orders, and products.\"** Walk through identifying the entities, their primary keys, the one-to-many relationships (customer → orders), and the many-to-many relationship (orders ↔ products) that needs a junction table (`order_items`).\n- **\"What happens if you try to delete a customer who still has orders?\"** Explain referential integrity — the database blocks the delete by default, unless a cascade or set-null rule was explicitly configured on the foreign key.\n- **\"Why not just store everything in one giant table?\"** Use it to explain normalization's payoff: avoiding duplicated facts and the update anomalies that come with them, at the cost of needing joins to reassemble the full picture.\n\n--"
+  },
+  {
+    "path": "/level-1-foundations/sql/relational-databases/",
+    "locale": "en",
+    "title": "Relational Databases",
+    "description": "Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.",
+    "content": "-"
+  },
+  {
+    "path": "/level-1-foundations/sql/relational-databases/",
+    "locale": "en",
+    "title": "Relational Databases",
+    "description": "Interview questions on what relational databases are, the relational model, tables, primary and foreign keys, and referential integrity.",
+    "content": "## Further Reading\n\n- [RDBMS Benefits & Limitations](/level-1-foundations/sql/rdbms-benefits-and-limitations/) — what this table/key structure buys you, and where it starts to strain at scale\n- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including joins and normalization in depth\n- [Data Modeling](/level-2-core-concepts/data-modeling/) — schema design patterns that build on these same table and key concepts"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-data-types/",
+    "locale": "en",
+    "title": "SQL Data Types",
+    "description": "Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-data-types/",
+    "locale": "en",
+    "title": "SQL Data Types",
+    "description": "Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.",
+    "content": "## SQL Data Types: Numeric, String, Date, and Beyond\n\n**Every column in a relational table has a declared data type, and that choice isn't a formality — it determines how much space a value takes, what operations are valid on it, and whether bad data gets rejected at the door or silently corrupts a downstream calculation.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-data-types/",
+    "locale": "en",
+    "title": "SQL Data Types",
+    "description": "Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-data-types/",
+    "locale": "en",
+    "title": "SQL Data Types",
+    "description": "Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.",
+    "content": "## Key Concepts\n\nSQL data types fall into a few core families: **numeric** (`INT`, `DECIMAL`, `FLOAT` — whole numbers, exact decimals, and approximate floating-point respectively), **string** (`CHAR`, `VARCHAR`, `TEXT` — fixed-length, variable-length, and unbounded text), **date/time** (`DATE`, `DATETIME`/`TIMESTAMP` — a calendar date versus a specific instant), and **boolean** (true/false, though not every SQL dialect has a native boolean type). The choice between similar-looking types has real consequences: `DECIMAL` stores an exact value while `FLOAT` stores an approximation, which matters enormously for money; `CHAR` pads to a fixed length while `VARCHAR` doesn't, trading a little flexibility for storage predictability. Most databases also offer **vendor-specific types** beyond the SQL"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-data-types/",
+    "locale": "en",
+    "title": "SQL Data Types",
+    "description": "Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.",
+    "content": "standard — PostgreSQL's `JSONB` and `ARRAY` being common examples — for cases the standard types don't cover well.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-data-types/",
+    "locale": "en",
+    "title": "SQL Data Types",
+    "description": "Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.",
+    "content": "## Interview Questions\n\n<QuestionList topic=\"SQL Data Types\" storagePrefix=\"sql-data-types\">\n\n<QuestionCard id=\"dt-01\" number={1} question=\"What are the main categories of SQL data types?\" difficulty=\"easy\" topic=\"Fundamentals\">\n**Numeric** (`INT`, `DECIMAL`, `FLOAT`), **string/character** (`CHAR`, `VARCHAR`, `TEXT`), **date/time** (`DATE`, `DATETIME`, `TIMESTAMP`), and **boolean** (`BOOLEAN`, though support varies by database). Most vendors also add their own extended types — JSON, arrays, UUIDs — layered on top of this common core.\n</QuestionCard>\n\n<QuestionCard id=\"dt-02\" number={2} question=\"What's the difference between INT and DECIMAL, and when would you use DECIMAL over FLOAT?\" difficulty=\"medium\" topic=\"Numeric Types\">\n`INT` stores whole numbers with no fractional component. `DECIM"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-data-types/",
+    "locale": "en",
+    "title": "SQL Data Types",
+    "description": "Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.",
+    "content": "AL(precision, scale)` stores an exact fixed-point number — no rounding error — which is why it's the right choice for money and anything requiring exact arithmetic. `FLOAT` stores an approximate floating-point value, which is faster and more compact but can introduce tiny rounding errors that make it unsuitable for financial calculations.\n</QuestionCard>\n\n<QuestionCard id=\"dt-03\" number={3} question=\"What's the difference between CHAR, VARCHAR, and TEXT?\" difficulty=\"easy\" topic=\"String Types\">\n`CHAR(n)` is fixed-length — a value shorter than `n` is padded with spaces, and storage is always exactly `n` characters. `VARCHAR(n)` is variable-length up to a maximum of `n`, storing only the actual length used. `TEXT` stores effectively unbounded-length text with no declared maximum, generally u"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-data-types/",
+    "locale": "en",
+    "title": "SQL Data Types",
+    "description": "Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.",
+    "content": "sed for large free-form content like descriptions or comments.\n</QuestionCard>\n\n<QuestionCard id=\"dt-04\" number={4} question=\"What date/time types does SQL typically offer, and how do DATE and DATETIME/TIMESTAMP differ?\" difficulty=\"medium\" topic=\"Date/Time Types\">\n`DATE` stores just a calendar date (year, month, day) with no time component. `DATETIME`/`TIMESTAMP` stores a specific date and time down to some precision, and in some databases `TIMESTAMP` additionally tracks time zone information while `DATETIME` doesn't — the exact behavior varies by vendor, which is worth checking before assuming.\n</QuestionCard>\n\n<QuestionCard id=\"dt-05\" number={5} question=\"How does BOOLEAN work across different SQL dialects?\" difficulty=\"medium\" topic=\"Boolean\">\nPostgreSQL has a native `BOOLEAN` type. My"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-data-types/",
+    "locale": "en",
+    "title": "SQL Data Types",
+    "description": "Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.",
+    "content": "SQL doesn't — it typically represents booleans as `TINYINT(1)` (0 or 1) under the hood, with `BOOLEAN` accepted as a synonym. This is a common source of confusion when porting schemas between databases, since code that assumes a real boolean type may behave differently against a database emulating one with an integer.\n</QuestionCard>\n\n<QuestionCard id=\"dt-06\" number={6} question=\"What happens if you insert a value that doesn't match a column's data type?\" difficulty=\"easy\" topic=\"Fundamentals\">\nDepends on the database and the mismatch: many databases reject the insert outright with a type error (e.g., inserting text into an `INT` column). Some perform implicit conversion when it's unambiguous (e.g., inserting the string `'5'` into an `INT` column). Relying on implicit conversion is general"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-data-types/",
+    "locale": "en",
+    "title": "SQL Data Types",
+    "description": "Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.",
+    "content": "ly discouraged — it's a common source of subtle bugs when the conversion doesn't behave the way you'd expect.\n</QuestionCard>\n\n<QuestionCard id=\"dt-07\" number={7} question=\"Why does picking the right data type matter for storage and query performance?\" difficulty=\"medium\" topic=\"Performance\">\nA narrower, well-chosen type takes less disk space and memory, which means more rows fit in a page and more of the working set fits in cache — both directly speed up scans and index lookups. Using an oversized type \"just in case\" (e.g., `BIGINT` for a column that will only ever hold small numbers) wastes space across every row and every index built on that column, at scale.\n</QuestionCard>\n\n<QuestionCard id=\"dt-08\" number={8} question=\"What are vendor-specific data types, and give an example.\" difficu"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-data-types/",
+    "locale": "en",
+    "title": "SQL Data Types",
+    "description": "Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.",
+    "content": "lty=\"medium\" topic=\"Vendor Types\">\nTypes beyond the ANSI SQL standard that a specific database vendor adds to cover cases the standard types handle poorly. PostgreSQL's `JSONB` (binary-indexed JSON, queryable with operators) and `ARRAY` (a column holding a list of values) are common examples — both let you store semi-structured or multi-valued data inside an otherwise relational table without a separate junction table.\n</QuestionCard>\n\n<QuestionCard id=\"dt-09\" number={9} question=\"What's the difference between implicit and explicit type conversion?\" difficulty=\"medium\" topic=\"Fundamentals\">\nImplicit conversion happens automatically when the database can unambiguously reinterpret a value as another type (e.g., comparing an `INT` column to the string `'5'`). Explicit conversion uses a functi"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-data-types/",
+    "locale": "en",
+    "title": "SQL Data Types",
+    "description": "Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.",
+    "content": "on like `CAST(value AS type)` or `value::type` to convert deliberately. Explicit conversion is generally preferred in production code because it makes the intent visible and avoids relying on a database's specific implicit-conversion rules, which differ across vendors.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-data-types/",
+    "locale": "en",
+    "title": "SQL Data Types",
+    "description": "Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.",
+    "content": "## Common Interview Scenarios\n\n- **\"Why would you use DECIMAL instead of FLOAT for a column storing prices?\"** Explain floating-point's rounding error and why it's unacceptable for money, where every cent needs to be exact.\n- **\"A table has a VARCHAR(255) column for every text field 'just to be safe' — is that a problem?\"** Discuss the difference between `VARCHAR`'s stored length (only what's used) versus wasted intent/readability, and when a narrower, purposeful length or `TEXT` is the better signal of what the column is actually for.\n- **\"How would you store a list of tags on a post — a comma-separated string, a JSON array, or a separate table?\"** Walk through the trade-offs: a delimited string is simple but unqueryable, a native array/JSON type (where supported) is queryable but less po"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-data-types/",
+    "locale": "en",
+    "title": "SQL Data Types",
+    "description": "Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.",
+    "content": "rtable, and a normalized junction table is the most relationally \"correct\" but adds a join.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-data-types/",
+    "locale": "en",
+    "title": "SQL Data Types",
+    "description": "Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.",
+    "content": "## Further Reading\n\n- [SQL Operators](/level-1-foundations/sql/sql-operators/) — the operators that work differently depending on the data type involved (e.g., BETWEEN on numbers vs. dates)\n- [SQL Keywords](/level-1-foundations/sql/sql-keywords/) — the DDL statements (CREATE TABLE, ALTER TABLE) where these types get declared\n- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including constraints and schema design"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-keywords/",
+    "locale": "en",
+    "title": "SQL Keywords",
+    "description": "Interview questions on SQL keyword categories — DDL, DML, DCL, and TCL — and what each group of reserved words is responsible for.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-keywords/",
+    "locale": "en",
+    "title": "SQL Keywords",
+    "description": "Interview questions on SQL keyword categories — DDL, DML, DCL, and TCL — and what each group of reserved words is responsible for.",
+    "content": "## SQL Keywords: DDL, DML, DCL, and TCL Explained\n\n**Every SQL keyword falls into one of a small number of categories based on what it actually changes — schema, data, permissions, or transaction state — and recognizing which bucket a statement belongs to is a fast way to reason about its blast radius before running it.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-keywords/",
+    "locale": "en",
+    "title": "SQL Keywords",
+    "description": "Interview questions on SQL keyword categories — DDL, DML, DCL, and TCL — and what each group of reserved words is responsible for.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-keywords/",
+    "locale": "en",
+    "title": "SQL Keywords",
+    "description": "Interview questions on SQL keyword categories — DDL, DML, DCL, and TCL — and what each group of reserved words is responsible for.",
+    "content": "## Key Concepts\n\nSQL keywords are **reserved words** the database parser assigns special meaning to — they can't be used as ordinary identifiers (table or column names) without special quoting, because the parser needs to recognize them unambiguously. They group into four categories: **DDL** (Data Definition Language: `CREATE`, `ALTER`, `DROP` — manages schema structure), **DML** (Data Manipulation Language: `INSERT`, `UPDATE`, `DELETE`, and often `SELECT` — manages the data itself), **DCL** (Data Control Language: `GRANT`, `REVOKE` — manages who can do what), and **TCL** (Transaction Control Language: `COMMIT`, `ROLLBACK`, `SAVEPOINT` — manages transaction boundaries). The category matters practically, not just academically: DDL statements typically auto-commit and can't be rolled back th"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-keywords/",
+    "locale": "en",
+    "title": "SQL Keywords",
+    "description": "Interview questions on SQL keyword categories — DDL, DML, DCL, and TCL — and what each group of reserved words is responsible for.",
+    "content": "e way DML can, DCL requires elevated privileges to run, and TCL is what lets a sequence of DML statements succeed or fail together.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-keywords/",
+    "locale": "en",
+    "title": "SQL Keywords",
+    "description": "Interview questions on SQL keyword categories — DDL, DML, DCL, and TCL — and what each group of reserved words is responsible for.",
+    "content": "## Interview Questions\n\n<QuestionList topic=\"SQL Keywords\" storagePrefix=\"sql-keywords\">\n\n<QuestionCard id=\"kw-01\" number={1} question=\"What are SQL keywords, and why are they reserved?\" difficulty=\"easy\" topic=\"Fundamentals\">\nSQL keywords are words the SQL parser assigns fixed, special meaning to — `SELECT`, `WHERE`, `CREATE`, and so on. They're reserved because the parser needs to distinguish them unambiguously from identifiers (table names, column names); if `SELECT` could also be a column name without special handling, the parser couldn't tell which meaning was intended in a given position.\n</QuestionCard>\n\n<QuestionCard id=\"kw-02\" number={2} question=\"What is DDL, and which keywords belong to it?\" difficulty=\"easy\" topic=\"DDL\">\nDDL (Data Definition Language) manages the structure of t"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-keywords/",
+    "locale": "en",
+    "title": "SQL Keywords",
+    "description": "Interview questions on SQL keyword categories — DDL, DML, DCL, and TCL — and what each group of reserved words is responsible for.",
+    "content": "he database itself — tables, indexes, constraints — rather than the rows inside them. Core keywords: `CREATE` (make a new object), `ALTER` (modify an existing one), `DROP` (remove one), and `TRUNCATE` (empty a table's data while keeping its structure).\n</QuestionCard>\n\n<QuestionCard id=\"kw-03\" number={3} question=\"What is DML, and which keywords belong to it?\" difficulty=\"easy\" topic=\"DML\">\nDML (Data Manipulation Language) manages the rows within existing tables. Core keywords: `INSERT` (add rows), `UPDATE` (modify existing rows), and `DELETE` (remove rows). `SELECT` is sometimes grouped here and sometimes classified separately as DQL (Data Query Language), since it reads data rather than manipulating it.\n</QuestionCard>\n\n<QuestionCard id=\"kw-04\" number={4} question=\"What is DCL, and which"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-keywords/",
+    "locale": "en",
+    "title": "SQL Keywords",
+    "description": "Interview questions on SQL keyword categories — DDL, DML, DCL, and TCL — and what each group of reserved words is responsible for.",
+    "content": "keywords belong to it?\" difficulty=\"easy\" topic=\"DCL\">\nDCL (Data Control Language) manages permissions — who is allowed to do what. Core keywords: `GRANT` (give a user or role a privilege, like `SELECT` or `INSERT` on a table) and `REVOKE` (take a previously granted privilege away). Running DCL statements typically requires administrative privileges the average application user doesn't have.\n</QuestionCard>\n\n<QuestionCard id=\"kw-05\" number={5} question=\"What is TCL, and which keywords belong to it?\" difficulty=\"easy\" topic=\"TCL\">\nTCL (Transaction Control Language) manages the boundaries of a transaction. Core keywords: `BEGIN`/`START TRANSACTION` (start one), `COMMIT` (make its changes permanent), `ROLLBACK` (undo everything since the transaction started), and `SAVEPOINT` (mark a point wi"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-keywords/",
+    "locale": "en",
+    "title": "SQL Keywords",
+    "description": "Interview questions on SQL keyword categories — DDL, DML, DCL, and TCL — and what each group of reserved words is responsible for.",
+    "content": "thin a transaction you can roll back to without undoing the whole thing).\n</QuestionCard>\n\n<QuestionCard id=\"kw-06\" number={6} question=\"Is SELECT part of DML — why or why not?\" difficulty=\"medium\" topic=\"Fundamentals\">\nIt depends on the classification scheme. Many textbooks and vendors group `SELECT` under DML since it operates on data. Others carve out a separate category, DQL (Data Query Language), specifically for `SELECT`, on the reasoning that it only reads data and never modifies it — a meaningfully different risk profile than `INSERT`/`UPDATE`/`DELETE`. Either answer is defensible in an interview as long as you can explain the distinction.\n</QuestionCard>\n\n<QuestionCard id=\"kw-07\" number={7} question=\"What's the difference between DELETE, TRUNCATE, and DROP, and which categories do"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-keywords/",
+    "locale": "en",
+    "title": "SQL Keywords",
+    "description": "Interview questions on SQL keyword categories — DDL, DML, DCL, and TCL — and what each group of reserved words is responsible for.",
+    "content": "they belong to?\" difficulty=\"medium\" topic=\"DDL vs DML\">\n`DELETE` is DML — it removes specific rows (optionally filtered by `WHERE`), can be rolled back within a transaction, and fires row-level triggers. `TRUNCATE` is DDL — it removes all rows at once by deallocating the table's data pages rather than deleting row by row, is typically faster, but in many databases can't be selectively filtered and may auto-commit. `DROP` is also DDL — it removes the table (or other object) entirely, structure included, not just its data.\n</QuestionCard>\n\n<QuestionCard id=\"kw-08\" number={8} question=\"Why does knowing a keyword's category help you reason about its behavior?\" difficulty=\"medium\" topic=\"Fundamentals\">\nThe category is a shortcut for predicting behavior you'd otherwise have to look up per-stat"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-keywords/",
+    "locale": "en",
+    "title": "SQL Keywords",
+    "description": "Interview questions on SQL keyword categories — DDL, DML, DCL, and TCL — and what each group of reserved words is responsible for.",
+    "content": "ement: DDL statements often auto-commit and can't be undone with `ROLLBACK` the way DML can; DCL requires elevated privileges most application connections don't have; and TCL is what determines whether a batch of DML statements succeeds or fails as a unit. Recognizing the category before running an unfamiliar statement is a quick way to gauge how reversible and how privileged it is.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-keywords/",
+    "locale": "en",
+    "title": "SQL Keywords",
+    "description": "Interview questions on SQL keyword categories — DDL, DML, DCL, and TCL — and what each group of reserved words is responsible for.",
+    "content": "## Common Interview Scenarios\n\n- **\"Categorize these five keywords: CREATE, SELECT, GRANT, COMMIT, DELETE.\"** A quick fluency check — `CREATE` is DDL, `SELECT` is DML/DQL, `GRANT` is DCL, `COMMIT` is TCL, `DELETE` is DML.\n- **\"Why might TRUNCATE be riskier to run in production than DELETE, even though both remove data?\"** Explain that `TRUNCATE`'s DDL status often means it can't be rolled back the same way, may skip row-level triggers, and removes everything at once with no `WHERE` clause to scope it.\n- **\"A junior engineer asks why they can't run a GRANT statement — what do you tell them?\"** Use it to explain DCL's privilege requirements, and why permission management is deliberately separated from everyday DML access.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-keywords/",
+    "locale": "en",
+    "title": "SQL Keywords",
+    "description": "Interview questions on SQL keyword categories — DDL, DML, DCL, and TCL — and what each group of reserved words is responsible for.",
+    "content": "## Further Reading\n\n- [What are Relational Databases?](/level-1-foundations/sql/relational-databases/) — the table and schema concepts DDL keywords operate on\n- [SQL Data Types](/level-1-foundations/sql/sql-data-types/) — what DDL statements like `CREATE TABLE` actually declare per column\n- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including transactions and constraints"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-operators/",
+    "locale": "en",
+    "title": "SQL Operators",
+    "description": "Interview questions on SQL operators — arithmetic, comparison, logical, BETWEEN, IN, LIKE wildcards, and NULL-safe comparisons.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-operators/",
+    "locale": "en",
+    "title": "SQL Operators",
+    "description": "Interview questions on SQL operators — arithmetic, comparison, logical, BETWEEN, IN, LIKE wildcards, and NULL-safe comparisons.",
+    "content": "## SQL Operators: Comparison, Logical, and Pattern Matching\n\n**Operators are what turn a SQL statement's raw values into the conditions that decide which rows get selected, updated, or deleted — and a surprising number of query bugs trace back to a single operator behaving differently than expected, especially around NULL.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-operators/",
+    "locale": "en",
+    "title": "SQL Operators",
+    "description": "Interview questions on SQL operators — arithmetic, comparison, logical, BETWEEN, IN, LIKE wildcards, and NULL-safe comparisons.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-operators/",
+    "locale": "en",
+    "title": "SQL Operators",
+    "description": "Interview questions on SQL operators — arithmetic, comparison, logical, BETWEEN, IN, LIKE wildcards, and NULL-safe comparisons.",
+    "content": "## Key Concepts\n\nSQL operators split into a few functional groups: **arithmetic** (`+ - * / %`) for numeric calculation, **comparison** (`= <> < > <= >=`) for evaluating conditions, **logical** (`AND`, `OR`, `NOT`) for combining conditions, and a set of purpose-built operators for common filtering patterns — `BETWEEN` for inclusive ranges, `IN` for membership in a list, and `LIKE` with wildcards (`%`, `_`) for pattern matching on text. The one recurring trap across almost all of them is **NULL**: it represents \"unknown,\" not a value, so any comparison against `NULL` using `=` or `<>` evaluates to unknown (effectively excluded) rather than true or false — which is why SQL provides the dedicated `IS NULL` / `IS NOT NULL` operators instead of relying on standard comparison.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-operators/",
+    "locale": "en",
+    "title": "SQL Operators",
+    "description": "Interview questions on SQL operators — arithmetic, comparison, logical, BETWEEN, IN, LIKE wildcards, and NULL-safe comparisons.",
+    "content": "## Interview Questions\n\n<QuestionList topic=\"SQL Operators\" storagePrefix=\"sql-operators\">\n\n<QuestionCard id=\"op-01\" number={1} question=\"What categories of operators does SQL provide?\" difficulty=\"easy\" topic=\"Fundamentals\">\n**Arithmetic** (`+`, `-`, `*`, `/`, `%`), **comparison** (`=`, `<>`/`!=`, `<`, `>`, `<=`, `>=`), **logical** (`AND`, `OR`, `NOT`), and a set of specialized filtering operators: `BETWEEN`, `IN`, `LIKE`, and the NULL-safe `IS NULL`/`IS NOT NULL`.\n</QuestionCard>\n\n<QuestionCard id=\"op-02\" number={2} question=\"What are the arithmetic operators, and where do they commonly show up in queries?\" difficulty=\"easy\" topic=\"Arithmetic\">\n`+`, `-`, `*`, `/` for addition, subtraction, multiplication, and division, and `%` (or `MOD`) for remainder. They show up most often in computed"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-operators/",
+    "locale": "en",
+    "title": "SQL Operators",
+    "description": "Interview questions on SQL operators — arithmetic, comparison, logical, BETWEEN, IN, LIKE wildcards, and NULL-safe comparisons.",
+    "content": "columns (`price * quantity AS total`), in aggregate expressions, and in `WHERE` clauses filtering on a derived value rather than a stored one.\n</QuestionCard>\n\n<QuestionCard id=\"op-03\" number={3} question=\"What are the comparison operators, and how does NULL interact with them?\" difficulty=\"medium\" topic=\"Comparison\">\n`=`, `<>`/`!=`, `<`, `>`, `<=`, `>=` compare two values. `NULL` breaks the usual true/false logic: `NULL = NULL` does not evaluate to true — it evaluates to unknown, because `NULL` represents an unknown value, and comparing two unknowns can't logically resolve to \"equal.\" Any row where a comparison involving `NULL` evaluates to unknown gets excluded from the result, which surprises people who expect `WHERE col = NULL` to match NULL rows.\n</QuestionCard>\n\n<QuestionCard id=\"op"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-operators/",
+    "locale": "en",
+    "title": "SQL Operators",
+    "description": "Interview questions on SQL operators — arithmetic, comparison, logical, BETWEEN, IN, LIKE wildcards, and NULL-safe comparisons.",
+    "content": "-04\" number={4} question=\"What do the logical operators AND, OR, NOT do, and how does operator precedence affect a query with mixed AND/OR?\" difficulty=\"medium\" topic=\"Logical\">\n`AND` requires both conditions to be true, `OR` requires at least one, `NOT` inverts a condition. `AND` has higher precedence than `OR`, so `WHERE a OR b AND c` evaluates as `WHERE a OR (b AND c)`, not `(a OR b) AND c` — a common source of bugs when a query mixes both without explicit parentheses to force the intended grouping.\n</QuestionCard>\n\n<QuestionCard id=\"op-05\" number={5} question=\"What does the BETWEEN operator do, and is it inclusive or exclusive?\" difficulty=\"easy\" topic=\"Filtering\">\n`BETWEEN a AND b` filters for values in the range from `a` to `b`, **inclusive** on both ends — `price BETWEEN 10 AND 20`"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-operators/",
+    "locale": "en",
+    "title": "SQL Operators",
+    "description": "Interview questions on SQL operators — arithmetic, comparison, logical, BETWEEN, IN, LIKE wildcards, and NULL-safe comparisons.",
+    "content": "matches a price of exactly 10 or exactly 20 as well as everything in between. It works on numbers, dates, and even strings (lexicographic comparison), and is shorthand for `col >= a AND col <= b`.\n</QuestionCard>\n\n<QuestionCard id=\"op-06\" number={6} question=\"What does the IN operator do, and when is it preferable to a chain of OR conditions?\" difficulty=\"easy\" topic=\"Filtering\">\n`IN (v1, v2, v3, ...)` matches a column against any value in a given list — shorthand for `col = v1 OR col = v2 OR col = v3`. It's preferable whenever the list has more than a couple of values: it's more readable, less error-prone to write correctly, and can also take a subquery (`IN (SELECT ...)`) rather than a static list.\n</QuestionCard>\n\n<QuestionCard id=\"op-07\" number={7} question=\"How does the LIKE operator"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-operators/",
+    "locale": "en",
+    "title": "SQL Operators",
+    "description": "Interview questions on SQL operators — arithmetic, comparison, logical, BETWEEN, IN, LIKE wildcards, and NULL-safe comparisons.",
+    "content": "work, and what do % and _ wildcards match?\" difficulty=\"easy\" topic=\"Pattern Matching\">\n`LIKE` performs pattern matching on text. `%` matches any sequence of characters (including zero), and `_` matches exactly one character. `name LIKE 'A%'` matches any name starting with \"A\"; `name LIKE '_ohn'` matches any 4-character name ending in \"ohn\" (like \"John\"). Matching is case-sensitive or insensitive depending on the database's default collation.\n</QuestionCard>\n\n<QuestionCard id=\"op-08\" number={8} question=\"Why must you use IS NULL / IS NOT NULL instead of = NULL?\" difficulty=\"medium\" topic=\"NULL Handling\">\nBecause `NULL` represents an unknown value rather than a comparable value, standard comparison operators (`=`, `<>`) against `NULL` always evaluate to unknown rather than true, even when c"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-operators/",
+    "locale": "en",
+    "title": "SQL Operators",
+    "description": "Interview questions on SQL operators — arithmetic, comparison, logical, BETWEEN, IN, LIKE wildcards, and NULL-safe comparisons.",
+    "content": "omparing `NULL` to `NULL` itself — so `WHERE col = NULL` silently returns zero rows instead of matching anything. `IS NULL`/`IS NOT NULL` are special-purpose operators built specifically to test for the presence or absence of a value, sidestepping that three-valued logic entirely.\n</QuestionCard>\n\n<QuestionCard id=\"op-09\" number={9} question=\"Does SQL short-circuit AND/OR the way general-purpose programming languages do?\" difficulty=\"hard\" topic=\"Logical\">\nNot reliably — unlike languages like Python or JavaScript, standard SQL doesn't guarantee left-to-right short-circuit evaluation of `AND`/`OR`, because the query optimizer is free to reorder or evaluate conditions in whatever order it determines is most efficient. This matters in practice: code that relies on a first condition \"protectin"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-operators/",
+    "locale": "en",
+    "title": "SQL Operators",
+    "description": "Interview questions on SQL operators — arithmetic, comparison, logical, BETWEEN, IN, LIKE wildcards, and NULL-safe comparisons.",
+    "content": "g\" a second one from running (e.g., checking a value isn't zero before dividing by it) isn't guaranteed to be safe in SQL the way it would be in application code.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-operators/",
+    "locale": "en",
+    "title": "SQL Operators",
+    "description": "Interview questions on SQL operators — arithmetic, comparison, logical, BETWEEN, IN, LIKE wildcards, and NULL-safe comparisons.",
+    "content": "## Common Interview Scenarios\n\n- **\"A query with `WHERE status = NULL` returns no rows even though there are rows with a NULL status — why?\"** Walk through NULL's three-valued logic and why `IS NULL` is required instead.\n- **\"Write a query to find all products priced between $10 and $50, in the Electronics or Toys category.\"** A natural prompt to combine `BETWEEN`, `IN`, and correct `AND`/`OR` grouping with parentheses.\n- **\"How would you find all customers whose email ends in '@gmail.com'?\"** Use it to test `LIKE` with the `%` wildcard: `email LIKE '%@gmail.com'`.\n- **\"Why might relying on short-circuit evaluation in a WHERE clause be risky in SQL?\"** Explain that the optimizer can reorder conditions, so a guard condition meant to prevent an error in a later condition isn't guaranteed to"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-operators/",
+    "locale": "en",
+    "title": "SQL Operators",
+    "description": "Interview questions on SQL operators — arithmetic, comparison, logical, BETWEEN, IN, LIKE wildcards, and NULL-safe comparisons.",
+    "content": "run first.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-operators/",
+    "locale": "en",
+    "title": "SQL Operators",
+    "description": "Interview questions on SQL operators — arithmetic, comparison, logical, BETWEEN, IN, LIKE wildcards, and NULL-safe comparisons.",
+    "content": "## Further Reading\n\n- [SQL Data Types](/level-1-foundations/sql/sql-data-types/) — how operator behavior (especially comparison and BETWEEN) depends on the underlying type\n- [SQL Keywords](/level-1-foundations/sql/sql-keywords/) — where these operators fit within WHERE, HAVING, and JOIN clauses\n- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including joins and aggregate functions"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": "## SQL vs NoSQL Databases: Choosing the Right Data Model\n\n**SQL and NoSQL aren't two competing databases — they're different families of data model, each suited to a different shape of data and access pattern, and most real systems at scale end up using more than one.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Interview Questions](#interview-questions)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": "## Key Concepts\n\n**SQL databases** are relational: fixed schema, tables linked by keys, strong ACID consistency. **NoSQL databases** cover four broad, distinct data models rather than one alternative: **document** stores (MongoDB — flexible, JSON-like records), **key-value** stores (Redis, DynamoDB — the simplest and fastest lookup pattern), **column-family/wide-column** stores (Cassandra, BigTable — optimized for high write throughput and horizontal scale), and **graph** databases (Neo4j — optimized for traversing relationships). The real trade-off isn't \"SQL is better\" or \"NoSQL is better\" — it's schema flexibility and horizontal scalability (NoSQL's strengths) against strong consistency and relational query power (SQL's strengths). Most systems past a certain size practice **polyglot pe"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": "rsistence** — a relational database for transactional core data, plus one or more NoSQL stores for the access patterns SQL handles poorly (caching, session storage, high-velocity event ingestion).\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": "## Interview Questions\n\n<QuestionList topic=\"SQL vs NoSQL Databases\" storagePrefix=\"sql-vs-nosql\">\n\n<QuestionCard id=\"svn-01\" number={1} question=\"What's the fundamental difference between SQL and NoSQL databases?\" difficulty=\"easy\" topic=\"Fundamentals\">\nSQL databases are relational — fixed schema, structured tables, relationships enforced through keys, strong ACID consistency. NoSQL databases trade some of that structure and consistency for schema flexibility and easier horizontal scaling, and cover several different underlying data models rather than one alternative approach.\n</QuestionCard>\n\n<QuestionCard id=\"svn-02\" number={2} question=\"What are the four main categories of NoSQL databases?\" difficulty=\"easy\" topic=\"NoSQL Models\">\n**Document** stores (flexible, semi-structured JSON-like"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": "records), **key-value** stores (the simplest model — a value retrieved by a unique key), **column-family/wide-column** stores (rows with flexible columns, optimized for write throughput at scale), and **graph** databases (nodes and edges, optimized for traversing relationships). Each is built for a different access pattern, not as a general-purpose SQL substitute.\n</QuestionCard>\n\n<QuestionCard id=\"svn-03\" number={3} question=\"What is a document database, and when is it a good fit?\" difficulty=\"medium\" topic=\"NoSQL Models\">\nA document database (e.g., MongoDB) stores records as flexible, JSON-like documents rather than fixed rows — different documents in the same collection can have different fields. It's a good fit when the schema varies between records or evolves quickly, and when an app"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": "lication naturally reads/writes whole nested objects rather than joining across many normalized tables.\n</QuestionCard>\n\n<QuestionCard id=\"svn-04\" number={4} question=\"What is a key-value store, and when is it a good fit?\" difficulty=\"medium\" topic=\"NoSQL Models\">\nA key-value store (e.g., Redis, DynamoDB) is the simplest NoSQL model — every value is retrieved by a unique key, with no query language beyond that lookup. It's a good fit for caching, session storage, and any workload where the access pattern is genuinely \"get this exact thing by its ID\" at very high speed and volume.\n</QuestionCard>\n\n<QuestionCard id=\"svn-05\" number={5} question=\"What is a column-family/wide-column store, and when is it a good fit?\" difficulty=\"medium\" topic=\"NoSQL Models\">\nA wide-column store (e.g., Cassandra"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": ", BigTable) organizes data in rows that can each have a different, sparse set of columns, physically stored column-by-column for efficient scanning. It's a good fit for very high write throughput at large scale — time-series data, event logs, sensor data — where horizontal scalability matters more than relational query flexibility.\n</QuestionCard>\n\n<QuestionCard id=\"svn-06\" number={6} question=\"What is a graph database, and when is it a good fit?\" difficulty=\"medium\" topic=\"NoSQL Models\">\nA graph database (e.g., Neo4j) stores data as nodes and edges and is optimized for traversing relationships — \"friends of friends,\" recommendation paths, fraud rings. It's a good fit when the *relationships* between records are the primary thing being queried, not just the records themselves; the same tra"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": "versal in SQL would require many chained joins that get slower as the relationship depth grows.\n</QuestionCard>\n\n<QuestionCard id=\"svn-07\" number={7} question=\"How do consistency guarantees typically differ between SQL and NoSQL systems?\" difficulty=\"medium\" topic=\"Consistency\">\nSQL databases default to strong consistency — a read always sees the latest committed write. Many NoSQL systems default to (or offer as an option) eventual consistency, where a read might briefly return stale data after a write, in exchange for lower latency and easier horizontal scaling. Some NoSQL systems (e.g., DynamoDB, Cassandra) let you tune this per-query, trading consistency for speed or vice versa.\n</QuestionCard>\n\n<QuestionCard id=\"svn-08\" number={8} question=\"What is polyglot persistence, and why do many"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": "real systems use both SQL and NoSQL?\" difficulty=\"medium\" topic=\"Architecture\">\nPolyglot persistence is using different databases for different parts of the same system, matched to each part's access pattern — a relational database for transactional core data (orders, accounts), Redis for session caching, Cassandra for high-volume event ingestion. Systems adopt it because no single database model is optimal for every workload, and forcing one database to handle all of them usually means compromising on whichever workload doesn't fit its strengths.\n</QuestionCard>\n\n<QuestionCard id=\"svn-09\" number={9} question=\"When would you choose NoSQL over SQL for a new system?\" difficulty=\"medium\" topic=\"Trade-offs\">\nWhen the schema is highly variable or evolving quickly and enforcing a fixed structur"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": "e would slow development down, when write throughput needs to scale horizontally beyond what a single relational instance can handle, or when the access pattern is simple enough (pure key lookups, for example) that relational features like joins add overhead without adding value.\n</QuestionCard>\n\n<QuestionCard id=\"svn-10\" number={10} question=\"Can NoSQL databases support joins and transactions?\" difficulty=\"hard\" topic=\"Trade-offs\">\nSome do, to varying degrees — MongoDB supports multi-document ACID transactions and `$lookup` (a join-like aggregation stage), for example — but it's generally not the primary design goal the way it is for an RDBMS, and performance/scale trade-offs usually still apply. Most NoSQL systems are deliberately designed to avoid needing joins at all by denormalizing d"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": "ata into the shape it'll actually be queried in, rather than by implementing joins as efficiently as a relational engine does.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": "## Common Interview Scenarios\n\n- **\"You're designing a system that needs both a product catalog and a real-time recommendation engine — what database(s) would you use?\"** Talk through a relational or document store for the catalog and a graph database for the relationship-heavy recommendation traversals — a natural polyglot persistence case.\n- **\"A team wants to move from PostgreSQL to MongoDB because 'it's more scalable' — how do you respond?\"** Push back on the premise: scalability isn't automatic just by switching data models, and if the workload is genuinely relational, moving to a document store just relocates the complexity into denormalized document design.\n- **\"How would you explain eventual consistency to a non-technical stakeholder worried about data correctness?\"** Frame it arou"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": "nd the specific, brief window where a read might lag a write, and why that trade-off is acceptable for the kind of data where it applies (a \"like\" count) but not for others (an account balance).\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/sql-vs-nosql/",
+    "locale": "en",
+    "title": "SQL vs NoSQL Databases",
+    "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
+    "content": "## Further Reading\n\n- [RDBMS Benefits & Limitations](/level-1-foundations/sql/rdbms-benefits-and-limitations/) — the SQL side of this trade-off in depth\n- [MongoDB](/level-3-technologies/databases/mongodb/) — a closer look at the document model referenced above\n- [Cassandra](/level-3-technologies/databases/cassandra/) — a closer look at the wide-column model referenced above"
+  },
+  {
     "path": "/level-1-foundations/sql/theory/",
     "locale": "en",
     "title": "",
@@ -976,6 +1585,30 @@
     "locale": "en",
     "title": "",
     "content": "### Common mistakes\r\n\r\n| Mistake | Problem | Fix |\r\n|---------|---------|-----|\r\n| `WHERE col = NULL` | Always returns no rows | Use `WHERE col IS NULL` |\r\n| Missing `WHERE` on `UPDATE`/`DELETE` | Modifies/deletes every row | Always scope with `WHERE` |\r\n| `SELECT *` on large tables | Slow, excess data transfer | Select only needed columns |\r\n| Using a column alias in `WHERE` | Alias isn't resolved yet at that stage | Only usable in `ORDER BY`/`SELECT` |\r\n\r\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "",
+    "content": "## Relational Database Fundamentals\r\n\r\nBefore the command-level questions below, interviewers sometimes start one level up — what a relational database actually is, and why you'd reach for one over the alternatives.\r\n\r\n<QuestionList topic=\"Relational Database Fundamentals\" storagePrefix=\"sql-relational-db\">\r\n\r\n<QuestionCard id=\"sql-rdb-01\" number={1} question=\"What is a relational database, and what does the relational model organize data into?\" difficulty=\"easy\" topic=\"Fundamentals\">\r\nA relational database stores data in **tables** made up of rows (records) and columns (attributes), based on the relational model Edgar Codd introduced in 1970. Relationships between tables are expressed through keys — a **primary key** uniquely identifies a row, and a **foreign key** in one table references"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "",
+    "content": "a primary key in another — which is what lets you split data across tables without duplicating it and still reconstruct any relationship through a join.\r\n</QuestionCard>\r\n\r\n<QuestionCard id=\"sql-rdb-02\" number={2} question=\"What are the main benefits of an RDBMS, and where does it start to show its limitations?\" difficulty=\"medium\" topic=\"Fundamentals\">\r\nThe core benefits are **ACID guarantees** (reliable transactions), a **fixed schema** that enforces data consistency at write time, and a mature, standardized query language (SQL) with decades of tooling built around it. The limitations show up at scale: RDBMSs traditionally scale **vertically** (a bigger machine) rather than horizontally, a rigid schema makes fast-changing or semi-structured data awkward to model, and very high write thr"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "",
+    "content": "oughput or massive horizontal scale is where NoSQL and distributed systems typically take over.\r\n</QuestionCard>\r\n\r\n<QuestionCard id=\"sql-rdb-03\" number={3} question=\"How are SQL keywords typically categorized, and what does each category do?\" difficulty=\"easy\" topic=\"Fundamentals\">\r\nSQL keywords fall into four categories: **DDL** (Data Definition Language — `CREATE`, `ALTER`, `DROP`, which manage schema), **DML** (Data Manipulation Language — `SELECT`, `INSERT`, `UPDATE`, `DELETE`, which manage rows), **DCL** (Data Control Language — `GRANT`, `REVOKE`, which manage permissions), and **TCL** (Transaction Control Language — `COMMIT`, `ROLLBACK`, `SAVEPOINT`, which manage transaction boundaries). Recognizing which bucket a keyword falls into is a quick way to reason about what a statement ac"
+  },
+  {
+    "path": "/level-1-foundations/sql/theory/",
+    "locale": "en",
+    "title": "",
+    "content": "tually affects — schema, data, access, or transaction state.\r\n</QuestionCard>\r\n\r\n</QuestionList>\r\n\r\n---"
   },
   {
     "path": "/level-1-foundations/sql/theory/",

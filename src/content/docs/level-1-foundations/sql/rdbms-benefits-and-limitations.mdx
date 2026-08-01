@@ -1,0 +1,83 @@
+---
+title: RDBMS Benefits & Limitations
+description: Interview questions on RDBMS benefits and limitations — ACID properties, vertical vs horizontal scaling trade-offs, and when to choose a relational database.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## RDBMS Benefits and Limitations: When to Choose (and Outgrow) a Relational Database
+
+**An RDBMS trades some flexibility and horizontal scalability for strong consistency guarantees and a rigorously enforced schema — a trade that's right for most transactional systems and starts to strain only at a specific kind of scale.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The core benefit of an RDBMS is **ACID** — Atomicity, Consistency, Isolation, Durability — the set of guarantees that make a transaction either fully happen or not happen at all, even under concurrent access or a crash mid-write. That's paired with a **fixed, enforced schema** (bad data gets rejected at write time, not discovered later) and a mature, standardized query language with decades of tooling, optimizers, and operational experience behind it. The limitations show up as scale grows past what a single, more powerful machine can handle: RDBMSs traditionally scale **vertically** (a bigger server) rather than **horizontally** (more servers), a rigid schema makes fast-changing or semi-structured data awkward to model, and enforcing strong consistency across many machines gets expensive — which is exactly the gap NoSQL and distributed systems were built to fill.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="RDBMS Benefits & Limitations" storagePrefix="rdbms-benefits-and-limitations">
+
+<QuestionCard id="rbl-01" number={1} question="What are the core benefits of using an RDBMS?" difficulty="easy" topic="Benefits">
+Strong consistency guarantees through ACID transactions, a schema that's enforced at write time rather than discovered as a runtime error later, a standardized and widely-known query language (SQL), and decades of mature tooling — query optimizers, replication, backup/recovery, monitoring — built around the relational model.
+</QuestionCard>
+
+<QuestionCard id="rbl-02" number={2} question="What does ACID stand for, and why does it matter?" difficulty="easy" topic="ACID">
+**Atomicity, Consistency, Isolation, Durability.** Together they guarantee that a transaction either fully completes or has no effect at all, that the database moves from one valid state to another, that concurrent transactions don't corrupt each other's view of the data, and that a committed transaction survives a crash. It matters because it's what lets application code trust the database instead of re-implementing that safety itself.
+</QuestionCard>
+
+<QuestionCard id="rbl-03" number={3} question="Explain atomicity with an example." difficulty="medium" topic="ACID">
+Atomicity means a transaction is all-or-nothing. Classic example: transferring money between two bank accounts requires debiting one account and crediting another — atomicity guarantees that if the crediting step fails, the debit is rolled back too, so the transaction never leaves money "in transit" or duplicated.
+</QuestionCard>
+
+<QuestionCard id="rbl-04" number={4} question="Explain consistency in ACID." difficulty="medium" topic="ACID">
+Consistency means a transaction can only bring the database from one valid state to another valid state — it can't violate constraints, foreign keys, or defined rules, even temporarily as far as anything outside the transaction can observe. If a transaction would break a constraint (e.g., insert an order for a customer that doesn't exist), the whole transaction is rejected rather than partially applied.
+</QuestionCard>
+
+<QuestionCard id="rbl-05" number={5} question="Explain isolation and why isolation levels exist." difficulty="medium" topic="ACID">
+Isolation means concurrent transactions shouldn't see each other's uncommitted changes, so the outcome looks as if transactions ran one at a time even though they actually overlapped. Isolation levels (`READ COMMITTED`, `REPEATABLE READ`, `SERIALIZABLE`, etc.) exist because full isolation is expensive — each level trades some strictness for performance, and picking the right one depends on what anomalies (dirty reads, non-repeatable reads, phantom reads) a given workload can tolerate.
+</QuestionCard>
+
+<QuestionCard id="rbl-06" number={6} question="Explain durability." difficulty="easy" topic="ACID">
+Durability means once a transaction is committed, its changes survive — even a power loss or crash immediately afterward won't lose it. RDBMSs typically achieve this by writing to a write-ahead log (WAL) on durable storage before acknowledging the commit, so the change can be replayed from the log if the in-memory state is lost.
+</QuestionCard>
+
+<QuestionCard id="rbl-07" number={7} question="What are the main limitations of an RDBMS at scale?" difficulty="medium" topic="Limitations">
+Traditional RDBMSs scale vertically more naturally than horizontally, so there's a ceiling set by how large a single machine can get. A fixed schema makes it awkward to store fast-changing, semi-structured, or highly variable data. And maintaining strong consistency across many nodes (if you do try to distribute an RDBMS) adds coordination overhead that limits write throughput compared to systems designed for eventual consistency.
+</QuestionCard>
+
+<QuestionCard id="rbl-08" number={8} question="What's the difference between vertical and horizontal scaling, and why do RDBMSs traditionally favor vertical?" difficulty="medium" topic="Scaling">
+Vertical scaling means adding more resources (CPU, RAM, faster disks) to a single machine; horizontal scaling means adding more machines and distributing the load across them. RDBMSs traditionally favor vertical scaling because ACID transactions and joins are much simpler to guarantee on a single node — distributing them across machines while preserving the same consistency guarantees is a genuinely hard distributed-systems problem, one that only some newer distributed SQL systems (e.g., CockroachDB, Google Spanner) have solved.
+</QuestionCard>
+
+<QuestionCard id="rbl-09" number={9} question="When would you choose an RDBMS over a NoSQL system, and vice versa?" difficulty="medium" topic="Trade-offs">
+Choose an RDBMS when data is structured, relationships matter (foreign keys, joins), and transactional correctness is critical — financial records, order systems, anything where "partially applied" is unacceptable. Lean toward NoSQL when the schema is highly variable or evolving fast, write throughput needs to scale horizontally beyond what a single machine can handle, or the access pattern is simple enough (key-value lookups, for example) that relational features add overhead without adding value.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Walk me through what ACID actually protects against, one letter at a time."** Use a concrete transaction (a bank transfer, an order placement) and show what specifically breaks if each property is missing.
+- **"Your RDBMS is hitting a scaling wall — what are your options before rearchitecting to NoSQL?"** Talk through read replicas, caching, connection pooling, query/index optimization, and vertical scaling headroom before jumping to "switch databases."
+- **"When would you deliberately choose a weaker isolation level than SERIALIZABLE?"** Explain the performance trade-off — most workloads use `READ COMMITTED` because full serializability adds locking overhead the application doesn't actually need.
+
+---
+
+## Further Reading
+
+- [What are Relational Databases?](/level-1-foundations/sql/relational-databases/) — the table/key structure these guarantees are built on top of
+- [SQL vs NoSQL Databases](/level-1-foundations/sql/sql-vs-nosql/) — the other side of this trade-off, and when it tips toward NoSQL
+- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including transactions and scalability

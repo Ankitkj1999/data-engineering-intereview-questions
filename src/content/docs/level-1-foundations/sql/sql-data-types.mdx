@@ -1,0 +1,83 @@
+---
+title: SQL Data Types
+description: Interview questions on SQL data types — numeric, string, date/time, boolean, vendor-specific types, and how type choice affects storage and correctness.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## SQL Data Types: Numeric, String, Date, and Beyond
+
+**Every column in a relational table has a declared data type, and that choice isn't a formality — it determines how much space a value takes, what operations are valid on it, and whether bad data gets rejected at the door or silently corrupts a downstream calculation.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+SQL data types fall into a few core families: **numeric** (`INT`, `DECIMAL`, `FLOAT` — whole numbers, exact decimals, and approximate floating-point respectively), **string** (`CHAR`, `VARCHAR`, `TEXT` — fixed-length, variable-length, and unbounded text), **date/time** (`DATE`, `DATETIME`/`TIMESTAMP` — a calendar date versus a specific instant), and **boolean** (true/false, though not every SQL dialect has a native boolean type). The choice between similar-looking types has real consequences: `DECIMAL` stores an exact value while `FLOAT` stores an approximation, which matters enormously for money; `CHAR` pads to a fixed length while `VARCHAR` doesn't, trading a little flexibility for storage predictability. Most databases also offer **vendor-specific types** beyond the SQL standard — PostgreSQL's `JSONB` and `ARRAY` being common examples — for cases the standard types don't cover well.
+
+---
+
+## Interview Questions
+
+<QuestionList topic="SQL Data Types" storagePrefix="sql-data-types">
+
+<QuestionCard id="dt-01" number={1} question="What are the main categories of SQL data types?" difficulty="easy" topic="Fundamentals">
+**Numeric** (`INT`, `DECIMAL`, `FLOAT`), **string/character** (`CHAR`, `VARCHAR`, `TEXT`), **date/time** (`DATE`, `DATETIME`, `TIMESTAMP`), and **boolean** (`BOOLEAN`, though support varies by database). Most vendors also add their own extended types — JSON, arrays, UUIDs — layered on top of this common core.
+</QuestionCard>
+
+<QuestionCard id="dt-02" number={2} question="What's the difference between INT and DECIMAL, and when would you use DECIMAL over FLOAT?" difficulty="medium" topic="Numeric Types">
+`INT` stores whole numbers with no fractional component. `DECIMAL(precision, scale)` stores an exact fixed-point number — no rounding error — which is why it's the right choice for money and anything requiring exact arithmetic. `FLOAT` stores an approximate floating-point value, which is faster and more compact but can introduce tiny rounding errors that make it unsuitable for financial calculations.
+</QuestionCard>
+
+<QuestionCard id="dt-03" number={3} question="What's the difference between CHAR, VARCHAR, and TEXT?" difficulty="easy" topic="String Types">
+`CHAR(n)` is fixed-length — a value shorter than `n` is padded with spaces, and storage is always exactly `n` characters. `VARCHAR(n)` is variable-length up to a maximum of `n`, storing only the actual length used. `TEXT` stores effectively unbounded-length text with no declared maximum, generally used for large free-form content like descriptions or comments.
+</QuestionCard>
+
+<QuestionCard id="dt-04" number={4} question="What date/time types does SQL typically offer, and how do DATE and DATETIME/TIMESTAMP differ?" difficulty="medium" topic="Date/Time Types">
+`DATE` stores just a calendar date (year, month, day) with no time component. `DATETIME`/`TIMESTAMP` stores a specific date and time down to some precision, and in some databases `TIMESTAMP` additionally tracks time zone information while `DATETIME` doesn't — the exact behavior varies by vendor, which is worth checking before assuming.
+</QuestionCard>
+
+<QuestionCard id="dt-05" number={5} question="How does BOOLEAN work across different SQL dialects?" difficulty="medium" topic="Boolean">
+PostgreSQL has a native `BOOLEAN` type. MySQL doesn't — it typically represents booleans as `TINYINT(1)` (0 or 1) under the hood, with `BOOLEAN` accepted as a synonym. This is a common source of confusion when porting schemas between databases, since code that assumes a real boolean type may behave differently against a database emulating one with an integer.
+</QuestionCard>
+
+<QuestionCard id="dt-06" number={6} question="What happens if you insert a value that doesn't match a column's data type?" difficulty="easy" topic="Fundamentals">
+Depends on the database and the mismatch: many databases reject the insert outright with a type error (e.g., inserting text into an `INT` column). Some perform implicit conversion when it's unambiguous (e.g., inserting the string `'5'` into an `INT` column). Relying on implicit conversion is generally discouraged — it's a common source of subtle bugs when the conversion doesn't behave the way you'd expect.
+</QuestionCard>
+
+<QuestionCard id="dt-07" number={7} question="Why does picking the right data type matter for storage and query performance?" difficulty="medium" topic="Performance">
+A narrower, well-chosen type takes less disk space and memory, which means more rows fit in a page and more of the working set fits in cache — both directly speed up scans and index lookups. Using an oversized type "just in case" (e.g., `BIGINT` for a column that will only ever hold small numbers) wastes space across every row and every index built on that column, at scale.
+</QuestionCard>
+
+<QuestionCard id="dt-08" number={8} question="What are vendor-specific data types, and give an example." difficulty="medium" topic="Vendor Types">
+Types beyond the ANSI SQL standard that a specific database vendor adds to cover cases the standard types handle poorly. PostgreSQL's `JSONB` (binary-indexed JSON, queryable with operators) and `ARRAY` (a column holding a list of values) are common examples — both let you store semi-structured or multi-valued data inside an otherwise relational table without a separate junction table.
+</QuestionCard>
+
+<QuestionCard id="dt-09" number={9} question="What's the difference between implicit and explicit type conversion?" difficulty="medium" topic="Fundamentals">
+Implicit conversion happens automatically when the database can unambiguously reinterpret a value as another type (e.g., comparing an `INT` column to the string `'5'`). Explicit conversion uses a function like `CAST(value AS type)` or `value::type` to convert deliberately. Explicit conversion is generally preferred in production code because it makes the intent visible and avoids relying on a database's specific implicit-conversion rules, which differ across vendors.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Why would you use DECIMAL instead of FLOAT for a column storing prices?"** Explain floating-point's rounding error and why it's unacceptable for money, where every cent needs to be exact.
+- **"A table has a VARCHAR(255) column for every text field 'just to be safe' — is that a problem?"** Discuss the difference between `VARCHAR`'s stored length (only what's used) versus wasted intent/readability, and when a narrower, purposeful length or `TEXT` is the better signal of what the column is actually for.
+- **"How would you store a list of tags on a post — a comma-separated string, a JSON array, or a separate table?"** Walk through the trade-offs: a delimited string is simple but unqueryable, a native array/JSON type (where supported) is queryable but less portable, and a normalized junction table is the most relationally "correct" but adds a join.
+
+---
+
+## Further Reading
+
+- [SQL Operators](/level-1-foundations/sql/sql-operators/) — the operators that work differently depending on the data type involved (e.g., BETWEEN on numbers vs. dates)
+- [SQL Keywords](/level-1-foundations/sql/sql-keywords/) — the DDL statements (CREATE TABLE, ALTER TABLE) where these types get declared
+- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including constraints and schema design

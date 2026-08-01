@@ -1,0 +1,87 @@
+---
+title: SQL vs NoSQL Databases
+description: Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## SQL vs NoSQL Databases: Choosing the Right Data Model
+
+**SQL and NoSQL aren't two competing databases — they're different families of data model, each suited to a different shape of data and access pattern, and most real systems at scale end up using more than one.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Interview Questions](#interview-questions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+**SQL databases** are relational: fixed schema, tables linked by keys, strong ACID consistency. **NoSQL databases** cover four broad, distinct data models rather than one alternative: **document** stores (MongoDB — flexible, JSON-like records), **key-value** stores (Redis, DynamoDB — the simplest and fastest lookup pattern), **column-family/wide-column** stores (Cassandra, BigTable — optimized for high write throughput and horizontal scale), and **graph** databases (Neo4j — optimized for traversing relationships). The real trade-off isn't "SQL is better" or "NoSQL is better" — it's schema flexibility and horizontal scalability (NoSQL's strengths) against strong consistency and relational query power (SQL's strengths). Most systems past a certain size practice **polyglot persistence** — a relational database for transactional core data, plus one or more NoSQL stores for the access patterns SQL handles poorly (caching, session storage, high-velocity event ingestion).
+
+---
+
+## Interview Questions
+
+<QuestionList topic="SQL vs NoSQL Databases" storagePrefix="sql-vs-nosql">
+
+<QuestionCard id="svn-01" number={1} question="What's the fundamental difference between SQL and NoSQL databases?" difficulty="easy" topic="Fundamentals">
+SQL databases are relational — fixed schema, structured tables, relationships enforced through keys, strong ACID consistency. NoSQL databases trade some of that structure and consistency for schema flexibility and easier horizontal scaling, and cover several different underlying data models rather than one alternative approach.
+</QuestionCard>
+
+<QuestionCard id="svn-02" number={2} question="What are the four main categories of NoSQL databases?" difficulty="easy" topic="NoSQL Models">
+**Document** stores (flexible, semi-structured JSON-like records), **key-value** stores (the simplest model — a value retrieved by a unique key), **column-family/wide-column** stores (rows with flexible columns, optimized for write throughput at scale), and **graph** databases (nodes and edges, optimized for traversing relationships). Each is built for a different access pattern, not as a general-purpose SQL substitute.
+</QuestionCard>
+
+<QuestionCard id="svn-03" number={3} question="What is a document database, and when is it a good fit?" difficulty="medium" topic="NoSQL Models">
+A document database (e.g., MongoDB) stores records as flexible, JSON-like documents rather than fixed rows — different documents in the same collection can have different fields. It's a good fit when the schema varies between records or evolves quickly, and when an application naturally reads/writes whole nested objects rather than joining across many normalized tables.
+</QuestionCard>
+
+<QuestionCard id="svn-04" number={4} question="What is a key-value store, and when is it a good fit?" difficulty="medium" topic="NoSQL Models">
+A key-value store (e.g., Redis, DynamoDB) is the simplest NoSQL model — every value is retrieved by a unique key, with no query language beyond that lookup. It's a good fit for caching, session storage, and any workload where the access pattern is genuinely "get this exact thing by its ID" at very high speed and volume.
+</QuestionCard>
+
+<QuestionCard id="svn-05" number={5} question="What is a column-family/wide-column store, and when is it a good fit?" difficulty="medium" topic="NoSQL Models">
+A wide-column store (e.g., Cassandra, BigTable) organizes data in rows that can each have a different, sparse set of columns, physically stored column-by-column for efficient scanning. It's a good fit for very high write throughput at large scale — time-series data, event logs, sensor data — where horizontal scalability matters more than relational query flexibility.
+</QuestionCard>
+
+<QuestionCard id="svn-06" number={6} question="What is a graph database, and when is it a good fit?" difficulty="medium" topic="NoSQL Models">
+A graph database (e.g., Neo4j) stores data as nodes and edges and is optimized for traversing relationships — "friends of friends," recommendation paths, fraud rings. It's a good fit when the *relationships* between records are the primary thing being queried, not just the records themselves; the same traversal in SQL would require many chained joins that get slower as the relationship depth grows.
+</QuestionCard>
+
+<QuestionCard id="svn-07" number={7} question="How do consistency guarantees typically differ between SQL and NoSQL systems?" difficulty="medium" topic="Consistency">
+SQL databases default to strong consistency — a read always sees the latest committed write. Many NoSQL systems default to (or offer as an option) eventual consistency, where a read might briefly return stale data after a write, in exchange for lower latency and easier horizontal scaling. Some NoSQL systems (e.g., DynamoDB, Cassandra) let you tune this per-query, trading consistency for speed or vice versa.
+</QuestionCard>
+
+<QuestionCard id="svn-08" number={8} question="What is polyglot persistence, and why do many real systems use both SQL and NoSQL?" difficulty="medium" topic="Architecture">
+Polyglot persistence is using different databases for different parts of the same system, matched to each part's access pattern — a relational database for transactional core data (orders, accounts), Redis for session caching, Cassandra for high-volume event ingestion. Systems adopt it because no single database model is optimal for every workload, and forcing one database to handle all of them usually means compromising on whichever workload doesn't fit its strengths.
+</QuestionCard>
+
+<QuestionCard id="svn-09" number={9} question="When would you choose NoSQL over SQL for a new system?" difficulty="medium" topic="Trade-offs">
+When the schema is highly variable or evolving quickly and enforcing a fixed structure would slow development down, when write throughput needs to scale horizontally beyond what a single relational instance can handle, or when the access pattern is simple enough (pure key lookups, for example) that relational features like joins add overhead without adding value.
+</QuestionCard>
+
+<QuestionCard id="svn-10" number={10} question="Can NoSQL databases support joins and transactions?" difficulty="hard" topic="Trade-offs">
+Some do, to varying degrees — MongoDB supports multi-document ACID transactions and `$lookup` (a join-like aggregation stage), for example — but it's generally not the primary design goal the way it is for an RDBMS, and performance/scale trade-offs usually still apply. Most NoSQL systems are deliberately designed to avoid needing joins at all by denormalizing data into the shape it'll actually be queried in, rather than by implementing joins as efficiently as a relational engine does.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"You're designing a system that needs both a product catalog and a real-time recommendation engine — what database(s) would you use?"** Talk through a relational or document store for the catalog and a graph database for the relationship-heavy recommendation traversals — a natural polyglot persistence case.
+- **"A team wants to move from PostgreSQL to MongoDB because 'it's more scalable' — how do you respond?"** Push back on the premise: scalability isn't automatic just by switching data models, and if the workload is genuinely relational, moving to a document store just relocates the complexity into denormalized document design.
+- **"How would you explain eventual consistency to a non-technical stakeholder worried about data correctness?"** Frame it around the specific, brief window where a read might lag a write, and why that trade-off is acceptable for the kind of data where it applies (a "like" count) but not for others (an account balance).
+
+---
+
+## Further Reading
+
+- [RDBMS Benefits & Limitations](/level-1-foundations/sql/rdbms-benefits-and-limitations/) — the SQL side of this trade-off in depth
+- [MongoDB](/level-3-technologies/databases/mongodb/) — a closer look at the document model referenced above
+- [Cassandra](/level-3-technologies/databases/cassandra/) — a closer look at the wide-column model referenced above

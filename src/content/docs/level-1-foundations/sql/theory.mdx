@@ -65,6 +65,28 @@ UPDATE employees SET salary = salary * 1.10 WHERE department_id = 2;
 
 ---
 
+## Relational Database Fundamentals
+
+Before the command-level questions below, interviewers sometimes start one level up — what a relational database actually is, and why you'd reach for one over the alternatives.
+
+<QuestionList topic="Relational Database Fundamentals" storagePrefix="sql-relational-db">
+
+<QuestionCard id="sql-rdb-01" number={1} question="What is a relational database, and what does the relational model organize data into?" difficulty="easy" topic="Fundamentals">
+A relational database stores data in **tables** made up of rows (records) and columns (attributes), based on the relational model Edgar Codd introduced in 1970. Relationships between tables are expressed through keys — a **primary key** uniquely identifies a row, and a **foreign key** in one table references a primary key in another — which is what lets you split data across tables without duplicating it and still reconstruct any relationship through a join.
+</QuestionCard>
+
+<QuestionCard id="sql-rdb-02" number={2} question="What are the main benefits of an RDBMS, and where does it start to show its limitations?" difficulty="medium" topic="Fundamentals">
+The core benefits are **ACID guarantees** (reliable transactions), a **fixed schema** that enforces data consistency at write time, and a mature, standardized query language (SQL) with decades of tooling built around it. The limitations show up at scale: RDBMSs traditionally scale **vertically** (a bigger machine) rather than horizontally, a rigid schema makes fast-changing or semi-structured data awkward to model, and very high write throughput or massive horizontal scale is where NoSQL and distributed systems typically take over.
+</QuestionCard>
+
+<QuestionCard id="sql-rdb-03" number={3} question="How are SQL keywords typically categorized, and what does each category do?" difficulty="easy" topic="Fundamentals">
+SQL keywords fall into four categories: **DDL** (Data Definition Language — `CREATE`, `ALTER`, `DROP`, which manage schema), **DML** (Data Manipulation Language — `SELECT`, `INSERT`, `UPDATE`, `DELETE`, which manage rows), **DCL** (Data Control Language — `GRANT`, `REVOKE`, which manage permissions), and **TCL** (Transaction Control Language — `COMMIT`, `ROLLBACK`, `SAVEPOINT`, which manage transaction boundaries). Recognizing which bucket a keyword falls into is a quick way to reason about what a statement actually affects — schema, data, access, or transaction state.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
 ## SQL Fundamentals
 
 The core vocabulary and commands every SQL interview starts with.
