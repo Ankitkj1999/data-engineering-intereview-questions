@@ -102,25 +102,25 @@ const ROADMAP = [
     { id:"min",            label:"MIN",                             desc:"Finding the smallest value in a column or expression.", link:"/level-1-foundations/sql/aggregate-queries/#min" },
     { id:"max",            label:"MAX",                             desc:"Finding the largest value in a column or expression.", link:"/level-1-foundations/sql/aggregate-queries/#max" },
   ]},
-  { id:"constraints", label:"Data Constraints", desc:"Rules enforced by the database engine to maintain data integrity.", subs:[
-    { id:"primary-key",    label:"Primary Key",                     desc:"Uniquely identifies each row — auto-increment, composite keys." },
-    { id:"foreign-key",    label:"Foreign Key",                     desc:"Referential integrity — CASCADE, SET NULL, RESTRICT actions." },
-    { id:"unique",         label:"UNIQUE",                          desc:"Ensures no duplicate values in a column or column combination." },
-    { id:"not-null",       label:"NOT NULL",                        desc:"Prevents NULL values from being stored in a column." },
-    { id:"check",          label:"CHECK",                           desc:"Validates column values against a boolean expression." },
+  { id:"constraints", label:"Data Constraints", desc:"Rules enforced by the database engine to maintain data integrity.", link:"/level-1-foundations/sql/data-constraints/", subs:[
+    { id:"primary-key",    label:"Primary Key",                     desc:"Uniquely identifies each row — auto-increment, composite keys.", link:"/level-1-foundations/sql/data-constraints/#primary-key" },
+    { id:"foreign-key",    label:"Foreign Key",                     desc:"Referential integrity — CASCADE, SET NULL, RESTRICT actions.", link:"/level-1-foundations/sql/data-constraints/#foreign-key" },
+    { id:"unique",         label:"UNIQUE",                          desc:"Ensures no duplicate values in a column or column combination.", link:"/level-1-foundations/sql/data-constraints/#unique" },
+    { id:"not-null",       label:"NOT NULL",                        desc:"Prevents NULL values from being stored in a column.", link:"/level-1-foundations/sql/data-constraints/#not-null" },
+    { id:"check",          label:"CHECK",                           desc:"Validates column values against a boolean expression.", link:"/level-1-foundations/sql/data-constraints/#check" },
   ]},
-  { id:"joins", label:"JOIN Queries", desc:"Combining data from multiple tables using different join strategies.", subs:[
-    { id:"inner-join",     label:"INNER JOIN",                      desc:"Returns rows where there is a match in both tables." },
-    { id:"left-join",      label:"LEFT JOIN",                       desc:"All rows from the left table, matched rows from the right (NULL if no match)." },
-    { id:"right-join",     label:"RIGHT JOIN",                      desc:"All rows from the right table, matched rows from the left." },
-    { id:"full-outer",     label:"FULL OUTER JOIN",                 desc:"All rows from both tables — NULLs where there is no match on either side." },
-    { id:"self-join",      label:"Self Join",                       desc:"Joining a table to itself — useful for hierarchical or comparison queries." },
-    { id:"cross-join",     label:"Cross Join",                      desc:"Cartesian product of two tables — every row paired with every other row." },
+  { id:"joins", label:"JOIN Queries", desc:"Combining data from multiple tables using different join strategies.", link:"/level-1-foundations/sql/join-queries/", subs:[
+    { id:"inner-join",     label:"INNER JOIN",                      desc:"Returns rows where there is a match in both tables.", link:"/level-1-foundations/sql/join-queries/#inner-join" },
+    { id:"left-join",      label:"LEFT JOIN",                       desc:"All rows from the left table, matched rows from the right (NULL if no match).", link:"/level-1-foundations/sql/join-queries/#left-join" },
+    { id:"right-join",     label:"RIGHT JOIN",                      desc:"All rows from the right table, matched rows from the left.", link:"/level-1-foundations/sql/join-queries/#right-join" },
+    { id:"full-outer",     label:"FULL OUTER JOIN",                 desc:"All rows from both tables — NULLs where there is no match on either side.", link:"/level-1-foundations/sql/join-queries/#full-outer-join" },
+    { id:"self-join",      label:"Self Join",                       desc:"Joining a table to itself — useful for hierarchical or comparison queries.", link:"/level-1-foundations/sql/join-queries/#self-join" },
+    { id:"cross-join",     label:"Cross Join",                      desc:"Cartesian product of two tables — every row paired with every other row.", link:"/level-1-foundations/sql/join-queries/#cross-join" },
   ]},
-  { id:"subqueries", label:"Subqueries", desc:"Queries nested inside other queries — scalar, correlated, and derived tables.", subs:[
-    { id:"nested-sub",     label:"Nested Subqueries",               desc:"Subqueries in WHERE, HAVING, or SELECT clauses — IN, EXISTS, ANY, ALL." },
-    { id:"correlated-sub", label:"Correlated Subqueries",           desc:"Subqueries that reference columns from the outer query — evaluated per row." },
-    { id:"scalar-sub",     label:"Scalar Subquery",                 desc:"Returns a single value — used in SELECT list or WHERE conditions." },
+  { id:"subqueries", label:"Subqueries", desc:"Queries nested inside other queries — scalar, correlated, and derived tables.", link:"/level-1-foundations/sql/subqueries/", subs:[
+    { id:"nested-sub",     label:"Nested Subqueries",               desc:"Subqueries in WHERE, HAVING, or SELECT clauses — IN, EXISTS, ANY, ALL.", link:"/level-1-foundations/sql/subqueries/#nested-subqueries" },
+    { id:"correlated-sub", label:"Correlated Subqueries",           desc:"Subqueries that reference columns from the outer query — evaluated per row.", link:"/level-1-foundations/sql/subqueries/#correlated-subqueries" },
+    { id:"scalar-sub",     label:"Scalar Subquery",                 desc:"Returns a single value — used in SELECT list or WHERE conditions.", link:"/level-1-foundations/sql/subqueries/#scalar-subquery" },
   ]},
   { id:"adv-functions", label:"Advanced Functions", desc:"Built-in functions for string manipulation, math, dates, and conditional logic.", subs:[
     { id:"string-fns",     label:"String Functions",                desc:"CONCAT, LENGTH, SUBSTRING, REPLACE, UPPER, LOWER, TRIM, LIKE." },

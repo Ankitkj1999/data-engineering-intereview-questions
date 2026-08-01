@@ -1085,6 +1085,160 @@
     "content": "## Further Reading\n\n- [SQL Operators](/level-1-foundations/sql/sql-operators/) — the comparison and logical operators that power WHERE and HAVING conditions\n- [SQL Keywords](/level-1-foundations/sql/sql-keywords/) — where SELECT and its clauses fit within the DDL/DML/DCL/TCL taxonomy\n- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including deeper JOIN types and subqueries"
   },
   {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "## Data Constraints: Enforcing Integrity at the Database Layer\n\n**Constraints are rules the database engine enforces on every write, automatically and without exception — the difference between \"our application code is supposed to validate this\" and \"it is structurally impossible to store invalid data here.\"**"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Primary Key](#primary-key)\n- [Foreign Key](#foreign-key)\n- [UNIQUE](#unique)\n- [NOT NULL](#not-null)\n- [CHECK](#check)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "## Key Concepts\n\nConstraints move data validation from application code — which can be bypassed, forgotten in one code path, or skipped by a direct database script — into the database engine itself, where every write is checked regardless of what wrote it. The five core constraint types each protect a different property: **`PRIMARY KEY`** guarantees a row can always be uniquely identified, **`FOREIGN KEY`** guarantees a reference always points at something real, **`UNIQUE`** guarantees no duplicate values in a column outside of the primary key, **`NOT NULL`** guarantees a value is always present, and **`CHECK`** guarantees a value satisfies an arbitrary rule. They compose: a primary key is essentially `UNIQUE` + `NOT NULL` bundled together with the extra role of being the table's default i"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "dentity.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "## Primary Key\n\n<QuestionList topic=\"Primary Key\" storagePrefix=\"data-constraints-primary-key\">\n\n<QuestionCard id=\"pk-01\" number={1} question=\"What is a PRIMARY KEY constraint, and what two guarantees does it combine?\" difficulty=\"easy\" topic=\"Primary Key\">\nA `PRIMARY KEY` uniquely identifies each row in a table. It combines two guarantees in one constraint: uniqueness (no two rows can share the same value) and `NOT NULL` (a primary key value can never be missing) — a row without a usable identity isn't meaningfully addressable.\n</QuestionCard>\n\n<QuestionCard id=\"pk-02\" number={2} question=\"What is a composite primary key, and when would you use one?\" difficulty=\"medium\" topic=\"Primary Key\">\nA composite primary key is a primary key made up of more than one column, where the *combination* o"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "f values must be unique even if individual columns repeat. It's typically used for junction tables in many-to-many relationships — e.g., an `enrollments` table's primary key might be `(student_id, course_id)`, since neither column alone is unique but the pair is.\n</QuestionCard>\n\n<QuestionCard id=\"pk-03\" number={3} question=\"What does AUTO_INCREMENT / IDENTITY / SERIAL do, and why is a surrogate key often preferred over a natural key?\" difficulty=\"medium\" topic=\"Primary Key\">\nThese vendor-specific keywords (MySQL's `AUTO_INCREMENT`, SQL Server's `IDENTITY`, PostgreSQL's `SERIAL`/`GENERATED ALWAYS AS IDENTITY`) automatically generate a sequential integer for each new row — a **surrogate key** with no business meaning. It's often preferred over a **natural key** (e.g., using an email or SSN"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "as the primary key) because natural keys can change, contain sensitive data, or turn out not to be as unique as assumed, all of which are painful to fix once other tables have foreign keys referencing them.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "## Foreign Key\n\n<QuestionList topic=\"Foreign Key\" storagePrefix=\"data-constraints-foreign-key\">\n\n<QuestionCard id=\"fk-01\" number={1} question=\"What does a FOREIGN KEY constraint do?\" difficulty=\"easy\" topic=\"Foreign Key\">\nA `FOREIGN KEY` constraint requires a column's value to match an existing value in another table's primary key (or unique) column, or be `NULL` if the column allows it. It's how the database enforces referential integrity: you can't insert an order for a customer that doesn't exist.\n</QuestionCard>\n\n<QuestionCard id=\"fk-02\" number={2} question=\"What are the ON DELETE actions, and what does each one do?\" difficulty=\"medium\" topic=\"Foreign Key\">\n`ON DELETE RESTRICT` (or `NO ACTION`, the implicit default in many databases) blocks deleting a referenced row while dependents st"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "ill exist. `ON DELETE CASCADE` automatically deletes dependent rows along with the referenced row. `ON DELETE SET NULL` sets the foreign key column to `NULL` on dependents instead of deleting them (only valid if that column is nullable). The right choice depends on whether dependent data should die with its parent, survive as orphaned-but-flagged, or block the deletion entirely.\n</QuestionCard>\n\n<QuestionCard id=\"fk-03\" number={3} question=\"Can a foreign key column itself be NULL, and what does that mean?\" difficulty=\"medium\" topic=\"Foreign Key\">\nYes, unless it's separately marked `NOT NULL` — a `NULL` foreign key means \"this row doesn't reference anything right now,\" which is valid and doesn't violate referential integrity (there's nothing to check against). A common example: an `employee"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "s.manager_id` foreign key that's `NULL` for the one employee at the top of the org chart who has no manager.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "## UNIQUE\n\n<QuestionList topic=\"UNIQUE\" storagePrefix=\"data-constraints-unique\">\n\n<QuestionCard id=\"uq-01\" number={1} question=\"What does a UNIQUE constraint do, and how is it different from a PRIMARY KEY?\" difficulty=\"easy\" topic=\"UNIQUE\">\n`UNIQUE` guarantees no two rows share the same value in that column (or combination of columns), the same way `PRIMARY KEY` does — but unlike a primary key, a table can have several `UNIQUE` constraints, it isn't used as the table's default identity for foreign keys, and (in most databases) it allows `NULL` values.\n</QuestionCard>\n\n<QuestionCard id=\"uq-02\" number={2} question=\"Can a table have more than one UNIQUE constraint?\" difficulty=\"easy\" topic=\"UNIQUE\">\nYes — a table can have exactly one `PRIMARY KEY` but any number of `UNIQUE` constraints. A `us"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "ers` table might have a primary key on `id` and separate `UNIQUE` constraints on `email` and `username`, each independently enforcing no duplicates.\n</QuestionCard>\n\n<QuestionCard id=\"uq-03\" number={3} question=\"Does a UNIQUE constraint allow NULL values, and can there be multiple NULLs?\" difficulty=\"hard\" topic=\"UNIQUE\">\nIn most databases (PostgreSQL, SQL Server, MySQL), yes — `NULL` is allowed in a `UNIQUE` column, and multiple rows can each have `NULL`, because `NULL` is treated as \"unknown\" rather than a value that can be compared for equality against another `NULL`. This behavior differs from what people intuitively expect and is worth double-checking against a specific database's documentation before relying on it.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "## NOT NULL\n\n<QuestionList topic=\"NOT NULL\" storagePrefix=\"data-constraints-not-null\">\n\n<QuestionCard id=\"nn-01\" number={1} question=\"What does NOT NULL do?\" difficulty=\"easy\" topic=\"NOT NULL\">\n`NOT NULL` requires every row to have an actual value in that column — an `INSERT` or `UPDATE` that would leave it `NULL` is rejected. It's the simplest constraint, but one of the most commonly under-used ones: a column left nullable \"just in case\" quietly pushes the burden of checking for missing data onto every query that reads it.\n</QuestionCard>\n\n<QuestionCard id=\"nn-02\" number={2} question=\"Why might a column be nullable by default in SQL?\" difficulty=\"medium\" topic=\"NOT NULL\">\nColumns are nullable unless explicitly declared `NOT NULL`, because `NULL` (representing \"unknown\" or \"not applicable\""
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": ") is a legitimate, common state for optional data — a `middle_name` column, or a `cancelled_at` timestamp that's only populated if a cancellation actually happened. The default favors flexibility; deliberately adding `NOT NULL` is how you assert a column is always required.\n</QuestionCard>\n\n<QuestionCard id=\"nn-03\" number={3} question=\"What happens when you try to ALTER a column to add NOT NULL if existing rows contain NULL?\" difficulty=\"medium\" topic=\"NOT NULL\">\nThe `ALTER TABLE` fails — the database validates existing data against the new constraint before applying it, and rejects the change if any row would violate it. The fix is to first backfill or clean up the `NULL` values (with an `UPDATE`, or a `DEFAULT` applied retroactively), then apply the `NOT NULL` constraint once every row a"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "lready satisfies it.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "## CHECK\n\n<QuestionList topic=\"CHECK\" storagePrefix=\"data-constraints-check\">\n\n<QuestionCard id=\"chk-01\" number={1} question=\"What does a CHECK constraint do, and give an example.\" difficulty=\"easy\" topic=\"CHECK\">\n`CHECK` validates that a column's value satisfies an arbitrary boolean expression before allowing a write — for example, `CHECK (price >= 0)` rejects any row that would set a negative price, or `CHECK (status IN ('pending', 'shipped', 'delivered'))` restricts a column to a fixed set of allowed values.\n</QuestionCard>\n\n<QuestionCard id=\"chk-02\" number={2} question=\"Can a CHECK constraint reference multiple columns in the same row?\" difficulty=\"medium\" topic=\"CHECK\">\nYes — a `CHECK` expression can involve more than one column, as long as they're all in the same row: `CHECK (ship_da"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "te >= order_date)` ensures a shipment can't be recorded before the order it belongs to. It cannot, however, reference other rows or other tables — for that kind of cross-row validation, a trigger or application-level check is needed instead.\n</QuestionCard>\n\n<QuestionCard id=\"chk-03\" number={3} question=\"Is CHECK enforced on existing rows when the constraint is added, or only on future writes?\" difficulty=\"hard\" topic=\"CHECK\">\nBy default, most databases validate all existing rows against a new `CHECK` constraint at the moment it's added, and the `ALTER TABLE` fails if any existing row would violate it. Some databases (PostgreSQL, for example) support adding it as `NOT VALID` — skipping the retroactive check so the constraint takes effect immediately for new writes, with existing data valid"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "ated separately afterward to avoid a long table-locking scan.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "## Common Interview Scenarios\n\n- **\"Design the constraints for a users table with an email column that must be unique but is optional.\"** Walk through `UNIQUE` on `email` without `NOT NULL`, and discuss the multiple-NULLs caveat that comes with it.\n- **\"A DELETE on the customers table is failing unexpectedly — what's likely going on?\"** Point to a `FOREIGN KEY` with the default `RESTRICT`/`NO ACTION` behavior blocking the delete because dependent rows (orders) still exist, and discuss the `CASCADE`/`SET NULL` alternatives.\n- **\"How would you enforce that a discount percentage column is always between 0 and 100?\"** A direct prompt for `CHECK (discount_pct BETWEEN 0 AND 100)`.\n- **\"Why prefer a surrogate key (auto-incrementing ID) over a natural key like email for a primary key?\"** Discuss m"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "utability, sensitivity, and the downstream cost of a \"unique\" natural key turning out not to be, once other tables already reference it.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-constraints/",
+    "locale": "en",
+    "title": "Data Constraints",
+    "description": "Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.",
+    "content": "## Further Reading\n\n- [What are Relational Databases?](/level-1-foundations/sql/relational-databases/) — the table and key concepts these constraints build on\n- [Data Definition Language (DDL)](/level-1-foundations/sql/ddl/) — where constraints are declared, inside CREATE TABLE and ALTER TABLE\n- [RDBMS Benefits & Limitations](/level-1-foundations/sql/rdbms-benefits-and-limitations/) — how constraint enforcement fits into the broader ACID guarantees of an RDBMS"
+  },
+  {
     "path": "/level-1-foundations/sql/ddl/",
     "locale": "en",
     "title": "Data Definition Language (DDL)",
@@ -1338,6 +1492,160 @@
     "locale": "en",
     "title": "",
     "content": "## Further Reading\r\n\r\n- [Data Modeling](/level-2-core-concepts/data-modeling/) — star/snowflake schemas and normalization in practice\r\n- [Data Warehousing](/level-2-core-concepts/data-warehousing/) — how SQL is used at the warehouse layer\r\n- [Data Structures](/level-1-foundations/data-structure/) — the algorithmic-problem counterpart to SQL query problems"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "## JOIN Queries: INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join\n\n**Every join type answers the same underlying question — which rows from two tables get paired together, and what happens to the ones that don't have a match — and the six standard types cover every combination of \"keep unmatched rows from which side\" worth naming.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [INNER JOIN](#inner-join)\n- [LEFT JOIN](#left-join)\n- [RIGHT JOIN](#right-join)\n- [FULL OUTER JOIN](#full-outer-join)\n- [Self Join](#self-join)\n- [Cross Join](#cross-join)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "## Key Concepts\n\nA join combines rows from two tables based on a condition, almost always a foreign key matching a primary key. The types differ in how they treat rows that *don't* have a match: **`INNER JOIN`** drops unmatched rows from both sides, **`LEFT JOIN`** keeps every row from the left table regardless of a match (filling unmatched right-side columns with `NULL`), **`RIGHT JOIN`** does the mirror image, and **`FULL OUTER JOIN`** keeps unmatched rows from both sides at once. **Self joins** and **cross joins** aren't a different category so much as a different *setup*: a self join is any of the above types applied to a table joined with itself, and a cross join is the degenerate case of no matching condition at all — every row from one table paired with every row from the other.\n\n--"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "-"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "## INNER JOIN\n\n<QuestionList topic=\"INNER JOIN\" storagePrefix=\"join-queries-inner-join\">\n\n<QuestionCard id=\"ij-01\" number={1} question=\"What does INNER JOIN return?\" difficulty=\"easy\" topic=\"INNER JOIN\">\n`INNER JOIN` returns only the rows that have a matching value in both tables. A row on either side with no match is excluded entirely from the result — it's the most restrictive join type, and the default one when people just say \"join\" without specifying a type.\n</QuestionCard>\n\n<QuestionCard id=\"ij-02\" number={2} question=\"If a table has 100 rows and you INNER JOIN it to a related table where only 80 of those rows have a match, how many rows does the result have?\" difficulty=\"easy\" topic=\"INNER JOIN\">\n80 — the 20 unmatched rows from the first table are dropped entirely, since `INNER JOIN"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "` only keeps pairs that exist on both sides. (If the matching column allows multiple matches per row on the joined side, the result could be more than 80, but never fewer.)\n</QuestionCard>\n\n<QuestionCard id=\"ij-03\" number={3} question=\"When would an INNER JOIN unexpectedly return fewer rows than you intended?\" difficulty=\"medium\" topic=\"INNER JOIN\">\nMost commonly when the join column contains `NULL` on one side, or references a row that's since been deleted, orphaning the foreign key value — either case means there's no match to find, so `INNER JOIN` silently excludes that row rather than erroring. It's the reason a \"why is this record missing from my report\" bug is so often actually a join type problem, not a filtering problem.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "## LEFT JOIN\n\n<QuestionList topic=\"LEFT JOIN\" storagePrefix=\"join-queries-left-join\">\n\n<QuestionCard id=\"lj-01\" number={1} question=\"What does LEFT JOIN return?\" difficulty=\"easy\" topic=\"LEFT JOIN\">\n`LEFT JOIN` (or `LEFT OUTER JOIN`) returns every row from the left table, whether or not it has a match in the right table. Where there's no match, the right table's columns are filled with `NULL` instead of the row being dropped.\n</QuestionCard>\n\n<QuestionCard id=\"lj-02\" number={2} question=\"How would you use LEFT JOIN to find rows in the left table that have no match at all in the right table?\" difficulty=\"medium\" topic=\"LEFT JOIN\">\n`LEFT JOIN` the two tables, then add `WHERE right_table.key IS NULL` — since unmatched left rows have `NULL` in every right-table column, that filter isolates exa"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "ctly the left rows with no corresponding right-side row. This is a very common pattern for finding orphaned or \"never happened\" records, like customers with zero orders.\n</QuestionCard>\n\n<QuestionCard id=\"lj-03\" number={3} question=\"Why does adding a WHERE condition on the right table's column sometimes silently turn a LEFT JOIN into an INNER JOIN?\" difficulty=\"hard\" topic=\"LEFT JOIN\">\nBecause `WHERE` filters after the join, and most conditions on a right-table column (e.g., `WHERE right.status = 'active'`) evaluate to false — not true — for the `NULL`-filled unmatched rows, which removes them from the result exactly the way an `INNER JOIN` would. To preserve the left join's behavior while still filtering the right table, that condition needs to move into the `ON` clause instead of `WHERE`"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": ".\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "## RIGHT JOIN\n\n<QuestionList topic=\"RIGHT JOIN\" storagePrefix=\"join-queries-right-join\">\n\n<QuestionCard id=\"rj-01\" number={1} question=\"What does RIGHT JOIN return?\" difficulty=\"easy\" topic=\"RIGHT JOIN\">\n`RIGHT JOIN` (or `RIGHT OUTER JOIN`) is the mirror image of `LEFT JOIN`: it returns every row from the right table, whether or not it has a match in the left table, filling the left table's columns with `NULL` where there's no match.\n</QuestionCard>\n\n<QuestionCard id=\"rj-02\" number={2} question=\"Why is RIGHT JOIN used far less often than LEFT JOIN in practice, even though they're logically equivalent?\" difficulty=\"medium\" topic=\"RIGHT JOIN\">\nAnything expressible with `RIGHT JOIN` can be rewritten as a `LEFT JOIN` by swapping the table order, and most people find it more readable to keep th"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "e \"table I want everything from\" consistently on the left rather than switching join direction mid-query. As a matter of convention, many style guides and codebases simply standardize on `LEFT JOIN` and avoid `RIGHT JOIN` entirely.\n</QuestionCard>\n\n<QuestionCard id=\"rj-03\" number={3} question=\"Rewrite `A RIGHT JOIN B ON A.id = B.a_id` as an equivalent LEFT JOIN.\" difficulty=\"easy\" topic=\"RIGHT JOIN\">\n`B LEFT JOIN A ON A.id = B.a_id` — swapping which table is written first and switching `RIGHT` to `LEFT` produces an identical result set, since both express \"keep every row from B, matched or not.\"\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "## FULL OUTER JOIN\n\n<QuestionList topic=\"FULL OUTER JOIN\" storagePrefix=\"join-queries-full-outer-join\">\n\n<QuestionCard id=\"foj-01\" number={1} question=\"What does FULL OUTER JOIN return?\" difficulty=\"easy\" topic=\"FULL OUTER JOIN\">\n`FULL OUTER JOIN` returns every row from both tables — matched rows combined normally, and unmatched rows from either side kept with `NULL` filling in the columns from whichever table didn't have a match. It's the union of what `LEFT JOIN` and `RIGHT JOIN` would each return.\n</QuestionCard>\n\n<QuestionCard id=\"foj-02\" number={2} question=\"What's a realistic use case for FULL OUTER JOIN?\" difficulty=\"medium\" topic=\"FULL OUTER JOIN\">\nReconciliation between two datasets that should mostly overlap but might not — comparing a source system's records against a destinatio"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "n system's after a migration, for example, to surface rows that exist only on one side (data that failed to migrate, or was added only in the new system) alongside the rows that matched correctly.\n</QuestionCard>\n\n<QuestionCard id=\"foj-03\" number={3} question=\"Not every database supports FULL OUTER JOIN directly — how would you emulate it?\" difficulty=\"hard\" topic=\"FULL OUTER JOIN\">\nMySQL, notably, doesn't support `FULL OUTER JOIN` directly. It can be emulated with a `UNION` of a `LEFT JOIN` and a `RIGHT JOIN` (or a `LEFT JOIN` and a second `LEFT JOIN` with the tables swapped), since `UNION` naturally deduplicates the rows that both queries would otherwise return twice.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "## Self Join\n\n<QuestionList topic=\"Self Join\" storagePrefix=\"join-queries-self-join\">\n\n<QuestionCard id=\"sj-01\" number={1} question=\"What is a self join, and why does it require table aliases?\" difficulty=\"easy\" topic=\"Self Join\">\nA self join joins a table to itself, treating it as if it were two separate tables — used when rows in a table relate to other rows in the *same* table, like an `employees` table where each row has a `manager_id` pointing to another employee. It requires aliases (`employees e1 JOIN employees e2 ON ...`) because the database needs a way to distinguish which \"copy\" of the table a given column reference belongs to.\n</QuestionCard>\n\n<QuestionCard id=\"sj-02\" number={2} question=\"Write a self join to find each employee alongside their manager's name.\" difficulty=\"mediu"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "m\" topic=\"Self Join\">\n```sql\nSELECT e.name AS employee_name, m.name AS manager_name\nFROM employees e\nLEFT JOIN employees m ON e.manager_id = m.id;\n```\nA `LEFT JOIN` is used here rather than `INNER JOIN` so that employees with no manager (a `NULL` `manager_id`, like the CEO) still appear in the result, just with a `NULL` manager name.\n</QuestionCard>\n\n<QuestionCard id=\"sj-03\" number={3} question=\"What's another common use case for a self join besides hierarchical data?\" difficulty=\"medium\" topic=\"Self Join\">\nFinding duplicate or related rows within the same table — for example, joining a `customers` table to itself on matching email addresses (but different IDs) to find likely duplicate accounts, or joining an `events` table to itself to compare each event to the one immediately before it f"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "or the same user.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "## Cross Join\n\n<QuestionList topic=\"Cross Join\" storagePrefix=\"join-queries-cross-join\">\n\n<QuestionCard id=\"cj-01\" number={1} question=\"What does CROSS JOIN return?\" difficulty=\"easy\" topic=\"Cross Join\">\n`CROSS JOIN` returns the Cartesian product of two tables — every row from the first table paired with every row from the second, with no matching condition at all. A 10-row table cross joined with a 5-row table produces 50 rows.\n</QuestionCard>\n\n<QuestionCard id=\"cj-02\" number={2} question=\"What's a legitimate use case for CROSS JOIN, as opposed to it being an accidental mistake?\" difficulty=\"medium\" topic=\"Cross Join\">\nGenerating every combination of two sets deliberately — for example, cross joining a table of products with a table of sizes to generate every possible product-size SKU com"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "bination, or cross joining a date-range table with a table of stores to build a complete \"every store, every day\" scaffold for a report before left-joining in actual sales data.\n</QuestionCard>\n\n<QuestionCard id=\"cj-03\" number={3} question=\"Why is CROSS JOIN often the accidental result of a missing join condition rather than an intentional choice?\" difficulty=\"medium\" topic=\"Cross Join\">\nThe old-style implicit join syntax (`FROM a, b`) is silently equivalent to a `CROSS JOIN` if the corresponding `WHERE` condition linking the tables is forgotten — producing a result set that's the product of both tables' row counts instead of the intended matched pairs, often without an obvious error, just a suspiciously huge and duplicated-looking result.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "## Common Interview Scenarios\n\n- **\"Write a query to find all customers who have never placed an order.\"** The classic `LEFT JOIN ... WHERE right.key IS NULL` pattern — a strong signal the candidate understands how unmatched rows behave under `LEFT JOIN`.\n- **\"A query using LEFT JOIN is returning fewer rows than expected once a WHERE filter on the right table is added — why?\"** Explain how a `WHERE` condition on the right table can silently convert a `LEFT JOIN` back into effectively an `INNER JOIN`, and how moving the condition into `ON` fixes it.\n- **\"How would you find every pair of employees who share the same manager?\"** A self-join prompt: join `employees` to itself on `manager_id`, with a condition to avoid pairing an employee with themselves.\n- **\"Explain the difference between all"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "six join types using a single example pair of tables.\"** A comprehensive check — walk through what each type returns for the exact same `customers`/`orders` pair, including which rows get `NULL`-filled and which get dropped.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/join-queries/",
+    "locale": "en",
+    "title": "JOIN Queries",
+    "description": "Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.",
+    "content": "## Further Reading\n\n- [Basic SQL Syntax](/level-1-foundations/sql/basic-syntax/) — the introductory JOIN treatment this page builds on, covering explicit vs. implicit join syntax\n- [Subqueries](/level-1-foundations/sql/subqueries/) — an alternative to joins for some of the same \"does a related row exist\" questions\n- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including window functions often used alongside joins"
   },
   {
     "path": "/level-1-foundations/sql/practice/",
@@ -2061,6 +2369,118 @@
     "title": "SQL vs NoSQL Databases",
     "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
     "content": "## Further Reading\n\n- [RDBMS Benefits & Limitations](/level-1-foundations/sql/rdbms-benefits-and-limitations/) — the SQL side of this trade-off in depth\n- [MongoDB](/level-3-technologies/databases/mongodb/) — a closer look at the document model referenced above\n- [Cassandra](/level-3-technologies/databases/cassandra/) — a closer look at the wide-column model referenced above"
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "## Subqueries: Nested, Correlated, and Scalar\n\n**A subquery is a query nested inside another query, and what makes the three flavors distinct isn't syntax so much as *when* and *how many times* the inner query actually runs relative to the outer one.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Nested Subqueries](#nested-subqueries)\n- [Correlated Subqueries](#correlated-subqueries)\n- [Scalar Subquery](#scalar-subquery)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "## Key Concepts\n\nA **nested (non-correlated) subquery** runs independently of the outer query — once, producing a fixed result the outer query then filters or joins against, commonly with `IN`, `EXISTS`, `ANY`, or `ALL`. A **correlated subquery** references a column from the outer query inside its own `WHERE` clause, which means it can't be evaluated once up front — conceptually, it re-runs once per outer row, checking something specific to that row. A **scalar subquery** is defined by its *shape*, not its independence: it's any subquery guaranteed to return exactly one row and one column, which is what lets it be used anywhere a single value is expected — in a `SELECT` list, or on either side of a comparison. These categories aren't mutually exclusive: a subquery can be both scalar and co"
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "rrelated at once.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "## Nested Subqueries\n\n<QuestionList topic=\"Nested Subqueries\" storagePrefix=\"subqueries-nested\">\n\n<QuestionCard id=\"ns-01\" number={1} question=\"What is a nested subquery, and where can it appear in a query?\" difficulty=\"easy\" topic=\"Nested Subqueries\">\nA nested subquery is a `SELECT` statement embedded inside another query, most commonly in the `WHERE` clause (`WHERE id IN (SELECT ...)`), but also valid in `HAVING`, `FROM` (as a derived table), or the `SELECT` list itself. It's evaluated as a self-contained unit — the database can run it independently of the outer query's rows.\n</QuestionCard>\n\n<QuestionCard id=\"ns-02\" number={2} question=\"What's the difference between using IN and EXISTS with a subquery?\" difficulty=\"medium\" topic=\"Nested Subqueries\">\n`IN` compares a column against the fu"
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "ll list of values the subquery returns: `WHERE customer_id IN (SELECT id FROM vip_customers)`. `EXISTS` instead just checks whether the subquery returns *any* row at all, typically written as a correlated subquery: `WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id)`. `EXISTS` is often more efficient for existence checks since the database can stop as soon as it finds one matching row, rather than materializing a full list.\n</QuestionCard>\n\n<QuestionCard id=\"ns-03\" number={3} question=\"What do ANY and ALL do when used with a subquery?\" difficulty=\"hard\" topic=\"Nested Subqueries\">\n`> ANY (subquery)` is true if the comparison holds against *at least one* value the subquery returns — equivalent to comparing against the minimum for `>`. `> ALL (subquery)` is true only if the comp"
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "arison holds against *every* value returned — equivalent to comparing against the maximum for `>`. `WHERE salary > ALL (SELECT salary FROM employees WHERE department = 'Sales')` finds employees who out-earn every single salesperson.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "## Correlated Subqueries\n\n<QuestionList topic=\"Correlated Subqueries\" storagePrefix=\"subqueries-correlated\">\n\n<QuestionCard id=\"cs-01\" number={1} question=\"What is a correlated subquery, and how is it different from a regular nested subquery?\" difficulty=\"medium\" topic=\"Correlated Subqueries\">\nA correlated subquery references a column from the *outer* query inside its own `WHERE` clause, so it can't be evaluated as one independent, standalone result the way a regular nested subquery can — conceptually, it needs to be re-evaluated for each row the outer query considers, using that row's specific value.\n</QuestionCard>\n\n<QuestionCard id=\"cs-02\" number={2} question=\"Write a correlated subquery to find employees who earn more than their department's average salary.\" difficulty=\"medium\" topic=\""
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "Correlated Subqueries\">\n```sql\nSELECT e.name, e.salary, e.department_id\nFROM employees e\nWHERE e.salary > (\n  SELECT AVG(salary)\n  FROM employees e2\n  WHERE e2.department_id = e.department_id\n);\n```\nThe inner query's `WHERE e2.department_id = e.department_id` is what makes it correlated — it depends on `e`, a row from the outer query, so it's re-evaluated per department in effect rather than computed once.\n</QuestionCard>\n\n<QuestionCard id=\"cs-03\" number={3} question=\"Why can correlated subqueries be slower than an equivalent join, and when might you use one anyway?\" difficulty=\"hard\" topic=\"Correlated Subqueries\">\nConceptually — and in a naive execution plan — a correlated subquery re-runs once per outer row, which scales poorly on large tables; modern query optimizers often rewrite corre"
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "lated subqueries into an equivalent join internally, but that's not guaranteed for every case. They're still useful when the logic is genuinely a per-row existence or comparison check (`EXISTS`, or \"greater than this row's own group average\") that would require a more convoluted join-and-aggregate rewrite to express otherwise — readability sometimes wins even when a join would be marginally faster.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "## Scalar Subquery\n\n<QuestionList topic=\"Scalar Subquery\" storagePrefix=\"subqueries-scalar\">\n\n<QuestionCard id=\"ss-01\" number={1} question=\"What is a scalar subquery?\" difficulty=\"easy\" topic=\"Scalar Subquery\">\nA scalar subquery is any subquery that's guaranteed to return exactly one row and one column — a single value. That single-value guarantee is what lets it be used anywhere a literal value could go: in a `SELECT` list, or on either side of a comparison operator like `=` or `>`.\n</QuestionCard>\n\n<QuestionCard id=\"ss-02\" number={2} question=\"Where can a scalar subquery be used that a regular (multi-row) subquery can't?\" difficulty=\"medium\" topic=\"Scalar Subquery\">\nIn the `SELECT` list, computing a per-row value: `SELECT name, (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id) A"
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "S order_count FROM customers c`. A multi-row subquery can't go there at all — the database wouldn't know how to fit more than one value into a single result cell.\n</QuestionCard>\n\n<QuestionCard id=\"ss-03\" number={3} question=\"What happens if a scalar subquery unexpectedly returns more than one row?\" difficulty=\"medium\" topic=\"Scalar Subquery\">\nThe database raises a runtime error — something like \"more than one row returned by a subquery used as an expression\" — rather than silently picking one value. This is a common failure mode when a subquery that was scalar under normal data (e.g., assuming a unique match) encounters an edge case where more than one row actually matches.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "## Common Interview Scenarios\n\n- **\"Find all customers who have placed at least one order, without using a JOIN.\"** A natural prompt for `WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id)` — and a chance to discuss why `EXISTS` is often preferred over `IN` for this exact pattern.\n- **\"Write a query to show each product alongside the percentage its price represents of the most expensive product in its category.\"** Forces a scalar (and likely correlated) subquery in the `SELECT` list to pull in a per-category maximum.\n- **\"A scalar subquery you wrote is throwing a 'more than one row returned' error in production — how do you debug it?\"** Walk through checking the assumption that made it \"scalar\" in the first place, and finding the specific input where more than one row now mat"
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "ches.\n- **\"When would you choose a correlated subquery over rewriting the same logic as a JOIN with GROUP BY?\"** Discuss the trade-off between the two approaches' readability and the optimizer's ability to rewrite one into the other.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/subqueries/",
+    "locale": "en",
+    "title": "Subqueries",
+    "description": "Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.",
+    "content": "## Further Reading\n\n- [JOIN Queries](/level-1-foundations/sql/join-queries/) — the alternative approach to many of the same \"related row\" questions subqueries answer\n- [Aggregate Queries](/level-1-foundations/sql/aggregate-queries/) — the AVG/COUNT/MAX functions commonly used inside scalar and correlated subqueries\n- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including CTEs as a readability alternative to nested subqueries"
   },
   {
     "path": "/level-1-foundations/sql/theory/",

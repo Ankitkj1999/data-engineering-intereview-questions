@@ -1,0 +1,170 @@
+---
+title: JOIN Queries
+description: Interview questions on SQL JOIN types — INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join — with what each returns and when to use it.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## JOIN Queries: INNER, LEFT, RIGHT, FULL OUTER, Self, and Cross Join
+
+**Every join type answers the same underlying question — which rows from two tables get paired together, and what happens to the ones that don't have a match — and the six standard types cover every combination of "keep unmatched rows from which side" worth naming.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [INNER JOIN](#inner-join)
+- [LEFT JOIN](#left-join)
+- [RIGHT JOIN](#right-join)
+- [FULL OUTER JOIN](#full-outer-join)
+- [Self Join](#self-join)
+- [Cross Join](#cross-join)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A join combines rows from two tables based on a condition, almost always a foreign key matching a primary key. The types differ in how they treat rows that *don't* have a match: **`INNER JOIN`** drops unmatched rows from both sides, **`LEFT JOIN`** keeps every row from the left table regardless of a match (filling unmatched right-side columns with `NULL`), **`RIGHT JOIN`** does the mirror image, and **`FULL OUTER JOIN`** keeps unmatched rows from both sides at once. **Self joins** and **cross joins** aren't a different category so much as a different *setup*: a self join is any of the above types applied to a table joined with itself, and a cross join is the degenerate case of no matching condition at all — every row from one table paired with every row from the other.
+
+---
+
+## INNER JOIN
+
+<QuestionList topic="INNER JOIN" storagePrefix="join-queries-inner-join">
+
+<QuestionCard id="ij-01" number={1} question="What does INNER JOIN return?" difficulty="easy" topic="INNER JOIN">
+`INNER JOIN` returns only the rows that have a matching value in both tables. A row on either side with no match is excluded entirely from the result — it's the most restrictive join type, and the default one when people just say "join" without specifying a type.
+</QuestionCard>
+
+<QuestionCard id="ij-02" number={2} question="If a table has 100 rows and you INNER JOIN it to a related table where only 80 of those rows have a match, how many rows does the result have?" difficulty="easy" topic="INNER JOIN">
+80 — the 20 unmatched rows from the first table are dropped entirely, since `INNER JOIN` only keeps pairs that exist on both sides. (If the matching column allows multiple matches per row on the joined side, the result could be more than 80, but never fewer.)
+</QuestionCard>
+
+<QuestionCard id="ij-03" number={3} question="When would an INNER JOIN unexpectedly return fewer rows than you intended?" difficulty="medium" topic="INNER JOIN">
+Most commonly when the join column contains `NULL` on one side, or references a row that's since been deleted, orphaning the foreign key value — either case means there's no match to find, so `INNER JOIN` silently excludes that row rather than erroring. It's the reason a "why is this record missing from my report" bug is so often actually a join type problem, not a filtering problem.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## LEFT JOIN
+
+<QuestionList topic="LEFT JOIN" storagePrefix="join-queries-left-join">
+
+<QuestionCard id="lj-01" number={1} question="What does LEFT JOIN return?" difficulty="easy" topic="LEFT JOIN">
+`LEFT JOIN` (or `LEFT OUTER JOIN`) returns every row from the left table, whether or not it has a match in the right table. Where there's no match, the right table's columns are filled with `NULL` instead of the row being dropped.
+</QuestionCard>
+
+<QuestionCard id="lj-02" number={2} question="How would you use LEFT JOIN to find rows in the left table that have no match at all in the right table?" difficulty="medium" topic="LEFT JOIN">
+`LEFT JOIN` the two tables, then add `WHERE right_table.key IS NULL` — since unmatched left rows have `NULL` in every right-table column, that filter isolates exactly the left rows with no corresponding right-side row. This is a very common pattern for finding orphaned or "never happened" records, like customers with zero orders.
+</QuestionCard>
+
+<QuestionCard id="lj-03" number={3} question="Why does adding a WHERE condition on the right table's column sometimes silently turn a LEFT JOIN into an INNER JOIN?" difficulty="hard" topic="LEFT JOIN">
+Because `WHERE` filters after the join, and most conditions on a right-table column (e.g., `WHERE right.status = 'active'`) evaluate to false — not true — for the `NULL`-filled unmatched rows, which removes them from the result exactly the way an `INNER JOIN` would. To preserve the left join's behavior while still filtering the right table, that condition needs to move into the `ON` clause instead of `WHERE`.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## RIGHT JOIN
+
+<QuestionList topic="RIGHT JOIN" storagePrefix="join-queries-right-join">
+
+<QuestionCard id="rj-01" number={1} question="What does RIGHT JOIN return?" difficulty="easy" topic="RIGHT JOIN">
+`RIGHT JOIN` (or `RIGHT OUTER JOIN`) is the mirror image of `LEFT JOIN`: it returns every row from the right table, whether or not it has a match in the left table, filling the left table's columns with `NULL` where there's no match.
+</QuestionCard>
+
+<QuestionCard id="rj-02" number={2} question="Why is RIGHT JOIN used far less often than LEFT JOIN in practice, even though they're logically equivalent?" difficulty="medium" topic="RIGHT JOIN">
+Anything expressible with `RIGHT JOIN` can be rewritten as a `LEFT JOIN` by swapping the table order, and most people find it more readable to keep the "table I want everything from" consistently on the left rather than switching join direction mid-query. As a matter of convention, many style guides and codebases simply standardize on `LEFT JOIN` and avoid `RIGHT JOIN` entirely.
+</QuestionCard>
+
+<QuestionCard id="rj-03" number={3} question="Rewrite `A RIGHT JOIN B ON A.id = B.a_id` as an equivalent LEFT JOIN." difficulty="easy" topic="RIGHT JOIN">
+`B LEFT JOIN A ON A.id = B.a_id` — swapping which table is written first and switching `RIGHT` to `LEFT` produces an identical result set, since both express "keep every row from B, matched or not."
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## FULL OUTER JOIN
+
+<QuestionList topic="FULL OUTER JOIN" storagePrefix="join-queries-full-outer-join">
+
+<QuestionCard id="foj-01" number={1} question="What does FULL OUTER JOIN return?" difficulty="easy" topic="FULL OUTER JOIN">
+`FULL OUTER JOIN` returns every row from both tables — matched rows combined normally, and unmatched rows from either side kept with `NULL` filling in the columns from whichever table didn't have a match. It's the union of what `LEFT JOIN` and `RIGHT JOIN` would each return.
+</QuestionCard>
+
+<QuestionCard id="foj-02" number={2} question="What's a realistic use case for FULL OUTER JOIN?" difficulty="medium" topic="FULL OUTER JOIN">
+Reconciliation between two datasets that should mostly overlap but might not — comparing a source system's records against a destination system's after a migration, for example, to surface rows that exist only on one side (data that failed to migrate, or was added only in the new system) alongside the rows that matched correctly.
+</QuestionCard>
+
+<QuestionCard id="foj-03" number={3} question="Not every database supports FULL OUTER JOIN directly — how would you emulate it?" difficulty="hard" topic="FULL OUTER JOIN">
+MySQL, notably, doesn't support `FULL OUTER JOIN` directly. It can be emulated with a `UNION` of a `LEFT JOIN` and a `RIGHT JOIN` (or a `LEFT JOIN` and a second `LEFT JOIN` with the tables swapped), since `UNION` naturally deduplicates the rows that both queries would otherwise return twice.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Self Join
+
+<QuestionList topic="Self Join" storagePrefix="join-queries-self-join">
+
+<QuestionCard id="sj-01" number={1} question="What is a self join, and why does it require table aliases?" difficulty="easy" topic="Self Join">
+A self join joins a table to itself, treating it as if it were two separate tables — used when rows in a table relate to other rows in the *same* table, like an `employees` table where each row has a `manager_id` pointing to another employee. It requires aliases (`employees e1 JOIN employees e2 ON ...`) because the database needs a way to distinguish which "copy" of the table a given column reference belongs to.
+</QuestionCard>
+
+<QuestionCard id="sj-02" number={2} question="Write a self join to find each employee alongside their manager's name." difficulty="medium" topic="Self Join">
+```sql
+SELECT e.name AS employee_name, m.name AS manager_name
+FROM employees e
+LEFT JOIN employees m ON e.manager_id = m.id;
+```
+A `LEFT JOIN` is used here rather than `INNER JOIN` so that employees with no manager (a `NULL` `manager_id`, like the CEO) still appear in the result, just with a `NULL` manager name.
+</QuestionCard>
+
+<QuestionCard id="sj-03" number={3} question="What's another common use case for a self join besides hierarchical data?" difficulty="medium" topic="Self Join">
+Finding duplicate or related rows within the same table — for example, joining a `customers` table to itself on matching email addresses (but different IDs) to find likely duplicate accounts, or joining an `events` table to itself to compare each event to the one immediately before it for the same user.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Cross Join
+
+<QuestionList topic="Cross Join" storagePrefix="join-queries-cross-join">
+
+<QuestionCard id="cj-01" number={1} question="What does CROSS JOIN return?" difficulty="easy" topic="Cross Join">
+`CROSS JOIN` returns the Cartesian product of two tables — every row from the first table paired with every row from the second, with no matching condition at all. A 10-row table cross joined with a 5-row table produces 50 rows.
+</QuestionCard>
+
+<QuestionCard id="cj-02" number={2} question="What's a legitimate use case for CROSS JOIN, as opposed to it being an accidental mistake?" difficulty="medium" topic="Cross Join">
+Generating every combination of two sets deliberately — for example, cross joining a table of products with a table of sizes to generate every possible product-size SKU combination, or cross joining a date-range table with a table of stores to build a complete "every store, every day" scaffold for a report before left-joining in actual sales data.
+</QuestionCard>
+
+<QuestionCard id="cj-03" number={3} question="Why is CROSS JOIN often the accidental result of a missing join condition rather than an intentional choice?" difficulty="medium" topic="Cross Join">
+The old-style implicit join syntax (`FROM a, b`) is silently equivalent to a `CROSS JOIN` if the corresponding `WHERE` condition linking the tables is forgotten — producing a result set that's the product of both tables' row counts instead of the intended matched pairs, often without an obvious error, just a suspiciously huge and duplicated-looking result.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Write a query to find all customers who have never placed an order."** The classic `LEFT JOIN ... WHERE right.key IS NULL` pattern — a strong signal the candidate understands how unmatched rows behave under `LEFT JOIN`.
+- **"A query using LEFT JOIN is returning fewer rows than expected once a WHERE filter on the right table is added — why?"** Explain how a `WHERE` condition on the right table can silently convert a `LEFT JOIN` back into effectively an `INNER JOIN`, and how moving the condition into `ON` fixes it.
+- **"How would you find every pair of employees who share the same manager?"** A self-join prompt: join `employees` to itself on `manager_id`, with a condition to avoid pairing an employee with themselves.
+- **"Explain the difference between all six join types using a single example pair of tables."** A comprehensive check — walk through what each type returns for the exact same `customers`/`orders` pair, including which rows get `NULL`-filled and which get dropped.
+
+---
+
+## Further Reading
+
+- [Basic SQL Syntax](/level-1-foundations/sql/basic-syntax/) — the introductory JOIN treatment this page builds on, covering explicit vs. implicit join syntax
+- [Subqueries](/level-1-foundations/sql/subqueries/) — an alternative to joins for some of the same "does a related row exist" questions
+- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including window functions often used alongside joins

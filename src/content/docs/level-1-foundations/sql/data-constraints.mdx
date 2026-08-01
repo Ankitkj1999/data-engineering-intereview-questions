@@ -1,0 +1,144 @@
+---
+title: Data Constraints
+description: Interview questions on SQL data constraints — Primary Key, Foreign Key, UNIQUE, NOT NULL, and CHECK — and how each enforces data integrity at write time.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Data Constraints: Enforcing Integrity at the Database Layer
+
+**Constraints are rules the database engine enforces on every write, automatically and without exception — the difference between "our application code is supposed to validate this" and "it is structurally impossible to store invalid data here."**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Primary Key](#primary-key)
+- [Foreign Key](#foreign-key)
+- [UNIQUE](#unique)
+- [NOT NULL](#not-null)
+- [CHECK](#check)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Constraints move data validation from application code — which can be bypassed, forgotten in one code path, or skipped by a direct database script — into the database engine itself, where every write is checked regardless of what wrote it. The five core constraint types each protect a different property: **`PRIMARY KEY`** guarantees a row can always be uniquely identified, **`FOREIGN KEY`** guarantees a reference always points at something real, **`UNIQUE`** guarantees no duplicate values in a column outside of the primary key, **`NOT NULL`** guarantees a value is always present, and **`CHECK`** guarantees a value satisfies an arbitrary rule. They compose: a primary key is essentially `UNIQUE` + `NOT NULL` bundled together with the extra role of being the table's default identity.
+
+---
+
+## Primary Key
+
+<QuestionList topic="Primary Key" storagePrefix="data-constraints-primary-key">
+
+<QuestionCard id="pk-01" number={1} question="What is a PRIMARY KEY constraint, and what two guarantees does it combine?" difficulty="easy" topic="Primary Key">
+A `PRIMARY KEY` uniquely identifies each row in a table. It combines two guarantees in one constraint: uniqueness (no two rows can share the same value) and `NOT NULL` (a primary key value can never be missing) — a row without a usable identity isn't meaningfully addressable.
+</QuestionCard>
+
+<QuestionCard id="pk-02" number={2} question="What is a composite primary key, and when would you use one?" difficulty="medium" topic="Primary Key">
+A composite primary key is a primary key made up of more than one column, where the *combination* of values must be unique even if individual columns repeat. It's typically used for junction tables in many-to-many relationships — e.g., an `enrollments` table's primary key might be `(student_id, course_id)`, since neither column alone is unique but the pair is.
+</QuestionCard>
+
+<QuestionCard id="pk-03" number={3} question="What does AUTO_INCREMENT / IDENTITY / SERIAL do, and why is a surrogate key often preferred over a natural key?" difficulty="medium" topic="Primary Key">
+These vendor-specific keywords (MySQL's `AUTO_INCREMENT`, SQL Server's `IDENTITY`, PostgreSQL's `SERIAL`/`GENERATED ALWAYS AS IDENTITY`) automatically generate a sequential integer for each new row — a **surrogate key** with no business meaning. It's often preferred over a **natural key** (e.g., using an email or SSN as the primary key) because natural keys can change, contain sensitive data, or turn out not to be as unique as assumed, all of which are painful to fix once other tables have foreign keys referencing them.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Foreign Key
+
+<QuestionList topic="Foreign Key" storagePrefix="data-constraints-foreign-key">
+
+<QuestionCard id="fk-01" number={1} question="What does a FOREIGN KEY constraint do?" difficulty="easy" topic="Foreign Key">
+A `FOREIGN KEY` constraint requires a column's value to match an existing value in another table's primary key (or unique) column, or be `NULL` if the column allows it. It's how the database enforces referential integrity: you can't insert an order for a customer that doesn't exist.
+</QuestionCard>
+
+<QuestionCard id="fk-02" number={2} question="What are the ON DELETE actions, and what does each one do?" difficulty="medium" topic="Foreign Key">
+`ON DELETE RESTRICT` (or `NO ACTION`, the implicit default in many databases) blocks deleting a referenced row while dependents still exist. `ON DELETE CASCADE` automatically deletes dependent rows along with the referenced row. `ON DELETE SET NULL` sets the foreign key column to `NULL` on dependents instead of deleting them (only valid if that column is nullable). The right choice depends on whether dependent data should die with its parent, survive as orphaned-but-flagged, or block the deletion entirely.
+</QuestionCard>
+
+<QuestionCard id="fk-03" number={3} question="Can a foreign key column itself be NULL, and what does that mean?" difficulty="medium" topic="Foreign Key">
+Yes, unless it's separately marked `NOT NULL` — a `NULL` foreign key means "this row doesn't reference anything right now," which is valid and doesn't violate referential integrity (there's nothing to check against). A common example: an `employees.manager_id` foreign key that's `NULL` for the one employee at the top of the org chart who has no manager.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## UNIQUE
+
+<QuestionList topic="UNIQUE" storagePrefix="data-constraints-unique">
+
+<QuestionCard id="uq-01" number={1} question="What does a UNIQUE constraint do, and how is it different from a PRIMARY KEY?" difficulty="easy" topic="UNIQUE">
+`UNIQUE` guarantees no two rows share the same value in that column (or combination of columns), the same way `PRIMARY KEY` does — but unlike a primary key, a table can have several `UNIQUE` constraints, it isn't used as the table's default identity for foreign keys, and (in most databases) it allows `NULL` values.
+</QuestionCard>
+
+<QuestionCard id="uq-02" number={2} question="Can a table have more than one UNIQUE constraint?" difficulty="easy" topic="UNIQUE">
+Yes — a table can have exactly one `PRIMARY KEY` but any number of `UNIQUE` constraints. A `users` table might have a primary key on `id` and separate `UNIQUE` constraints on `email` and `username`, each independently enforcing no duplicates.
+</QuestionCard>
+
+<QuestionCard id="uq-03" number={3} question="Does a UNIQUE constraint allow NULL values, and can there be multiple NULLs?" difficulty="hard" topic="UNIQUE">
+In most databases (PostgreSQL, SQL Server, MySQL), yes — `NULL` is allowed in a `UNIQUE` column, and multiple rows can each have `NULL`, because `NULL` is treated as "unknown" rather than a value that can be compared for equality against another `NULL`. This behavior differs from what people intuitively expect and is worth double-checking against a specific database's documentation before relying on it.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## NOT NULL
+
+<QuestionList topic="NOT NULL" storagePrefix="data-constraints-not-null">
+
+<QuestionCard id="nn-01" number={1} question="What does NOT NULL do?" difficulty="easy" topic="NOT NULL">
+`NOT NULL` requires every row to have an actual value in that column — an `INSERT` or `UPDATE` that would leave it `NULL` is rejected. It's the simplest constraint, but one of the most commonly under-used ones: a column left nullable "just in case" quietly pushes the burden of checking for missing data onto every query that reads it.
+</QuestionCard>
+
+<QuestionCard id="nn-02" number={2} question="Why might a column be nullable by default in SQL?" difficulty="medium" topic="NOT NULL">
+Columns are nullable unless explicitly declared `NOT NULL`, because `NULL` (representing "unknown" or "not applicable") is a legitimate, common state for optional data — a `middle_name` column, or a `cancelled_at` timestamp that's only populated if a cancellation actually happened. The default favors flexibility; deliberately adding `NOT NULL` is how you assert a column is always required.
+</QuestionCard>
+
+<QuestionCard id="nn-03" number={3} question="What happens when you try to ALTER a column to add NOT NULL if existing rows contain NULL?" difficulty="medium" topic="NOT NULL">
+The `ALTER TABLE` fails — the database validates existing data against the new constraint before applying it, and rejects the change if any row would violate it. The fix is to first backfill or clean up the `NULL` values (with an `UPDATE`, or a `DEFAULT` applied retroactively), then apply the `NOT NULL` constraint once every row already satisfies it.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## CHECK
+
+<QuestionList topic="CHECK" storagePrefix="data-constraints-check">
+
+<QuestionCard id="chk-01" number={1} question="What does a CHECK constraint do, and give an example." difficulty="easy" topic="CHECK">
+`CHECK` validates that a column's value satisfies an arbitrary boolean expression before allowing a write — for example, `CHECK (price >= 0)` rejects any row that would set a negative price, or `CHECK (status IN ('pending', 'shipped', 'delivered'))` restricts a column to a fixed set of allowed values.
+</QuestionCard>
+
+<QuestionCard id="chk-02" number={2} question="Can a CHECK constraint reference multiple columns in the same row?" difficulty="medium" topic="CHECK">
+Yes — a `CHECK` expression can involve more than one column, as long as they're all in the same row: `CHECK (ship_date >= order_date)` ensures a shipment can't be recorded before the order it belongs to. It cannot, however, reference other rows or other tables — for that kind of cross-row validation, a trigger or application-level check is needed instead.
+</QuestionCard>
+
+<QuestionCard id="chk-03" number={3} question="Is CHECK enforced on existing rows when the constraint is added, or only on future writes?" difficulty="hard" topic="CHECK">
+By default, most databases validate all existing rows against a new `CHECK` constraint at the moment it's added, and the `ALTER TABLE` fails if any existing row would violate it. Some databases (PostgreSQL, for example) support adding it as `NOT VALID` — skipping the retroactive check so the constraint takes effect immediately for new writes, with existing data validated separately afterward to avoid a long table-locking scan.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Design the constraints for a users table with an email column that must be unique but is optional."** Walk through `UNIQUE` on `email` without `NOT NULL`, and discuss the multiple-NULLs caveat that comes with it.
+- **"A DELETE on the customers table is failing unexpectedly — what's likely going on?"** Point to a `FOREIGN KEY` with the default `RESTRICT`/`NO ACTION` behavior blocking the delete because dependent rows (orders) still exist, and discuss the `CASCADE`/`SET NULL` alternatives.
+- **"How would you enforce that a discount percentage column is always between 0 and 100?"** A direct prompt for `CHECK (discount_pct BETWEEN 0 AND 100)`.
+- **"Why prefer a surrogate key (auto-incrementing ID) over a natural key like email for a primary key?"** Discuss mutability, sensitivity, and the downstream cost of a "unique" natural key turning out not to be, once other tables already reference it.
+
+---
+
+## Further Reading
+
+- [What are Relational Databases?](/level-1-foundations/sql/relational-databases/) — the table and key concepts these constraints build on
+- [Data Definition Language (DDL)](/level-1-foundations/sql/ddl/) — where constraints are declared, inside CREATE TABLE and ALTER TABLE
+- [RDBMS Benefits & Limitations](/level-1-foundations/sql/rdbms-benefits-and-limitations/) — how constraint enforcement fits into the broader ACID guarantees of an RDBMS

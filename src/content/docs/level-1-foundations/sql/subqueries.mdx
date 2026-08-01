@@ -1,0 +1,111 @@
+---
+title: Subqueries
+description: Interview questions on SQL subqueries — nested subqueries (IN, EXISTS, ANY, ALL), correlated subqueries, and scalar subqueries.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Subqueries: Nested, Correlated, and Scalar
+
+**A subquery is a query nested inside another query, and what makes the three flavors distinct isn't syntax so much as *when* and *how many times* the inner query actually runs relative to the outer one.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Nested Subqueries](#nested-subqueries)
+- [Correlated Subqueries](#correlated-subqueries)
+- [Scalar Subquery](#scalar-subquery)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A **nested (non-correlated) subquery** runs independently of the outer query — once, producing a fixed result the outer query then filters or joins against, commonly with `IN`, `EXISTS`, `ANY`, or `ALL`. A **correlated subquery** references a column from the outer query inside its own `WHERE` clause, which means it can't be evaluated once up front — conceptually, it re-runs once per outer row, checking something specific to that row. A **scalar subquery** is defined by its *shape*, not its independence: it's any subquery guaranteed to return exactly one row and one column, which is what lets it be used anywhere a single value is expected — in a `SELECT` list, or on either side of a comparison. These categories aren't mutually exclusive: a subquery can be both scalar and correlated at once.
+
+---
+
+## Nested Subqueries
+
+<QuestionList topic="Nested Subqueries" storagePrefix="subqueries-nested">
+
+<QuestionCard id="ns-01" number={1} question="What is a nested subquery, and where can it appear in a query?" difficulty="easy" topic="Nested Subqueries">
+A nested subquery is a `SELECT` statement embedded inside another query, most commonly in the `WHERE` clause (`WHERE id IN (SELECT ...)`), but also valid in `HAVING`, `FROM` (as a derived table), or the `SELECT` list itself. It's evaluated as a self-contained unit — the database can run it independently of the outer query's rows.
+</QuestionCard>
+
+<QuestionCard id="ns-02" number={2} question="What's the difference between using IN and EXISTS with a subquery?" difficulty="medium" topic="Nested Subqueries">
+`IN` compares a column against the full list of values the subquery returns: `WHERE customer_id IN (SELECT id FROM vip_customers)`. `EXISTS` instead just checks whether the subquery returns *any* row at all, typically written as a correlated subquery: `WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id)`. `EXISTS` is often more efficient for existence checks since the database can stop as soon as it finds one matching row, rather than materializing a full list.
+</QuestionCard>
+
+<QuestionCard id="ns-03" number={3} question="What do ANY and ALL do when used with a subquery?" difficulty="hard" topic="Nested Subqueries">
+`> ANY (subquery)` is true if the comparison holds against *at least one* value the subquery returns — equivalent to comparing against the minimum for `>`. `> ALL (subquery)` is true only if the comparison holds against *every* value returned — equivalent to comparing against the maximum for `>`. `WHERE salary > ALL (SELECT salary FROM employees WHERE department = 'Sales')` finds employees who out-earn every single salesperson.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Correlated Subqueries
+
+<QuestionList topic="Correlated Subqueries" storagePrefix="subqueries-correlated">
+
+<QuestionCard id="cs-01" number={1} question="What is a correlated subquery, and how is it different from a regular nested subquery?" difficulty="medium" topic="Correlated Subqueries">
+A correlated subquery references a column from the *outer* query inside its own `WHERE` clause, so it can't be evaluated as one independent, standalone result the way a regular nested subquery can — conceptually, it needs to be re-evaluated for each row the outer query considers, using that row's specific value.
+</QuestionCard>
+
+<QuestionCard id="cs-02" number={2} question="Write a correlated subquery to find employees who earn more than their department's average salary." difficulty="medium" topic="Correlated Subqueries">
+```sql
+SELECT e.name, e.salary, e.department_id
+FROM employees e
+WHERE e.salary > (
+  SELECT AVG(salary)
+  FROM employees e2
+  WHERE e2.department_id = e.department_id
+);
+```
+The inner query's `WHERE e2.department_id = e.department_id` is what makes it correlated — it depends on `e`, a row from the outer query, so it's re-evaluated per department in effect rather than computed once.
+</QuestionCard>
+
+<QuestionCard id="cs-03" number={3} question="Why can correlated subqueries be slower than an equivalent join, and when might you use one anyway?" difficulty="hard" topic="Correlated Subqueries">
+Conceptually — and in a naive execution plan — a correlated subquery re-runs once per outer row, which scales poorly on large tables; modern query optimizers often rewrite correlated subqueries into an equivalent join internally, but that's not guaranteed for every case. They're still useful when the logic is genuinely a per-row existence or comparison check (`EXISTS`, or "greater than this row's own group average") that would require a more convoluted join-and-aggregate rewrite to express otherwise — readability sometimes wins even when a join would be marginally faster.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Scalar Subquery
+
+<QuestionList topic="Scalar Subquery" storagePrefix="subqueries-scalar">
+
+<QuestionCard id="ss-01" number={1} question="What is a scalar subquery?" difficulty="easy" topic="Scalar Subquery">
+A scalar subquery is any subquery that's guaranteed to return exactly one row and one column — a single value. That single-value guarantee is what lets it be used anywhere a literal value could go: in a `SELECT` list, or on either side of a comparison operator like `=` or `>`.
+</QuestionCard>
+
+<QuestionCard id="ss-02" number={2} question="Where can a scalar subquery be used that a regular (multi-row) subquery can't?" difficulty="medium" topic="Scalar Subquery">
+In the `SELECT` list, computing a per-row value: `SELECT name, (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id) AS order_count FROM customers c`. A multi-row subquery can't go there at all — the database wouldn't know how to fit more than one value into a single result cell.
+</QuestionCard>
+
+<QuestionCard id="ss-03" number={3} question="What happens if a scalar subquery unexpectedly returns more than one row?" difficulty="medium" topic="Scalar Subquery">
+The database raises a runtime error — something like "more than one row returned by a subquery used as an expression" — rather than silently picking one value. This is a common failure mode when a subquery that was scalar under normal data (e.g., assuming a unique match) encounters an edge case where more than one row actually matches.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Find all customers who have placed at least one order, without using a JOIN."** A natural prompt for `WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id)` — and a chance to discuss why `EXISTS` is often preferred over `IN` for this exact pattern.
+- **"Write a query to show each product alongside the percentage its price represents of the most expensive product in its category."** Forces a scalar (and likely correlated) subquery in the `SELECT` list to pull in a per-category maximum.
+- **"A scalar subquery you wrote is throwing a 'more than one row returned' error in production — how do you debug it?"** Walk through checking the assumption that made it "scalar" in the first place, and finding the specific input where more than one row now matches.
+- **"When would you choose a correlated subquery over rewriting the same logic as a JOIN with GROUP BY?"** Discuss the trade-off between the two approaches' readability and the optimizer's ability to rewrite one into the other.
+
+---
+
+## Further Reading
+
+- [JOIN Queries](/level-1-foundations/sql/join-queries/) — the alternative approach to many of the same "related row" questions subqueries answer
+- [Aggregate Queries](/level-1-foundations/sql/aggregate-queries/) — the AVG/COUNT/MAX functions commonly used inside scalar and correlated subqueries
+- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including CTEs as a readability alternative to nested subqueries
