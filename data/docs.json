@@ -798,6 +798,398 @@
     "content": "00000000004 — binary floating point can't represent 0.1 exactly\r\n\r\nfrom decimal import Decimal\r\nDecimal(\"0.1\") + Decimal(\"0.2\")  # Decimal('0.3') — exact\r\n```\r\n\r\nFloats use binary floating-point representation, which can't exactly represent most decimal fractions — fine for scientific/statistical data where tiny rounding error doesn't matter, but risky for money or anything requiring exact decimal arithmetic. Use `Decimal` (constructed from strings, not floats, to avoid importing the float's own imprecision) for financial calculations, and be explicit about rounding rules rather than relying on default float behavior.\r\n</QuestionCard>\r\n\r\n</QuestionList>"
   },
   {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "## Basic SQL Syntax: Building the SELECT Statement Clause by Clause\n\n**A SELECT statement is assembled from a small set of clauses — SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER BY, and JOINs to pull in more than one table — and the order you write them in isn't the order the database actually evaluates them in, which is where most \"why doesn't this work\" confusion starts.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [SELECT](#select)\n- [FROM](#from)\n- [WHERE](#where)\n- [ORDER BY](#order-by)\n- [GROUP BY](#group-by)\n- [HAVING](#having)\n- [JOINs](#joins)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "## Key Concepts\n\nSQL is written in this order: `SELECT` → `FROM` → `WHERE` → `GROUP BY` → `HAVING` → `ORDER BY`. But it's **evaluated** in a different order: `FROM` (and any `JOIN`s) first, then `WHERE`, then `GROUP BY`, then `HAVING`, then `SELECT`, then `ORDER BY` last. That gap between written order and evaluation order explains a whole category of SQL surprises — why you can't reference a `SELECT`-list alias in `WHERE` (it doesn't exist yet at that point), why `HAVING` can filter on an aggregate but `WHERE` can't (the aggregate isn't computed until `GROUP BY` runs), and why `ORDER BY` is the one clause allowed to reference a `SELECT`-list alias (everything above it has already run).\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "## SELECT\n\n<QuestionList topic=\"SELECT\" storagePrefix=\"basic-sql-syntax-select\">\n\n<QuestionCard id=\"sel-01\" number={1} question=\"What does the SELECT clause do, and what can appear in its column list?\" difficulty=\"easy\" topic=\"SELECT\">\n`SELECT` specifies which columns (or computed expressions) appear in the result set. Its list can include column names, literal values, arithmetic expressions, function calls, and aggregate functions — anything that resolves to a single value per output row.\n</QuestionCard>\n\n<QuestionCard id=\"sel-02\" number={2} question=\"What is a column alias, and how do you define one?\" difficulty=\"easy\" topic=\"SELECT\">\nA column alias renames a column or expression in the output using `AS` (often optional): `SELECT price * quantity AS total`. It makes computed or awkwardly"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "-named columns readable in the result set, and most databases let `ORDER BY` reference it — though, notably, `WHERE` cannot, since `WHERE` runs before the `SELECT` list is evaluated.\n</QuestionCard>\n\n<QuestionCard id=\"sel-03\" number={3} question=\"What does SELECT DISTINCT do, and how is it different from a plain SELECT?\" difficulty=\"easy\" topic=\"SELECT\">\n`SELECT DISTINCT` removes duplicate rows from the result set, comparing the full combination of selected columns — two rows are only deduplicated if every selected column matches. A plain `SELECT` returns every row that satisfies the query, duplicates included.\n</QuestionCard>\n\n<QuestionCard id=\"sel-04\" number={4} question=\"What does SELECT * do, and why is it discouraged in production queries?\" difficulty=\"medium\" topic=\"SELECT\">\n`SELECT"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "*` returns every column in the table(s) referenced. It's discouraged in production because it transfers more data than usually needed, breaks silently if columns are added/removed/reordered upstream, and prevents the query planner from using certain optimizations (like an index-only scan) that are possible when only specific columns are requested.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "## FROM\n\n<QuestionList topic=\"FROM\" storagePrefix=\"basic-sql-syntax-from\">\n\n<QuestionCard id=\"frm-01\" number={1} question=\"What does the FROM clause specify?\" difficulty=\"easy\" topic=\"FROM\">\n`FROM` specifies which table (or tables, via `JOIN`) the query reads from. It's logically the first clause evaluated — the database has to know the source rows before it can filter, group, or select from them, regardless of the order the clauses are written in.\n</QuestionCard>\n\n<QuestionCard id=\"frm-02\" number={2} question=\"What is a table alias, and why use one?\" difficulty=\"easy\" topic=\"FROM\">\nA table alias is a short name assigned to a table for the rest of the query: `FROM employees e`. It's used to shorten repeated references, and it's required (not just convenient) once a query joins a table to i"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "tself or references the same table more than once, since the database needs a way to distinguish which instance a column reference belongs to.\n</QuestionCard>\n\n<QuestionCard id=\"frm-03\" number={3} question=\"What does a schema-qualified table name look like, and why would you need one?\" difficulty=\"medium\" topic=\"FROM\">\nA schema-qualified name prefixes the table with its schema: `analytics.orders` rather than just `orders`. It's needed when the same table name exists in more than one schema and the default search path would otherwise resolve it ambiguously, or simply to make a query's data source explicit and unambiguous regardless of the connection's default schema setting.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "## WHERE\n\n<QuestionList topic=\"WHERE\" storagePrefix=\"basic-sql-syntax-where\">\n\n<QuestionCard id=\"whr-01\" number={1} question=\"What does the WHERE clause do, and when in query execution is it evaluated?\" difficulty=\"easy\" topic=\"WHERE\">\n`WHERE` filters individual rows based on a condition, before any grouping happens. It's evaluated right after `FROM`/`JOIN` resolve the source rows and before `GROUP BY`, which is why it can only reference actual table columns — not aggregate results or `SELECT`-list aliases that don't exist yet at that point.\n</QuestionCard>\n\n<QuestionCard id=\"whr-02\" number={2} question=\"How do you combine multiple conditions in a WHERE clause?\" difficulty=\"easy\" topic=\"WHERE\">\nWith logical operators — `AND` (both must be true), `OR` (at least one must be true), and `NOT`"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "(inverts a condition) — and parentheses to make the intended grouping explicit, since `AND` binds tighter than `OR` by default.\n</QuestionCard>\n\n<QuestionCard id=\"whr-03\" number={3} question=\"Can you use a column alias defined in SELECT inside the WHERE clause?\" difficulty=\"medium\" topic=\"WHERE\">\nNo, in standard SQL you can't — `WHERE` is evaluated before the `SELECT` list, so the alias doesn't exist yet at that point in execution. To filter on a computed value, you either repeat the full expression in `WHERE`, or wrap the query in a subquery/CTE and filter in the outer query, where the alias is now a real column.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "## ORDER BY\n\n<QuestionList topic=\"ORDER BY\" storagePrefix=\"basic-sql-syntax-order-by\">\n\n<QuestionCard id=\"ord-01\" number={1} question=\"What does ORDER BY do, and what's the default sort direction?\" difficulty=\"easy\" topic=\"ORDER BY\">\n`ORDER BY` sorts the final result set by one or more columns or expressions. The default direction is ascending (`ASC`); `DESC` sorts descending. It's the last clause logically evaluated, which is why it's the only clause that can freely reference `SELECT`-list aliases.\n</QuestionCard>\n\n<QuestionCard id=\"ord-02\" number={2} question=\"How do you sort by multiple columns, and what does the ordering of columns in ORDER BY mean?\" difficulty=\"easy\" topic=\"ORDER BY\">\nList them comma-separated: `ORDER BY department, salary DESC`. The order matters — rows are sorted by"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "the first column, and only rows with equal values in that column get sorted by the second, and so on, exactly like a multi-level tiebreaker.\n</QuestionCard>\n\n<QuestionCard id=\"ord-03\" number={3} question=\"Can you ORDER BY a column that's not in the SELECT list?\" difficulty=\"medium\" topic=\"ORDER BY\">\nIn most databases, yes — as long as the column is available from the tables in `FROM`, you can sort by it without including it in the output. The one exception is when `DISTINCT` or `GROUP BY` is used: then `ORDER BY` is generally restricted to columns or expressions that also appear in the `SELECT` list, since sorting by something not part of the deduplicated/grouped output would be ambiguous.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "## GROUP BY\n\n<QuestionList topic=\"GROUP BY\" storagePrefix=\"basic-sql-syntax-group-by\">\n\n<QuestionCard id=\"grp-01\" number={1} question=\"What does GROUP BY do?\" difficulty=\"easy\" topic=\"GROUP BY\">\n`GROUP BY` collapses rows that share the same value(s) in the specified column(s) into a single output row per group, typically so aggregate functions (`COUNT`, `SUM`, `AVG`, etc.) can compute a summary value per group instead of across the whole table.\n</QuestionCard>\n\n<QuestionCard id=\"grp-02\" number={2} question=\"What rule governs which columns can appear in the SELECT list alongside GROUP BY?\" difficulty=\"medium\" topic=\"GROUP BY\">\nEvery column in the `SELECT` list must either be one of the `GROUP BY` columns, or be wrapped in an aggregate function. This is enforced because for any non-grouped,"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "non-aggregated column, the database would have no single, well-defined value to return for a group made up of multiple original rows.\n</QuestionCard>\n\n<QuestionCard id=\"grp-03\" number={3} question=\"Can you GROUP BY multiple columns, and what does that produce?\" difficulty=\"medium\" topic=\"GROUP BY\">\nYes — `GROUP BY department, job_title` groups rows by the unique combination of both columns, producing one output row per distinct `(department, job_title)` pair rather than per department alone. It's how you compute aggregates at a finer grain than a single column allows.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "## HAVING\n\n<QuestionList topic=\"HAVING\" storagePrefix=\"basic-sql-syntax-having\">\n\n<QuestionCard id=\"hav-01\" number={1} question=\"What does HAVING do, and how is it different from WHERE?\" difficulty=\"easy\" topic=\"HAVING\">\n`HAVING` filters *groups* after `GROUP BY` has produced them, and unlike `WHERE`, it can reference aggregate functions (`HAVING COUNT(*) > 5`). `WHERE` filters individual rows before grouping happens and cannot reference aggregates, because they haven't been computed yet at that point in execution.\n</QuestionCard>\n\n<QuestionCard id=\"hav-02\" number={2} question=\"Why can't you filter on an aggregate function's result using WHERE?\" difficulty=\"medium\" topic=\"HAVING\">\nBecause `WHERE` is evaluated before `GROUP BY` runs, at which point aggregate values (like a group's `COUNT` o"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "r `SUM`) don't exist yet — they're only computed once rows have been grouped. `HAVING` runs after grouping specifically so it has access to those computed aggregate values to filter on.\n</QuestionCard>\n\n<QuestionCard id=\"hav-03\" number={3} question=\"Can HAVING be used without GROUP BY?\" difficulty=\"hard\" topic=\"HAVING\">\nYes, in most databases — without a `GROUP BY`, the entire result set is treated as a single implicit group, so `HAVING` can filter based on an aggregate computed across all rows (e.g., `HAVING COUNT(*) > 100`), returning either the aggregated row or nothing at all.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "## JOINs\n\n<QuestionList topic=\"JOINs\" storagePrefix=\"basic-sql-syntax-joins\">\n\n<QuestionCard id=\"bjoin-01\" number={1} question=\"What is a JOIN, and why is it needed?\" difficulty=\"easy\" topic=\"JOINs\">\nA `JOIN` combines rows from two or more tables based on a related column, most often a foreign key matching a primary key. It's needed because relational databases deliberately split related data across tables rather than duplicating it, and a join is how a query reassembles that data at read time.\n</QuestionCard>\n\n<QuestionCard id=\"bjoin-02\" number={2} question=\"What's the difference between an implicit join (comma-separated FROM) and explicit JOIN...ON syntax?\" difficulty=\"medium\" topic=\"JOINs\">\n`FROM a, b WHERE a.id = b.a_id` (implicit) produces the same result as `FROM a JOIN b ON a.id = b"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": ".a_id` (explicit), but the explicit form is strongly preferred: it keeps the join condition visually separate from filtering conditions, makes the join type explicit (`INNER`, `LEFT`, etc.), and is much harder to get wrong by accidentally omitting the join condition and producing a Cartesian product.\n</QuestionCard>\n\n<QuestionCard id=\"bjoin-03\" number={3} question=\"What's the most common join type, and what does it return?\" difficulty=\"easy\" topic=\"JOINs\">\n`INNER JOIN` is the default and most common type — it returns only rows that have a match in both tables. Rows on either side without a corresponding match are excluded entirely, which is different from `LEFT`/`RIGHT`/`FULL OUTER JOIN`, which preserve unmatched rows from one or both sides with `NULL` filling the missing columns.\n</Questi"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "onCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "## Common Interview Scenarios\n\n- **\"Why does `WHERE COUNT(*) > 5` fail, but `HAVING COUNT(*) > 5` works?\"** Walk through the evaluation order — `WHERE` runs before aggregation, `HAVING` runs after — to explain why one has access to the aggregate and the other doesn't.\n- **\"Write a query that lists departments with more than 10 employees, sorted by employee count descending.\"** A natural prompt to combine `GROUP BY`, `HAVING`, and `ORDER BY` on an aggregate alias in one query.\n- **\"A junior engineer wrote `SELECT *` in a query that's now running slowly — what would you suggest?\"** Use it to explain the cost of `SELECT *`: unnecessary data transfer and lost optimizer options like index-only scans.\n- **\"Explain, clause by clause, what happens when this query runs\"** — given a query with `SELE"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "CT`, `FROM` with a `JOIN`, `WHERE`, `GROUP BY`, `HAVING`, and `ORDER BY` — walk through the actual evaluation order rather than the written order.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/basic-syntax/",
+    "locale": "en",
+    "title": "Basic SQL Syntax",
+    "description": "Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.",
+    "content": "## Further Reading\n\n- [SQL Operators](/level-1-foundations/sql/sql-operators/) — the comparison and logical operators that power WHERE and HAVING conditions\n- [SQL Keywords](/level-1-foundations/sql/sql-keywords/) — where SELECT and its clauses fit within the DDL/DML/DCL/TCL taxonomy\n- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including deeper JOIN types and subqueries"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "## Data Definition Language (DDL): Defining and Changing Schema\n\n**DDL is the set of commands that shape the database's structure — creating, altering, and removing tables and their constraints — and it behaves differently from ordinary data changes in ways that matter: DDL is often auto-committing, harder to safely roll back, and riskier to run against a live production table.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [CREATE TABLE](#create-table)\n- [ALTER TABLE](#alter-table)\n- [DROP TABLE](#drop-table)\n- [TRUNCATE TABLE](#truncate-table)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "## Key Concepts\n\nDDL commands — `CREATE`, `ALTER`, `DROP`, `TRUNCATE` — define and modify the *structure* of the database, not the data inside it (that's DML's job). A defining trait of DDL is that in most databases it **auto-commits**: unlike a `DELETE` or `UPDATE`, a `CREATE TABLE` or `DROP TABLE` typically can't be wrapped in a transaction and rolled back the same way (PostgreSQL is a notable exception — it supports transactional DDL). That makes DDL commands inherently higher-risk to run against production: `DROP TABLE` and `TRUNCATE TABLE` in particular are close to irreversible outside of a backup restore, which is why production schema changes are usually reviewed and run through migration tooling rather than typed ad hoc.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "## CREATE TABLE\n\n<QuestionList topic=\"CREATE TABLE\" storagePrefix=\"sql-ddl-create-table\">\n\n<QuestionCard id=\"ddl-ct-01\" number={1} question=\"What does CREATE TABLE do, and what can you define in it?\" difficulty=\"easy\" topic=\"CREATE TABLE\">\n`CREATE TABLE` defines a new table's structure: its columns, each column's data type, constraints (`PRIMARY KEY`, `FOREIGN KEY`, `NOT NULL`, `UNIQUE`, `CHECK`), and default values. Nothing about the table's data is specified here — only its shape, which every future `INSERT` into that table must conform to.\n</QuestionCard>\n\n<QuestionCard id=\"ddl-ct-02\" number={2} question=\"What's the syntax for defining a default value on a column?\" difficulty=\"easy\" topic=\"CREATE TABLE\">\n`DEFAULT` is specified after the column's type: `created_at TIMESTAMP DEFAULT CURRE"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "NT_TIMESTAMP`. If an `INSERT` doesn't provide a value for that column, the default is used automatically instead of leaving it `NULL` (unless the column also allows `NULL` and no default is set).\n</QuestionCard>\n\n<QuestionCard id=\"ddl-ct-03\" number={3} question=\"What does CREATE TABLE IF NOT EXISTS do, and why use it?\" difficulty=\"medium\" topic=\"CREATE TABLE\">\nIt creates the table only if a table with that name doesn't already exist, silently doing nothing (rather than throwing an error) if it does. It's useful in scripts or migrations that might run more than once, making the `CREATE TABLE` idempotent instead of failing on a second run.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "## ALTER TABLE\n\n<QuestionList topic=\"ALTER TABLE\" storagePrefix=\"sql-ddl-alter-table\">\n\n<QuestionCard id=\"ddl-at-01\" number={1} question=\"What does ALTER TABLE do, and what kinds of changes can it make?\" difficulty=\"easy\" topic=\"ALTER TABLE\">\n`ALTER TABLE` modifies an existing table's structure: adding a column (`ADD COLUMN`), dropping one (`DROP COLUMN`), changing a column's type or constraints (`ALTER COLUMN` / `MODIFY`), or renaming the table or a column. It changes structure only — existing data is preserved (and, where applicable, backfilled to fit the new structure).\n</QuestionCard>\n\n<QuestionCard id=\"ddl-at-02\" number={2} question=\"What happens to existing rows when you ADD COLUMN with a NOT NULL constraint and no default?\" difficulty=\"medium\" topic=\"ALTER TABLE\">\nIt fails — existin"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "g rows have no value for the new column, so a `NOT NULL` constraint with no default can't be satisfied for them. The usual fix is to add the column with a `DEFAULT` (so existing rows get backfilled automatically), or add it as nullable first, backfill values, then apply `NOT NULL` in a separate step.\n</QuestionCard>\n\n<QuestionCard id=\"ddl-at-03\" number={3} question=\"Why can ALTER TABLE be risky to run against a large, live production table?\" difficulty=\"hard\" topic=\"ALTER TABLE\">\nDepending on the database and the specific change, some `ALTER TABLE` operations rewrite the entire table (locking it, or at minimum consuming significant I/O) rather than making a cheap metadata-only change. On a large, high-traffic table, a blocking `ALTER TABLE` can cause a production outage — which is why many"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "teams use online schema-change tooling or specifically prefer changes their database can perform without a full table rewrite.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "## DROP TABLE\n\n<QuestionList topic=\"DROP TABLE\" storagePrefix=\"sql-ddl-drop-table\">\n\n<QuestionCard id=\"ddl-dt-01\" number={1} question=\"What does DROP TABLE do?\" difficulty=\"easy\" topic=\"DROP TABLE\">\n`DROP TABLE` permanently removes a table — its structure, all its data, and (depending on the database) its dependent objects like indexes — from the database. Unlike `DELETE`, there are no rows left afterward because the table itself no longer exists.\n</QuestionCard>\n\n<QuestionCard id=\"ddl-dt-02\" number={2} question=\"What happens if you try to DROP a table that other tables have foreign keys referencing?\" difficulty=\"medium\" topic=\"DROP TABLE\">\nBy default, the database blocks the drop to protect referential integrity — other tables' foreign keys would be left pointing at nothing. Some database"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "s support `DROP TABLE ... CASCADE`, which also drops the dependent foreign key constraints (or, in some systems, the dependent objects entirely) to force the operation through.\n</QuestionCard>\n\n<QuestionCard id=\"ddl-dt-03\" number={3} question=\"Can a DROP TABLE be rolled back?\" difficulty=\"medium\" topic=\"DROP TABLE\">\nIt depends on the database: PostgreSQL supports transactional DDL, so a `DROP TABLE` inside an explicit transaction can be rolled back if the transaction isn't committed. Many other databases (MySQL among them) auto-commit DDL, meaning the drop takes effect immediately and can't be undone by `ROLLBACK` — recovery would require restoring from a backup instead.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "## TRUNCATE TABLE\n\n<QuestionList topic=\"TRUNCATE TABLE\" storagePrefix=\"sql-ddl-truncate-table\">\n\n<QuestionCard id=\"ddl-tt-01\" number={1} question=\"What does TRUNCATE TABLE do?\" difficulty=\"easy\" topic=\"TRUNCATE TABLE\">\n`TRUNCATE TABLE` removes all rows from a table while keeping its structure (columns, constraints, indexes) intact — the table still exists afterward, just empty. It typically works by deallocating the table's data pages directly rather than deleting rows one at a time.\n</QuestionCard>\n\n<QuestionCard id=\"ddl-tt-02\" number={2} question=\"Why is TRUNCATE generally faster than DELETE with no WHERE clause?\" difficulty=\"medium\" topic=\"TRUNCATE TABLE\">\n`DELETE` removes rows one at a time, logging each individual row deletion (so it can be rolled back and so row-level triggers can fi"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "re), which has real overhead at large row counts. `TRUNCATE` deallocates the table's data pages as a single operation, generally logging far less and skipping row-level triggers, which makes it substantially faster for clearing a large table.\n</QuestionCard>\n\n<QuestionCard id=\"ddl-tt-03\" number={3} question=\"Can you TRUNCATE a table that's referenced by a foreign key from another table?\" difficulty=\"hard\" topic=\"TRUNCATE TABLE\">\nUsually not directly, for the same referential-integrity reason as `DROP TABLE` — truncating would leave other tables' foreign keys pointing at rows that no longer exist. Some databases require truncating the referencing table first, support `TRUNCATE ... CASCADE` to truncate dependent tables together, or simply disallow it if any row is actually referenced.\n</Ques"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "tionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "## Common Interview Scenarios\n\n- **\"What's the difference between DELETE, TRUNCATE, and DROP?\"** A very common opener — walk through category (`DELETE` is DML, `TRUNCATE`/`DROP` are DDL), what's removed (rows vs. all rows vs. the table itself), speed, and rollback behavior.\n- **\"You need to add a required (NOT NULL) column to a table with 10 million existing rows — how do you do it safely?\"** Talk through adding it nullable with a default first, backfilling in batches, then applying the `NOT NULL` constraint, rather than a single blocking `ALTER TABLE`.\n- **\"A teammate ran DROP TABLE on the wrong environment — what happens next, and how would you prevent it?\"** Discuss backup restoration as the realistic recovery path (since most databases auto-commit DDL), and prevention through environme"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "nt safeguards, permissions, and requiring DDL changes to go through reviewed migrations.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/ddl/",
+    "locale": "en",
+    "title": "Data Definition Language (DDL)",
+    "description": "Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.",
+    "content": "## Further Reading\n\n- [SQL Keywords](/level-1-foundations/sql/sql-keywords/) — where CREATE/ALTER/DROP/TRUNCATE fit within the DDL/DML/DCL/TCL taxonomy\n- [Data Manipulation Language (DML)](/level-1-foundations/sql/dml/) — the row-level counterpart to these schema-level commands\n- [SQL Data Types](/level-1-foundations/sql/sql-data-types/) — what actually gets declared per column inside CREATE TABLE"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "## Data Manipulation Language (DML): Inserting, Updating, and Deleting Rows\n\n**DML is the set of commands that change the data inside a table's existing structure — INSERT, UPDATE, DELETE — and unlike DDL, these are normal transactional operations: they can be batched together, rolled back, and safely undone as long as they haven't been committed yet.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [INSERT](#insert)\n- [UPDATE](#update)\n- [DELETE](#delete)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "## Key Concepts\n\nDML commands operate on rows within a table whose structure already exists — `INSERT` adds rows, `UPDATE` modifies existing rows, `DELETE` removes rows. All three participate normally in transactions: they can be grouped with `BEGIN`/`COMMIT`/`ROLLBACK`, and a mistake caught before commit can be undone cleanly. The single most common real-world DML mistake is also the simplest to avoid: running `UPDATE` or `DELETE` **without a `WHERE` clause**, which applies the change to every row in the table instead of the intended subset — which is why testing the equivalent `SELECT ... WHERE ...` first, before switching to `UPDATE`/`DELETE`, is standard practice.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "## INSERT\n\n<QuestionList topic=\"INSERT\" storagePrefix=\"sql-dml-insert\">\n\n<QuestionCard id=\"dml-ins-01\" number={1} question=\"What does INSERT do, and what's the basic syntax for adding a single row?\" difficulty=\"easy\" topic=\"INSERT\">\n`INSERT` adds new rows to a table. The basic form is `INSERT INTO table (col1, col2) VALUES (val1, val2)` — explicitly naming the columns being populated is safer than omitting them, since it doesn't depend on the table's column order staying the same over time.\n</QuestionCard>\n\n<QuestionCard id=\"dml-ins-02\" number={2} question=\"How do you insert multiple rows in a single statement?\" difficulty=\"easy\" topic=\"INSERT\">\nList multiple value tuples separated by commas: `INSERT INTO table (col1, col2) VALUES (a1, a2), (b1, b2), (c1, c2)`. A single multi-row `INSERT`"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "is typically much faster than the same number of single-row `INSERT` statements, since it avoids per-statement overhead.\n</QuestionCard>\n\n<QuestionCard id=\"dml-ins-03\" number={3} question=\"What is the INSERT ... SELECT pattern, and when would you use it?\" difficulty=\"medium\" topic=\"INSERT\">\n`INSERT INTO target (cols) SELECT cols FROM source WHERE ...` inserts rows produced by a query instead of a literal `VALUES` list. It's used to copy or migrate data between tables, populate a summary/staging table from a larger source, or archive rows into a separate table before deleting them from the original.\n</QuestionCard>\n\n<QuestionCard id=\"dml-ins-04\" number={4} question=\"What happens if an INSERT violates a constraint, like a duplicate primary key or a NOT NULL column left unspecified?\" difficul"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "ty=\"medium\" topic=\"INSERT\">\nThe database rejects the entire `INSERT` with a constraint-violation error, and no row is added — it doesn't partially insert with the violating column left blank. In a multi-row `INSERT`, whether the *whole statement* fails or only the offending row is skipped depends on the database and any `ON CONFLICT`/`ON DUPLICATE KEY` clause used.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "## UPDATE\n\n<QuestionList topic=\"UPDATE\" storagePrefix=\"sql-dml-update\">\n\n<QuestionCard id=\"dml-upd-01\" number={1} question=\"What does UPDATE do, and why must it almost always be paired with WHERE?\" difficulty=\"easy\" topic=\"UPDATE\">\n`UPDATE` modifies the values of existing rows in a table. Without a `WHERE` clause, it applies to **every row in the table** — a `WHERE` clause is what scopes the change to the specific rows intended. Omitting it by accident is one of the most common and most damaging SQL mistakes in production.\n</QuestionCard>\n\n<QuestionCard id=\"dml-upd-02\" number={2} question=\"Can you update multiple columns in a single UPDATE statement?\" difficulty=\"easy\" topic=\"UPDATE\">\nYes — comma-separate the assignments: `UPDATE employees SET salary = salary * 1.1, updated_at = CURRENT_TI"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "MESTAMP WHERE department_id = 2`. All assignments in one statement are applied together as part of the same atomic change.\n</QuestionCard>\n\n<QuestionCard id=\"dml-upd-03\" number={3} question=\"What's a safe practice for testing an UPDATE before running it against production data?\" difficulty=\"medium\" topic=\"UPDATE\">\nRun the equivalent `SELECT * FROM table WHERE <same condition>` first, and check that it returns exactly the rows you intend to change. Once confirmed, swap `SELECT *` for the `UPDATE ... SET ...` with the identical `WHERE` clause, so the scoping has already been verified before any data changes.\n</QuestionCard>\n\n<QuestionCard id=\"dml-upd-04\" number={4} question=\"Can an UPDATE reference the table's current values as part of the new value, and can it join another table?\" difficult"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "y=\"medium\" topic=\"UPDATE\">\nYes to both. `SET salary = salary * 1.1` reads the current value of `salary` before overwriting it. Most databases also support updating based on a join to another table (syntax varies — `UPDATE ... FROM ...` in PostgreSQL, `UPDATE ... JOIN ...` in MySQL), letting you set a column's value based on data that lives in a different table.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "## DELETE\n\n<QuestionList topic=\"DELETE\" storagePrefix=\"sql-dml-delete\">\n\n<QuestionCard id=\"dml-del-01\" number={1} question=\"What does DELETE do, and how is it scoped?\" difficulty=\"easy\" topic=\"DELETE\">\n`DELETE FROM table WHERE condition` removes rows matching the condition. Like `UPDATE`, omitting `WHERE` deletes every row in the table — the table itself still exists afterward, just empty, which is one way it differs from `DROP TABLE`.\n</QuestionCard>\n\n<QuestionCard id=\"dml-del-02\" number={2} question=\"What are the differences between DELETE, TRUNCATE, and DROP?\" difficulty=\"medium\" topic=\"DELETE\">\n`DELETE` is DML: it removes specific rows (filterable with `WHERE`), can be rolled back within a transaction, and fires row-level triggers. `TRUNCATE` is DDL: it removes all rows at once by deal"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "locating data pages, is faster, but typically can't be filtered and may auto-commit. `DROP` is also DDL: it removes the table entirely, structure included, not just the rows.\n</QuestionCard>\n\n<QuestionCard id=\"dml-del-03\" number={3} question=\"How does a DELETE interact with a foreign key relationship?\" difficulty=\"medium\" topic=\"DELETE\">\nBy default, deleting a row that other rows still reference via a foreign key is blocked to preserve referential integrity. Depending on how the foreign key was defined, it may instead cascade (`ON DELETE CASCADE` — dependent rows are deleted too), set the reference to `NULL` (`ON DELETE SET NULL`), or explicitly restrict the delete (`ON DELETE RESTRICT`, the implicit default).\n</QuestionCard>\n\n<QuestionCard id=\"dml-del-04\" number={4} question=\"Can a DELETE"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "be rolled back?\" difficulty=\"easy\" topic=\"DELETE\">\nYes — unlike most DDL, `DELETE` is a normal transactional DML operation. Inside an explicit transaction, a `DELETE` can be undone with `ROLLBACK` as long as the transaction hasn't been committed yet. Once committed, undoing it requires restoring from a backup or replaying an audit log, not `ROLLBACK`.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "## Common Interview Scenarios\n\n- **\"Someone ran an UPDATE without a WHERE clause on a production table — walk me through what you'd do.\"** Cover immediate transaction rollback if still open, restoring from backup/point-in-time recovery if already committed, and the process fix (mandatory `SELECT` dry-run, code review on migrations) to prevent recurrence.\n- **\"Write a query to insert a row into an orders table only if a matching order doesn't already exist.\"** A natural prompt for `INSERT ... SELECT ... WHERE NOT EXISTS (...)` or an `ON CONFLICT DO NOTHING`/`ON DUPLICATE KEY` clause, depending on the database.\n- **\"How would you archive and remove all orders older than 2 years?\"** Walk through `INSERT INTO archive_orders SELECT * FROM orders WHERE order_date < ...` followed by a matching `D"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "ELETE FROM orders WHERE order_date < ...` in the same transaction, so the archive and removal stay consistent.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/dml/",
+    "locale": "en",
+    "title": "Data Manipulation Language (DML)",
+    "description": "Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.",
+    "content": "## Further Reading\n\n- [Data Definition Language (DDL)](/level-1-foundations/sql/ddl/) — the schema-level counterpart to these row-level commands\n- [SQL Keywords](/level-1-foundations/sql/sql-keywords/) — where INSERT/UPDATE/DELETE fit within the DDL/DML/DCL/TCL taxonomy\n- [Basic SQL Syntax](/level-1-foundations/sql/basic-syntax/) — the SELECT-side counterpart: reading data instead of changing it"
+  },
+  {
     "path": "/level-1-foundations/sql/index/",
     "locale": "en",
     "title": "",

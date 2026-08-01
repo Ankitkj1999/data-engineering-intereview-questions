@@ -1,0 +1,113 @@
+---
+title: Data Manipulation Language (DML)
+description: Interview questions on SQL DML — INSERT, UPDATE, and DELETE — multi-row patterns, safe update/delete practices, and transactional behavior.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Data Manipulation Language (DML): Inserting, Updating, and Deleting Rows
+
+**DML is the set of commands that change the data inside a table's existing structure — INSERT, UPDATE, DELETE — and unlike DDL, these are normal transactional operations: they can be batched together, rolled back, and safely undone as long as they haven't been committed yet.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [INSERT](#insert)
+- [UPDATE](#update)
+- [DELETE](#delete)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+DML commands operate on rows within a table whose structure already exists — `INSERT` adds rows, `UPDATE` modifies existing rows, `DELETE` removes rows. All three participate normally in transactions: they can be grouped with `BEGIN`/`COMMIT`/`ROLLBACK`, and a mistake caught before commit can be undone cleanly. The single most common real-world DML mistake is also the simplest to avoid: running `UPDATE` or `DELETE` **without a `WHERE` clause**, which applies the change to every row in the table instead of the intended subset — which is why testing the equivalent `SELECT ... WHERE ...` first, before switching to `UPDATE`/`DELETE`, is standard practice.
+
+---
+
+## INSERT
+
+<QuestionList topic="INSERT" storagePrefix="sql-dml-insert">
+
+<QuestionCard id="dml-ins-01" number={1} question="What does INSERT do, and what's the basic syntax for adding a single row?" difficulty="easy" topic="INSERT">
+`INSERT` adds new rows to a table. The basic form is `INSERT INTO table (col1, col2) VALUES (val1, val2)` — explicitly naming the columns being populated is safer than omitting them, since it doesn't depend on the table's column order staying the same over time.
+</QuestionCard>
+
+<QuestionCard id="dml-ins-02" number={2} question="How do you insert multiple rows in a single statement?" difficulty="easy" topic="INSERT">
+List multiple value tuples separated by commas: `INSERT INTO table (col1, col2) VALUES (a1, a2), (b1, b2), (c1, c2)`. A single multi-row `INSERT` is typically much faster than the same number of single-row `INSERT` statements, since it avoids per-statement overhead.
+</QuestionCard>
+
+<QuestionCard id="dml-ins-03" number={3} question="What is the INSERT ... SELECT pattern, and when would you use it?" difficulty="medium" topic="INSERT">
+`INSERT INTO target (cols) SELECT cols FROM source WHERE ...` inserts rows produced by a query instead of a literal `VALUES` list. It's used to copy or migrate data between tables, populate a summary/staging table from a larger source, or archive rows into a separate table before deleting them from the original.
+</QuestionCard>
+
+<QuestionCard id="dml-ins-04" number={4} question="What happens if an INSERT violates a constraint, like a duplicate primary key or a NOT NULL column left unspecified?" difficulty="medium" topic="INSERT">
+The database rejects the entire `INSERT` with a constraint-violation error, and no row is added — it doesn't partially insert with the violating column left blank. In a multi-row `INSERT`, whether the *whole statement* fails or only the offending row is skipped depends on the database and any `ON CONFLICT`/`ON DUPLICATE KEY` clause used.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## UPDATE
+
+<QuestionList topic="UPDATE" storagePrefix="sql-dml-update">
+
+<QuestionCard id="dml-upd-01" number={1} question="What does UPDATE do, and why must it almost always be paired with WHERE?" difficulty="easy" topic="UPDATE">
+`UPDATE` modifies the values of existing rows in a table. Without a `WHERE` clause, it applies to **every row in the table** — a `WHERE` clause is what scopes the change to the specific rows intended. Omitting it by accident is one of the most common and most damaging SQL mistakes in production.
+</QuestionCard>
+
+<QuestionCard id="dml-upd-02" number={2} question="Can you update multiple columns in a single UPDATE statement?" difficulty="easy" topic="UPDATE">
+Yes — comma-separate the assignments: `UPDATE employees SET salary = salary * 1.1, updated_at = CURRENT_TIMESTAMP WHERE department_id = 2`. All assignments in one statement are applied together as part of the same atomic change.
+</QuestionCard>
+
+<QuestionCard id="dml-upd-03" number={3} question="What's a safe practice for testing an UPDATE before running it against production data?" difficulty="medium" topic="UPDATE">
+Run the equivalent `SELECT * FROM table WHERE <same condition>` first, and check that it returns exactly the rows you intend to change. Once confirmed, swap `SELECT *` for the `UPDATE ... SET ...` with the identical `WHERE` clause, so the scoping has already been verified before any data changes.
+</QuestionCard>
+
+<QuestionCard id="dml-upd-04" number={4} question="Can an UPDATE reference the table's current values as part of the new value, and can it join another table?" difficulty="medium" topic="UPDATE">
+Yes to both. `SET salary = salary * 1.1` reads the current value of `salary` before overwriting it. Most databases also support updating based on a join to another table (syntax varies — `UPDATE ... FROM ...` in PostgreSQL, `UPDATE ... JOIN ...` in MySQL), letting you set a column's value based on data that lives in a different table.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## DELETE
+
+<QuestionList topic="DELETE" storagePrefix="sql-dml-delete">
+
+<QuestionCard id="dml-del-01" number={1} question="What does DELETE do, and how is it scoped?" difficulty="easy" topic="DELETE">
+`DELETE FROM table WHERE condition` removes rows matching the condition. Like `UPDATE`, omitting `WHERE` deletes every row in the table — the table itself still exists afterward, just empty, which is one way it differs from `DROP TABLE`.
+</QuestionCard>
+
+<QuestionCard id="dml-del-02" number={2} question="What are the differences between DELETE, TRUNCATE, and DROP?" difficulty="medium" topic="DELETE">
+`DELETE` is DML: it removes specific rows (filterable with `WHERE`), can be rolled back within a transaction, and fires row-level triggers. `TRUNCATE` is DDL: it removes all rows at once by deallocating data pages, is faster, but typically can't be filtered and may auto-commit. `DROP` is also DDL: it removes the table entirely, structure included, not just the rows.
+</QuestionCard>
+
+<QuestionCard id="dml-del-03" number={3} question="How does a DELETE interact with a foreign key relationship?" difficulty="medium" topic="DELETE">
+By default, deleting a row that other rows still reference via a foreign key is blocked to preserve referential integrity. Depending on how the foreign key was defined, it may instead cascade (`ON DELETE CASCADE` — dependent rows are deleted too), set the reference to `NULL` (`ON DELETE SET NULL`), or explicitly restrict the delete (`ON DELETE RESTRICT`, the implicit default).
+</QuestionCard>
+
+<QuestionCard id="dml-del-04" number={4} question="Can a DELETE be rolled back?" difficulty="easy" topic="DELETE">
+Yes — unlike most DDL, `DELETE` is a normal transactional DML operation. Inside an explicit transaction, a `DELETE` can be undone with `ROLLBACK` as long as the transaction hasn't been committed yet. Once committed, undoing it requires restoring from a backup or replaying an audit log, not `ROLLBACK`.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Someone ran an UPDATE without a WHERE clause on a production table — walk me through what you'd do."** Cover immediate transaction rollback if still open, restoring from backup/point-in-time recovery if already committed, and the process fix (mandatory `SELECT` dry-run, code review on migrations) to prevent recurrence.
+- **"Write a query to insert a row into an orders table only if a matching order doesn't already exist."** A natural prompt for `INSERT ... SELECT ... WHERE NOT EXISTS (...)` or an `ON CONFLICT DO NOTHING`/`ON DUPLICATE KEY` clause, depending on the database.
+- **"How would you archive and remove all orders older than 2 years?"** Walk through `INSERT INTO archive_orders SELECT * FROM orders WHERE order_date < ...` followed by a matching `DELETE FROM orders WHERE order_date < ...` in the same transaction, so the archive and removal stay consistent.
+
+---
+
+## Further Reading
+
+- [Data Definition Language (DDL)](/level-1-foundations/sql/ddl/) — the schema-level counterpart to these row-level commands
+- [SQL Keywords](/level-1-foundations/sql/sql-keywords/) — where INSERT/UPDATE/DELETE fit within the DDL/DML/DCL/TCL taxonomy
+- [Basic SQL Syntax](/level-1-foundations/sql/basic-syntax/) — the SELECT-side counterpart: reading data instead of changing it

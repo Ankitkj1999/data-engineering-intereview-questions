@@ -1,0 +1,122 @@
+---
+title: Data Definition Language (DDL)
+description: Interview questions on SQL DDL — CREATE TABLE, ALTER TABLE, DROP TABLE, and TRUNCATE TABLE — and how each affects schema, data, and transactions.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Data Definition Language (DDL): Defining and Changing Schema
+
+**DDL is the set of commands that shape the database's structure — creating, altering, and removing tables and their constraints — and it behaves differently from ordinary data changes in ways that matter: DDL is often auto-committing, harder to safely roll back, and riskier to run against a live production table.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [CREATE TABLE](#create-table)
+- [ALTER TABLE](#alter-table)
+- [DROP TABLE](#drop-table)
+- [TRUNCATE TABLE](#truncate-table)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+DDL commands — `CREATE`, `ALTER`, `DROP`, `TRUNCATE` — define and modify the *structure* of the database, not the data inside it (that's DML's job). A defining trait of DDL is that in most databases it **auto-commits**: unlike a `DELETE` or `UPDATE`, a `CREATE TABLE` or `DROP TABLE` typically can't be wrapped in a transaction and rolled back the same way (PostgreSQL is a notable exception — it supports transactional DDL). That makes DDL commands inherently higher-risk to run against production: `DROP TABLE` and `TRUNCATE TABLE` in particular are close to irreversible outside of a backup restore, which is why production schema changes are usually reviewed and run through migration tooling rather than typed ad hoc.
+
+---
+
+## CREATE TABLE
+
+<QuestionList topic="CREATE TABLE" storagePrefix="sql-ddl-create-table">
+
+<QuestionCard id="ddl-ct-01" number={1} question="What does CREATE TABLE do, and what can you define in it?" difficulty="easy" topic="CREATE TABLE">
+`CREATE TABLE` defines a new table's structure: its columns, each column's data type, constraints (`PRIMARY KEY`, `FOREIGN KEY`, `NOT NULL`, `UNIQUE`, `CHECK`), and default values. Nothing about the table's data is specified here — only its shape, which every future `INSERT` into that table must conform to.
+</QuestionCard>
+
+<QuestionCard id="ddl-ct-02" number={2} question="What's the syntax for defining a default value on a column?" difficulty="easy" topic="CREATE TABLE">
+`DEFAULT` is specified after the column's type: `created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`. If an `INSERT` doesn't provide a value for that column, the default is used automatically instead of leaving it `NULL` (unless the column also allows `NULL` and no default is set).
+</QuestionCard>
+
+<QuestionCard id="ddl-ct-03" number={3} question="What does CREATE TABLE IF NOT EXISTS do, and why use it?" difficulty="medium" topic="CREATE TABLE">
+It creates the table only if a table with that name doesn't already exist, silently doing nothing (rather than throwing an error) if it does. It's useful in scripts or migrations that might run more than once, making the `CREATE TABLE` idempotent instead of failing on a second run.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## ALTER TABLE
+
+<QuestionList topic="ALTER TABLE" storagePrefix="sql-ddl-alter-table">
+
+<QuestionCard id="ddl-at-01" number={1} question="What does ALTER TABLE do, and what kinds of changes can it make?" difficulty="easy" topic="ALTER TABLE">
+`ALTER TABLE` modifies an existing table's structure: adding a column (`ADD COLUMN`), dropping one (`DROP COLUMN`), changing a column's type or constraints (`ALTER COLUMN` / `MODIFY`), or renaming the table or a column. It changes structure only — existing data is preserved (and, where applicable, backfilled to fit the new structure).
+</QuestionCard>
+
+<QuestionCard id="ddl-at-02" number={2} question="What happens to existing rows when you ADD COLUMN with a NOT NULL constraint and no default?" difficulty="medium" topic="ALTER TABLE">
+It fails — existing rows have no value for the new column, so a `NOT NULL` constraint with no default can't be satisfied for them. The usual fix is to add the column with a `DEFAULT` (so existing rows get backfilled automatically), or add it as nullable first, backfill values, then apply `NOT NULL` in a separate step.
+</QuestionCard>
+
+<QuestionCard id="ddl-at-03" number={3} question="Why can ALTER TABLE be risky to run against a large, live production table?" difficulty="hard" topic="ALTER TABLE">
+Depending on the database and the specific change, some `ALTER TABLE` operations rewrite the entire table (locking it, or at minimum consuming significant I/O) rather than making a cheap metadata-only change. On a large, high-traffic table, a blocking `ALTER TABLE` can cause a production outage — which is why many teams use online schema-change tooling or specifically prefer changes their database can perform without a full table rewrite.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## DROP TABLE
+
+<QuestionList topic="DROP TABLE" storagePrefix="sql-ddl-drop-table">
+
+<QuestionCard id="ddl-dt-01" number={1} question="What does DROP TABLE do?" difficulty="easy" topic="DROP TABLE">
+`DROP TABLE` permanently removes a table — its structure, all its data, and (depending on the database) its dependent objects like indexes — from the database. Unlike `DELETE`, there are no rows left afterward because the table itself no longer exists.
+</QuestionCard>
+
+<QuestionCard id="ddl-dt-02" number={2} question="What happens if you try to DROP a table that other tables have foreign keys referencing?" difficulty="medium" topic="DROP TABLE">
+By default, the database blocks the drop to protect referential integrity — other tables' foreign keys would be left pointing at nothing. Some databases support `DROP TABLE ... CASCADE`, which also drops the dependent foreign key constraints (or, in some systems, the dependent objects entirely) to force the operation through.
+</QuestionCard>
+
+<QuestionCard id="ddl-dt-03" number={3} question="Can a DROP TABLE be rolled back?" difficulty="medium" topic="DROP TABLE">
+It depends on the database: PostgreSQL supports transactional DDL, so a `DROP TABLE` inside an explicit transaction can be rolled back if the transaction isn't committed. Many other databases (MySQL among them) auto-commit DDL, meaning the drop takes effect immediately and can't be undone by `ROLLBACK` — recovery would require restoring from a backup instead.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## TRUNCATE TABLE
+
+<QuestionList topic="TRUNCATE TABLE" storagePrefix="sql-ddl-truncate-table">
+
+<QuestionCard id="ddl-tt-01" number={1} question="What does TRUNCATE TABLE do?" difficulty="easy" topic="TRUNCATE TABLE">
+`TRUNCATE TABLE` removes all rows from a table while keeping its structure (columns, constraints, indexes) intact — the table still exists afterward, just empty. It typically works by deallocating the table's data pages directly rather than deleting rows one at a time.
+</QuestionCard>
+
+<QuestionCard id="ddl-tt-02" number={2} question="Why is TRUNCATE generally faster than DELETE with no WHERE clause?" difficulty="medium" topic="TRUNCATE TABLE">
+`DELETE` removes rows one at a time, logging each individual row deletion (so it can be rolled back and so row-level triggers can fire), which has real overhead at large row counts. `TRUNCATE` deallocates the table's data pages as a single operation, generally logging far less and skipping row-level triggers, which makes it substantially faster for clearing a large table.
+</QuestionCard>
+
+<QuestionCard id="ddl-tt-03" number={3} question="Can you TRUNCATE a table that's referenced by a foreign key from another table?" difficulty="hard" topic="TRUNCATE TABLE">
+Usually not directly, for the same referential-integrity reason as `DROP TABLE` — truncating would leave other tables' foreign keys pointing at rows that no longer exist. Some databases require truncating the referencing table first, support `TRUNCATE ... CASCADE` to truncate dependent tables together, or simply disallow it if any row is actually referenced.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"What's the difference between DELETE, TRUNCATE, and DROP?"** A very common opener — walk through category (`DELETE` is DML, `TRUNCATE`/`DROP` are DDL), what's removed (rows vs. all rows vs. the table itself), speed, and rollback behavior.
+- **"You need to add a required (NOT NULL) column to a table with 10 million existing rows — how do you do it safely?"** Talk through adding it nullable with a default first, backfilling in batches, then applying the `NOT NULL` constraint, rather than a single blocking `ALTER TABLE`.
+- **"A teammate ran DROP TABLE on the wrong environment — what happens next, and how would you prevent it?"** Discuss backup restoration as the realistic recovery path (since most databases auto-commit DDL), and prevention through environment safeguards, permissions, and requiring DDL changes to go through reviewed migrations.
+
+---
+
+## Further Reading
+
+- [SQL Keywords](/level-1-foundations/sql/sql-keywords/) — where CREATE/ALTER/DROP/TRUNCATE fit within the DDL/DML/DCL/TCL taxonomy
+- [Data Manipulation Language (DML)](/level-1-foundations/sql/dml/) — the row-level counterpart to these schema-level commands
+- [SQL Data Types](/level-1-foundations/sql/sql-data-types/) — what actually gets declared per column inside CREATE TABLE

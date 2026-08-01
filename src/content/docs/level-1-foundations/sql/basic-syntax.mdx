@@ -1,0 +1,190 @@
+---
+title: Basic SQL Syntax
+description: Interview questions on basic SQL syntax — SELECT, FROM, WHERE, ORDER BY, GROUP BY, HAVING, and JOINs — and the order SQL actually evaluates them in.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Basic SQL Syntax: Building the SELECT Statement Clause by Clause
+
+**A SELECT statement is assembled from a small set of clauses — SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER BY, and JOINs to pull in more than one table — and the order you write them in isn't the order the database actually evaluates them in, which is where most "why doesn't this work" confusion starts.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [SELECT](#select)
+- [FROM](#from)
+- [WHERE](#where)
+- [ORDER BY](#order-by)
+- [GROUP BY](#group-by)
+- [HAVING](#having)
+- [JOINs](#joins)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+SQL is written in this order: `SELECT` → `FROM` → `WHERE` → `GROUP BY` → `HAVING` → `ORDER BY`. But it's **evaluated** in a different order: `FROM` (and any `JOIN`s) first, then `WHERE`, then `GROUP BY`, then `HAVING`, then `SELECT`, then `ORDER BY` last. That gap between written order and evaluation order explains a whole category of SQL surprises — why you can't reference a `SELECT`-list alias in `WHERE` (it doesn't exist yet at that point), why `HAVING` can filter on an aggregate but `WHERE` can't (the aggregate isn't computed until `GROUP BY` runs), and why `ORDER BY` is the one clause allowed to reference a `SELECT`-list alias (everything above it has already run).
+
+---
+
+## SELECT
+
+<QuestionList topic="SELECT" storagePrefix="basic-sql-syntax-select">
+
+<QuestionCard id="sel-01" number={1} question="What does the SELECT clause do, and what can appear in its column list?" difficulty="easy" topic="SELECT">
+`SELECT` specifies which columns (or computed expressions) appear in the result set. Its list can include column names, literal values, arithmetic expressions, function calls, and aggregate functions — anything that resolves to a single value per output row.
+</QuestionCard>
+
+<QuestionCard id="sel-02" number={2} question="What is a column alias, and how do you define one?" difficulty="easy" topic="SELECT">
+A column alias renames a column or expression in the output using `AS` (often optional): `SELECT price * quantity AS total`. It makes computed or awkwardly-named columns readable in the result set, and most databases let `ORDER BY` reference it — though, notably, `WHERE` cannot, since `WHERE` runs before the `SELECT` list is evaluated.
+</QuestionCard>
+
+<QuestionCard id="sel-03" number={3} question="What does SELECT DISTINCT do, and how is it different from a plain SELECT?" difficulty="easy" topic="SELECT">
+`SELECT DISTINCT` removes duplicate rows from the result set, comparing the full combination of selected columns — two rows are only deduplicated if every selected column matches. A plain `SELECT` returns every row that satisfies the query, duplicates included.
+</QuestionCard>
+
+<QuestionCard id="sel-04" number={4} question="What does SELECT * do, and why is it discouraged in production queries?" difficulty="medium" topic="SELECT">
+`SELECT *` returns every column in the table(s) referenced. It's discouraged in production because it transfers more data than usually needed, breaks silently if columns are added/removed/reordered upstream, and prevents the query planner from using certain optimizations (like an index-only scan) that are possible when only specific columns are requested.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## FROM
+
+<QuestionList topic="FROM" storagePrefix="basic-sql-syntax-from">
+
+<QuestionCard id="frm-01" number={1} question="What does the FROM clause specify?" difficulty="easy" topic="FROM">
+`FROM` specifies which table (or tables, via `JOIN`) the query reads from. It's logically the first clause evaluated — the database has to know the source rows before it can filter, group, or select from them, regardless of the order the clauses are written in.
+</QuestionCard>
+
+<QuestionCard id="frm-02" number={2} question="What is a table alias, and why use one?" difficulty="easy" topic="FROM">
+A table alias is a short name assigned to a table for the rest of the query: `FROM employees e`. It's used to shorten repeated references, and it's required (not just convenient) once a query joins a table to itself or references the same table more than once, since the database needs a way to distinguish which instance a column reference belongs to.
+</QuestionCard>
+
+<QuestionCard id="frm-03" number={3} question="What does a schema-qualified table name look like, and why would you need one?" difficulty="medium" topic="FROM">
+A schema-qualified name prefixes the table with its schema: `analytics.orders` rather than just `orders`. It's needed when the same table name exists in more than one schema and the default search path would otherwise resolve it ambiguously, or simply to make a query's data source explicit and unambiguous regardless of the connection's default schema setting.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## WHERE
+
+<QuestionList topic="WHERE" storagePrefix="basic-sql-syntax-where">
+
+<QuestionCard id="whr-01" number={1} question="What does the WHERE clause do, and when in query execution is it evaluated?" difficulty="easy" topic="WHERE">
+`WHERE` filters individual rows based on a condition, before any grouping happens. It's evaluated right after `FROM`/`JOIN` resolve the source rows and before `GROUP BY`, which is why it can only reference actual table columns — not aggregate results or `SELECT`-list aliases that don't exist yet at that point.
+</QuestionCard>
+
+<QuestionCard id="whr-02" number={2} question="How do you combine multiple conditions in a WHERE clause?" difficulty="easy" topic="WHERE">
+With logical operators — `AND` (both must be true), `OR` (at least one must be true), and `NOT` (inverts a condition) — and parentheses to make the intended grouping explicit, since `AND` binds tighter than `OR` by default.
+</QuestionCard>
+
+<QuestionCard id="whr-03" number={3} question="Can you use a column alias defined in SELECT inside the WHERE clause?" difficulty="medium" topic="WHERE">
+No, in standard SQL you can't — `WHERE` is evaluated before the `SELECT` list, so the alias doesn't exist yet at that point in execution. To filter on a computed value, you either repeat the full expression in `WHERE`, or wrap the query in a subquery/CTE and filter in the outer query, where the alias is now a real column.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## ORDER BY
+
+<QuestionList topic="ORDER BY" storagePrefix="basic-sql-syntax-order-by">
+
+<QuestionCard id="ord-01" number={1} question="What does ORDER BY do, and what's the default sort direction?" difficulty="easy" topic="ORDER BY">
+`ORDER BY` sorts the final result set by one or more columns or expressions. The default direction is ascending (`ASC`); `DESC` sorts descending. It's the last clause logically evaluated, which is why it's the only clause that can freely reference `SELECT`-list aliases.
+</QuestionCard>
+
+<QuestionCard id="ord-02" number={2} question="How do you sort by multiple columns, and what does the ordering of columns in ORDER BY mean?" difficulty="easy" topic="ORDER BY">
+List them comma-separated: `ORDER BY department, salary DESC`. The order matters — rows are sorted by the first column, and only rows with equal values in that column get sorted by the second, and so on, exactly like a multi-level tiebreaker.
+</QuestionCard>
+
+<QuestionCard id="ord-03" number={3} question="Can you ORDER BY a column that's not in the SELECT list?" difficulty="medium" topic="ORDER BY">
+In most databases, yes — as long as the column is available from the tables in `FROM`, you can sort by it without including it in the output. The one exception is when `DISTINCT` or `GROUP BY` is used: then `ORDER BY` is generally restricted to columns or expressions that also appear in the `SELECT` list, since sorting by something not part of the deduplicated/grouped output would be ambiguous.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## GROUP BY
+
+<QuestionList topic="GROUP BY" storagePrefix="basic-sql-syntax-group-by">
+
+<QuestionCard id="grp-01" number={1} question="What does GROUP BY do?" difficulty="easy" topic="GROUP BY">
+`GROUP BY` collapses rows that share the same value(s) in the specified column(s) into a single output row per group, typically so aggregate functions (`COUNT`, `SUM`, `AVG`, etc.) can compute a summary value per group instead of across the whole table.
+</QuestionCard>
+
+<QuestionCard id="grp-02" number={2} question="What rule governs which columns can appear in the SELECT list alongside GROUP BY?" difficulty="medium" topic="GROUP BY">
+Every column in the `SELECT` list must either be one of the `GROUP BY` columns, or be wrapped in an aggregate function. This is enforced because for any non-grouped, non-aggregated column, the database would have no single, well-defined value to return for a group made up of multiple original rows.
+</QuestionCard>
+
+<QuestionCard id="grp-03" number={3} question="Can you GROUP BY multiple columns, and what does that produce?" difficulty="medium" topic="GROUP BY">
+Yes — `GROUP BY department, job_title` groups rows by the unique combination of both columns, producing one output row per distinct `(department, job_title)` pair rather than per department alone. It's how you compute aggregates at a finer grain than a single column allows.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## HAVING
+
+<QuestionList topic="HAVING" storagePrefix="basic-sql-syntax-having">
+
+<QuestionCard id="hav-01" number={1} question="What does HAVING do, and how is it different from WHERE?" difficulty="easy" topic="HAVING">
+`HAVING` filters *groups* after `GROUP BY` has produced them, and unlike `WHERE`, it can reference aggregate functions (`HAVING COUNT(*) > 5`). `WHERE` filters individual rows before grouping happens and cannot reference aggregates, because they haven't been computed yet at that point in execution.
+</QuestionCard>
+
+<QuestionCard id="hav-02" number={2} question="Why can't you filter on an aggregate function's result using WHERE?" difficulty="medium" topic="HAVING">
+Because `WHERE` is evaluated before `GROUP BY` runs, at which point aggregate values (like a group's `COUNT` or `SUM`) don't exist yet — they're only computed once rows have been grouped. `HAVING` runs after grouping specifically so it has access to those computed aggregate values to filter on.
+</QuestionCard>
+
+<QuestionCard id="hav-03" number={3} question="Can HAVING be used without GROUP BY?" difficulty="hard" topic="HAVING">
+Yes, in most databases — without a `GROUP BY`, the entire result set is treated as a single implicit group, so `HAVING` can filter based on an aggregate computed across all rows (e.g., `HAVING COUNT(*) > 100`), returning either the aggregated row or nothing at all.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## JOINs
+
+<QuestionList topic="JOINs" storagePrefix="basic-sql-syntax-joins">
+
+<QuestionCard id="bjoin-01" number={1} question="What is a JOIN, and why is it needed?" difficulty="easy" topic="JOINs">
+A `JOIN` combines rows from two or more tables based on a related column, most often a foreign key matching a primary key. It's needed because relational databases deliberately split related data across tables rather than duplicating it, and a join is how a query reassembles that data at read time.
+</QuestionCard>
+
+<QuestionCard id="bjoin-02" number={2} question="What's the difference between an implicit join (comma-separated FROM) and explicit JOIN...ON syntax?" difficulty="medium" topic="JOINs">
+`FROM a, b WHERE a.id = b.a_id` (implicit) produces the same result as `FROM a JOIN b ON a.id = b.a_id` (explicit), but the explicit form is strongly preferred: it keeps the join condition visually separate from filtering conditions, makes the join type explicit (`INNER`, `LEFT`, etc.), and is much harder to get wrong by accidentally omitting the join condition and producing a Cartesian product.
+</QuestionCard>
+
+<QuestionCard id="bjoin-03" number={3} question="What's the most common join type, and what does it return?" difficulty="easy" topic="JOINs">
+`INNER JOIN` is the default and most common type — it returns only rows that have a match in both tables. Rows on either side without a corresponding match are excluded entirely, which is different from `LEFT`/`RIGHT`/`FULL OUTER JOIN`, which preserve unmatched rows from one or both sides with `NULL` filling the missing columns.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Why does `WHERE COUNT(*) > 5` fail, but `HAVING COUNT(*) > 5` works?"** Walk through the evaluation order — `WHERE` runs before aggregation, `HAVING` runs after — to explain why one has access to the aggregate and the other doesn't.
+- **"Write a query that lists departments with more than 10 employees, sorted by employee count descending."** A natural prompt to combine `GROUP BY`, `HAVING`, and `ORDER BY` on an aggregate alias in one query.
+- **"A junior engineer wrote `SELECT *` in a query that's now running slowly — what would you suggest?"** Use it to explain the cost of `SELECT *`: unnecessary data transfer and lost optimizer options like index-only scans.
+- **"Explain, clause by clause, what happens when this query runs"** — given a query with `SELECT`, `FROM` with a `JOIN`, `WHERE`, `GROUP BY`, `HAVING`, and `ORDER BY` — walk through the actual evaluation order rather than the written order.
+
+---
+
+## Further Reading
+
+- [SQL Operators](/level-1-foundations/sql/sql-operators/) — the comparison and logical operators that power WHERE and HAVING conditions
+- [SQL Keywords](/level-1-foundations/sql/sql-keywords/) — where SELECT and its clauses fit within the DDL/DML/DCL/TCL taxonomy
+- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including deeper JOIN types and subqueries

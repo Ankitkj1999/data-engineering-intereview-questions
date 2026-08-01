@@ -75,25 +75,25 @@ const ROADMAP = [
     { id:"data-types",     label:"Data Types",                      desc:"INT, VARCHAR, TEXT, DATE, TIMESTAMP, BOOLEAN, DECIMAL, and vendor-specific types.", link:"/level-1-foundations/sql/sql-data-types/" },
     { id:"operators",      label:"Operators",                       desc:"Arithmetic, comparison, logical (AND/OR/NOT), BETWEEN, IN, LIKE, IS NULL.", link:"/level-1-foundations/sql/sql-operators/" },
   ]},
-  { id:"basic-syntax", label:"Basic SQL Syntax", desc:"The fundamental SELECT statement and its clauses — how to read data from tables.", subs:[
-    { id:"select",         label:"SELECT",                          desc:"Retrieving columns, using aliases, DISTINCT, and selecting all with *." },
-    { id:"from",           label:"FROM",                            desc:"Specifying source tables, table aliases, and schema-qualified names." },
-    { id:"where",          label:"WHERE",                           desc:"Filtering rows with conditions — combining predicates with AND/OR." },
-    { id:"order-by",       label:"ORDER BY",                        desc:"Sorting results ASC/DESC, sorting by multiple columns and expressions." },
-    { id:"group-by",       label:"GROUP BY",                        desc:"Grouping rows that have the same values in specified columns." },
-    { id:"having",         label:"HAVING",                          desc:"Filtering grouped results — the WHERE clause for aggregated data." },
-    { id:"joins-basic",    label:"JOINs",                           desc:"Combining rows from two or more tables based on related columns." },
+  { id:"basic-syntax", label:"Basic SQL Syntax", desc:"The fundamental SELECT statement and its clauses — how to read data from tables.", link:"/level-1-foundations/sql/basic-syntax/", subs:[
+    { id:"select",         label:"SELECT",                          desc:"Retrieving columns, using aliases, DISTINCT, and selecting all with *.", link:"/level-1-foundations/sql/basic-syntax/#select" },
+    { id:"from",           label:"FROM",                            desc:"Specifying source tables, table aliases, and schema-qualified names.", link:"/level-1-foundations/sql/basic-syntax/#from" },
+    { id:"where",          label:"WHERE",                           desc:"Filtering rows with conditions — combining predicates with AND/OR.", link:"/level-1-foundations/sql/basic-syntax/#where" },
+    { id:"order-by",       label:"ORDER BY",                        desc:"Sorting results ASC/DESC, sorting by multiple columns and expressions.", link:"/level-1-foundations/sql/basic-syntax/#order-by" },
+    { id:"group-by",       label:"GROUP BY",                        desc:"Grouping rows that have the same values in specified columns.", link:"/level-1-foundations/sql/basic-syntax/#group-by" },
+    { id:"having",         label:"HAVING",                          desc:"Filtering grouped results — the WHERE clause for aggregated data.", link:"/level-1-foundations/sql/basic-syntax/#having" },
+    { id:"joins-basic",    label:"JOINs",                           desc:"Combining rows from two or more tables based on related columns.", link:"/level-1-foundations/sql/basic-syntax/#joins" },
   ]},
-  { id:"ddl", label:"Data Definition Language (DDL)", desc:"Commands that define and modify the database schema — structure, not data.", subs:[
-    { id:"create-table",   label:"CREATE TABLE",                    desc:"Defining columns, data types, constraints, and default values." },
-    { id:"alter-table",    label:"ALTER TABLE",                     desc:"Adding, dropping, and modifying columns; renaming tables." },
-    { id:"drop-table",     label:"DROP TABLE",                      desc:"Permanently removing a table and all its data from the database." },
-    { id:"truncate-table", label:"TRUNCATE TABLE",                  desc:"Removing all rows quickly without logging individual row deletions." },
+  { id:"ddl", label:"Data Definition Language (DDL)", desc:"Commands that define and modify the database schema — structure, not data.", link:"/level-1-foundations/sql/ddl/", subs:[
+    { id:"create-table",   label:"CREATE TABLE",                    desc:"Defining columns, data types, constraints, and default values.", link:"/level-1-foundations/sql/ddl/#create-table" },
+    { id:"alter-table",    label:"ALTER TABLE",                     desc:"Adding, dropping, and modifying columns; renaming tables.", link:"/level-1-foundations/sql/ddl/#alter-table" },
+    { id:"drop-table",     label:"DROP TABLE",                      desc:"Permanently removing a table and all its data from the database.", link:"/level-1-foundations/sql/ddl/#drop-table" },
+    { id:"truncate-table", label:"TRUNCATE TABLE",                  desc:"Removing all rows quickly without logging individual row deletions.", link:"/level-1-foundations/sql/ddl/#truncate-table" },
   ]},
-  { id:"dml", label:"Data Manipulation Language (DML)", desc:"Commands for inserting, updating, and deleting data in tables.", subs:[
-    { id:"insert",         label:"INSERT",                          desc:"Adding new rows — single row, multi-row, and INSERT … SELECT patterns." },
-    { id:"update",         label:"UPDATE",                          desc:"Modifying existing rows — always use WHERE to avoid full-table updates." },
-    { id:"delete",         label:"DELETE",                          desc:"Removing rows — differences between DELETE, TRUNCATE, and DROP." },
+  { id:"dml", label:"Data Manipulation Language (DML)", desc:"Commands for inserting, updating, and deleting data in tables.", link:"/level-1-foundations/sql/dml/", subs:[
+    { id:"insert",         label:"INSERT",                          desc:"Adding new rows — single row, multi-row, and INSERT … SELECT patterns.", link:"/level-1-foundations/sql/dml/#insert" },
+    { id:"update",         label:"UPDATE",                          desc:"Modifying existing rows — always use WHERE to avoid full-table updates.", link:"/level-1-foundations/sql/dml/#update" },
+    { id:"delete",         label:"DELETE",                          desc:"Removing rows — differences between DELETE, TRUNCATE, and DROP.", link:"/level-1-foundations/sql/dml/#delete" },
   ]},
   { id:"aggregate", label:"Aggregate Queries", desc:"Computing summary statistics across groups of rows.", subs:[
     { id:"count",          label:"COUNT",                           desc:"COUNT(*) vs COUNT(col) — handling NULLs in aggregation." },
