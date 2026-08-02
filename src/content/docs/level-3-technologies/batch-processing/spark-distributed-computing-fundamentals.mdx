@@ -1,0 +1,211 @@
+---
+title: Spark Distributed Computing
+description: Interview questions on Spark's distributed computing fundamentals — driver, workers, executors, task slots, cluster managers, resource allocation, and heartbeats.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Distributed Computing Fundamentals: How Spark Spreads Work Across a Cluster
+
+**Every Spark application is really a small distributed system — one driver coordinating many executors across worker nodes, brokered by a cluster manager — and understanding that shape is what makes the rest of Spark (partitioning, shuffling, fault tolerance) make sense.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Driver Node Responsibilities](#driver-node-responsibilities)
+- [Worker Node Architecture](#worker-node-architecture)
+- [Executor Processes and Task Slots](#executor-processes-and-task-slots)
+- [Cluster Manager Concepts](#cluster-manager-concepts)
+- [Spark Master and Worker Roles](#spark-master-and-worker-roles)
+- [Resource Allocation Strategies](#resource-allocation-strategies)
+- [Dynamic Resource Allocation](#dynamic-resource-allocation)
+- [Node Heartbeats and Health Checks](#node-heartbeats-and-health-checks)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A Spark application has exactly one **driver** — the process running `main()`, building the execution plan, and coordinating everything else — and many **executors**, JVM processes on **worker nodes** that actually run tasks and cache data. A **cluster manager** (Standalone, YARN, Mesos, or Kubernetes) sits between them, deciding which worker nodes get to launch executors for a given application. None of this is free-form: executors expose a fixed number of **task slots** (based on allocated cores), resources are claimed either **statically** up front or **dynamically** as demand changes, and the whole system stays coordinated through periodic **heartbeats** the driver uses to know an executor is still alive.
+
+---
+
+## Driver Node Responsibilities
+
+<QuestionList topic="Driver Node Responsibilities" storagePrefix="spark-dcf-driver">
+
+<QuestionCard id="dnr-01" number={1} question="What is the Spark driver, and what does it actually do?" difficulty="easy" topic="Driver">
+The driver is the process that runs the application's `main()` method. It creates the `SparkSession`/`SparkContext`, builds the DAG of transformations as the code executes, negotiates resources with the cluster manager, splits work into stages and tasks, and schedules those tasks onto executors — then collects and processes whatever results come back.
+</QuestionCard>
+
+<QuestionCard id="dnr-02" number={2} question="Why does the driver need to stay reachable throughout the application's lifetime?" difficulty="medium" topic="Driver">
+Executors continuously communicate with the driver — sending heartbeats, task status updates, and results — and the driver schedules new tasks onto executors as prior ones finish. If the driver becomes unreachable, the whole application effectively stalls or fails, since there's no other process holding the DAG and coordinating what runs next.
+</QuestionCard>
+
+<QuestionCard id="dnr-03" number={3} question="What's the practical risk of a driver running out of memory, and what commonly causes it?" difficulty="medium" topic="Driver">
+A driver OOM crashes the entire application, not just one task. It's commonly caused by actions that pull large amounts of data back to the driver — `collect()` on a big RDD/DataFrame, or accumulating too much state in driver-side variables — rather than letting the data stay distributed across executors and only bringing back a small, aggregated result.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Worker Node Architecture
+
+<QuestionList topic="Worker Node Architecture" storagePrefix="spark-dcf-worker">
+
+<QuestionCard id="wna-01" number={1} question="What is a worker node, and what resources does it provide?" difficulty="easy" topic="Worker Nodes">
+A worker node is any machine (physical or virtual) in the cluster capable of running Spark application code. It contributes its CPU cores, memory, and local disk to the cluster — resources that executors launched on that node draw from to run tasks and cache data.
+</QuestionCard>
+
+<QuestionCard id="wna-02" number={2} question="Can a single worker node run more than one executor?" difficulty="medium" topic="Worker Nodes">
+Yes — a worker node's resources can be divided across multiple executor processes, either from the same application or different ones, depending on how the cluster manager schedules them and how the node's total capacity is configured. This is distinct from a worker node running multiple *worker processes* (e.g., via `SPARK_WORKER_INSTANCES` in Standalone mode), which is a separate, less common configuration.
+</QuestionCard>
+
+<QuestionCard id="wna-03" number={3} question="What's the relationship between a worker node and the cluster manager?" difficulty="medium" topic="Worker Nodes">
+The worker node reports its available resources to the cluster manager and, once allocated, hosts the executor processes the cluster manager launches on the driver's behalf. The worker node itself doesn't decide what work to run — it provides capacity, and the cluster manager (informed by the driver's requests) decides how that capacity gets used.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Executor Processes and Task Slots
+
+<QuestionList topic="Executor Processes and Task Slots" storagePrefix="spark-dcf-executor">
+
+<QuestionCard id="ept-01" number={1} question="What is a Spark executor, and what two jobs does it perform?" difficulty="easy" topic="Executors">
+An executor is a JVM process launched on a worker node for a specific Spark application. It performs two jobs: running the tasks the driver assigns it, and caching data (in memory or on disk) so repeated access to the same RDD/DataFrame partitions doesn't require recomputing or re-reading them.
+</QuestionCard>
+
+<QuestionCard id="ept-02" number={2} question="What is a task slot, and how is the number of slots per executor determined?" difficulty="medium" topic="Executors">
+A task slot is a unit of parallelism within an executor — roughly, one core allocated to that executor can run one task at a time. The number of slots is generally set by `spark.executor.cores`: an executor configured with 4 cores can run 4 tasks concurrently, one per slot.
+</QuestionCard>
+
+<QuestionCard id="ept-03" number={3} question="What happens if an executor is lost during a job?" difficulty="medium" topic="Executors">
+The driver detects the loss (via missed heartbeats), marks any tasks that were running on it as failed, and reschedules them onto other executors. Any cached data that only existed on the lost executor is gone and gets recomputed from lineage the next time it's needed, rather than the whole job failing outright.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Cluster Manager Concepts
+
+<QuestionList topic="Cluster Manager Concepts" storagePrefix="spark-dcf-cluster-manager">
+
+<QuestionCard id="cmc-01" number={1} question="What is a cluster manager's role in a Spark application?" difficulty="easy" topic="Cluster Managers">
+The cluster manager is a pluggable component that allocates cluster resources on Spark's behalf — deciding which worker nodes launch executors for a given application, and how many resources each gets. Spark itself doesn't manage the cluster's physical resources directly; it delegates that entirely to whichever cluster manager is configured.
+</QuestionCard>
+
+<QuestionCard id="cmc-02" number={2} question="Compare Standalone, YARN, Mesos, and Kubernetes as Spark cluster managers." difficulty="medium" topic="Cluster Managers">
+**Standalone** is Spark's own simple, bundled cluster manager — easy to set up, fewer features. **YARN** is Hadoop's resource manager, common in clusters that already run Hadoop workloads alongside Spark. **Mesos** is a general-purpose cluster resource manager that can share a cluster across many different frameworks, not just Spark. **Kubernetes** runs each Spark executor as its own pod, leaning on Kubernetes' own scheduling, isolation, and container ecosystem rather than a Spark- or Hadoop-specific manager.
+</QuestionCard>
+
+<QuestionCard id="cmc-03" number={3} question="Why has Kubernetes become an increasingly common choice for running Spark?" difficulty="medium" topic="Cluster Managers">
+Many organizations already run Kubernetes for everything else, so running Spark on it avoids maintaining a separate Hadoop/YARN stack just for one workload. It also brings Spark into the same container-based deployment, resource isolation, and autoscaling tooling used for the rest of the infrastructure, rather than treating Spark's cluster management as a separate concern.
+</QuestionCard>
+
+<QuestionCard id="cmc-04" number={4} question="What's the difference between client mode and cluster mode, and does it apply across all cluster managers?" difficulty="medium" topic="Cluster Managers">
+In **client mode**, the driver runs on the machine that submitted the job (outside the cluster manager's control) — simple, but the job dies if that machine disconnects. In **cluster mode**, the driver itself runs as a process inside the cluster, managed the same way executors are — more resilient, since the submitting machine can disconnect without killing the job. The distinction applies to YARN, Mesos, and Kubernetes; Standalone supports both too, though client mode is more common for quick, local-to-cluster submissions.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Spark Master and Worker Roles
+
+<QuestionList topic="Spark Master and Worker Roles" storagePrefix="spark-dcf-master-worker">
+
+<QuestionCard id="smw-01" number={1} question="In Standalone mode, what does the Spark master do?" difficulty="easy" topic="Master/Worker">
+The Spark master is Standalone mode's own cluster manager process — it arbitrates resources across the applications submitted to the cluster, keeping track of which workers are available and deciding how to allocate them, analogous to the role YARN's ResourceManager or Mesos' master plays for those cluster managers.
+</QuestionCard>
+
+<QuestionCard id="smw-02" number={2} question="How do workers register with the master, and what happens after that?" difficulty="medium" topic="Master/Worker">
+Each worker process registers itself with the master on startup, reporting its available resources (cores, memory). Once registered, the master can launch executors on that worker in response to application requests, and the worker continues reporting status back so the master's view of cluster capacity stays current.
+</QuestionCard>
+
+<QuestionCard id="smw-03" number={3} question="What happens to running applications if the Standalone master goes down, and how is that mitigated?" difficulty="hard" topic="Master/Worker">
+Without high availability configured, losing the master means no new applications can be scheduled and existing ones may be affected, since there's no longer a coordinator for cluster resources. Spark mitigates this with **standby masters coordinated through Apache ZooKeeper** — if the active master fails, a standby is elected to take over, or with simpler **single-node recovery** using local filesystem state for smaller, less critical deployments.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Resource Allocation Strategies
+
+<QuestionList topic="Resource Allocation Strategies" storagePrefix="spark-dcf-resource-alloc">
+
+<QuestionCard id="ras-01" number={1} question="What is static resource allocation, and what's its main drawback?" difficulty="easy" topic="Resource Allocation">
+Static allocation reserves a fixed number of executors (and their cores/memory) for the entire lifetime of an application, set at submission time. Its main drawback is inefficiency: those resources stay reserved even during periods where the job has little or no work to do, unavailable to any other application that could have used them.
+</QuestionCard>
+
+<QuestionCard id="ras-02" number={2} question="What does per-job configuration mean in the context of resource allocation?" difficulty="medium" topic="Resource Allocation">
+It means explicitly tuning `--num-executors`, `--executor-cores`, and `--executor-memory` for each specific job's known workload, rather than relying on cluster-wide defaults. It trades the convenience of a one-size-fits-all setting for resource usage that actually matches what a given job needs — assuming someone characterizes that job's needs correctly.
+</QuestionCard>
+
+<QuestionCard id="ras-03" number={3} question="How would you decide how many executors and cores to allocate to a Spark job?" difficulty="hard" topic="Resource Allocation">
+Base it on the data volume and partition count (enough parallelism to keep executors busy without so many tiny tasks that scheduling overhead dominates), the cluster's total available capacity (leaving room for other jobs), and empirical tuning — starting from a reasonable estimate and adjusting based on observed executor utilization and task duration in the Spark UI, rather than guessing once and never revisiting it.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Dynamic Resource Allocation
+
+<QuestionList topic="Dynamic Resource Allocation" storagePrefix="spark-dcf-dynamic-alloc">
+
+<QuestionCard id="dra-01" number={1} question="What is dynamic resource allocation, and what problem does it solve?" difficulty="medium" topic="Dynamic Allocation">
+Dynamic allocation lets Spark scale the number of executors for an application up and down at runtime based on actual workload, rather than holding a fixed count for the whole job. It solves static allocation's core inefficiency — a job with bursty or uneven work no longer has to either over-provision for its peak or under-provision and bottleneck.
+</QuestionCard>
+
+<QuestionCard id="dra-02" number={2} question="What triggers Spark to request additional executors under dynamic allocation?" difficulty="medium" topic="Dynamic Allocation">
+A backlog of pending tasks that existing executors can't get to fast enough — when the scheduler sees more runnable tasks than available task slots for longer than a configured timeout, it requests more executors from the cluster manager. When executors sit idle past a separate configured timeout with no tasks to run, they're released back to the cluster.
+</QuestionCard>
+
+<QuestionCard id="dra-03" number={3} question="What are the trade-offs or risks of enabling dynamic allocation?" difficulty="hard" topic="Dynamic Allocation">
+Releasing an executor that's holding cached data means that data has to be recomputed later if it's needed again, which can undercut the benefit of caching in workloads that rely heavily on it — mitigated in some setups by external shuffle services that decouple shuffle data from the executor's own lifecycle. It also adds a layer of runtime unpredictability that can make performance harder to reason about compared to a fixed, well-tuned static allocation.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Node Heartbeats and Health Checks
+
+<QuestionList topic="Node Heartbeats and Health Checks" storagePrefix="spark-dcf-heartbeats">
+
+<QuestionCard id="nhh-01" number={1} question="What is a heartbeat in the context of Spark's cluster architecture?" difficulty="easy" topic="Heartbeats">
+A heartbeat is a periodic signal an executor sends back to the driver, confirming it's still alive and reporting status information like block/cache updates. It's the mechanism the driver relies on to distinguish "this executor is just busy" from "this executor has failed."
+</QuestionCard>
+
+<QuestionCard id="nhh-02" number={2} question="What happens when the driver misses heartbeats from an executor?" difficulty="medium" topic="Heartbeats">
+After a configured timeout with no heartbeat, the driver considers that executor lost. It marks the executor's in-flight tasks as failed and reschedules them elsewhere, and treats any data cached only on that executor as gone — to be recomputed from lineage if it's needed again.
+</QuestionCard>
+
+<QuestionCard id="nhh-03" number={3} question="Why do heartbeats matter for both fault tolerance and metrics/monitoring?" difficulty="medium" topic="Heartbeats">
+For fault tolerance, they're the detection mechanism that makes recovering from a lost executor possible at all — without them, the driver would have no reliable way to know a failure occurred. For monitoring, the same heartbeat channel carries the status and metrics data that powers the Spark UI's live view of executor and task state, so heartbeats double as the system's basic health-check and telemetry pipeline.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Walk me through what happens, process by process, when you submit a Spark job to a YARN cluster."** Trace it end to end: driver submission, YARN allocating an application master, executors launching on worker nodes, task scheduling, and results flowing back — a strong signal of genuine architectural understanding, not memorized definitions.
+- **"A Spark job is running much slower than expected, and the UI shows only a few executors were ever allocated even though the cluster has capacity — what would you check?"** Point toward resource allocation configuration (static allocation set too low, or dynamic allocation's scale-up threshold/timeout) as the likely culprit.
+- **"An executor died mid-job — what does Spark do to recover, and what's actually lost?"** Walk through heartbeat-based detection, task rescheduling, and lineage-based recomputation of any data that was only cached on that executor.
+- **"Why might a team choose Kubernetes over YARN for a new Spark deployment today?"** Discuss operational consolidation (one platform instead of two), and the trade-off against organizations that already have a mature Hadoop/YARN investment.
+
+---
+
+## Further Reading
+
+- [Apache Spark](/level-3-technologies/batch-processing/spark/) — the full Spark interview question set, including RDDs, partitioning, shuffling, and Spark SQL built on top of this architecture
+- [Kubernetes](/level-3-technologies/orchestration/kubernetes/) — a deeper look at the container orchestration platform increasingly used as Spark's cluster manager
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of
