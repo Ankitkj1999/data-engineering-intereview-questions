@@ -1,0 +1,195 @@
+---
+title: Spark NoSQL Database Integration
+description: Interview questions on connecting Spark to Cassandra and MongoDB — connector setup, token-range-aware partitioning, consistency/write concern, pipeline pushdown, and schema conversion.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## NoSQL Database Integration: Connecting Spark to Cassandra and MongoDB
+
+**A NoSQL connector's whole job is bridging two different worlds — a database whose data model, partitioning, and consistency guarantees weren't designed with Spark in mind — and the good connectors do it by mirroring the source's own physical layout instead of treating it like a generic JDBC table.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Cassandra Connector Setup and Configuration](#cassandra-connector-setup-and-configuration)
+- [Cassandra-Aware Data Partitioning](#cassandra-aware-data-partitioning)
+- [Cassandra Write Consistency Levels](#cassandra-write-consistency-levels)
+- [Cluster-Aware Read Optimization for Cassandra](#cluster-aware-read-optimization-for-cassandra)
+- [MongoDB BSON Format Handling](#mongodb-bson-format-handling)
+- [MongoDB Aggregation Pipeline Integration](#mongodb-aggregation-pipeline-integration)
+- [MongoDB Write Concern Management](#mongodb-write-concern-management)
+- [Schema and Type Conversion Across NoSQL Stores](#schema-and-type-conversion-across-nosql-stores)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Both connectors share a design philosophy: don't treat the source as a generic remote table — mirror its native physical layout to make reads and writes efficient. The **Spark Cassandra Connector** aligns Spark partitions to Cassandra's own **token ranges**, so each task reads from data that's already co-located on specific replicas. The **MongoDB Spark Connector** converts **BSON** documents into Spark's `Row`/schema representation, and can push **aggregation pipeline** stages down to MongoDB itself rather than pulling raw documents across the wire. Both also expose the source database's own consistency knobs — Cassandra's **consistency levels**, MongoDB's **write concern** — directly through connector configuration, since neither source has a JDBC-style universal semantics Spark could otherwise assume.
+
+---
+
+## Cassandra Connector Setup and Configuration
+
+<QuestionList topic="Cassandra Connector Setup and Configuration" storagePrefix="spark-nosql-cassandra-setup">
+
+<QuestionCard id="ccs-01" number={1} question="What is the Spark Cassandra Connector, and how do you register Cassandra as a data source?" difficulty="easy" topic="Cassandra Setup">
+The Spark Cassandra Connector is a library that registers Cassandra as a native Spark data source, letting you read and write Cassandra tables through the DataFrame API: `spark.read.format("org.apache.spark.sql.cassandra").options(table="orders", keyspace="ecommerce").load()`.
+</QuestionCard>
+
+<QuestionCard id="ccs-02" number={2} question="What configuration options control which Cassandra cluster and keyspace/table Spark connects to?" difficulty="easy" topic="Cassandra Setup">
+`spark.cassandra.connection.host` (and `spark.cassandra.connection.port`) point Spark at the Cassandra cluster's contact points, while the `keyspace` and `table` options on the DataFrame reader/writer specify exactly which table to target — set either as Spark session-level config or per-read/write options.
+</QuestionCard>
+
+<QuestionCard id="ccs-03" number={3} question="How do you read a Cassandra table into a DataFrame versus writing one back?" difficulty="easy" topic="Cassandra Setup">
+Reading: `spark.read.format("...cassandra").options(...).load()` returns a DataFrame. Writing: `df.write.format("...cassandra").options(...).mode("append").save()` — Cassandra writes are typically idempotent upserts by primary key rather than strict inserts, which is a meaningfully different write semantic than a traditional relational `INSERT`.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Cassandra-Aware Data Partitioning
+
+<QuestionList topic="Cassandra-Aware Data Partitioning" storagePrefix="spark-nosql-cassandra-partitioning">
+
+<QuestionCard id="cap-01" number={1} question="How does the connector decide how to partition data when reading from Cassandra?" difficulty="medium" topic="Cassandra Partitioning">
+It creates Spark partitions aligned to Cassandra's own **token ranges** — the same ranges Cassandra uses internally to distribute data across nodes — rather than picking an arbitrary partitioning scheme unrelated to how the data is actually laid out on the cluster.
+</QuestionCard>
+
+<QuestionCard id="cap-02" number={2} question="Why does aligning Spark partitions to Cassandra's token ranges matter for performance?" difficulty="medium" topic="Cassandra Partitioning">
+Each Spark task ends up reading from a set of co-located replicas holding that specific token range, rather than every task potentially needing data scattered across the whole cluster — this keeps reads local to the relevant nodes and avoids unnecessary cross-cluster coordination during a large parallel scan.
+</QuestionCard>
+
+<QuestionCard id="cap-03" number={3} question="What would go wrong reading a Cassandra table without any partitioning awareness, the way a naive JDBC-style full scan might?" difficulty="hard" topic="Cassandra Partitioning">
+Without token-range awareness, Spark would have no natural way to split the read into independent, efficient chunks — it would either read everything through a single connection (no parallelism) or split arbitrarily in a way that ignores Cassandra's actual data distribution, forcing scattered, inefficient reads across the cluster instead of clean, replica-local ones.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Cassandra Write Consistency Levels
+
+<QuestionList topic="Cassandra Write Consistency Levels" storagePrefix="spark-nosql-cassandra-consistency">
+
+<QuestionCard id="cwc-01" number={1} question="What consistency level does the Spark Cassandra Connector use for writes, and how do you change it?" difficulty="medium" topic="Write Consistency">
+It's configurable via the `spark.cassandra.output.consistency.level` option (or per-write via DataFrame writer options), accepting the same levels Cassandra itself supports — `ONE`, `QUORUM`, `ALL`, and others — controlling how many replicas must acknowledge each write before the connector considers it successful.
+</QuestionCard>
+
+<QuestionCard id="cwc-02" number={2} question="Why might you choose a weaker consistency level specifically for a large batch write from Spark?" difficulty="medium" topic="Write Consistency">
+A large distributed write job issues an enormous number of individual writes; requiring `ALL` replica acknowledgment on every single one adds latency that compounds across millions of rows. A weaker level like `ONE` or `LOCAL_QUORUM` trades some durability guarantee for meaningfully faster bulk load throughput — a trade-off that's often acceptable for a full reload where correctness can be re-verified afterward, but worth being deliberate about.
+</QuestionCard>
+
+</QuestionList>
+
+For a deeper look at what Cassandra's consistency levels mean and how the CAP theorem trade-off plays out, see [Cassandra](/level-3-technologies/databases/cassandra/).
+
+---
+
+## Cluster-Aware Read Optimization for Cassandra
+
+<QuestionList topic="Cluster-Aware Read Optimization for Cassandra" storagePrefix="spark-nosql-cassandra-read-opt">
+
+<QuestionCard id="cro-01" number={1} question="What does 'cluster-aware' read optimization mean for the connector?" difficulty="medium" topic="Cluster-Aware Reads">
+The connector routes each read request directly to the Cassandra replica node(s) that actually hold the relevant token range, rather than going through an arbitrary coordinator node for every request — it has direct knowledge of the cluster's topology and data placement, not just a generic connection to "the database."
+</QuestionCard>
+
+<QuestionCard id="cro-02" number={2} question="What's the performance benefit of routing reads to the replica actually holding a token range?" difficulty="medium" topic="Cluster-Aware Reads">
+It minimizes cross-node network hops during a full-table scan — without this awareness, a coordinator node would have to internally forward each request to the right replica anyway, adding an extra network hop and coordinator-side load multiplied across every single request in a large parallel scan.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## MongoDB BSON Format Handling
+
+<QuestionList topic="MongoDB BSON Format Handling" storagePrefix="spark-nosql-mongo-bson">
+
+<QuestionCard id="mbf-01" number={1} question="How does the MongoDB Spark Connector convert BSON documents into Spark's Row/schema representation?" difficulty="medium" topic="BSON Handling">
+It either infers a schema by sampling a subset of documents in the collection, or accepts an explicitly provided schema — mapping BSON field types to their Spark SQL equivalents and flattening or preserving nested document structure into Spark's `StructType` representation.
+</QuestionCard>
+
+<QuestionCard id="mbf-02" number={2} question="What happens when documents in the same collection have inconsistent fields or types?" difficulty="hard" topic="BSON Handling">
+MongoDB's flexible schema means one document might have a field another lacks, or the same field name might hold different types across documents — during schema inference, the connector has to reconcile these into one unified schema (often widening a type or making a field nullable), and rows missing a given field simply get `NULL` for it in the resulting DataFrame.
+</QuestionCard>
+
+<QuestionCard id="mbf-03" number={3} question="How do you handle deeply nested BSON documents when reading into a DataFrame?" difficulty="medium" topic="BSON Handling">
+Nested BSON sub-documents typically map to Spark `StructType` columns, and arrays map to Spark `ArrayType` — both usable directly with the Column API (`col("address.city")`) or flattened further with `explode()` for array fields, the same tools used for any nested Spark DataFrame column regardless of source.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## MongoDB Aggregation Pipeline Integration
+
+<QuestionList topic="MongoDB Aggregation Pipeline Integration" storagePrefix="spark-nosql-mongo-pipeline">
+
+<QuestionCard id="map-01" number={1} question="How can MongoDB aggregation pipeline stages be pushed down through the Spark connector?" difficulty="medium" topic="Pipeline Integration">
+The connector can translate certain DataFrame operations (filters, projections, some aggregations) into equivalent aggregation pipeline stages executed by MongoDB itself, or you can supply a custom pipeline directly via connector options — either way, the heavy lifting happens inside MongoDB before results reach Spark.
+</QuestionCard>
+
+<QuestionCard id="map-02" number={2} question="Why is pushing pipeline stages down to MongoDB better than pulling all documents into Spark first?" difficulty="medium" topic="Pipeline Integration">
+It reduces the volume of data crossing the network and needing deserialization on the Spark side — filtering, projecting, or pre-aggregating inside MongoDB (which already has indexes and its own query engine optimized for this) is far cheaper than transferring an entire collection and doing the equivalent work in Spark afterward.
+</QuestionCard>
+
+</QuestionList>
+
+For the aggregation pipeline's own stage-by-stage mechanics as a MongoDB feature, see [MongoDB](/level-3-technologies/databases/mongodb/).
+
+---
+
+## MongoDB Write Concern Management
+
+<QuestionList topic="MongoDB Write Concern Management" storagePrefix="spark-nosql-mongo-write-concern">
+
+<QuestionCard id="mwc-01" number={1} question="How do you configure write concern when writing a DataFrame back to MongoDB via the connector?" difficulty="easy" topic="Write Concern">
+Through connector write options, e.g. `df.write.format("mongodb").option("writeConcern.w", "majority").save()` — controlling how many nodes must acknowledge each write (`w:1` for a single node, `majority` for a quorum) before it's considered successful, the same write concern levels MongoDB itself exposes.
+</QuestionCard>
+
+<QuestionCard id="mwc-02" number={2} question="What's the trade-off between a stronger and weaker write concern for a large Spark write job specifically?" difficulty="medium" topic="Write Concern">
+The same durability-versus-throughput trade-off as Cassandra's consistency levels: `majority` write concern gives stronger durability guarantees per write but adds latency that compounds across a large distributed job's total write volume, while a lighter concern (`w:1`) writes faster in bulk at the cost of a smaller acknowledgment guarantee per row.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Schema and Type Conversion Across NoSQL Stores
+
+<QuestionList topic="Schema and Type Conversion Across NoSQL Stores" storagePrefix="spark-nosql-schema-conversion">
+
+<QuestionCard id="stc-01" number={1} question="Why is reconciling a NoSQL store's flexible schema with Spark's strict schema a real engineering problem?" difficulty="medium" topic="Schema Conversion">
+NoSQL document and wide-column stores intentionally don't enforce a single fixed schema across all rows/documents, while Spark's DataFrame model expects a consistent schema for the whole dataset — the connector has to bridge that gap, which means real decisions about how to handle missing fields, type conflicts, and structural inconsistency rather than a clean one-to-one mapping.
+</QuestionCard>
+
+<QuestionCard id="stc-02" number={2} question="What happens when the connector encounters a field that's missing in some documents/rows but present in others?" difficulty="medium" topic="Schema Conversion">
+The unified inferred (or explicitly provided) schema includes that field as nullable, and rows/documents lacking it simply get `NULL` for that column — the same behavior as a `LEFT JOIN`'s unmatched side, applied to schema inference across a heterogeneous collection instead of a join.
+</QuestionCard>
+
+<QuestionCard id="stc-03" number={3} question="How do you handle type mismatches — a field that's sometimes a string, sometimes a number — across documents?" difficulty="hard" topic="Schema Conversion">
+Schema inference typically has to pick one type (often widening to a common, more permissive type, or falling back to a string representation) to represent the field across the whole dataset, which can silently coerce or lose precision on values that didn't originally match that type. In practice, this is a strong argument for supplying an explicit schema and validating/cleaning inconsistent source data upstream, rather than trusting automatic inference to make the right call.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A Spark job reading a large Cassandra table is running far slower than expected — what would you check first?"** Point to whether the read is actually using token-range-aware partitioning as intended, versus accidentally falling back to a less efficient access pattern.
+- **"How would you push a filter down to MongoDB instead of pulling an entire collection into Spark?"** Discuss translating the filter into an aggregation pipeline `$match` stage executed by MongoDB, either automatically via the connector or via a custom pipeline option.
+- **"You're loading a large batch into Cassandra from Spark — how do you balance write speed against durability?"** A direct consistency-level trade-off question, connecting it to the specific cost of write acknowledgment at scale.
+- **"A MongoDB collection has documents with inconsistent field types across different eras of the application's history — how would you handle reading it into Spark reliably?"** Discuss explicit schema definition over inference, and cleaning/casting inconsistent types as an upstream step rather than trusting automatic conversion.
+
+---
+
+## Further Reading
+
+- [Cassandra](/level-3-technologies/databases/cassandra/) — Cassandra's own architecture, consistency model, and CAP theorem trade-offs in depth
+- [MongoDB](/level-3-technologies/databases/mongodb/) — MongoDB's document model, aggregation pipeline, and write concern in depth
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of
