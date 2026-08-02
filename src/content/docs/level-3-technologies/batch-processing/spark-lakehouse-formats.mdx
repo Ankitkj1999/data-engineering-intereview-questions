@@ -1,0 +1,130 @@
+---
+title: Spark Lakehouse Table Formats
+description: Interview questions comparing time travel, schema evolution, MERGE INTO upsert patterns, and table maintenance across Delta Lake, Iceberg, and Hudi.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Lakehouse Table Formats: What Delta, Iceberg, and Hudi Share
+
+**Delta Lake, Iceberg, and Hudi each get their own full interview question set on this site — what's covered here is the cross-cutting layer: the capabilities all three formats provide (time travel, schema evolution, atomic upserts, maintenance) and where their specific approaches actually diverge.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Time Travel Query Capabilities](#time-travel-query-capabilities)
+- [Schema Evolution Strategies](#schema-evolution-strategies)
+- [MERGE INTO Syntax and Upsert Patterns](#merge-into-syntax-and-upsert-patterns)
+- [Table Maintenance](#table-maintenance)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+All three lakehouse formats solve the same core problem — bringing ACID transactions, upserts, and schema management to plain object storage — but each does it with a different metadata mechanism: Delta's linear `_delta_log` commit sequence, Iceberg's snapshot/manifest hierarchy, and Hudi's timeline plus Copy-on-Write/Merge-on-Read table types. That difference in *how* metadata is tracked is what underlies every capability on this page: **time travel** works because each format keeps enough history to reconstruct an old table state, **schema evolution** rules depend on how strictly each format validates a write against the tracked schema, and **`MERGE INTO`** is the SQL-level upsert pattern every format ultimately supports, even though the physical mechanics of applying it differ (rewrite files vs. append a delta log).
+
+---
+
+## Time Travel Query Capabilities
+
+<QuestionList topic="Time Travel Query Capabilities" storagePrefix="spark-lakehouse-time-travel">
+
+<QuestionCard id="ttq-01" number={1} question="What is time travel, and what mechanism underlies it across Delta, Iceberg, and Hudi?" difficulty="easy" topic="Time Travel">
+Time travel means querying a table as it existed at a past version or timestamp, rather than only its current state. It's possible because each format retains historical metadata pointing at the exact set of files that made up the table at each prior commit — Delta's transaction log, Iceberg's snapshot history, and Hudi's timeline all serve this same purpose, just structured differently.
+</QuestionCard>
+
+<QuestionCard id="ttq-02" number={2} question="How do you query a table as of a past version or timestamp in Delta Lake versus Iceberg syntax?" difficulty="medium" topic="Time Travel">
+Delta: `SELECT * FROM table VERSION AS OF 12` or `TIMESTAMP AS OF '2024-01-01'`. Iceberg: `SELECT * FROM table.snapshots` to inspect history, then `SELECT * FROM table FOR VERSION AS OF <snapshot_id>` or `FOR TIMESTAMP AS OF ...`. The concepts are identical; the exact SQL syntax and the underlying identifier (Delta's version number vs. Iceberg's snapshot ID) differ.
+</QuestionCard>
+
+<QuestionCard id="ttq-03" number={3} question="What's the practical retention trade-off that limits how far back time travel can go?" difficulty="medium" topic="Time Travel">
+Retaining every historical version indefinitely means keeping every file that was ever part of any past snapshot, which grows storage cost without bound. All three formats support (and typically default to) a retention window after which old, no-longer-referenced files become eligible for permanent deletion (Delta's `VACUUM`, Iceberg's snapshot expiration) — time travel only works within whatever window hasn't yet been cleaned up.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Schema Evolution Strategies
+
+<QuestionList topic="Schema Evolution Strategies" storagePrefix="spark-lakehouse-schema-evolution">
+
+<QuestionCard id="ses-01" number={1} question="What schema changes are typically 'safe'/automatic across lakehouse formats, and which require explicit action?" difficulty="medium" topic="Schema Evolution">
+Generally safe and often automatic: adding a new nullable column, widening a numeric type (e.g., `int` to `long`). Generally requiring explicit action or migration: renaming a column, narrowing a type, or removing a column — changes that could silently break existing readers or lose data if applied without deliberate intent.
+</QuestionCard>
+
+<QuestionCard id="ses-02" number={2} question="How does Delta's schema enforcement + evolution flag differ from Iceberg's approach to schema changes?" difficulty="hard" topic="Schema Evolution">
+Delta enforces the existing schema strictly by default (a write with an unexpected column fails), and schema evolution has to be explicitly opted into per write (`mergeSchema` option, or `ALTER TABLE`). Iceberg tracks schema changes as first-class, versioned metadata operations (`ALTER TABLE ... ADD COLUMN`, tracked with its own history) and identifies columns by a stable ID rather than by name/position, which makes some evolution operations (like column renames) safer and more explicit than in formats that match columns positionally.
+</QuestionCard>
+
+<QuestionCard id="ses-03" number={3} question="What's the risk of allowing unrestricted automatic schema evolution in a production table?" difficulty="medium" topic="Schema Evolution">
+An upstream producer's unintentional change — a typo'd column name, an unexpected new field — can silently alter the table's schema without review, potentially breaking downstream consumers that expected a stable contract or introducing columns nobody intended to add permanently. This is why most teams treat automatic schema evolution as something to enable deliberately per-table rather than as a blanket default.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## MERGE INTO Syntax and Upsert Patterns
+
+<QuestionList topic="MERGE INTO Syntax and Upsert Patterns" storagePrefix="spark-lakehouse-merge-into">
+
+<QuestionCard id="mip-01" number={1} question="What does a MERGE INTO statement express, and why is it the standard upsert pattern on lakehouse tables?" difficulty="medium" topic="MERGE INTO">
+`MERGE INTO` expresses conditional insert/update/delete logic against a target table in one atomic statement, based on matching rows from a source against the target by a key. It's the standard upsert pattern because it replaces what would otherwise require separate, non-atomic `UPDATE` and `INSERT` statements (with the risk of a race or partial failure between them) with one all-or-nothing operation.
+</QuestionCard>
+
+<QuestionCard id="mip-02" number={2} question="Write a basic MERGE INTO example implementing an upsert." difficulty="medium" topic="MERGE INTO">
+```sql
+MERGE INTO target_table t
+USING source_updates s
+ON t.id = s.id
+WHEN MATCHED THEN UPDATE SET t.value = s.value, t.updated_at = s.updated_at
+WHEN NOT MATCHED THEN INSERT (id, value, updated_at) VALUES (s.id, s.value, s.updated_at);
+```
+Rows matching on `id` get updated in place; rows in the source with no matching target row get inserted as new — the classic "upsert" shape, expressed declaratively rather than as separate imperative steps.
+</QuestionCard>
+
+<QuestionCard id="mip-03" number={3} question="Why is MERGE INTO's atomicity important compared to doing a separate UPDATE and INSERT as two statements?" difficulty="hard" topic="MERGE INTO">
+Two separate statements create a window where a concurrent reader could see a partially-applied change (updates done, inserts not yet), or where a failure between the two statements leaves the table in an inconsistent, half-migrated state. `MERGE INTO`'s single-transaction atomicity guarantees readers only ever see the table either fully before or fully after the merge, never a partial mix of the two.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Table Maintenance
+
+<QuestionList topic="Table Maintenance" storagePrefix="spark-lakehouse-maintenance">
+
+<QuestionCard id="tmc-01" number={1} question="What does compaction do, and why do lakehouse tables need it regularly?" difficulty="medium" topic="Table Maintenance">
+Compaction rewrites many small files into fewer, larger ones. Lakehouse tables accumulate small files naturally from frequent small writes (streaming micro-batches, incremental `MERGE` operations), and without periodic compaction, query performance degrades as file count grows — the same small-file problem that affects any Spark-read dataset, just compounded by these formats' typically higher write frequency.
+</QuestionCard>
+
+<QuestionCard id="tmc-02" number={2} question="What does VACUUM do, and why is a retention window important before deleting old files?" difficulty="medium" topic="Table Maintenance">
+`VACUUM` permanently deletes files that are no longer referenced by any current or recently-retained historical version — freeing storage that old, superseded data versions were holding onto. The retention window (default commonly 7 days) matters because a file being physically deleted also permanently forecloses time travel to any version that depended on it, and could break a long-running query that started reading before the vacuum but hasn't finished.
+</QuestionCard>
+
+<QuestionCard id="tmc-03" number={3} question="What does Z-ordering/OPTIMIZE do, and how is it different from a table's underlying partitioning scheme?" difficulty="hard" topic="Table Maintenance">
+Z-ordering co-locates related data within files based on the values of one or more columns, so a filter on those columns can skip more files/row-groups than it otherwise would — it's a *physical layout* optimization applied within and across files, distinct from partitioning, which is a *directory-level* organizational scheme. Z-ordering is particularly useful for filter columns that aren't good partition-key candidates (too high cardinality to partition by directly, but still worth co-locating for filter efficiency).
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A table needs to support both a nightly batch reload and continuous small streaming upserts into the same table — which format capabilities make that safe?"** Discuss ACID transactions letting both write patterns coexist without corrupting each other, and why compaction becomes especially important given the streaming side's naturally small writes.
+- **"Someone accidentally corrupted today's data with a bad job run — how would you recover using time travel?"** Walk through querying an earlier version/snapshot and either restoring from it directly or using it to identify exactly what changed.
+- **"Design an upsert pipeline that keeps a target table in sync with a CDC feed of inserts, updates, and deletes."** A `MERGE INTO` prompt extended to also handle `WHEN MATCHED AND s.op = 'DELETE' THEN DELETE`, covering the full CDC apply pattern in one atomic statement.
+- **"A table's query performance has degraded significantly after months of frequent small updates — what would you check and run?"** Point to file count/small-file buildup as the likely cause, and compaction (plus Z-ordering/OPTIMIZE on common filter columns) as the fix.
+
+---
+
+## Further Reading
+
+- [Delta Lake](/level-3-technologies/formats/delta/) — the full dedicated Delta Lake interview question set, including its transaction log and ACID model in depth
+- [Apache Iceberg](/level-3-technologies/formats/iceberg/) — the full dedicated Iceberg interview question set, including partition evolution and its metadata/manifest hierarchy
+- [Apache Hudi](/level-3-technologies/formats/hudi/) — the full dedicated Hudi interview question set, including Copy-on-Write vs. Merge-on-Read semantics
