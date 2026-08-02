@@ -1,0 +1,190 @@
+---
+title: Spark Joins
+description: Interview questions on Spark joins — inner/outer/semi/anti joins, cross joins, shuffle hash join, sort-merge join, broadcast hash join, hints, and handling data skew.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Joins & Relational Operations: How Spark Combines Datasets
+
+**A join type (inner, outer, semi, anti) describes *what* result you want; a join strategy (broadcast, sort-merge, shuffle hash) describes *how* Spark physically produces it — and the optimizer's job is picking the cheapest strategy for whatever type and data sizes it's actually looking at.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Inner, Outer, Semi, and Anti Joins](#inner-outer-semi-and-anti-joins)
+- [Cross Joins and Cartesian Products](#cross-joins-and-cartesian-products)
+- [Shuffle Hash Join](#shuffle-hash-join)
+- [Sort-Merge Join](#sort-merge-join)
+- [Broadcast Hash Join](#broadcast-hash-join)
+- [Join Strategy Selection and Hints](#join-strategy-selection-and-hints)
+- [Handling Data Skew in Joins](#handling-data-skew-in-joins)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Spark separates **join type** (what rows end up in the result — inner, outer, semi, anti) from **join strategy** (how those rows are physically computed — broadcast hash, sort-merge, shuffle hash). The optimizer picks a strategy based on estimated table sizes and configuration thresholds: **broadcast hash join** when one side is small enough to ship to every executor, **sort-merge join** as the default for two large tables, and **shuffle hash join** as a less commonly chosen alternative. Whatever strategy is picked, **data skew** — a few keys with disproportionately more rows than the rest — can overload individual tasks regardless of which strategy is theoretically correct, which is why skew mitigation is treated as its own topic.
+
+---
+
+## Inner, Outer, Semi, and Anti Joins
+
+<QuestionList topic="Inner, Outer, Semi, and Anti Joins" storagePrefix="spark-joins-types">
+
+<QuestionCard id="ioa-01" number={1} question="What do inner, left/right/full outer joins each return in Spark?" difficulty="easy" topic="Join Types">
+`inner` keeps only rows with a match on both sides. `left_outer` keeps every row from the left DataFrame, filling right-side columns with `NULL` where unmatched. `right_outer` is the mirror image. `full_outer` keeps unmatched rows from both sides at once, `NULL`-filling whichever side didn't match.
+</QuestionCard>
+
+<QuestionCard id="ioa-02" number={2} question="What is a left semi join, and how is it different from an inner join?" difficulty="medium" topic="Join Types">
+`left_semi` returns rows from the left DataFrame that have at least one match in the right DataFrame — but, unlike an inner join, it never includes any columns from the right side, and never duplicates a left row even if it has multiple matches on the right. It's effectively an existence filter, not a data combination.
+</QuestionCard>
+
+<QuestionCard id="ioa-03" number={3} question="What is a left anti join, and what's a common use case for it?" difficulty="medium" topic="Join Types">
+`left_anti` returns rows from the left DataFrame that have **no** match at all in the right DataFrame — the logical opposite of semi join. A common use case: finding customers who have never placed an order (`customers.join(orders, "customer_id", "left_anti")`), or identifying records present in a source system but missing from a destination after a migration.
+</QuestionCard>
+
+<QuestionCard id="ioa-04" number={4} question="How would you write a left anti join in Spark SQL versus the DataFrame API?" difficulty="easy" topic="Join Types">
+DataFrame API: `left.join(right, "key", "left_anti")`. Spark SQL: `SELECT * FROM left WHERE NOT EXISTS (SELECT 1 FROM right WHERE right.key = left.key)`, or equivalently a `LEFT JOIN ... WHERE right.key IS NULL`. Both compile down to the same underlying anti-join physical execution.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Cross Joins and Cartesian Products
+
+<QuestionList topic="Cross Joins and Cartesian Products" storagePrefix="spark-joins-cross">
+
+<QuestionCard id="ccp-01" number={1} question="What is a cross join, and why does Spark require it to be explicit?" difficulty="easy" topic="Cross Joins">
+A cross join pairs every row of one DataFrame with every row of the other — the Cartesian product, with no join condition at all. Spark SQL requires it to be explicitly written as `CROSS JOIN` (or via `.crossJoin()` in the DataFrame API) rather than allowing it to happen accidentally from a join with no condition, specifically to prevent an unintentional, extremely expensive result.
+</QuestionCard>
+
+<QuestionCard id="ccp-02" number={2} question="What's a legitimate use case for a cross join?" difficulty="medium" topic="Cross Joins">
+Deliberately generating every combination of two small sets — cross joining a table of stores with a table of dates to build a complete "every store, every day" scaffold for a report, which downstream can be left-joined against actual sales data to surface days with zero sales rather than silently omitting them.
+</QuestionCard>
+
+<QuestionCard id="ccp-03" number={3} question="How would you detect an accidental Cartesian product in a query plan?" difficulty="hard" topic="Cross Joins">
+Check `explain()` output for a `CartesianProduct` (or `BroadcastNestedLoopJoin` without a clear equality condition) physical operator, and compare the output row count against what's expected — a result size roughly equal to the product of both input sizes, rather than something proportional to either side alone, is the telltale symptom of a missing or malformed join condition.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Shuffle Hash Join
+
+<QuestionList topic="Shuffle Hash Join" storagePrefix="spark-joins-shuffle-hash">
+
+<QuestionCard id="shj-01" number={1} question="What does a shuffle hash join do, step by step?" difficulty="medium" topic="Shuffle Hash Join">
+Both sides of the join are shuffled and hash-partitioned by the join key, so matching keys land on the same executor. Then, for each partition pair, Spark builds an in-memory hash table from the smaller side and probes it with rows from the larger side to find matches.
+</QuestionCard>
+
+<QuestionCard id="shj-02" number={2} question="When does Spark's optimizer choose a shuffle hash join over other strategies?" difficulty="medium" topic="Shuffle Hash Join">
+It's chosen less often than sort-merge join by default, generally when one side is small enough to build an in-memory hash table from after shuffling (but not small enough to broadcast entirely), and `spark.sql.join.preferSortMergeJoin` is disabled or the cost model otherwise favors it over sorting both sides.
+</QuestionCard>
+
+<QuestionCard id="shj-03" number={3} question="What's a risk of shuffle hash join if the 'smaller' side isn't actually small enough to fit in memory?" difficulty="hard" topic="Shuffle Hash Join">
+Building the hash table requires holding that side's partition in memory — if it's larger than expected (bad size estimates, skew, or a stale statistic), the executor can run out of memory or spill excessively, which is a meaningfully worse failure mode than sort-merge join, whose sort-based approach doesn't require one side to fit fully in memory at once.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Sort-Merge Join
+
+<QuestionList topic="Sort-Merge Join" storagePrefix="spark-joins-sort-merge">
+
+<QuestionCard id="smj-01" number={1} question="What does a sort-merge join do, step by step?" difficulty="medium" topic="Sort-Merge Join">
+Both sides are shuffled and hash-partitioned by the join key, then **sorted** by that key within each partition, and finally merged in a single linear pass — since both sides are sorted, matching rows can be found by walking through them together without needing to build a full hash table in memory.
+</QuestionCard>
+
+<QuestionCard id="smj-02" number={2} question="Why is sort-merge join Spark SQL's default strategy for large-large joins?" difficulty="medium" topic="Sort-Merge Join">
+It doesn't require either side to fit entirely in memory — the sorted merge pass processes data incrementally, spilling to disk as needed — which makes it reliably scalable to two genuinely large tables where broadcasting isn't an option and a full in-memory hash table (as shuffle hash join needs) risks memory pressure.
+</QuestionCard>
+
+<QuestionCard id="smj-03" number={3} question="What's the cost of the sort step, and when might it be avoided?" difficulty="hard" topic="Sort-Merge Join">
+Sorting is an extra CPU and I/O cost layered on top of the shuffle itself. It can be skipped if the data is already known to be sorted and co-partitioned by the join key — for example, from a prior sort-merge join or a bucketed table read — letting Spark merge directly without re-sorting.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Broadcast Hash Join
+
+<QuestionList topic="Broadcast Hash Join" storagePrefix="spark-joins-broadcast">
+
+<QuestionCard id="bhj-01" number={1} question="What does a broadcast hash join do?" difficulty="easy" topic="Broadcast Hash Join">
+It ships an entire copy of the smaller table to every executor (instead of shuffling it), builds an in-memory hash table from it locally on each executor, and then joins the large table's partitions against that local hash table — avoiding a shuffle of the large side entirely.
+</QuestionCard>
+
+<QuestionCard id="bhj-02" number={2} question="What controls whether Spark automatically uses a broadcast join, and how do you force one?" difficulty="medium" topic="Broadcast Hash Join">
+`spark.sql.autoBroadcastJoinThreshold` sets the size limit below which the optimizer automatically broadcasts a table (10 MB by default). To force it regardless of the estimate, use a broadcast hint: `df1.join(broadcast(df2), "key")` in the DataFrame API, or `/*+ BROADCAST(df2) */` in Spark SQL.
+</QuestionCard>
+
+<QuestionCard id="bhj-03" number={3} question="What's the risk of broadcasting a table that turns out to be larger than expected?" difficulty="hard" topic="Broadcast Hash Join">
+Every executor has to hold a full copy of the broadcast table in memory — if it's much larger than estimated (stale statistics, an unexpectedly large filtered result, or a manually forced hint on a table that grew), it can cause widespread executor out-of-memory errors across the whole cluster simultaneously, since the oversized data is duplicated everywhere at once.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Join Strategy Selection and Hints
+
+<QuestionList topic="Join Strategy Selection and Hints" storagePrefix="spark-joins-strategy">
+
+<QuestionCard id="jss-01" number={1} question="How does Spark's optimizer decide which join strategy to use?" difficulty="medium" topic="Strategy Selection">
+It estimates each side's size from table/column statistics (if collected) or file metadata, checks whether either side is small enough to broadcast, and otherwise defaults toward sort-merge join for two large sides — essentially a cost-based decision, though it can go wrong when statistics are missing or stale.
+</QuestionCard>
+
+<QuestionCard id="jss-02" number={2} question="What join hints are available, and how do you apply one?" difficulty="medium" topic="Strategy Selection">
+`broadcast()`/`BROADCAST` forces a broadcast join, `merge()`/`MERGE`/`SHUFFLE_MERGE` forces sort-merge, and `shuffle_hash()`/`SHUFFLE_HASH` forces shuffle hash. Applied either via DataFrame API function calls (`df1.join(broadcast(df2), ...)`) or SQL comment-style hints (`SELECT /*+ BROADCAST(t2) */ ...`).
+</QuestionCard>
+
+<QuestionCard id="jss-03" number={3} question="Why might you need to override the optimizer's choice with a hint?" difficulty="hard" topic="Strategy Selection">
+When the optimizer's size estimate is wrong — missing or stale statistics on a table, or a size that only becomes small *after* upstream filtering the optimizer can't fully account for — leading it to pick a more expensive strategy than the data actually warrants. A hint lets you apply what you know about the real data shape when the optimizer's estimate can't.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Handling Data Skew in Joins
+
+<QuestionList topic="Handling Data Skew in Joins" storagePrefix="spark-joins-skew">
+
+<QuestionCard id="dsj-01" number={1} question="What is data skew in the context of a join, and why does it hurt performance?" difficulty="medium" topic="Data Skew">
+Skew is when a small number of join key values have disproportionately many rows compared to the rest — a hash-partitioned shuffle sends all of one key's rows to a single task, so a heavily skewed key overloads just that one task while every other task finishes quickly and sits idle, dragging out the whole job's completion time.
+</QuestionCard>
+
+<QuestionCard id="dsj-02" number={2} question="What is salting, and how does it mitigate skew?" difficulty="hard" topic="Data Skew">
+Salting appends a random suffix to a skewed key (splitting one hot key into several artificial sub-keys), spreading what would have been one overloaded partition's worth of data across multiple partitions/tasks instead. It requires the same salting to be applied consistently to the other side of the join too, so matching rows still find each other after the key is artificially split.
+</QuestionCard>
+
+<QuestionCard id="dsj-03" number={3} question="How does AQE's skew join optimization handle this automatically?" difficulty="medium" topic="Data Skew">
+Adaptive Query Execution detects disproportionately large shuffle partitions at runtime (using actual post-shuffle statistics, not just upfront estimates) and automatically splits them into smaller sub-partitions that are joined separately against the corresponding data on the other side — achieving a similar effect to manual salting, but without requiring the developer to identify or hand-code around the skewed keys.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A join between a 2 TB table and a 50 MB table is running slowly — how would you speed it up?"** A direct broadcast-join prompt: check `autoBroadcastJoinThreshold`, and force a broadcast hint if the optimizer isn't already choosing one.
+- **"One task in a shuffle stage is taking 10x longer than every other task — what's going on, and how would you fix it?"** Point to data skew on a hot join key, and discuss salting versus letting AQE's skew join optimization handle it automatically.
+- **"Explain the difference between a left semi join and an inner join followed by a distinct on the left columns."** Test whether the candidate understands semi join as a purpose-built existence filter rather than a workaround built from other operations.
+- **"Why did adding a WHERE clause after a LEFT JOIN silently turn it into something that behaves like an INNER JOIN?"** A join-type reasoning question — filtering on a right-side column after a left join removes the NULL-filled unmatched rows, effectively voiding the outer join's intent.
+
+---
+
+## Further Reading
+
+- [Spark Distributed Computing](/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/) — the broadcast variable mechanism broadcast hash join is built on
+- [Spark Execution Lifecycle](/level-3-technologies/batch-processing/spark-execution-lifecycle/) — the shuffle mechanics underlying shuffle hash and sort-merge join
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of

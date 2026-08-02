@@ -1,0 +1,214 @@
+---
+title: Spark Window Functions
+description: Interview questions on Spark window functions — WindowSpec, ranking functions, aggregate windows, LEAD/LAG, ROWS vs RANGE frames, and running calculations.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Window Functions: Ranking, Aggregates, and Running Calculations
+
+**Window functions answer a question GROUP BY can't — compute something using a set of related rows, but still return one row per input row — and that single property is what makes running totals, per-group rankings, and period-over-period comparisons possible in one pass.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Window Specification Definitions](#window-specification-definitions)
+- [Ranking Functions](#ranking-functions)
+- [Aggregate Window Functions](#aggregate-window-functions)
+- [Lead and Lag Operations](#lead-and-lag-operations)
+- [Range versus Row Frames](#range-versus-row-frames)
+- [Partitioning within Windows](#partitioning-within-windows)
+- [Cumulative and Running Calculations](#cumulative-and-running-calculations)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Every window function is evaluated over a **`WindowSpec`** — defined via `Window.partitionBy(...).orderBy(...)`, optionally with a frame boundary — which describes exactly which other rows are "in view" when computing each row's value. `partitionBy` splits rows into independent groups (like `GROUP BY`, but without collapsing them), `orderBy` establishes a sequence within each partition (required for ranking and `lead`/`lag`, optional for plain aggregates), and the **frame** narrows the window further to a specific range of rows relative to the current one — which is what turns a plain partition-wide aggregate into a running total or moving average.
+
+---
+
+## Window Specification Definitions
+
+<QuestionList topic="Window Specification Definitions" storagePrefix="spark-wf-spec">
+
+<QuestionCard id="wsd-01" number={1} question="What is a WindowSpec, and what three things does it define?" difficulty="easy" topic="WindowSpec">
+A `WindowSpec` is the definition of the window a function is evaluated over. It defines the **partitioning** (which rows are grouped together), the **ordering** (the sequence within each partition), and optionally the **frame** (which rows relative to the current one are included, narrowing the default of the whole partition).
+</QuestionCard>
+
+<QuestionCard id="wsd-02" number={2} question="How do you build a WindowSpec in code?" difficulty="easy" topic="WindowSpec">
+```scala
+import org.apache.spark.sql.expressions.Window
+val spec = Window.partitionBy("department").orderBy("salary")
+```
+This spec is then passed to a window function via `.over(spec)`: `rank().over(spec)`, `sum("salary").over(spec)`, and so on — the same spec object can be reused across many different function calls.
+</QuestionCard>
+
+<QuestionCard id="wsd-03" number={3} question="Can the same WindowSpec be reused across multiple window function calls?" difficulty="medium" topic="WindowSpec">
+Yes, and it's common practice: define the spec once, then apply it to several functions in the same `select` — `row_number().over(spec)`, `sum("amount").over(spec)`, `lag("amount").over(spec)` all referencing the same partitioning and ordering. This keeps the window definition consistent and avoids repeating the same `partitionBy`/`orderBy` chain multiple times.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Ranking Functions
+
+<QuestionList topic="Ranking Functions" storagePrefix="spark-wf-ranking">
+
+<QuestionCard id="rnk-01" number={1} question="What's the difference between rank(), dense_rank(), and row_number()?" difficulty="medium" topic="Ranking Functions">
+`row_number()` assigns a strictly unique, sequential number regardless of ties. `rank()` gives tied rows the same rank, then skips the next rank number by the count of ties (1, 2, 2, 4). `dense_rank()` also ties rows together, but doesn't skip the next number (1, 2, 2, 3).
+</QuestionCard>
+
+<QuestionCard id="rnk-02" number={2} question="Write a query to find the top 3 highest-paid employees per department." difficulty="medium" topic="Ranking Functions">
+```scala
+val spec = Window.partitionBy("department").orderBy(col("salary").desc)
+df.withColumn("rn", row_number().over(spec))
+  .filter(col("rn") <= 3)
+```
+`row_number()` guarantees exactly 3 rows per department even with tied salaries; `rank()` could return more than 3 if the 3rd-place salary is tied with a 4th.
+</QuestionCard>
+
+<QuestionCard id="rnk-03" number={3} question="Why might row_number() be preferred over rank() when deduplicating rows?" difficulty="medium" topic="Ranking Functions">
+Deduplication typically wants exactly one "winning" row per group (e.g., the latest record per key) — `row_number()`'s guaranteed uniqueness makes `WHERE rn = 1` deterministic. `rank()` can leave multiple rows tied for rank 1, which means the "deduplicated" result could still contain duplicates if there's a tie in the ordering column.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Aggregate Window Functions
+
+<QuestionList topic="Aggregate Window Functions" storagePrefix="spark-wf-aggregate">
+
+<QuestionCard id="awf-01" number={1} question="What does it mean to use an aggregate function like sum() or avg() as a window function instead of with groupBy?" difficulty="medium" topic="Aggregate Windows">
+Using `sum("salary").over(spec)` computes the sum across the window's rows but still returns one output row per input row — unlike `groupBy("department").sum("salary")`, which collapses each department into a single summary row. It's how you show both individual-row detail and a group-level number side by side.
+</QuestionCard>
+
+<QuestionCard id="awf-02" number={2} question="Write an example computing each employee's salary alongside their department's average salary." difficulty="medium" topic="Aggregate Windows">
+```scala
+val spec = Window.partitionBy("department")
+df.withColumn("dept_avg_salary", avg("salary").over(spec))
+```
+Every employee's row still appears individually in the output, each annotated with their own department's average — a comparison a plain `groupBy` alone can't produce without a self-join back to the original data.
+</QuestionCard>
+
+<QuestionCard id="awf-03" number={3} question="Why is the output row count different between a window aggregate and a groupBy aggregate on the same data?" difficulty="easy" topic="Aggregate Windows">
+`groupBy` fundamentally collapses rows — one output row per distinct group value, regardless of how many input rows contributed to it. A window aggregate never collapses rows at all; the row count in equals the row count out, with the aggregate value simply attached as an extra column on each original row.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Lead and Lag Operations
+
+<QuestionList topic="Lead and Lag Operations" storagePrefix="spark-wf-lead-lag">
+
+<QuestionCard id="lgo-01" number={1} question="What do lead() and lag() do?" difficulty="easy" topic="LEAD / LAG">
+`lag(col, n)` returns the value of `col` from `n` rows before the current row within its partition (default `n = 1`). `lead(col, n)` returns the value from `n` rows after. Both require an `orderBy` in the window spec, since "before" and "after" only make sense relative to a defined sequence.
+</QuestionCard>
+
+<QuestionCard id="lgo-02" number={2} question="Write a query using lag() to compute month-over-month change." difficulty="medium" topic="LEAD / LAG">
+```scala
+val spec = Window.partitionBy("product").orderBy("month")
+df.withColumn("prev_revenue", lag("revenue", 1).over(spec))
+  .withColumn("mom_change", col("revenue") - col("prev_revenue"))
+```
+This avoids a self-join entirely — the "previous row's value" is pulled directly into the current row via the window function.
+</QuestionCard>
+
+<QuestionCard id="lgo-03" number={3} question="What do lead()/lag() return at partition boundaries, and how do you handle it?" difficulty="medium" topic="LEAD / LAG">
+`NULL` by default — the first row in a partition has no prior row for `lag`, and the last has no next row for `lead`. Both accept an optional third argument specifying a default value to use instead of `NULL`: `lag("revenue", 1, 0)`.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Range versus Row Frames
+
+<QuestionList topic="Range versus Row Frames" storagePrefix="spark-wf-frames">
+
+<QuestionCard id="rvf-01" number={1} question="What's the difference between a ROWS frame and a RANGE frame?" difficulty="hard" topic="Frames">
+`ROWS` defines the frame by physical row position — "the 2 rows before this one," counted strictly by position. `RANGE` defines it by logical value in the `orderBy` column — "all rows within a certain value distance," treating rows with equal order-by values as peers included together, regardless of how many of them there are.
+</QuestionCard>
+
+<QuestionCard id="rvf-02" number={2} question="When do ROWS and RANGE frames produce different results?" difficulty="hard" topic="Frames">
+They behave identically when every value in the `orderBy` column is unique. They diverge when there are ties: `RANGE` includes every row with the same order-by value as part of the current frame boundary (potentially more than the row count `ROWS` would count), while `ROWS` counts strictly by physical position regardless of value ties.
+</QuestionCard>
+
+<QuestionCard id="rvf-03" number={3} question="What is the default frame Spark uses if none is specified?" difficulty="medium" topic="Frames">
+When an `orderBy` is present but no explicit frame is set, Spark defaults to `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW` — effectively a running/cumulative frame up to the current row's value. Without any `orderBy` at all, the default frame is the entire partition (`UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING`), since there's no defined sequence to run "up to."
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Partitioning within Windows
+
+<QuestionList topic="Partitioning within Windows" storagePrefix="spark-wf-partitioning">
+
+<QuestionCard id="pww-01" number={1} question="What does partitionBy do inside a window specification?" difficulty="easy" topic="Window Partitioning">
+It splits the rows into independent groups the window function is computed separately within — analogous to `GROUP BY`, but the rows aren't collapsed. A window function with `partitionBy("region")` resets its computation (a rank, a running total) at the start of each new region.
+</QuestionCard>
+
+<QuestionCard id="pww-02" number={2} question="How is partitionBy in a window different from a DataFrame's repartition()?" difficulty="medium" topic="Window Partitioning">
+Window `partitionBy` is a logical grouping for the purposes of computing the window function — it defines which rows are "peers" for ranking/aggregation. `repartition()` is a *physical* operation that changes how many partitions the DataFrame's underlying data is split into across the cluster, unrelated to any window function. They can coincidentally use the same column but serve entirely different purposes.
+</QuestionCard>
+
+<QuestionCard id="pww-03" number={3} question="What happens to performance if you use a window function with no partitionBy at all on a large dataset?" difficulty="hard" topic="Window Partitioning">
+With no `partitionBy`, the entire dataset is treated as a single window, which forces all the relevant data to be shuffled into one partition (or a very small number) to compute the function — a serious bottleneck and potential memory pressure point on a large dataset. Nearly every real-world window function use case should include a `partitionBy` scoped to a reasonable grouping key.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Cumulative and Running Calculations
+
+<QuestionList topic="Cumulative and Running Calculations" storagePrefix="spark-wf-cumulative">
+
+<QuestionCard id="crc-01" number={1} question="How do you compute a running total using window functions?" difficulty="medium" topic="Running Calculations">
+```scala
+val spec = Window.partitionBy("account").orderBy("txn_date")
+  .rowsBetween(Window.unboundedPreceding, Window.currentRow)
+df.withColumn("running_total", sum("amount").over(spec))
+```
+The explicit `rowsBetween` frame — from the start of the partition up to the current row — is what turns a plain `sum` into a running total instead of a single partition-wide sum repeated on every row.
+</QuestionCard>
+
+<QuestionCard id="crc-02" number={2} question="What frame boundary keywords express 'from the start of the partition up to the current row'?" difficulty="medium" topic="Running Calculations">
+`Window.unboundedPreceding` (the start of the partition) as the frame's lower bound, and `Window.currentRow` as the upper bound — together, `rowsBetween(Window.unboundedPreceding, Window.currentRow)` (or the `RANGE` equivalent), which is Spark's default frame whenever an `orderBy` is present without an explicit frame.
+</QuestionCard>
+
+<QuestionCard id="crc-03" number={3} question="How would you compute a moving average over the last 7 rows?" difficulty="medium" topic="Running Calculations">
+```scala
+val spec = Window.partitionBy("store").orderBy("date")
+  .rowsBetween(-6, Window.currentRow)
+df.withColumn("moving_avg_7d", avg("sales").over(spec))
+```
+`rowsBetween(-6, 0)` (six rows back plus the current row = a 7-row window) is the key difference from a running total's unbounded lower bound — the frame here is fixed-width and slides forward with each row instead of continuously growing.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Write a query to show each employee's salary alongside their department's average, without collapsing rows."** A direct window-aggregate prompt testing the core "why not just GROUP BY" distinction.
+- **"How would you find, for each customer, their first and most recent order?"** A `row_number()` prompt using both ascending and descending order within the same partition, or `first`/`last` with an appropriate frame.
+- **"Explain why a moving average over the trailing 7 days gave unexpected results when there were gaps in the date sequence."** A chance to distinguish `ROWS` (counts physical rows, ignoring date gaps) from `RANGE` (would need actual date-interval semantics to handle gaps correctly).
+- **"A window function query without partitionBy is running extremely slowly on a large dataset — why, and how would you fix it?"** Point to the entire dataset being funneled into a single logical partition, and the fix being an appropriate grouping key.
+
+---
+
+## Further Reading
+
+- [Spark DataFrame & Dataset APIs](/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/) — the Column API and DataFrame operations window functions are built on top of
+- [Spark Joins](/level-3-technologies/batch-processing/spark-joins/) — the alternative to a self-join that window functions like LEAD/LAG replace
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of
