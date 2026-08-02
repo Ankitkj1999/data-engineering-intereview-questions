@@ -1,0 +1,216 @@
+---
+title: Spark Cloud Storage & Database Connectors
+description: Interview questions on Spark's cloud storage and database connectors — S3/GCS/ADLS, S3A, partitioned directories, JDBC, predicate pushdown, credentials, and HDFS.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Cloud Storage & Database Connectors: Reading and Writing Outside the Cluster
+
+**Spark's compute is separate from wherever the data actually lives, and every connector on this page exists to bridge that gap efficiently — emulating a filesystem over an object store, parallelizing a JDBC read that was never designed for it, and keeping credentials out of code while doing both.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [S3, GCS, and ADLS Integration](#s3-gcs-and-adls-integration)
+- [S3A Implementation and File Path Patterns](#s3a-implementation-and-file-path-patterns)
+- [Partitioned Directory Reading](#partitioned-directory-reading)
+- [JDBC Drivers and Connection Pooling](#jdbc-drivers-and-connection-pooling)
+- [Predicate Pushdown for Database Queries](#predicate-pushdown-for-database-queries)
+- [Partitioned Database Reads and Write Batching](#partitioned-database-reads-and-write-batching)
+- [Credential and Secrets Management for Connectors](#credential-and-secrets-management-for-connectors)
+- [Kafka and REST APIs as Batch Data Sources](#kafka-and-rest-apis-as-batch-data-sources)
+- [Hadoop File System (HDFS) Interaction](#hadoop-file-system-hdfs-interaction)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Spark reaches cloud object stores through Hadoop-compatible filesystem connectors — **S3A** for S3, the GCS connector, **ABFS** for ADLS — each emulating filesystem semantics (directories, atomic renames) over storage that's natively just a flat key-value object namespace. Relational databases are reached through **JDBC**, which — unlike a purpose-built distributed connector — has no native concept of Spark partitions, so Spark has to parallelize a JDBC read itself by splitting a query into concurrent range-bounded sub-queries. Across every connector, the same two concerns repeat: **pushing filters down** to the source so less data crosses the network, and keeping **credentials** out of hardcoded configuration in favor of IAM roles, secret managers, or credential providers.
+
+---
+
+## S3, GCS, and ADLS Integration
+
+<QuestionList topic="S3, GCS, and ADLS Integration" storagePrefix="spark-cloud-object-stores">
+
+<QuestionCard id="sga-01" number={1} question="How does Spark access cloud object stores like S3, GCS, and ADLS?" difficulty="easy" topic="Object Store Integration">
+Through Hadoop-compatible filesystem connectors bundled or added as dependencies — the S3A connector for S3, the GCS connector for Google Cloud Storage, and ABFS for Azure Data Lake Storage — each translating standard Hadoop filesystem calls into the specific cloud provider's storage API underneath.
+</QuestionCard>
+
+<QuestionCard id="sga-02" number={2} question="What URI schemes does Spark use for each, and why do they differ from a plain filesystem path?" difficulty="easy" topic="Object Store Integration">
+`s3a://bucket/path` for S3, `gs://bucket/path` for GCS, `abfss://container@account.dfs.core.windows.net/path` for ADLS. The scheme tells Spark which connector implementation to use to resolve the rest of the path — unlike a local or HDFS path, these encode the specific cloud service and bucket/container as part of the address itself.
+</QuestionCard>
+
+<QuestionCard id="sga-03" number={3} question="What's a key architectural difference between an object store and HDFS that Spark's connectors have to work around?" difficulty="hard" topic="Object Store Integration">
+Object stores have a **flat namespace** — what looks like a directory is really just a common prefix shared by object keys, with no native directory or atomic-rename operation the way a real filesystem has. Connectors have to simulate directory listing and (critically, for reliable writes) simulate atomicity through other means, like S3 committers, since a naive "rename the output directory" approach that HDFS supports natively doesn't have a true equivalent on an object store.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## S3A Implementation and File Path Patterns
+
+<QuestionList topic="S3A Implementation and File Path Patterns" storagePrefix="spark-cloud-s3a">
+
+<QuestionCard id="s3a-01" number={1} question="What is the S3A connector, and what does 'emulates a filesystem' mean given S3's actual object model?" difficulty="medium" topic="S3A">
+S3A is the Hadoop-compatible connector that lets Spark treat S3 as if it were a hierarchical filesystem, even though S3 itself only understands flat object keys. It translates filesystem-style operations (listing a "directory," checking if a "file" exists) into the equivalent S3 API calls over that flat key space.
+</QuestionCard>
+
+<QuestionCard id="s3a-02" number={2} question="What are S3 committers, and why do they matter for writing Spark output reliably?" difficulty="hard" topic="S3A">
+S3 committers (like the S3A committer or EMRFS's committer) manage how Spark's distributed write tasks land their output reliably and atomically on S3, working around the lack of a true atomic directory rename. Without a proper committer, a failed or retried task can leave partial or duplicate output behind, since S3 has no native equivalent to the atomic "rename temp directory to final directory" trick a real filesystem write commit typically relies on.
+</QuestionCard>
+
+<QuestionCard id="s3a-03" number={3} question="What consistency behavior should you be aware of when reading data you just wrote to S3?" difficulty="medium" topic="S3A">
+Modern S3 offers strong read-after-write consistency for both new object PUTs and overwrites, which resolved a historical class of bugs where a job could read stale or incomplete listings immediately after a write. It's still worth confirming behavior for older configurations, other S3-compatible stores, or eventually-consistent alternatives that don't make the same guarantee.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Partitioned Directory Reading
+
+<QuestionList topic="Partitioned Directory Reading" storagePrefix="spark-cloud-partitioned-dirs">
+
+<QuestionCard id="pdr-01" number={1} question="What is Hive-style partitioning, and how does Spark use it when reading?" difficulty="easy" topic="Partitioned Directories">
+Hive-style partitioning encodes column values directly into the directory path — `s3a://bucket/table/year=2024/month=01/`. When Spark reads such a path, it can infer the partition columns (`year`, `month`) from the directory structure itself, without those values needing to be stored in the file data.
+</QuestionCard>
+
+<QuestionCard id="pdr-02" number={2} question="How does partition pruning work when reading a partitioned directory structure?" difficulty="medium" topic="Partitioned Directories">
+If a query filters on a partition column (`WHERE year = 2024`), Spark can skip listing and reading entire directories that don't match — `month=02`, `month=03`, etc. under a non-matching year are never even opened — which is far cheaper than reading every file and filtering row-by-row afterward.
+</QuestionCard>
+
+<QuestionCard id="pdr-03" number={3} question="What happens if you filter on a column that isn't part of the partitioning scheme?" difficulty="medium" topic="Partitioned Directories">
+No directory-level pruning is possible for that filter — Spark still has to read every file within the partitions selected by any partition-column filters, then apply the non-partition-column filter afterward (with whatever pushdown the file format itself, like Parquet's row-group stats, can still offer at a finer grain).
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## JDBC Drivers and Connection Pooling
+
+<QuestionList topic="JDBC Drivers and Connection Pooling" storagePrefix="spark-cloud-jdbc">
+
+<QuestionCard id="jdc-01" number={1} question="What do you need to set up before spark.read.jdbc will work?" difficulty="easy" topic="JDBC">
+The appropriate JDBC driver JAR for the target database (PostgreSQL, MySQL, etc.) has to be on Spark's classpath — added via `--jars` or `spark.jars.packages` at submission time — since Spark itself doesn't bundle database-specific drivers.
+</QuestionCard>
+
+<QuestionCard id="jdc-02" number={2} question="Does Spark pool JDBC connections across tasks by default?" difficulty="medium" topic="JDBC">
+No — by default each task opens its own JDBC connection for the duration of its read or write, without a shared connection pool across tasks. This matters for sizing: a job with high parallelism against a JDBC source can open many simultaneous connections, potentially overwhelming the source database if the connection count isn't bounded relative to what it can handle.
+</QuestionCard>
+
+<QuestionCard id="jdc-03" number={3} question="What options control read parallelism for a JDBC source?" difficulty="medium" topic="JDBC">
+`numPartitions` sets how many parallel connections/tasks read the table, `partitionColumn`/`lowerBound`/`upperBound` define how that column's range gets split into per-task query bounds, and `fetchsize` controls how many rows the driver fetches per round trip within each task — tuning it can meaningfully affect read throughput for large result sets.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Predicate Pushdown for Database Queries
+
+<QuestionList topic="Predicate Pushdown for Database Queries" storagePrefix="spark-cloud-jdbc-pushdown">
+
+<QuestionCard id="ppd-01" number={1} question="How does predicate pushdown work for a JDBC source?" difficulty="medium" topic="JDBC Pushdown">
+Spark translates supported filter predicates from the DataFrame query into the equivalent `WHERE` clause sent to the source database as part of the underlying SQL query — filtering happens inside the database before rows are even sent back to Spark, rather than Spark pulling the whole table across and filtering afterward.
+</QuestionCard>
+
+<QuestionCard id="ppd-02" number={2} question="What kinds of predicates typically don't get pushed down to a database source?" difficulty="hard" topic="JDBC Pushdown">
+Complex expressions involving UDFs, certain string/date functions the JDBC dialect translation layer doesn't recognize, and any condition Spark can't confidently translate into valid SQL for that specific database's dialect — in those cases, Spark falls back to pulling the (unfiltered, or partially filtered) data across and applying the remaining filter itself.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Partitioned Database Reads and Write Batching
+
+<QuestionList topic="Partitioned Database Reads and Write Batching" storagePrefix="spark-cloud-jdbc-partitioning">
+
+<QuestionCard id="pdw-01" number={1} question="How does Spark parallelize a JDBC read across multiple tasks?" difficulty="medium" topic="JDBC Partitioning">
+It splits a numeric (or otherwise orderable) `partitionColumn`'s range (`lowerBound` to `upperBound`) into `numPartitions` roughly equal sub-ranges, and issues one query per task, each scoped to its own `WHERE partitionColumn BETWEEN ... AND ...` range — turning one large sequential read into several concurrent, bounded ones.
+</QuestionCard>
+
+<QuestionCard id="pdw-02" number={2} question="What happens if the partition column you choose for a JDBC read is skewed?" difficulty="hard" topic="JDBC Partitioning">
+The equal-width range splitting doesn't account for uneven data distribution — if most rows cluster in a narrow part of the column's range, some task partitions end up with far more rows than others, creating the same kind of task imbalance a skewed shuffle join produces, just sourced from uneven partition-column distribution instead.
+</QuestionCard>
+
+<QuestionCard id="pdw-03" number={3} question="What does batchsize control on a JDBC write, and why does it matter?" difficulty="medium" topic="JDBC Partitioning">
+`batchsize` controls how many rows are grouped into a single JDBC batch `INSERT` statement per round trip. Too small a batch size means excessive network round trips for a large write; too large can strain the target database's transaction/memory limits — it's a real tuning knob, not just a default to leave alone for a large write workload.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Credential and Secrets Management for Connectors
+
+<QuestionList topic="Credential and Secrets Management for Connectors" storagePrefix="spark-cloud-credentials">
+
+<QuestionCard id="csm-01" number={1} question="Why is hardcoding cloud/database credentials in Spark configuration a bad practice?" difficulty="easy" topic="Credentials">
+Hardcoded credentials end up in code repositories, logs, and job configuration files, all of which have a wider audience and longer retention than a credential's intended lifetime — a significant, avoidable exposure risk compared to credentials that are resolved dynamically at runtime and never persisted in plaintext anywhere.
+</QuestionCard>
+
+<QuestionCard id="csm-02" number={2} question="What are the common alternatives to hardcoded credentials?" difficulty="medium" topic="Credentials">
+**IAM roles/instance profiles** (the compute itself is granted access, no credentials to manage at all), **secret managers** (AWS Secrets Manager, Azure Key Vault, fetched at runtime), and **Hadoop Credential Providers** (encrypted credential stores referenced by configuration rather than containing the raw secret directly).
+</QuestionCard>
+
+<QuestionCard id="csm-03" number={3} question="How do IAM roles/instance profiles avoid needing explicit credentials at all?" difficulty="medium" topic="Credentials">
+The cloud provider's identity system authenticates the *compute instance or service* itself (e.g., the EC2 instance or EMR cluster running Spark), automatically issuing short-lived, scoped credentials to any process running there — the application code never handles a long-lived access key at all, since the underlying SDK/connector fetches temporary credentials from the instance's metadata service transparently.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Kafka and REST APIs as Batch Data Sources
+
+<QuestionList topic="Kafka and REST APIs as Batch Data Sources" storagePrefix="spark-cloud-kafka-rest">
+
+<QuestionCard id="krb-01" number={1} question="How can a Kafka topic be read as a bounded batch instead of a stream?" difficulty="medium" topic="Kafka/REST as Batch">
+By specifying explicit `startingOffsets` and `endingOffsets` on a `spark.read` (not `readStream`) call against the Kafka source — this reads exactly the bounded range of messages between those offsets as a regular, finite DataFrame, rather than continuously polling for new ones the way Structured Streaming would.
+</QuestionCard>
+
+<QuestionCard id="krb-02" number={2} question="How are REST APIs typically integrated as a Spark batch source?" difficulty="medium" topic="Kafka/REST as Batch">
+There's no universal built-in Spark connector for arbitrary REST APIs — integration is typically done via a custom data source implementation, a third-party connector library, or simply calling the API from within a `mapPartitions`/UDF and constructing a DataFrame from the results, with careful attention to rate limits and batching given the request-per-call nature of most REST APIs.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Hadoop File System (HDFS) Interaction
+
+<QuestionList topic="Hadoop File System (HDFS) Interaction" storagePrefix="spark-cloud-hdfs">
+
+<QuestionCard id="hfi-01" number={1} question="How does Spark read and write HDFS, and what does it inherit from doing so?" difficulty="easy" topic="HDFS">
+Natively, via the `hdfs://` URI scheme — Spark talks to HDFS directly as a first-class Hadoop-ecosystem citizen, inheriting HDFS's built-in data locality awareness and block replication for fault tolerance, without needing an emulation layer the way object store connectors do.
+</QuestionCard>
+
+<QuestionCard id="hfi-02" number={2} question="Why does data locality matter more for HDFS than for a typical cloud object store?" difficulty="hard" topic="HDFS">
+HDFS stores physical block replicas on specific worker-adjacent nodes, so scheduling a task on (or near) the node holding its data's replica genuinely avoids a network hop. Cloud object stores are inherently remote and non-local to any specific compute node regardless of scheduling, so the same locality-aware scheduling has nothing physically local to exploit — the read cost is comparatively uniform no matter which node runs the task.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A Spark job writing to S3 occasionally produces duplicate or partial output after a task retry — what's likely misconfigured?"** Point to the S3 committer setup, and explain why S3's lack of atomic directory rename makes committer choice matter far more than it would writing to HDFS.
+- **"A JDBC read from a 500M-row table is running as a single task and taking hours — how would you fix it?"** Walk through `numPartitions`/`partitionColumn`/`lowerBound`/`upperBound` to parallelize the read, and discuss what happens if the chosen partition column is skewed.
+- **"How would you design credential handling for a Spark job that reads from S3 and writes to a PostgreSQL database, without hardcoding anything?"** A practical prompt combining IAM roles for S3 access and a secrets manager (or Hadoop Credential Provider) for the database password.
+- **"Why might the same Spark job run noticeably differently on an on-prem HDFS cluster versus reading the same data from S3?"** Discuss data locality's role on HDFS versus its absence on object storage, and how that affects scheduling assumptions.
+
+---
+
+## Further Reading
+
+- [AWS](/level-3-technologies/cloud/aws/) — broader AWS service interview questions, including S3, IAM, and Redshift beyond Spark-specific connector mechanics
+- [Spark File Formats & Storage Optimization](/level-3-technologies/batch-processing/spark-file-formats-storage/) — the file formats these connectors ultimately read and write
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of

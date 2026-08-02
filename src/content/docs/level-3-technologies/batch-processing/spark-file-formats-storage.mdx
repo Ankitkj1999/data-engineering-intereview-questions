@@ -1,0 +1,123 @@
+---
+title: Spark File Formats & Storage Optimization
+description: Interview questions on ORC file structure, schema evolution across formats, the small file problem, and metadata/footer caching in Spark.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## File Formats & Storage Optimization: Beyond Parquet and Avro
+
+**Parquet and Avro already have their own dedicated pages on this site — what's covered here is the rest of the storage picture: ORC as Parquet's Hive-ecosystem cousin, how schema evolution actually differs between formats, and the two operational problems (small files, footer-read overhead) that show up regardless of which columnar format you picked.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [ORC File Structure and Benefits](#orc-file-structure-and-benefits)
+- [Schema Evolution Across Formats](#schema-evolution-across-formats)
+- [Small File Problem and Compaction Strategies](#small-file-problem-and-compaction-strategies)
+- [Metadata and Footer Caching Strategies](#metadata-and-footer-caching-strategies)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+This roadmap phase covers ten subtopics in total; six of them — Parquet optimization, dictionary encoding, compression codec selection, predicate/partition pushdown, and columnar projection — are already covered in full depth on this site's dedicated [Parquet](/level-3-technologies/formats/parquet/) and [Avro](/level-3-technologies/formats/avro/) pages, so this page doesn't repeat them. What's left, and what's covered here: **ORC** as a distinct columnar format with its own structure and ecosystem, how **schema evolution** rules actually differ between Parquet and Avro's approaches, and two problems that are properties of *distributed storage in general* rather than any one file format — the **small file problem** (too many tiny files overwhelming the driver) and **metadata/footer caching** (avoiding redundant footer reads across many tasks).
+
+---
+
+## ORC File Structure and Benefits
+
+<QuestionList topic="ORC File Structure and Benefits" storagePrefix="spark-storage-orc">
+
+<QuestionCard id="orc-01" number={1} question="What is ORC, and what's its basic file structure?" difficulty="easy" topic="ORC">
+ORC (Optimized Row Columnar) is a columnar storage format, organized into **stripes** (large chunks of rows, typically ~250MB), each holding column data plus lightweight per-stripe indexes, with a **file footer** at the end summarizing stripe locations, row counts, and column statistics.
+</QuestionCard>
+
+<QuestionCard id="orc-02" number={2} question="What benefits does ORC offer, and where did it originate?" difficulty="medium" topic="ORC">
+Built-in lightweight indexes at the stripe and row-group level, strong compression, and native support for complex/nested types — originally developed to speed up Hive workloads, which is why it remains especially popular in Hive-centric data platforms, though Spark reads and writes it natively as well.
+</QuestionCard>
+
+<QuestionCard id="orc-03" number={3} question="How does ORC's predicate pushdown differ mechanically from Parquet's?" difficulty="hard" topic="ORC">
+Both use min/max statistics to skip data that can't match a filter, but ORC additionally maintains lightweight **row-level indexes** within each stripe, letting it skip at a finer granularity (within a stripe, not just between stripes/row groups) in some cases — the practical difference is usually small and workload-dependent, but it's the mechanical distinction worth knowing.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Schema Evolution Across Formats
+
+<QuestionList topic="Schema Evolution Across Formats" storagePrefix="spark-storage-schema-evolution">
+
+<QuestionCard id="sef-01" number={1} question="How does Avro handle schema evolution?" difficulty="medium" topic="Schema Evolution">
+Avro embeds the schema used to write each file, and readers apply **schema resolution** between that writer schema and their own reader schema — reconciling renamed, added, or removed fields according to compatibility rules (e.g., a new field needs a default value to remain backward-compatible). This makes Avro a strong fit for streaming pipelines where producers and consumers evolve independently.
+</QuestionCard>
+
+<QuestionCard id="sef-02" number={2} question="How does Parquet handle schema evolution, and how is that different from Avro's approach?" difficulty="medium" topic="Schema Evolution">
+Parquet supports **schema merging** — when reading multiple Parquet files with slightly different (but compatible) schemas, Spark can merge them into one unified schema (`mergeSchema = true`). This is a different mechanism than Avro's per-file writer/reader resolution: Parquet reconciles *across files at read time*, rather than each individual file carrying an explicit reader/writer negotiation.
+</QuestionCard>
+
+<QuestionCard id="sef-03" number={3} question="What Spark read option controls how divergent Parquet file schemas across a dataset get reconciled?" difficulty="medium" topic="Schema Evolution">
+`spark.read.option("mergeSchema", "true")` tells Spark to scan and merge the schemas of all files in the dataset rather than trusting just one file's schema (or a cached one) — useful when a table's schema has evolved over time across files, but it adds the cost of an extra schema-discovery pass, so it's typically off by default.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Small File Problem and Compaction Strategies
+
+<QuestionList topic="Small File Problem and Compaction Strategies" storagePrefix="spark-storage-small-files">
+
+<QuestionCard id="sfp-01" number={1} question="What is the small file problem, and why does it hurt Spark specifically?" difficulty="medium" topic="Small Files">
+Having a very large number of tiny files (well below a typical block/row-group size) overloads two things: the driver's file-listing step (enumerating and planning against thousands of small files is itself expensive) and task-scheduling overhead (launching a task per tiny file wastes far more time on scheduling than the task itself takes to run).
+</QuestionCard>
+
+<QuestionCard id="sfp-02" number={2} question="What causes small files to accumulate in the first place?" difficulty="medium" topic="Small Files">
+Commonly: writing with too many output partitions relative to data volume (each task writes its own file, so more tasks than warranted means more, smaller files), frequent small streaming micro-batch writes, or an over-partitioned table design where each partition individually holds too little data to produce a reasonably sized file.
+</QuestionCard>
+
+<QuestionCard id="sfp-03" number={3} question="What are the common strategies to fix or prevent the small file problem?" difficulty="medium" topic="Small Files">
+**Coalescing/repartitioning before write** (`df.coalesce(n).write...`) to control output file count directly, and **periodic compaction jobs** that read a set of small files and rewrite them as fewer, larger ones — the standard maintenance pattern for tables (especially streaming-written ones) that otherwise accumulate small files continuously over time.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Metadata and Footer Caching Strategies
+
+<QuestionList topic="Metadata and Footer Caching Strategies" storagePrefix="spark-storage-footer-caching">
+
+<QuestionCard id="mfc-01" number={1} question="What metadata do Parquet/ORC footers contain, and why does Spark need to read them?" difficulty="medium" topic="Footer Caching">
+Footers hold the file's schema and column-level statistics (min/max values, null counts) needed for planning — predicate pushdown, column pruning, and partition/row-group skipping all depend on Spark reading the footer *before* deciding which parts of the file actually need to be scanned.
+</QuestionCard>
+
+<QuestionCard id="mfc-02" number={2} question="Why is footer caching valuable, and what problem does it solve?" difficulty="medium" topic="Footer Caching">
+Without caching, every task (or every query) that touches a file has to separately fetch and parse its footer, which adds up to real, repeated I/O overhead on a dataset made of many files — especially painful on cloud object storage, where each footer read is a separate network round trip. Caching footers avoids re-reading the same file's metadata redundantly across tasks or repeated queries.
+</QuestionCard>
+
+<QuestionCard id="mfc-03" number={3} question="What's a scenario where footer-reading overhead becomes a real bottleneck?" difficulty="hard" topic="Footer Caching">
+A dataset made up of thousands of small files (compounding with the small-file problem above) run through frequent, similar queries — the cumulative cost of fetching and parsing thousands of individual footers, potentially on every query execution, can rival or exceed the cost of actually scanning the data itself, which is exactly the case footer/metadata caching is designed to mitigate.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A Spark job reading a table with 50,000 small Parquet files is slow to even start, before any data is processed — why?"** Point to driver-side file listing and footer-reading overhead scaling with file count, and recommend a compaction pass to reduce file count.
+- **"You're ingesting from a system where the schema keeps adding new optional fields — would you choose Avro or Parquet, and why?"** Discuss Avro's writer/reader schema resolution as a natural fit for evolving streaming schemas, versus Parquet's read-time schema merging.
+- **"When would you choose ORC over Parquet for a new table?"** A fair answer notes they're broadly similar; ORC often makes sense specifically in Hive-heavy environments or when its particular indexing behavior is already a known fit, while Parquet has the broader ecosystem support across engines beyond Hadoop/Hive.
+- **"How would you design a table's write pattern to avoid the small file problem from the start?"** Discuss controlling output partition count relative to expected data volume per write, and scheduling regular compaction rather than treating file accumulation as something to fix only after it becomes a problem.
+
+---
+
+## Further Reading
+
+- [Parquet](/level-3-technologies/formats/parquet/) — the full dedicated Parquet interview question set (compression, row groups, dictionary encoding, predicate pushdown)
+- [Avro](/level-3-technologies/formats/avro/) — the full dedicated Avro interview question set (schemas, serialization, schema resolution)
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of
