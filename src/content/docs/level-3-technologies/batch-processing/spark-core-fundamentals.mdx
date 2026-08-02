@@ -1,0 +1,165 @@
+---
+title: Spark Core Fundamentals
+description: Interview questions on getting a Spark application up, configured, and observable — SparkSession, spark-submit, configuration precedence, logging, the Spark UI, and Spark Connect.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Spark Core Fundamentals: Launching, Configuring, and Observing an Application
+
+**Before any DataFrame code runs, a Spark application has to be entered, submitted, configured, and made observable — and the tooling for each of those (SparkSession, spark-submit, layered configuration, the Spark UI) is exactly what most day-to-day Spark work outside notebooks actually touches.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [SparkSession, SparkContext, and Legacy SQLContext/HiveContext](#sparksession-sparkcontext-and-legacy-sqlcontexthivecontext)
+- [spark-submit Flags and Master URL Formats](#spark-submit-flags-and-master-url-formats)
+- [Spark Configuration and Environment Variables](#spark-configuration-and-environment-variables)
+- [Logging Level Configuration](#logging-level-configuration)
+- [Spark UI Monitoring Basics](#spark-ui-monitoring-basics)
+- [Spark Connect Client-Server Architecture](#spark-connect-client-server-architecture)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Every Spark application starts from a **`SparkSession`** — the single, unified entry point since Spark 2.0 — and is launched via **`spark-submit`**, whose flags control everything from resource sizing to which cluster manager to target. Configuration itself is **layered**: code-level `SparkConf` settings, `spark-defaults.conf`, `spark-submit` flags, and environment variables like `SPARK_HOME` each apply at different points, with a defined precedence when they conflict. Once running, an application is observable two ways: **logs** (controlled via `log4j2`, separately for driver and executor output) for detailed, line-by-line diagnostics, and the **Spark UI** for a live, structured view of jobs, stages, and resource usage. **Spark Connect** is the newest piece of this picture — a client-server architecture that decouples a thin client from needing a full local Spark install at all.
+
+---
+
+## SparkSession, SparkContext, and Legacy SQLContext/HiveContext
+
+<QuestionList topic="SparkSession, SparkContext, and Legacy Contexts" storagePrefix="spark-cf-session">
+
+<QuestionCard id="ssc-01" number={1} question="What is SparkSession, and why did it replace having separate context objects?" difficulty="easy" topic="SparkSession">
+`SparkSession` is the single, unified entry point for a Spark application since Spark 2.0, replacing what used to require separately creating a `SparkContext`, `SQLContext`, and `HiveContext` depending on what functionality was needed. It consolidates DataFrame, SQL, streaming, and Hive access behind one object, removing the earlier confusion of which context to reach for.
+</QuestionCard>
+
+<QuestionCard id="ssc-02" number={2} question="What's the relationship between SparkSession and SparkContext today?" difficulty="medium" topic="SparkSession">
+`SparkSession` wraps a `SparkContext` internally rather than replacing it — `SparkContext` still exists as the lower-level entry point responsible for the actual cluster connection, and is accessible via `spark.sparkContext` when RDD-level APIs are still needed. In modern code, `SparkSession` is what you interact with directly; `SparkContext` mostly operates underneath it.
+</QuestionCard>
+
+<QuestionCard id="ssc-03" number={3} question="What were SQLContext and HiveContext, and why are they now considered legacy?" difficulty="medium" topic="SparkSession">
+`SQLContext` provided DataFrame/SQL functionality, and `HiveContext` extended it with Hive metastore integration and HiveQL support — both predating `SparkSession`. They're legacy because `SparkSession` absorbed both roles into one object (with Hive support enabled via `.enableHiveSupport()` rather than a separate class), so new code has no reason to construct either of them directly, though they still work for backward compatibility.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## spark-submit Flags and Master URL Formats
+
+<QuestionList topic="spark-submit Flags and Master URL Formats" storagePrefix="spark-cf-submit">
+
+<QuestionCard id="ssf-01" number={1} question="What is spark-submit, and what's its basic usage?" difficulty="easy" topic="spark-submit">
+`spark-submit` is the command-line tool used to launch a Spark application against a cluster, regardless of which cluster manager is in use. Basic usage packages the application logic (a `.py`, `.jar`, or similar) with flags describing how and where to run it: `spark-submit --master yarn --deploy-mode cluster my_app.py`.
+</QuestionCard>
+
+<QuestionCard id="ssf-02" number={2} question="What do the --deploy-mode and --master flags control, and what are the common master URL formats?" difficulty="medium" topic="spark-submit">
+`--deploy-mode` controls whether the driver runs on the submitting machine (`client`) or inside the cluster (`cluster`). `--master` tells Spark which cluster manager to connect to and how: `local[n]` (run locally with `n` threads, no cluster), `spark://host:port` (Standalone), `yarn` (YARN), and `k8s://https://host:port` (Kubernetes).
+</QuestionCard>
+
+<QuestionCard id="ssf-03" number={3} question="What's the difference between --executor-memory/--executor-cores and --driver-memory/--driver-cores?" difficulty="medium" topic="spark-submit">
+`--executor-memory`/`--executor-cores` size each individual executor — how much RAM and how many CPU cores (task slots) each one gets. `--driver-memory`/`--driver-cores` size the driver process itself, which matters separately since the driver has its own memory needs (holding the DAG, collecting results) distinct from the executors doing the actual distributed work.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Spark Configuration and Environment Variables
+
+<QuestionList topic="Spark Configuration and Environment Variables" storagePrefix="spark-cf-config">
+
+<QuestionCard id="sce-01" number={1} question="What are the different ways to configure a Spark application, and what's their precedence order?" difficulty="medium" topic="Configuration">
+From lowest to highest precedence: **`spark-defaults.conf`** (cluster-wide defaults), then **environment variables**, then **`SparkConf` set in application code**, then **`spark-submit` command-line flags**, which override everything else. In practice, this means a flag passed at submission time always wins over a setting baked into the code or the cluster's defaults.
+</QuestionCard>
+
+<QuestionCard id="sce-02" number={2} question="What's the difference between SparkConf set in code and spark-defaults.conf?" difficulty="easy" topic="Configuration">
+`SparkConf` is set programmatically inside the application itself (`SparkConf().set("spark.executor.memory", "4g")`), scoped to that one application. `spark-defaults.conf` is a cluster-level file providing default values every application submitted to that cluster inherits unless it explicitly overrides them.
+</QuestionCard>
+
+<QuestionCard id="sce-03" number={3} question="What do SPARK_HOME and JAVA_HOME environment variables control, and why do they matter?" difficulty="easy" topic="Configuration">
+`SPARK_HOME` points to the Spark installation directory, which tools like `spark-submit` and `pyspark` rely on to locate Spark's own libraries and scripts. `JAVA_HOME` points to the JVM installation Spark runs on, since Spark itself is a JVM-based system regardless of which language API is used to write the application. Both being misconfigured is a common source of "command not found" or startup failures before an application even gets to run.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Logging Level Configuration
+
+<QuestionList topic="Logging Level Configuration" storagePrefix="spark-cf-logging">
+
+<QuestionCard id="llc-01" number={1} question="How do you control Spark's logging verbosity?" difficulty="easy" topic="Logging">
+Through `log4j2` properties files (`log4j2.properties`, typically placed in `$SPARK_HOME/conf`), which let you set logging thresholds (`INFO`, `WARN`, `ERROR`, etc.) globally or per package/class — for example, quieting Spark's own internal chatter while keeping application-level logs at `INFO`.
+</QuestionCard>
+
+<QuestionCard id="llc-02" number={2} question="Why would you want to separate driver and executor log output?" difficulty="medium" topic="Logging">
+Driver and executor logs live on different machines/processes and cover different concerns — the driver's logs show scheduling and application-level flow, while executor logs show what happened during actual task execution on each worker node. Keeping them separately accessible (rather than interleaved) makes it much easier to trace a specific failure back to whether it originated in driver-side logic or in a specific executor's task.
+</QuestionCard>
+
+<QuestionCard id="llc-03" number={3} question="Why might you want to raise the log level for noisy packages instead of globally?" difficulty="medium" topic="Logging">
+Spark's own internal components can log a large volume of routine `INFO`-level detail that drowns out application-specific log messages. Targeting specific noisy packages (e.g., setting `org.apache.spark` to `WARN` while leaving your own application's logger at `INFO`) keeps genuinely useful diagnostic output visible without losing all detail everywhere by dropping the global level too far.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Spark UI Monitoring Basics
+
+<QuestionList topic="Spark UI Monitoring Basics" storagePrefix="spark-cf-ui">
+
+<QuestionCard id="sum-01" number={1} question="What is the Spark UI, and where do you find it?" difficulty="easy" topic="Spark UI">
+The Spark UI is a web interface, provided automatically by `SparkContext`, for inspecting a running (or, via event logs, completed) application — available at `http://<driver-host>:4040` by default, with the port incrementing if multiple applications are running on the same machine.
+</QuestionCard>
+
+<QuestionCard id="sum-02" number={2} question="What do the Jobs, Stages, and SQL tabs each show?" difficulty="medium" topic="Spark UI">
+The **Jobs** tab lists jobs triggered by actions, with overall progress and duration. The **Stages** tab drills into each job's stages — task counts, shuffle read/write volume, and per-task timing, which is where most performance bottlenecks first become visible. The **SQL** tab (for DataFrame/SQL workloads) shows the query's physical execution plan, including which operations triggered a shuffle.
+</QuestionCard>
+
+<QuestionCard id="sum-03" number={3} question="What does the Storage tab show, and why is it useful for debugging caching issues?" difficulty="medium" topic="Spark UI">
+The Storage tab lists every RDD/DataFrame currently persisted (via `.cache()`/`.persist()`), showing how much of it is actually cached in memory versus spilled to disk, and across how many partitions. It's useful for catching a common mistake — assuming something is cached when it's actually only partially cached or was evicted — which otherwise shows up only indirectly as unexpectedly slow repeated queries.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Spark Connect Client-Server Architecture
+
+<QuestionList topic="Spark Connect Client-Server Architecture" storagePrefix="spark-cf-connect">
+
+<QuestionCard id="scc-01" number={1} question="What is Spark Connect, and what problem does it solve?" difficulty="medium" topic="Spark Connect">
+Spark Connect is a client-server architecture, introduced in Spark 3.4, that lets a client application submit DataFrame/SQL query plans to a remote Spark cluster over a gRPC protocol — without that client needing a local Spark installation, matching JVM version, or direct network access to the cluster's internals. It solves the friction of embedding a full Spark runtime just to write client code that talks to Spark.
+</QuestionCard>
+
+<QuestionCard id="scc-02" number={2} question="How does Spark Connect's architecture differ from the traditional driver model?" difficulty="hard" topic="Spark Connect">
+In the traditional model, the client application *is* effectively the driver (or launches one directly) — tightly coupled to the cluster, requiring a compatible Spark install locally. With Spark Connect, the client is a thin, separate process that only builds and sends a logical query plan over gRPC; the actual driver runs remotely on the cluster and executes that plan, decoupling the client's environment entirely from the cluster's.
+</QuestionCard>
+
+<QuestionCard id="scc-03" number={3} question="What's a practical benefit of Spark Connect for application development?" difficulty="medium" topic="Spark Connect">
+It lets lightweight applications — a web backend, a notebook environment, an IDE plugin — interact with a remote Spark cluster using just a small client library, without pulling in Spark's full dependency footprint or requiring the client's JVM/language version to match the cluster's exactly. It also allows a client to reconnect to a running session without losing its state, which the traditional tightly-coupled driver model doesn't support.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A teammate is still creating a SQLContext and HiveContext separately in new code — what would you tell them?"** Explain that `SparkSession` has replaced both since Spark 2.0, and how to get equivalent Hive support through `.enableHiveSupport()`.
+- **"You submit a job and it hangs at startup — walk me through how you'd debug it."** Discuss checking `SPARK_HOME`/`JAVA_HOME`, the resolved `--master` URL, and whether requested executor/driver resources actually fit what the cluster has available.
+- **"Why would a value set in spark-submit still win even though the application code also calls SparkConf.set() for the same key?"** A direct test of the configuration precedence order — command-line flags rank above code-level `SparkConf`.
+- **"How would you use the Spark UI to figure out why a supposedly-cached DataFrame is still slow on repeated access?"** Point to the Storage tab to check actual cache coverage, and the Stages tab to see whether the same expensive stage is genuinely being skipped or re-run.
+
+---
+
+## Further Reading
+
+- [Spark Distributed Computing](/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/) — the driver/executor/cluster-manager architecture that spark-submit's flags target
+- [Apache Spark](/level-3-technologies/batch-processing/spark/#core-concepts--fundamentals) — the broader Spark fundamentals and Spark-vs-Hadoop comparisons this page builds on
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of
