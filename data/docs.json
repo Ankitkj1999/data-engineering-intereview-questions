@@ -7617,6 +7617,223 @@
     "content": "## Further Reading\n\n- [Apache Spark](/level-3-technologies/batch-processing/spark/) — the full Spark interview question set, including RDDs, partitioning, shuffling, and Spark SQL built on top of this architecture\n- [Kubernetes](/level-3-technologies/orchestration/kubernetes/) — a deeper look at the container orchestration platform increasingly used as Spark's cluster manager\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
   },
   {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "## Cluster Architecture & Execution Lifecycle: From Action to Task\n\n**Every Spark action sets off the same chain of translation — job, into stages, into tasks — and the one decision that shapes that chain more than any other is whether a transformation can pipeline within a stage or forces a shuffle and a brand-new one.**"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Job, Stage, and Task Hierarchy](#job-stage-and-task-hierarchy)\n- [DAG Scheduler Flow](#dag-scheduler-flow)\n- [Narrow versus Wide Dependencies](#narrow-versus-wide-dependencies)\n- [Task Scheduling and Parallelism](#task-scheduling-and-parallelism)\n- [Data Locality Awareness](#data-locality-awareness)\n- [Threading Models within Executors](#threading-models-within-executors)\n- [Shuffle Phases and Mechanics](#shuffle-phases-and-mechanics)\n- [Data Serialization during Shuffle](#data-serialization-during-shuffle)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "## Key Concepts\n\nAn **action** (like `collect()` or `count()`) triggers one **job**. The **DAG scheduler** walks that job's chain of transformations backward and splits it into **stages**, cutting a new stage boundary every time it hits a **wide dependency** — a transformation like `groupBy` or `join` that needs data from other partitions, forcing a **shuffle**. Transformations with only **narrow dependencies** (`map`, `filter`) don't need a shuffle and get pipelined together inside the same stage. Each stage then becomes a set of parallel **tasks**, one per partition, handed to the **task scheduler**, which assigns them to executor cores with a strong preference for **data locality** — running a task where its data already lives, to avoid moving data over the network at all.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "## Job, Stage, and Task Hierarchy\n\n<QuestionList topic=\"Job, Stage, and Task Hierarchy\" storagePrefix=\"spark-el-job-stage-task\">\n\n<QuestionCard id=\"jst-01\" number={1} question=\"What are jobs, stages, and tasks, and how do they relate to each other?\" difficulty=\"easy\" topic=\"Job/Stage/Task\">\nA **job** is the full unit of work triggered by one action. The DAG scheduler splits a job into **stages**, each stage a group of transformations that can run without a shuffle between them. Each stage is then broken into **tasks** — one task per partition — which are the actual units of work sent to executors. The hierarchy is strictly top-down: one job contains many stages, and each stage contains many tasks.\n</QuestionCard>\n\n<QuestionCard id=\"jst-02\" number={2} question=\"What triggers a new job in Sp"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "ark?\" difficulty=\"easy\" topic=\"Job/Stage/Task\">\nAn **action** — `collect()`, `count()`, `save()`, `foreach()`, and similar operations that need a real result, as opposed to a **transformation** (`map`, `filter`, `groupBy`), which is just recorded into the DAG lazily and doesn't run anything by itself. Calling several actions on the same lineage triggers several separate jobs, each potentially recomputing shared upstream work unless it was cached.\n</QuestionCard>\n\n<QuestionCard id=\"jst-03\" number={3} question=\"How many tasks does a single stage typically create, and what determines that number?\" difficulty=\"medium\" topic=\"Job/Stage/Task\">\nOne task per partition of the RDD/DataFrame that stage is operating on — a stage processing data split into 200 partitions launches 200 tasks. That partit"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "ion count is determined by the data source's natural split (e.g., HDFS block count), any explicit `repartition`/`coalesce` calls, or `spark.sql.shuffle.partitions` for shuffle stages specifically.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "## DAG Scheduler Flow\n\n<QuestionList topic=\"DAG Scheduler Flow\" storagePrefix=\"spark-el-dag-scheduler\">\n\n<QuestionCard id=\"dsf-01\" number={1} question=\"What does the DAG scheduler do?\" difficulty=\"medium\" topic=\"DAG Scheduler\">\nIt translates the logical plan of RDD/DataFrame transformations — built up lazily as the application code runs — into a physical execution plan: a directed acyclic graph of stages, with dependencies between them tracked explicitly. It's the component responsible for deciding *where* stage boundaries go, before anything is actually scheduled onto executors.\n</QuestionCard>\n\n<QuestionCard id=\"dsf-02\" number={2} question=\"How does the DAG scheduler decide where to split a job into stages?\" difficulty=\"medium\" topic=\"DAG Scheduler\">\nIt walks the lineage graph backward f"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "rom the final RDD, and cuts a new stage boundary at every wide dependency it encounters — any transformation whose output partitions depend on more than one input partition, which requires a shuffle to satisfy. Everything between two shuffle boundaries, connected only by narrow dependencies, gets pipelined into a single stage.\n</QuestionCard>\n\n<QuestionCard id=\"dsf-03\" number={3} question=\"What happens when the DAG scheduler detects a failed stage?\" difficulty=\"hard\" topic=\"DAG Scheduler\">\nIt resubmits the failed stage — and, if needed, any earlier stages whose output the failed stage depended on but is no longer available (e.g., shuffle output lost along with an executor). This is what lets Spark recover from a mid-job executor failure by recomputing only the affected portion of the linea"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "ge, rather than restarting the entire job from scratch.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "## Narrow versus Wide Dependencies\n\n<QuestionList topic=\"Narrow versus Wide Dependencies\" storagePrefix=\"spark-el-dependencies\">\n\n<QuestionCard id=\"nwd-01\" number={1} question=\"What's the difference between a narrow and a wide dependency?\" difficulty=\"easy\" topic=\"Dependencies\">\nA **narrow dependency** means each output partition depends on a known, small (often single) number of input partitions — no data needs to move between partitions, so it can be computed independently and in parallel without a shuffle. A **wide dependency** means an output partition can depend on data from *any* input partition, which can only be resolved by shuffling data across the cluster first.\n</QuestionCard>\n\n<QuestionCard id=\"nwd-02\" number={2} question=\"Give examples of transformations that create narrow ver"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "sus wide dependencies.\" difficulty=\"easy\" topic=\"Dependencies\">\n**Narrow**: `map`, `filter`, `union`, `mapPartitions` — each output partition is computed purely from its corresponding input partition(s). **Wide**: `groupByKey`, `reduceByKey`, `join` (on non-co-partitioned data), `distinct`, `repartition` — any operation that needs to bring together records that could be scattered across every partition, keyed by something other than their current partitioning.\n</QuestionCard>\n\n<QuestionCard id=\"nwd-03\" number={3} question=\"Why do wide dependencies force a new stage boundary?\" difficulty=\"medium\" topic=\"Dependencies\">\nBecause satisfying a wide dependency requires a shuffle — every upstream partition's relevant output has to be written out and made available before any downstream partition c"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "an be computed from it. That's a natural synchronization point: nothing after the shuffle can safely start until the write side (map/shuffle-write) of every upstream partition has finished, which is exactly what a stage boundary represents.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "## Task Scheduling and Parallelism\n\n<QuestionList topic=\"Task Scheduling and Parallelism\" storagePrefix=\"spark-el-task-scheduling\">\n\n<QuestionCard id=\"tsp-01\" number={1} question=\"What does the task scheduler do, once the DAG scheduler has produced stages?\" difficulty=\"medium\" topic=\"Task Scheduling\">\nThe task scheduler takes each stage's set of tasks and assigns them to available executor task slots, submitting them to the cluster manager for actual execution. Where the DAG scheduler decides *what* work needs doing and in what order, the task scheduler decides *which executor* runs each specific task, and when.\n</QuestionCard>\n\n<QuestionCard id=\"tsp-02\" number={2} question=\"How does the task scheduler decide which executor to assign a task to?\" difficulty=\"medium\" topic=\"Task Scheduling\">"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "Primarily by data locality — preferring an executor on the same node (or rack) as the task's input data, to avoid transferring it over the network. It also accounts for executor availability (open task slots) and any prior failures, retrying a task on a different executor if it previously failed there.\n</QuestionCard>\n\n<QuestionCard id=\"tsp-03\" number={3} question=\"What happens when there are more runnable tasks than available task slots?\" difficulty=\"easy\" topic=\"Task Scheduling\">\nThe excess tasks queue, waiting for a slot to free up as running tasks complete. This queued backlog is exactly the signal dynamic resource allocation watches for — a sustained backlog past a configured threshold is what triggers Spark to request additional executors from the cluster manager.\n</QuestionCard>\n\n<"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "/QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "## Data Locality Awareness\n\n<QuestionList topic=\"Data Locality Awareness\" storagePrefix=\"spark-el-data-locality\">\n\n<QuestionCard id=\"dla-01\" number={1} question=\"What is data locality, and why does Spark care about it?\" difficulty=\"easy\" topic=\"Data Locality\">\nData locality is how close a task's assigned execution location is to the data it needs to process. Spark cares because network transfer is far slower than reading local (or in-process) data — scheduling tasks where their data already resides is one of the cheapest, most impactful performance optimizations available, requiring no code changes at all.\n</QuestionCard>\n\n<QuestionCard id=\"dla-02\" number={2} question=\"What are the data locality levels, from most to least preferred?\" difficulty=\"medium\" topic=\"Data Locality\">\n`PROCESS_LOCA"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "L` (data is in the same JVM/executor — fastest), `NODE_LOCAL` (data is on the same physical node, different process), `RACK_LOCAL` (same rack, different node), `NO_PREF` (no locality preference applies), and `ANY` (data is elsewhere on the network — slowest, last resort).\n</QuestionCard>\n\n<QuestionCard id=\"dla-03\" number={3} question=\"What happens if Spark can't schedule a task at its preferred locality level quickly enough?\" difficulty=\"hard\" topic=\"Data Locality\">\nSpark waits a short, configurable amount of time (`spark.locality.wait`) hoping a preferred slot frees up, then falls back to progressively less-preferred locality levels rather than waiting indefinitely. This is a deliberate trade-off between locality (less network I/O) and simply keeping executors busy (less idle time) — wait"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "ing too long wastes cluster capacity, not waiting at all gives up easy performance wins.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "## Threading Models within Executors\n\n<QuestionList topic=\"Threading Models within Executors\" storagePrefix=\"spark-el-threading\">\n\n<QuestionCard id=\"twe-01\" number={1} question=\"How do executors run multiple tasks concurrently?\" difficulty=\"medium\" topic=\"Threading\">\nEach executor is a single JVM process, and it runs multiple tasks concurrently as separate **threads** within that one process — one thread per task slot — rather than launching a separate process per task. This avoids the overhead of starting a new JVM for every task, at the cost of tasks sharing the same process-level resources.\n</QuestionCard>\n\n<QuestionCard id=\"twe-02\" number={2} question=\"What's shared between tasks running in the same executor, and what's isolated?\" difficulty=\"medium\" topic=\"Threading\">\nThey share the e"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "xecutor's JVM heap (including cached RDD/DataFrame partitions and broadcast variables — one copy serves every task in that executor) and its connection pool to external systems. What's isolated is each task's own thread-local execution state — its local variables and call stack don't interfere with other concurrently running tasks' state.\n</QuestionCard>\n\n<QuestionCard id=\"twe-03\" number={3} question=\"Why can a single misbehaving task affect other tasks in the same executor?\" difficulty=\"hard\" topic=\"Threading\">\nBecause they share the same JVM heap and garbage collector — a task with a memory leak or an unusually large intermediate result can trigger heap pressure or long GC pauses that slow down or destabilize every other task running in that same executor, even though those tasks are oth"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "erwise logically independent. This shared-fate risk is part of why executor memory tuning matters beyond just \"give it more RAM.\"\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "## Shuffle Phases and Mechanics\n\n<QuestionList topic=\"Shuffle Phases and Mechanics\" storagePrefix=\"spark-el-shuffle-mechanics\">\n\n<QuestionCard id=\"spm-01\" number={1} question=\"What are the two sides of a shuffle, and what does each do?\" difficulty=\"medium\" topic=\"Shuffle Mechanics\">\nThe **map (write) side**: each upstream task partitions its output records by destination (typically by hashing a key) and writes them to local shuffle files. The **reduce (read) side**: each downstream task fetches the relevant blocks from every upstream task's shuffle output, then merges them into the input it needs to proceed.\n</QuestionCard>\n\n<QuestionCard id=\"spm-02\" number={2} question=\"What happens during the map (write) side of a shuffle?\" difficulty=\"medium\" topic=\"Shuffle Mechanics\">\nEach task in the"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "upstream stage processes its partition and, instead of passing output directly downstream, writes it to local disk, organized so a downstream task can later fetch exactly the records it needs. If the data to write exceeds available memory, it spills to disk in sorted runs that get merged, which is one of the reasons shuffles are I/O-heavy.\n</QuestionCard>\n\n<QuestionCard id=\"spm-03\" number={3} question=\"What happens during the reduce (read) side of a shuffle?\" difficulty=\"medium\" topic=\"Shuffle Mechanics\">\nEach downstream task requests its relevant shuffle blocks from every upstream task that produced output for it — potentially many small network fetches across the cluster — then merges the results into the format the next computation needs (e.g., grouped by key). This fan-in, all-to-all f"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "etch pattern is what makes shuffles expensive relative to a task that only touches its own single input partition.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "## Data Serialization during Shuffle\n\n<QuestionList topic=\"Data Serialization during Shuffle\" storagePrefix=\"spark-el-serialization\">\n\n<QuestionCard id=\"dss-01\" number={1} question=\"Why does data need to be serialized during a shuffle?\" difficulty=\"easy\" topic=\"Serialization\">\nShuffle data is written to disk and transferred over the network between JVM processes, and neither of those is possible with live, in-memory JVM objects directly — the data has to be converted into a byte format (serialized) to write and transmit, then converted back (deserialized) once read on the other side.\n</QuestionCard>\n\n<QuestionCard id=\"dss-02\" number={2} question=\"What's the difference between Java serialization and Kryo serialization in Spark?\" difficulty=\"medium\" topic=\"Serialization\">\nJava serialization"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "is Spark's default — broadly compatible, requiring no extra setup, but relatively slow and produces larger serialized output. Kryo serialization is significantly faster and more compact, but requires classes to be registered (or accepts a small correctness/compatibility risk if not) and isn't the out-of-the-box default, so it has to be explicitly enabled via `spark.serializer`.\n</QuestionCard>\n\n<QuestionCard id=\"dss-03\" number={3} question=\"What's a practical consequence of choosing the wrong serialization format?\" difficulty=\"medium\" topic=\"Serialization\">\nSlower shuffles and higher memory/CPU overhead across every shuffle-heavy stage in the application — since serialization happens on the write side and deserialization on the read side of every single shuffle, a suboptimal choice compoun"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "ds across the whole job rather than costing something once. This is why switching to Kryo is one of the standard early recommendations for tuning a shuffle-heavy Spark workload.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "## Common Interview Scenarios\n\n- **\"Walk me through what happens, stage by stage, when you call `df.groupBy(...).count()` and then `.collect()`.\"** Trace the full chain: transformations recorded lazily, `collect()` triggers a job, the DAG scheduler splits it at the `groupBy`'s wide dependency into two stages, tasks run per partition, a shuffle happens between the stages, and results return to the driver.\n- **\"A job has way more stages than you expected — how would you investigate why?\"** Point to the Spark UI's stage graph, and look for wide-dependency operations (joins, groupBys, repartitions) that might not have been obvious from the code, including ones introduced implicitly by certain join strategies.\n- **\"Why might increasing `spark.sql.shuffle.partitions` help a slow shuffle-heavy jo"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "b, and when could it hurt?\"** Discuss more partitions meaning smaller, more parallel shuffle tasks (helpful up to a point) versus scheduling overhead and small-file proliferation if pushed too far.\n- **\"Explain why data locality matters, using PROCESS_LOCAL vs ANY as your example.\"** A direct test of understanding why \"run the task where the data is\" is one of Spark's cheapest optimizations.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "locale": "en",
+    "title": "Spark Execution Lifecycle",
+    "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
+    "content": "## Further Reading\n\n- [Spark Distributed Computing](/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/) — the driver/executor/cluster-manager architecture this execution flow runs on top of\n- [Apache Spark](/level-3-technologies/batch-processing/spark/#partitioning-shuffling--performance) — practical shuffle optimization: repartition vs coalesce, broadcast variables, and accumulators\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
+  },
+  {
     "path": "/level-3-technologies/batch-processing/spark/",
     "locale": "en",
     "title": "",
