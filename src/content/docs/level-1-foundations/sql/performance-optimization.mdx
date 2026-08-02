@@ -1,0 +1,151 @@
+---
+title: Performance Optimization
+description: Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Performance Optimization: Making Queries Run Faster at Scale
+
+**Performance work always starts the same way — measure before you guess — and everything downstream (which index to add, which join strategy to expect, which subquery to rewrite) is really just acting on what a query plan already told you.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Query Analysis Techniques](#query-analysis-techniques)
+- [Using Indexes Effectively](#using-indexes-effectively)
+- [Optimizing Joins](#optimizing-joins)
+- [Reducing Subqueries](#reducing-subqueries)
+- [Selective Projection](#selective-projection)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+SQL performance tuning is a diagnose-then-fix loop: use `EXPLAIN`/`EXPLAIN ANALYZE` to see what the query actually does (not what you assume it does), find the expensive step, then apply a targeted fix — an index, a rewritten join, a restructured subquery, or simply requesting less data. The fixes on this page all reduce to the same underlying goal: **do less work, and do it against less data**, whether that's avoiding a full table scan (indexing), choosing a cheaper join algorithm (join optimization), avoiding per-row re-execution (rewriting subqueries), or not transferring columns nobody asked for (selective projection).
+
+---
+
+## Query Analysis Techniques
+
+<QuestionList topic="Query Analysis Techniques" storagePrefix="perf-opt-query-analysis">
+
+<QuestionCard id="qat-01" number={1} question="What's the first step in diagnosing a slow query?" difficulty="easy" topic="Query Analysis">
+Run `EXPLAIN` (or `EXPLAIN ANALYZE`, which also executes the query and reports real timings) to see the actual execution plan — which scans, joins, and sorts the database is performing, and in what order — rather than guessing at the cause from the query text alone.
+</QuestionCard>
+
+<QuestionCard id="qat-02" number={2} question="What is a sequential scan, and when is seeing one in a query plan a red flag versus expected?" difficulty="medium" topic="Query Analysis">
+A sequential (full table) scan reads every row rather than using an index to jump to matching ones. It's expected and often the *optimal* choice on a small table, or when a query matches a large fraction of the table's rows — an index lookup plus a trip back to the table can be more expensive than just scanning. It's a red flag specifically when it appears on a large table for a highly selective condition that should have used an available index.
+</QuestionCard>
+
+</QuestionList>
+
+For a deeper look at how the planner decides between a scan and an index, see [Indexes](/level-1-foundations/sql/indexes/#query-optimization-with-indexes).
+
+---
+
+## Using Indexes Effectively
+
+<QuestionList topic="Using Indexes Effectively" storagePrefix="perf-opt-using-indexes">
+
+<QuestionCard id="uie-01" number={1} question="What is index selectivity, and why does it matter for whether an index actually helps?" difficulty="medium" topic="Using Indexes">
+Selectivity is the fraction of rows a condition on the indexed column actually excludes — a highly selective condition (matching a small percentage of rows) benefits enormously from an index, while a low-selectivity condition (matching most of the table) gains little, since the database ends up fetching most rows anyway.
+</QuestionCard>
+
+<QuestionCard id="uie-02" number={2} question="Why might indexing a low-cardinality column, like a boolean is_active flag, provide little benefit?" difficulty="medium" topic="Using Indexes">
+A boolean column has only two possible values, so a condition like `WHERE is_active = true` typically still matches a huge fraction of the table — low selectivity, in other words. The planner often reasonably decides a full scan is cheaper than the overhead of using such an index, since the index barely narrows down the search at all.
+</QuestionCard>
+
+</QuestionList>
+
+For composite indexes, partial indexes, and covering indexes, see [Indexes](/level-1-foundations/sql/indexes/#managing-indexes).
+
+---
+
+## Optimizing Joins
+
+<QuestionList topic="Optimizing Joins" storagePrefix="perf-opt-optimizing-joins">
+
+<QuestionCard id="oj-01" number={1} question="What are the three main physical join algorithms, and when does each tend to be chosen?" difficulty="hard" topic="Optimizing Joins">
+**Nested loop join** — for each row in the outer table, scan (or index-lookup) the inner table; efficient when one side is small or a good index exists on the join column. **Hash join** — builds an in-memory hash table from one side, then probes it with the other; efficient for large, unsorted inputs without a useful index. **Merge join** — walks two already-sorted inputs in tandem; efficient when both sides are already sorted on the join key, or an index provides that order cheaply.
+</QuestionCard>
+
+<QuestionCard id="oj-02" number={2} question="Why does join order matter for performance, and who usually decides it?" difficulty="medium" topic="Optimizing Joins">
+Joining tables in a different order can produce very different sizes of intermediate results — starting with the most selective filter/smallest resulting set reduces the amount of data every subsequent join has to process. The query optimizer usually decides join order automatically based on table statistics, not the order tables are written in the `FROM`/`JOIN` clauses, though it can get this wrong when statistics are stale.
+</QuestionCard>
+
+<QuestionCard id="oj-03" number={3} question="How does the size of the tables being joined affect which join algorithm the optimizer picks?" difficulty="medium" topic="Optimizing Joins">
+Nested loop joins scale poorly as both sides grow large, since the cost grows roughly with the product of the two sizes without a good index. Hash and merge joins scale better for large inputs, which is why the optimizer tends to favor them once table sizes cross a certain threshold — the "right" algorithm is fundamentally a function of data volume, not a fixed preference.
+</QuestionCard>
+
+<QuestionCard id="oj-04" number={4} question="What's a common join-related performance mistake, and how would you spot it in a query plan?" difficulty="medium" topic="Optimizing Joins">
+Joining on columns of mismatched data types (e.g., an indexed `INT` column joined against a `VARCHAR` column), which can silently prevent the optimizer from using an index on the join, or force an implicit cast per row. In a query plan, this often shows up as an unexpectedly expensive sequential scan or a type-conversion function wrapped around the join column that wouldn't be there for a properly typed join.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Reducing Subqueries
+
+<QuestionList topic="Reducing Subqueries" storagePrefix="perf-opt-reducing-subqueries">
+
+<QuestionCard id="rs-01" number={1} question="Why are correlated subqueries often a performance concern, and what's the general rewrite strategy?" difficulty="medium" topic="Reducing Subqueries">
+A correlated subquery conceptually re-runs once per outer row, which scales poorly on large tables if the optimizer can't rewrite it internally. The general strategy is to rewrite it as an equivalent `JOIN` (often with `GROUP BY` if an aggregate was involved), which lets the optimizer consider set-based join algorithms instead of implicit per-row execution.
+</QuestionCard>
+
+<QuestionCard id="rs-02" number={2} question="Rewrite a correlated EXISTS subquery as an equivalent JOIN." difficulty="medium" topic="Reducing Subqueries">
+```sql
+-- Correlated subquery
+SELECT c.* FROM customers c
+WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id);
+
+-- Equivalent JOIN
+SELECT DISTINCT c.* FROM customers c
+JOIN orders o ON o.customer_id = c.id;
+```
+The `DISTINCT` is necessary in the join version to avoid duplicating a customer once per matching order — a detail the `EXISTS` version handles implicitly, which is worth watching for when doing this kind of rewrite.
+</QuestionCard>
+
+<QuestionCard id="rs-03" number={3} question="When would you use a CTE instead of a subquery purely for performance, not just readability?" difficulty="hard" topic="Reducing Subqueries">
+It depends on the database: some materialize a CTE's result once and reuse it, which helps if the same CTE is referenced multiple times in the outer query — avoiding recomputation a repeated subquery would incur. Others (PostgreSQL since version 12, for example) treat CTEs as optimization fences only in specific cases and may inline them like a subquery by default — so this is a "check your specific database's behavior" answer, not a universal rule.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Selective Projection
+
+<QuestionList topic="Selective Projection" storagePrefix="perf-opt-selective-projection">
+
+<QuestionCard id="selproj-01" number={1} question="Beyond readability, what concrete costs does SELECT * add in production?" difficulty="easy" topic="Selective Projection">
+More data transferred over the network and materialized in memory than the application actually uses, and it silently changes behavior if columns are added, removed, or reordered upstream — a query that worked fine can break or slow down after a schema change it never explicitly referenced.
+</QuestionCard>
+
+<QuestionCard id="selproj-02" number={2} question="How does selecting only needed columns interact with covering indexes?" difficulty="medium" topic="Selective Projection">
+A covering index includes every column a query needs, letting the database satisfy it entirely from the index without a separate lookup back to the table ("index-only scan"). `SELECT *` defeats this almost by definition — it's very unlikely every column in the table is also in the covering index — so selecting only the columns actually needed is often a prerequisite for that optimization to even be possible.
+</QuestionCard>
+
+</QuestionList>
+
+See [Basic SQL Syntax](/level-1-foundations/sql/basic-syntax/#select) for `SELECT *`'s broader readability and maintainability trade-offs.
+
+---
+
+## Common Interview Scenarios
+
+- **"A dashboard query takes 8 seconds — walk me through how you'd speed it up."** A comprehensive prompt: start with `EXPLAIN ANALYZE`, identify the most expensive step (a scan, a join, a subquery), and apply the targeted fix from this page rather than guessing.
+- **"Why might adding an index actually make a query slower to write, and when is that trade-off still worth it?"** Discuss the write-overhead cost of indexes, and how to weigh it against a read-heavy workload's benefit.
+- **"Rewrite this query to eliminate an unnecessary correlated subquery"** (given an example) — a hands-on test of the JOIN-rewrite pattern.
+- **"A junior engineer's query selects all 40 columns from a table but only uses 3 of them downstream — what's your feedback?"** Use it to discuss both the direct cost (data transfer) and the indirect one (foreclosing covering-index optimizations).
+
+---
+
+## Further Reading
+
+- [Indexes](/level-1-foundations/sql/indexes/) — the deeper mechanics of index types and how the planner decides to use them
+- [JOIN Queries](/level-1-foundations/sql/join-queries/) — the join types these physical algorithms implement
+- [Subqueries](/level-1-foundations/sql/subqueries/) — the nested, correlated, and scalar subquery forms this page's rewrites apply to

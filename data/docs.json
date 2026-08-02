@@ -945,6 +945,195 @@
     "content": "## Further Reading\n\n- [SQL Data Types](/level-1-foundations/sql/sql-data-types/) — the string, numeric, and date/time types these functions operate on\n- [Aggregate Queries](/level-1-foundations/sql/aggregate-queries/) — how COALESCE is commonly paired with SUM/AVG to handle empty groups\n- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including window functions built on similar conditional logic"
   },
   {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "## Advanced SQL: Window Functions, CTEs, and Power Features\n\n**This is the tier of SQL that separates \"can write a query\" from \"can write the query an analytics team actually needs\" — running totals, per-group rankings, hierarchical traversal, and reshaping data all live here, and they're exactly the features senior SQL interviews lean on most.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Window Functions](#window-functions)\n- [RANK / DENSE_RANK / ROW_NUMBER](#rank--dense_rank--row_number)\n- [LEAD / LAG](#lead--lag)\n- [Common Table Expressions (CTEs)](#common-table-expressions-ctes)\n- [Recursive Queries](#recursive-queries)\n- [Pivot / Unpivot Operations](#pivot--unpivot-operations)\n- [Dynamic SQL](#dynamic-sql)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "## Key Concepts\n\n**Window functions** (`OVER()`, `PARTITION BY`) compute a value across a set of related rows without collapsing them into one output row the way `GROUP BY` does — which is what makes running totals, moving averages, and per-group rankings possible in a single query. `RANK`/`DENSE_RANK`/`ROW_NUMBER` and `LEAD`/`LAG` are specific, commonly-asked window functions built on that same foundation. **CTEs** (`WITH`) give a complex query a readable, named structure, and — uniquely — enable **recursive queries**, the standard way to traverse hierarchical data. **Pivot/unpivot** reshape data between row-oriented and column-oriented layouts, and **dynamic SQL** is the escape hatch for building a query as a string at runtime when the query's shape can't be known in advance.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "## Window Functions\n\n<QuestionList topic=\"Window Functions\" storagePrefix=\"advanced-sql-window-functions\">\n\n<QuestionCard id=\"wf-01\" number={1} question=\"What is a window function, and how is it different from a regular aggregate function with GROUP BY?\" difficulty=\"medium\" topic=\"Window Functions\">\nA window function computes a value across a set of related rows (a \"window,\" defined by `OVER()`) but still returns one row per input row — unlike `GROUP BY`, which collapses each group down to a single output row. That's what lets a query show both individual row detail and a group-level calculation (like each employee's salary next to their department's average) side by side in the same result.\n</QuestionCard>\n\n<QuestionCard id=\"wf-02\" number={2} question=\"What does PARTITION BY do inside an"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "OVER() clause?\" difficulty=\"easy\" topic=\"Window Functions\">\n`PARTITION BY` divides the rows into independent groups, and the window function is computed separately within each group — `SUM(sales) OVER (PARTITION BY region)` gives each row a running context scoped to its own region only, resetting for each new partition, conceptually similar to what `GROUP BY` does, but without collapsing the rows.\n</QuestionCard>\n\n<QuestionCard id=\"wf-03\" number={3} question=\"What's the difference between ROWS and RANGE in a window frame definition?\" difficulty=\"hard\" topic=\"Window Functions\">\n`ROWS` defines the frame by physical row position (e.g., \"the 2 rows before this one\"), while `RANGE` defines it by logical value (e.g., \"all rows with the same `ORDER BY` value, or within a certain value distance\")."
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "They behave identically when every `ORDER BY` value is unique, but diverge when there are ties — `RANGE` treats all peer rows (equal values) as part of the same frame boundary, while `ROWS` counts strictly by position regardless of ties.\n</QuestionCard>\n\n<QuestionCard id=\"wf-04\" number={4} question=\"Write a query using a window function to compute a running total of sales ordered by date.\" difficulty=\"medium\" topic=\"Window Functions\">\n```sql\nSELECT sale_date, amount,\n  SUM(amount) OVER (ORDER BY sale_date) AS running_total\nFROM sales;\n```\nWith no `PARTITION BY`, the running total accumulates across the entire result set in date order; adding `PARTITION BY region` would reset the running total independently for each region.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "## RANK / DENSE_RANK / ROW_NUMBER\n\n<QuestionList topic=\"RANK / DENSE_RANK / ROW_NUMBER\" storagePrefix=\"advanced-sql-rank\">\n\n<QuestionCard id=\"rank-01\" number={1} question=\"What's the difference between RANK, DENSE_RANK, and ROW_NUMBER when there are ties?\" difficulty=\"medium\" topic=\"Ranking Functions\">\n`ROW_NUMBER` assigns a unique, strictly sequential number regardless of ties — two rows with equal values still get different numbers. `RANK` gives tied rows the same rank, then **skips** the next rank number by the count of ties (1, 2, 2, 4). `DENSE_RANK` also gives tied rows the same rank, but does **not** skip the next number (1, 2, 2, 3).\n</QuestionCard>\n\n<QuestionCard id=\"rank-02\" number={2} question=\"Write a query to find the top 3 highest-paid employees per department.\" difficulty=\"me"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "dium\" topic=\"Ranking Functions\">\n```sql\nSELECT * FROM (\n  SELECT name, department, salary,\n    ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) AS rn\n  FROM employees\n) ranked\nWHERE rn <= 3;\n```\n`ROW_NUMBER` is usually the right choice here specifically because it guarantees exactly 3 rows per department even with tied salaries, unlike `RANK`, which could return more than 3 if the 3rd-place salary is tied.\n</QuestionCard>\n\n<QuestionCard id=\"rank-03\" number={3} question=\"Why might ROW_NUMBER be preferred over RANK/DENSE_RANK when you need exactly N rows per group?\" difficulty=\"medium\" topic=\"Ranking Functions\">\nBecause `RANK` and `DENSE_RANK` can both return more than N rows if there's a tie at the Nth position — `RANK`'s \"top 3\" could return 4 or 5 rows if two employees tie"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "for 3rd place. `ROW_NUMBER` breaks ties arbitrarily (or by a secondary `ORDER BY` if specified) to guarantee an exact count, which matters whenever the requirement is genuinely \"exactly N,\" not \"the top-ranked handful.\"\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "## LEAD / LAG\n\n<QuestionList topic=\"LEAD / LAG\" storagePrefix=\"advanced-sql-lead-lag\">\n\n<QuestionCard id=\"leadlag-01\" number={1} question=\"What do LEAD and LAG do?\" difficulty=\"easy\" topic=\"LEAD / LAG\">\n`LAG(column, n)` returns the value of `column` from `n` rows *before* the current row within the window (default `n = 1`). `LEAD(column, n)` returns the value from `n` rows *after* the current row. Both let a query compare a row to another specific row without a self-join.\n</QuestionCard>\n\n<QuestionCard id=\"leadlag-02\" number={2} question=\"Write a query using LAG to compute the change in a metric from the previous row.\" difficulty=\"medium\" topic=\"LEAD / LAG\">\n```sql\nSELECT sale_date, revenue,\n  revenue - LAG(revenue) OVER (ORDER BY sale_date) AS change_from_prev_day\nFROM daily_sales;\n```\nTh"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "is computes a day-over-day delta directly, without needing to self-join the table to itself on \"the previous date.\"\n</QuestionCard>\n\n<QuestionCard id=\"leadlag-03\" number={3} question=\"What does LEAD/LAG return for the first or last row in a partition, and how would you handle that?\" difficulty=\"medium\" topic=\"LEAD / LAG\">\n`NULL` by default — the very first row in a partition has no prior row for `LAG` to return, and the last row has no next row for `LEAD`. Both functions accept an optional third argument specifying a default value to return instead of `NULL` in that boundary case: `LAG(revenue, 1, 0)`.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "## Common Table Expressions (CTEs)\n\n<QuestionList topic=\"Common Table Expressions (CTEs)\" storagePrefix=\"advanced-sql-cte\">\n\n<QuestionCard id=\"cte-01\" number={1} question=\"What is a CTE, and what problem does the WITH clause solve?\" difficulty=\"easy\" topic=\"CTEs\">\nA CTE (Common Table Expression) is a named, temporary result set defined with `WITH name AS (SELECT ...)` that can be referenced later in the same query, as if it were a table. It solves the readability problem of deeply nested subqueries — breaking a complex query into named, sequential steps instead of one hard-to-follow nested block.\n</QuestionCard>\n\n<QuestionCard id=\"cte-02\" number={2} question=\"Can you reference the same CTE more than once in the same query, and is it re-computed each time?\" difficulty=\"medium\" topic=\"CTEs\">"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "Yes, a CTE can be referenced multiple times. Whether it's computed once and reused, or re-evaluated for each reference, depends on the database — some materialize it once by default, others (like PostgreSQL from version 12 onward) may inline and re-evaluate it per reference unless explicitly told to materialize, which is a real, database-specific performance consideration worth checking rather than assuming.\n</QuestionCard>\n\n<QuestionCard id=\"cte-03\" number={3} question=\"What's the difference between a CTE and a subquery, practically speaking?\" difficulty=\"medium\" topic=\"CTEs\">\nFunctionally, a non-recursive CTE and an equivalent nested subquery are often interchangeable — the main practical differences are readability (a CTE names each logical step, top to bottom) and reusability within t"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "he query (a CTE can be referenced more than once without repeating its definition). The one thing a CTE can do that a plain subquery fundamentally can't is recursion.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "## Recursive Queries\n\n<QuestionList topic=\"Recursive Queries\" storagePrefix=\"advanced-sql-recursive\">\n\n<QuestionCard id=\"rec-01\" number={1} question=\"What is a recursive CTE, and what two parts does it need?\" difficulty=\"medium\" topic=\"Recursive Queries\">\nA recursive CTE repeatedly references itself to build up a result across multiple iterations — used for hierarchical or graph-like data. It needs an **anchor member** (a base, non-recursive query establishing the starting rows) and a **recursive member** (a query that references the CTE itself, joined back to the previous iteration's results), combined with `UNION ALL`.\n</QuestionCard>\n\n<QuestionCard id=\"rec-02\" number={2} question=\"Write a recursive CTE to traverse an employee-manager hierarchy from a given employee up to the top.\" diffi"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "culty=\"hard\" topic=\"Recursive Queries\">\n```sql\nWITH RECURSIVE chain AS (\n  SELECT id, name, manager_id FROM employees WHERE id = 42          -- anchor\n  UNION ALL\n  SELECT e.id, e.name, e.manager_id\n  FROM employees e\n  JOIN chain c ON e.id = c.manager_id                                -- recursive\n)\nSELECT * FROM chain;\n```\nThe anchor starts at employee `42`; each recursive step joins one level further up the management chain, stopping naturally once a row's `manager_id` no longer matches any further employee (the top of the org chart).\n</QuestionCard>\n\n<QuestionCard id=\"rec-03\" number={3} question=\"How do you prevent an infinite loop in a recursive CTE over cyclic or corrupted data?\" difficulty=\"hard\" topic=\"Recursive Queries\">\nTrack visited rows (e.g., accumulate a path/array of visited"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "IDs in each iteration) and add a condition in the recursive member that stops recursing once a node would be revisited. Many databases also support a hard safety limit (like SQL Server's `MAXRECURSION`) as a backstop, but the correct fix is cycle detection in the query logic itself, since a hard limit only prevents a runaway query — it doesn't produce a correct result over genuinely cyclic data.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "## Pivot / Unpivot Operations\n\n<QuestionList topic=\"Pivot / Unpivot Operations\" storagePrefix=\"advanced-sql-pivot\">\n\n<QuestionCard id=\"pivot-01\" number={1} question=\"What does a PIVOT operation do, conceptually?\" difficulty=\"easy\" topic=\"Pivot / Unpivot\">\n`PIVOT` reshapes row-oriented data into a column-oriented layout — turning distinct values from one column into separate output columns, typically aggregating a measure into each. For example, turning a `(month, product, sales)` table into one row per product with a separate column per month.\n</QuestionCard>\n\n<QuestionCard id=\"pivot-02\" number={2} question=\"How would you achieve a pivot-like result using conditional aggregation in a database without native PIVOT support?\" difficulty=\"medium\" topic=\"Pivot / Unpivot\">\n```sql\nSELECT product,"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "SUM(CASE WHEN month = 'Jan' THEN sales ELSE 0 END) AS jan,\n  SUM(CASE WHEN month = 'Feb' THEN sales ELSE 0 END) AS feb\nFROM monthly_sales\nGROUP BY product;\n```\nEach `CASE` expression isolates one month's values (zeroing out the rest), and wrapping it in `SUM` per group produces the same column-per-month layout a native `PIVOT` would — this pattern works in any database, including ones without dedicated pivot syntax.\n</QuestionCard>\n\n<QuestionCard id=\"pivot-03\" number={3} question=\"What does UNPIVOT do, and when would you need it?\" difficulty=\"medium\" topic=\"Pivot / Unpivot\">\n`UNPIVOT` does the reverse of `PIVOT` — turning several columns back into rows, typically producing a `(key, value)` pair per original column. It's needed when source data arrives wide (one column per month, one per"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "category) but downstream analysis or storage expects it normalized into a long, row-oriented shape instead.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "## Dynamic SQL\n\n<QuestionList topic=\"Dynamic SQL\" storagePrefix=\"advanced-sql-dynamic\">\n\n<QuestionCard id=\"dyn-01\" number={1} question=\"What is dynamic SQL, and why would you need to build a query string at runtime instead of writing static SQL?\" difficulty=\"medium\" topic=\"Dynamic SQL\">\nDynamic SQL constructs a query as a string at runtime and then executes it (`EXECUTE`, `sp_executesql`), rather than using a fixed, pre-written statement. It's needed when part of the query's *structure* — not just a value, but a table name, column name, or the number of conditions — can't be known until runtime, which parameterized static SQL can't express.\n</QuestionCard>\n\n<QuestionCard id=\"dyn-02\" number={2} question=\"What is the primary security risk of dynamic SQL, and how do you mitigate it?\" difficul"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "ty=\"medium\" topic=\"Dynamic SQL\">\nSQL injection — if any part of the dynamically built string comes from unsanitized user input, an attacker can inject SQL that changes the query's meaning. Mitigation: still use parameterized placeholders for *values* even within dynamic SQL (`sp_executesql` supports this), and never directly concatenate raw user input for structural parts like table/column names without strict allow-listing.\n</QuestionCard>\n\n<QuestionCard id=\"dyn-03\" number={3} question=\"Give an example of a legitimate use case for dynamic SQL.\" difficulty=\"medium\" topic=\"Dynamic SQL\">\nBuilding a search query where the number and combination of filter conditions varies based on which optional filters the user actually supplied — rather than writing dozens of near-duplicate static queries f"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "or every possible combination, dynamic SQL assembles exactly the conditions needed. Generic admin tooling that operates on a table name supplied at runtime is another common, legitimate case.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "## Common Interview Scenarios\n\n- **\"Write a query to show each employee's salary alongside their department's average salary, without collapsing rows.\"** A direct window-function prompt — `AVG(salary) OVER (PARTITION BY department)` — testing the core \"why not just GROUP BY\" distinction.\n- **\"How would you find, for each customer, their first and second-ever order?\"** A `ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date)` prompt, filtered to `rn <= 2`.\n- **\"Design a query to flatten a company's org chart into a list of every employee with their full management chain.\"** A recursive CTE prompt — a strong signal of comfort with hierarchical data.\n- **\"When would you choose a window function over a self-join to compare a row to the previous one?\"** Discuss `LAG`/`LEAD`'s readabi"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "lity and (often) performance advantage over the equivalent self-join.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/advanced-sql/",
+    "locale": "en",
+    "title": "Advanced SQL",
+    "description": "Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.",
+    "content": "## Further Reading\n\n- [Aggregate Queries](/level-1-foundations/sql/aggregate-queries/) — the COUNT/SUM/AVG/MIN/MAX functions window functions extend without collapsing rows\n- [Subqueries](/level-1-foundations/sql/subqueries/) — the non-recursive foundation CTEs build a more readable structure on top of\n- [Performance Optimization](/level-1-foundations/sql/performance-optimization/) — how CTE materialization behavior factors into query performance"
+  },
+  {
     "path": "/level-1-foundations/sql/aggregate-queries/",
     "locale": "en",
     "title": "Aggregate Queries",
@@ -2012,6 +2201,146 @@
     "content": "## Further Reading\n\n- [Basic SQL Syntax](/level-1-foundations/sql/basic-syntax/) — the introductory JOIN treatment this page builds on, covering explicit vs. implicit join syntax\n- [Subqueries](/level-1-foundations/sql/subqueries/) — an alternative to joins for some of the same \"does a related row exist\" questions\n- [SQL Theory](/level-1-foundations/sql/theory/) — the full set of SQL interview questions, including window functions often used alongside joins"
   },
   {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "## Performance Optimization: Making Queries Run Faster at Scale\n\n**Performance work always starts the same way — measure before you guess — and everything downstream (which index to add, which join strategy to expect, which subquery to rewrite) is really just acting on what a query plan already told you.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Query Analysis Techniques](#query-analysis-techniques)\n- [Using Indexes Effectively](#using-indexes-effectively)\n- [Optimizing Joins](#optimizing-joins)\n- [Reducing Subqueries](#reducing-subqueries)\n- [Selective Projection](#selective-projection)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "## Key Concepts\n\nSQL performance tuning is a diagnose-then-fix loop: use `EXPLAIN`/`EXPLAIN ANALYZE` to see what the query actually does (not what you assume it does), find the expensive step, then apply a targeted fix — an index, a rewritten join, a restructured subquery, or simply requesting less data. The fixes on this page all reduce to the same underlying goal: **do less work, and do it against less data**, whether that's avoiding a full table scan (indexing), choosing a cheaper join algorithm (join optimization), avoiding per-row re-execution (rewriting subqueries), or not transferring columns nobody asked for (selective projection).\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "## Query Analysis Techniques\n\n<QuestionList topic=\"Query Analysis Techniques\" storagePrefix=\"perf-opt-query-analysis\">\n\n<QuestionCard id=\"qat-01\" number={1} question=\"What's the first step in diagnosing a slow query?\" difficulty=\"easy\" topic=\"Query Analysis\">\nRun `EXPLAIN` (or `EXPLAIN ANALYZE`, which also executes the query and reports real timings) to see the actual execution plan — which scans, joins, and sorts the database is performing, and in what order — rather than guessing at the cause from the query text alone.\n</QuestionCard>\n\n<QuestionCard id=\"qat-02\" number={2} question=\"What is a sequential scan, and when is seeing one in a query plan a red flag versus expected?\" difficulty=\"medium\" topic=\"Query Analysis\">\nA sequential (full table) scan reads every row rather than using an in"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "dex to jump to matching ones. It's expected and often the *optimal* choice on a small table, or when a query matches a large fraction of the table's rows — an index lookup plus a trip back to the table can be more expensive than just scanning. It's a red flag specifically when it appears on a large table for a highly selective condition that should have used an available index.\n</QuestionCard>\n\n</QuestionList>\n\nFor a deeper look at how the planner decides between a scan and an index, see [Indexes](/level-1-foundations/sql/indexes/#query-optimization-with-indexes).\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "## Using Indexes Effectively\n\n<QuestionList topic=\"Using Indexes Effectively\" storagePrefix=\"perf-opt-using-indexes\">\n\n<QuestionCard id=\"uie-01\" number={1} question=\"What is index selectivity, and why does it matter for whether an index actually helps?\" difficulty=\"medium\" topic=\"Using Indexes\">\nSelectivity is the fraction of rows a condition on the indexed column actually excludes — a highly selective condition (matching a small percentage of rows) benefits enormously from an index, while a low-selectivity condition (matching most of the table) gains little, since the database ends up fetching most rows anyway.\n</QuestionCard>\n\n<QuestionCard id=\"uie-02\" number={2} question=\"Why might indexing a low-cardinality column, like a boolean is_active flag, provide little benefit?\" difficulty=\"med"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "ium\" topic=\"Using Indexes\">\nA boolean column has only two possible values, so a condition like `WHERE is_active = true` typically still matches a huge fraction of the table — low selectivity, in other words. The planner often reasonably decides a full scan is cheaper than the overhead of using such an index, since the index barely narrows down the search at all.\n</QuestionCard>\n\n</QuestionList>\n\nFor composite indexes, partial indexes, and covering indexes, see [Indexes](/level-1-foundations/sql/indexes/#managing-indexes).\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "## Optimizing Joins\n\n<QuestionList topic=\"Optimizing Joins\" storagePrefix=\"perf-opt-optimizing-joins\">\n\n<QuestionCard id=\"oj-01\" number={1} question=\"What are the three main physical join algorithms, and when does each tend to be chosen?\" difficulty=\"hard\" topic=\"Optimizing Joins\">\n**Nested loop join** — for each row in the outer table, scan (or index-lookup) the inner table; efficient when one side is small or a good index exists on the join column. **Hash join** — builds an in-memory hash table from one side, then probes it with the other; efficient for large, unsorted inputs without a useful index. **Merge join** — walks two already-sorted inputs in tandem; efficient when both sides are already sorted on the join key, or an index provides that order cheaply.\n</QuestionCard>\n\n<QuestionCa"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "rd id=\"oj-02\" number={2} question=\"Why does join order matter for performance, and who usually decides it?\" difficulty=\"medium\" topic=\"Optimizing Joins\">\nJoining tables in a different order can produce very different sizes of intermediate results — starting with the most selective filter/smallest resulting set reduces the amount of data every subsequent join has to process. The query optimizer usually decides join order automatically based on table statistics, not the order tables are written in the `FROM`/`JOIN` clauses, though it can get this wrong when statistics are stale.\n</QuestionCard>\n\n<QuestionCard id=\"oj-03\" number={3} question=\"How does the size of the tables being joined affect which join algorithm the optimizer picks?\" difficulty=\"medium\" topic=\"Optimizing Joins\">\nNested loop"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "joins scale poorly as both sides grow large, since the cost grows roughly with the product of the two sizes without a good index. Hash and merge joins scale better for large inputs, which is why the optimizer tends to favor them once table sizes cross a certain threshold — the \"right\" algorithm is fundamentally a function of data volume, not a fixed preference.\n</QuestionCard>\n\n<QuestionCard id=\"oj-04\" number={4} question=\"What's a common join-related performance mistake, and how would you spot it in a query plan?\" difficulty=\"medium\" topic=\"Optimizing Joins\">\nJoining on columns of mismatched data types (e.g., an indexed `INT` column joined against a `VARCHAR` column), which can silently prevent the optimizer from using an index on the join, or force an implicit cast per row. In a query pl"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "an, this often shows up as an unexpectedly expensive sequential scan or a type-conversion function wrapped around the join column that wouldn't be there for a properly typed join.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "## Reducing Subqueries\n\n<QuestionList topic=\"Reducing Subqueries\" storagePrefix=\"perf-opt-reducing-subqueries\">\n\n<QuestionCard id=\"rs-01\" number={1} question=\"Why are correlated subqueries often a performance concern, and what's the general rewrite strategy?\" difficulty=\"medium\" topic=\"Reducing Subqueries\">\nA correlated subquery conceptually re-runs once per outer row, which scales poorly on large tables if the optimizer can't rewrite it internally. The general strategy is to rewrite it as an equivalent `JOIN` (often with `GROUP BY` if an aggregate was involved), which lets the optimizer consider set-based join algorithms instead of implicit per-row execution.\n</QuestionCard>\n\n<QuestionCard id=\"rs-02\" number={2} question=\"Rewrite a correlated EXISTS subquery as an equivalent JOIN.\" difficu"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "lty=\"medium\" topic=\"Reducing Subqueries\">\n```sql\n-- Correlated subquery\nSELECT c.* FROM customers c\nWHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id);\n\n-- Equivalent JOIN\nSELECT DISTINCT c.* FROM customers c\nJOIN orders o ON o.customer_id = c.id;\n```\nThe `DISTINCT` is necessary in the join version to avoid duplicating a customer once per matching order — a detail the `EXISTS` version handles implicitly, which is worth watching for when doing this kind of rewrite.\n</QuestionCard>\n\n<QuestionCard id=\"rs-03\" number={3} question=\"When would you use a CTE instead of a subquery purely for performance, not just readability?\" difficulty=\"hard\" topic=\"Reducing Subqueries\">\nIt depends on the database: some materialize a CTE's result once and reuse it, which helps if the same CTE is ref"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "erenced multiple times in the outer query — avoiding recomputation a repeated subquery would incur. Others (PostgreSQL since version 12, for example) treat CTEs as optimization fences only in specific cases and may inline them like a subquery by default — so this is a \"check your specific database's behavior\" answer, not a universal rule.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "## Selective Projection\n\n<QuestionList topic=\"Selective Projection\" storagePrefix=\"perf-opt-selective-projection\">\n\n<QuestionCard id=\"selproj-01\" number={1} question=\"Beyond readability, what concrete costs does SELECT * add in production?\" difficulty=\"easy\" topic=\"Selective Projection\">\nMore data transferred over the network and materialized in memory than the application actually uses, and it silently changes behavior if columns are added, removed, or reordered upstream — a query that worked fine can break or slow down after a schema change it never explicitly referenced.\n</QuestionCard>\n\n<QuestionCard id=\"selproj-02\" number={2} question=\"How does selecting only needed columns interact with covering indexes?\" difficulty=\"medium\" topic=\"Selective Projection\">\nA covering index includes eve"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "ry column a query needs, letting the database satisfy it entirely from the index without a separate lookup back to the table (\"index-only scan\"). `SELECT *` defeats this almost by definition — it's very unlikely every column in the table is also in the covering index — so selecting only the columns actually needed is often a prerequisite for that optimization to even be possible.\n</QuestionCard>\n\n</QuestionList>\n\nSee [Basic SQL Syntax](/level-1-foundations/sql/basic-syntax/#select) for `SELECT *`'s broader readability and maintainability trade-offs.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "## Common Interview Scenarios\n\n- **\"A dashboard query takes 8 seconds — walk me through how you'd speed it up.\"** A comprehensive prompt: start with `EXPLAIN ANALYZE`, identify the most expensive step (a scan, a join, a subquery), and apply the targeted fix from this page rather than guessing.\n- **\"Why might adding an index actually make a query slower to write, and when is that trade-off still worth it?\"** Discuss the write-overhead cost of indexes, and how to weigh it against a read-heavy workload's benefit.\n- **\"Rewrite this query to eliminate an unnecessary correlated subquery\"** (given an example) — a hands-on test of the JOIN-rewrite pattern.\n- **\"A junior engineer's query selects all 40 columns from a table but only uses 3 of them downstream — what's your feedback?\"** Use it to disc"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "uss both the direct cost (data transfer) and the indirect one (foreclosing covering-index optimizations).\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/performance-optimization/",
+    "locale": "en",
+    "title": "Performance Optimization",
+    "description": "Interview questions on SQL performance optimization — query analysis, effective indexing, join optimization, reducing subqueries, and selective projection.",
+    "content": "## Further Reading\n\n- [Indexes](/level-1-foundations/sql/indexes/) — the deeper mechanics of index types and how the planner decides to use them\n- [JOIN Queries](/level-1-foundations/sql/join-queries/) — the join types these physical algorithms implement\n- [Subqueries](/level-1-foundations/sql/subqueries/) — the nested, correlated, and scalar subquery forms this page's rewrites apply to"
+  },
+  {
     "path": "/level-1-foundations/sql/practice/",
     "locale": "en",
     "title": "",
@@ -2733,6 +3062,125 @@
     "title": "SQL vs NoSQL Databases",
     "description": "Interview questions on SQL vs NoSQL databases — the four NoSQL data models, consistency trade-offs, polyglot persistence, and when to choose each.",
     "content": "## Further Reading\n\n- [RDBMS Benefits & Limitations](/level-1-foundations/sql/rdbms-benefits-and-limitations/) — the SQL side of this trade-off in depth\n- [MongoDB](/level-3-technologies/databases/mongodb/) — a closer look at the document model referenced above\n- [Cassandra](/level-3-technologies/databases/cassandra/) — a closer look at the wide-column model referenced above"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "## Stored Procedures & Functions: Reusable Server-Side Logic\n\n**Stored procedures and functions both let you save logic inside the database instead of the application layer, but they answer different questions — a procedure performs an action, a function computes and returns a value — and that distinction determines where each one can legally be used in a query.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Scalar Functions](#scalar-functions)\n- [Table-valued Functions](#table-valued-functions)\n- [Row & Column Functions](#row--column-functions)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "## Key Concepts\n\nA **stored procedure** is a saved block of logic invoked with `CALL`/`EXEC` — it can perform multiple actions, have side effects (inserts, updates, sending output parameters), and doesn't have to return anything at all. A **function** must return a value (or a set of rows) and, in most databases, is restricted from certain side effects specifically so it's safe to call from inside a query — a `SELECT` list, a `WHERE` clause, a `FROM` clause. That \"usable inside a query\" property is what separates the three function types on this page: a **scalar function** returns one value, a **table-valued function** returns a whole result set (usable like a table in `FROM`), and **row-level functions** compute something per row — the same conceptual foundation window functions are later"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "built on top of.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "## Scalar Functions\n\n<QuestionList topic=\"Scalar Functions\" storagePrefix=\"stored-procs-scalar\">\n\n<QuestionCard id=\"sf-01\" number={1} question=\"What is a scalar function, and where can it be used in a query?\" difficulty=\"easy\" topic=\"Scalar Functions\">\nA scalar function takes some input and returns exactly one value — built-in examples include `UPPER()`, `ROUND()`, and `LEN()`. Because it resolves to a single value, it can be used anywhere a literal value could go: a `SELECT` list, a `WHERE` condition, an `ORDER BY` expression.\n</QuestionCard>\n\n<QuestionCard id=\"sf-02\" number={2} question=\"What's the difference between a built-in scalar function and a user-defined scalar function?\" difficulty=\"easy\" topic=\"Scalar Functions\">\nBuilt-in scalar functions (`UPPER`, `ROUND`, `COALESCE`) ship wit"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "h the database engine. A user-defined scalar function is custom logic written and saved by a developer — `CREATE FUNCTION calculate_discount(price DECIMAL) RETURNS DECIMAL AS ...` — used when a specific single-value calculation is repeated across many queries and worth centralizing.\n</QuestionCard>\n\n<QuestionCard id=\"sf-03\" number={3} question=\"Why can scalar functions hurt query performance if called per-row on a large table?\" difficulty=\"hard\" topic=\"Scalar Functions\">\nA user-defined scalar function called in a `SELECT` list or `WHERE` clause is typically invoked once per row, and unlike a built-in operation the query optimizer can reason about and potentially batch, a UDF is often treated as an opaque black box — executed row-by-row rather than set-based, which becomes expensive at scal"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "e. Wrapping an indexed column in a scalar function in `WHERE` can also prevent the optimizer from using an index on that column at all.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "## Table-valued Functions\n\n<QuestionList topic=\"Table-valued Functions\" storagePrefix=\"stored-procs-table-valued\">\n\n<QuestionCard id=\"tvf-01\" number={1} question=\"What is a table-valued function, and how is it different from a scalar function?\" difficulty=\"easy\" topic=\"Table-valued Functions\">\nA table-valued function returns a full result set — rows and columns — rather than a single value, and can be used directly in a `FROM` clause like a table: `SELECT * FROM get_orders_for_customer(123)`. A scalar function, by contrast, only ever resolves to one value and can never stand in for a table.\n</QuestionCard>\n\n<QuestionCard id=\"tvf-02\" number={2} question=\"What's the difference between an inline table-valued function and a multi-statement table-valued function?\" difficulty=\"medium\" topic=\"Tab"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "le-valued Functions\">\nAn **inline** table-valued function is essentially a parameterized view — a single `SELECT` statement wrapped in a function definition, which the optimizer can often expand and optimize as if it were inlined directly into the calling query. A **multi-statement** table-valued function builds its result across multiple statements into a table variable before returning it, which is more flexible (loops, conditional logic) but generally harder for the optimizer to see through, often performing worse as a result.\n</QuestionCard>\n\n<QuestionCard id=\"tvf-03\" number={3} question=\"When would you use a table-valued function instead of a view?\" difficulty=\"medium\" topic=\"Table-valued Functions\">\nWhen the logic needs a parameter — a view's definition is fixed at creation time with"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "no way to pass in an argument, while a table-valued function can accept one (e.g., a customer ID) and use it inside the query it runs. For any \"give me a filtered/reshaped result set based on some input,\" a table-valued function is the parameterized option a plain view can't provide.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "## Row & Column Functions\n\n<QuestionList topic=\"Row & Column Functions\" storagePrefix=\"stored-procs-row-column\">\n\n<QuestionCard id=\"rcf-01\" number={1} question=\"What are row-level functions, and how do they differ from aggregate functions?\" difficulty=\"medium\" topic=\"Row & Column Functions\">\nRow-level functions compute a value independently for each row, producing one output per input row — `UPPER(name)`, `price * quantity`, `DATEDIFF(ship_date, order_date)`. Aggregate functions (`SUM`, `AVG`, `COUNT`) instead collapse many rows into one summary value per group. Both can appear in a `SELECT` list, but they operate at fundamentally different granularities.\n</QuestionCard>\n\n<QuestionCard id=\"rcf-02\" number={2} question=\"How do row-level functions relate to window functions?\" difficulty=\"medi"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "um\" topic=\"Row & Column Functions\">\nWindow functions are, conceptually, an extension of row-level computation — they still produce one output value per input row (unlike an aggregate collapsing a group into one row), but that value is computed using a *window* of related rows (via `OVER`/`PARTITION BY`) rather than that row's own columns alone. Understanding plain row-level expressions first is what makes window functions' \"per-row, but aware of other rows\" behavior click.\n</QuestionCard>\n\n<QuestionCard id=\"rcf-03\" number={3} question=\"Give an example of a per-row computed column using a row-level expression.\" difficulty=\"easy\" topic=\"Row & Column Functions\">\n```sql\nSELECT order_id, price, quantity, price * quantity AS line_total\nFROM order_items;\n```\n`line_total` is computed independently"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "for every row from that same row's own `price` and `quantity` — no other row's data is involved, which is what makes it a row-level (not aggregate, not windowed) computation.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "## Common Interview Scenarios\n\n- **\"When would you write a stored procedure instead of putting the equivalent logic in application code?\"** Discuss reduced network round-trips for multi-statement operations, centralizing logic multiple applications share, and the trade-off of moving business logic further from version-controlled application code.\n- **\"A scalar UDF wrapped around an indexed WHERE column is making a query slow — what's happening, and how would you fix it?\"** Explain how wrapping a column in a function typically prevents index usage, and discuss rewriting the condition so the indexed column is compared directly (or using a computed/functional index if the database supports it).\n- **\"Design a table-valued function that returns all orders for a given customer within a date rang"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "e.\"** A natural prompt to test parameterized table-valued function syntax and the inline vs. multi-statement trade-off.\n- **\"What's the difference between a function and a stored procedure, and when would you have to use one over the other?\"** Anchor the answer in usability inside a query (functions) versus performing actions with side effects (procedures) — a function can't `INSERT`/send email/etc. the way a procedure can in most databases.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/stored-procedures-functions/",
+    "locale": "en",
+    "title": "Stored Procedures & Functions",
+    "description": "Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.",
+    "content": "## Further Reading\n\n- [Advanced Functions](/level-1-foundations/sql/advanced-functions/) — the built-in scalar functions (string, math, date) these user-defined functions extend\n- [Views](/level-1-foundations/sql/views/) — the unparameterized counterpart to a table-valued function\n- [Advanced SQL](/level-1-foundations/sql/advanced-sql/) — window functions, the natural next step after row-level computation"
   },
   {
     "path": "/level-1-foundations/sql/subqueries/",

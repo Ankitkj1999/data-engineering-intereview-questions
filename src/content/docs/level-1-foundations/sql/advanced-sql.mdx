@@ -1,0 +1,225 @@
+---
+title: Advanced SQL
+description: Interview questions on advanced SQL — window functions, RANK/DENSE_RANK/ROW_NUMBER, LEAD/LAG, CTEs, recursive queries, pivot/unpivot, and dynamic SQL.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Advanced SQL: Window Functions, CTEs, and Power Features
+
+**This is the tier of SQL that separates "can write a query" from "can write the query an analytics team actually needs" — running totals, per-group rankings, hierarchical traversal, and reshaping data all live here, and they're exactly the features senior SQL interviews lean on most.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Window Functions](#window-functions)
+- [RANK / DENSE_RANK / ROW_NUMBER](#rank--dense_rank--row_number)
+- [LEAD / LAG](#lead--lag)
+- [Common Table Expressions (CTEs)](#common-table-expressions-ctes)
+- [Recursive Queries](#recursive-queries)
+- [Pivot / Unpivot Operations](#pivot--unpivot-operations)
+- [Dynamic SQL](#dynamic-sql)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+**Window functions** (`OVER()`, `PARTITION BY`) compute a value across a set of related rows without collapsing them into one output row the way `GROUP BY` does — which is what makes running totals, moving averages, and per-group rankings possible in a single query. `RANK`/`DENSE_RANK`/`ROW_NUMBER` and `LEAD`/`LAG` are specific, commonly-asked window functions built on that same foundation. **CTEs** (`WITH`) give a complex query a readable, named structure, and — uniquely — enable **recursive queries**, the standard way to traverse hierarchical data. **Pivot/unpivot** reshape data between row-oriented and column-oriented layouts, and **dynamic SQL** is the escape hatch for building a query as a string at runtime when the query's shape can't be known in advance.
+
+---
+
+## Window Functions
+
+<QuestionList topic="Window Functions" storagePrefix="advanced-sql-window-functions">
+
+<QuestionCard id="wf-01" number={1} question="What is a window function, and how is it different from a regular aggregate function with GROUP BY?" difficulty="medium" topic="Window Functions">
+A window function computes a value across a set of related rows (a "window," defined by `OVER()`) but still returns one row per input row — unlike `GROUP BY`, which collapses each group down to a single output row. That's what lets a query show both individual row detail and a group-level calculation (like each employee's salary next to their department's average) side by side in the same result.
+</QuestionCard>
+
+<QuestionCard id="wf-02" number={2} question="What does PARTITION BY do inside an OVER() clause?" difficulty="easy" topic="Window Functions">
+`PARTITION BY` divides the rows into independent groups, and the window function is computed separately within each group — `SUM(sales) OVER (PARTITION BY region)` gives each row a running context scoped to its own region only, resetting for each new partition, conceptually similar to what `GROUP BY` does, but without collapsing the rows.
+</QuestionCard>
+
+<QuestionCard id="wf-03" number={3} question="What's the difference between ROWS and RANGE in a window frame definition?" difficulty="hard" topic="Window Functions">
+`ROWS` defines the frame by physical row position (e.g., "the 2 rows before this one"), while `RANGE` defines it by logical value (e.g., "all rows with the same `ORDER BY` value, or within a certain value distance"). They behave identically when every `ORDER BY` value is unique, but diverge when there are ties — `RANGE` treats all peer rows (equal values) as part of the same frame boundary, while `ROWS` counts strictly by position regardless of ties.
+</QuestionCard>
+
+<QuestionCard id="wf-04" number={4} question="Write a query using a window function to compute a running total of sales ordered by date." difficulty="medium" topic="Window Functions">
+```sql
+SELECT sale_date, amount,
+  SUM(amount) OVER (ORDER BY sale_date) AS running_total
+FROM sales;
+```
+With no `PARTITION BY`, the running total accumulates across the entire result set in date order; adding `PARTITION BY region` would reset the running total independently for each region.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## RANK / DENSE_RANK / ROW_NUMBER
+
+<QuestionList topic="RANK / DENSE_RANK / ROW_NUMBER" storagePrefix="advanced-sql-rank">
+
+<QuestionCard id="rank-01" number={1} question="What's the difference between RANK, DENSE_RANK, and ROW_NUMBER when there are ties?" difficulty="medium" topic="Ranking Functions">
+`ROW_NUMBER` assigns a unique, strictly sequential number regardless of ties — two rows with equal values still get different numbers. `RANK` gives tied rows the same rank, then **skips** the next rank number by the count of ties (1, 2, 2, 4). `DENSE_RANK` also gives tied rows the same rank, but does **not** skip the next number (1, 2, 2, 3).
+</QuestionCard>
+
+<QuestionCard id="rank-02" number={2} question="Write a query to find the top 3 highest-paid employees per department." difficulty="medium" topic="Ranking Functions">
+```sql
+SELECT * FROM (
+  SELECT name, department, salary,
+    ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) AS rn
+  FROM employees
+) ranked
+WHERE rn <= 3;
+```
+`ROW_NUMBER` is usually the right choice here specifically because it guarantees exactly 3 rows per department even with tied salaries, unlike `RANK`, which could return more than 3 if the 3rd-place salary is tied.
+</QuestionCard>
+
+<QuestionCard id="rank-03" number={3} question="Why might ROW_NUMBER be preferred over RANK/DENSE_RANK when you need exactly N rows per group?" difficulty="medium" topic="Ranking Functions">
+Because `RANK` and `DENSE_RANK` can both return more than N rows if there's a tie at the Nth position — `RANK`'s "top 3" could return 4 or 5 rows if two employees tie for 3rd place. `ROW_NUMBER` breaks ties arbitrarily (or by a secondary `ORDER BY` if specified) to guarantee an exact count, which matters whenever the requirement is genuinely "exactly N," not "the top-ranked handful."
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## LEAD / LAG
+
+<QuestionList topic="LEAD / LAG" storagePrefix="advanced-sql-lead-lag">
+
+<QuestionCard id="leadlag-01" number={1} question="What do LEAD and LAG do?" difficulty="easy" topic="LEAD / LAG">
+`LAG(column, n)` returns the value of `column` from `n` rows *before* the current row within the window (default `n = 1`). `LEAD(column, n)` returns the value from `n` rows *after* the current row. Both let a query compare a row to another specific row without a self-join.
+</QuestionCard>
+
+<QuestionCard id="leadlag-02" number={2} question="Write a query using LAG to compute the change in a metric from the previous row." difficulty="medium" topic="LEAD / LAG">
+```sql
+SELECT sale_date, revenue,
+  revenue - LAG(revenue) OVER (ORDER BY sale_date) AS change_from_prev_day
+FROM daily_sales;
+```
+This computes a day-over-day delta directly, without needing to self-join the table to itself on "the previous date."
+</QuestionCard>
+
+<QuestionCard id="leadlag-03" number={3} question="What does LEAD/LAG return for the first or last row in a partition, and how would you handle that?" difficulty="medium" topic="LEAD / LAG">
+`NULL` by default — the very first row in a partition has no prior row for `LAG` to return, and the last row has no next row for `LEAD`. Both functions accept an optional third argument specifying a default value to return instead of `NULL` in that boundary case: `LAG(revenue, 1, 0)`.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Table Expressions (CTEs)
+
+<QuestionList topic="Common Table Expressions (CTEs)" storagePrefix="advanced-sql-cte">
+
+<QuestionCard id="cte-01" number={1} question="What is a CTE, and what problem does the WITH clause solve?" difficulty="easy" topic="CTEs">
+A CTE (Common Table Expression) is a named, temporary result set defined with `WITH name AS (SELECT ...)` that can be referenced later in the same query, as if it were a table. It solves the readability problem of deeply nested subqueries — breaking a complex query into named, sequential steps instead of one hard-to-follow nested block.
+</QuestionCard>
+
+<QuestionCard id="cte-02" number={2} question="Can you reference the same CTE more than once in the same query, and is it re-computed each time?" difficulty="medium" topic="CTEs">
+Yes, a CTE can be referenced multiple times. Whether it's computed once and reused, or re-evaluated for each reference, depends on the database — some materialize it once by default, others (like PostgreSQL from version 12 onward) may inline and re-evaluate it per reference unless explicitly told to materialize, which is a real, database-specific performance consideration worth checking rather than assuming.
+</QuestionCard>
+
+<QuestionCard id="cte-03" number={3} question="What's the difference between a CTE and a subquery, practically speaking?" difficulty="medium" topic="CTEs">
+Functionally, a non-recursive CTE and an equivalent nested subquery are often interchangeable — the main practical differences are readability (a CTE names each logical step, top to bottom) and reusability within the query (a CTE can be referenced more than once without repeating its definition). The one thing a CTE can do that a plain subquery fundamentally can't is recursion.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Recursive Queries
+
+<QuestionList topic="Recursive Queries" storagePrefix="advanced-sql-recursive">
+
+<QuestionCard id="rec-01" number={1} question="What is a recursive CTE, and what two parts does it need?" difficulty="medium" topic="Recursive Queries">
+A recursive CTE repeatedly references itself to build up a result across multiple iterations — used for hierarchical or graph-like data. It needs an **anchor member** (a base, non-recursive query establishing the starting rows) and a **recursive member** (a query that references the CTE itself, joined back to the previous iteration's results), combined with `UNION ALL`.
+</QuestionCard>
+
+<QuestionCard id="rec-02" number={2} question="Write a recursive CTE to traverse an employee-manager hierarchy from a given employee up to the top." difficulty="hard" topic="Recursive Queries">
+```sql
+WITH RECURSIVE chain AS (
+  SELECT id, name, manager_id FROM employees WHERE id = 42          -- anchor
+  UNION ALL
+  SELECT e.id, e.name, e.manager_id
+  FROM employees e
+  JOIN chain c ON e.id = c.manager_id                                -- recursive
+)
+SELECT * FROM chain;
+```
+The anchor starts at employee `42`; each recursive step joins one level further up the management chain, stopping naturally once a row's `manager_id` no longer matches any further employee (the top of the org chart).
+</QuestionCard>
+
+<QuestionCard id="rec-03" number={3} question="How do you prevent an infinite loop in a recursive CTE over cyclic or corrupted data?" difficulty="hard" topic="Recursive Queries">
+Track visited rows (e.g., accumulate a path/array of visited IDs in each iteration) and add a condition in the recursive member that stops recursing once a node would be revisited. Many databases also support a hard safety limit (like SQL Server's `MAXRECURSION`) as a backstop, but the correct fix is cycle detection in the query logic itself, since a hard limit only prevents a runaway query — it doesn't produce a correct result over genuinely cyclic data.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Pivot / Unpivot Operations
+
+<QuestionList topic="Pivot / Unpivot Operations" storagePrefix="advanced-sql-pivot">
+
+<QuestionCard id="pivot-01" number={1} question="What does a PIVOT operation do, conceptually?" difficulty="easy" topic="Pivot / Unpivot">
+`PIVOT` reshapes row-oriented data into a column-oriented layout — turning distinct values from one column into separate output columns, typically aggregating a measure into each. For example, turning a `(month, product, sales)` table into one row per product with a separate column per month.
+</QuestionCard>
+
+<QuestionCard id="pivot-02" number={2} question="How would you achieve a pivot-like result using conditional aggregation in a database without native PIVOT support?" difficulty="medium" topic="Pivot / Unpivot">
+```sql
+SELECT product,
+  SUM(CASE WHEN month = 'Jan' THEN sales ELSE 0 END) AS jan,
+  SUM(CASE WHEN month = 'Feb' THEN sales ELSE 0 END) AS feb
+FROM monthly_sales
+GROUP BY product;
+```
+Each `CASE` expression isolates one month's values (zeroing out the rest), and wrapping it in `SUM` per group produces the same column-per-month layout a native `PIVOT` would — this pattern works in any database, including ones without dedicated pivot syntax.
+</QuestionCard>
+
+<QuestionCard id="pivot-03" number={3} question="What does UNPIVOT do, and when would you need it?" difficulty="medium" topic="Pivot / Unpivot">
+`UNPIVOT` does the reverse of `PIVOT` — turning several columns back into rows, typically producing a `(key, value)` pair per original column. It's needed when source data arrives wide (one column per month, one per category) but downstream analysis or storage expects it normalized into a long, row-oriented shape instead.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Dynamic SQL
+
+<QuestionList topic="Dynamic SQL" storagePrefix="advanced-sql-dynamic">
+
+<QuestionCard id="dyn-01" number={1} question="What is dynamic SQL, and why would you need to build a query string at runtime instead of writing static SQL?" difficulty="medium" topic="Dynamic SQL">
+Dynamic SQL constructs a query as a string at runtime and then executes it (`EXECUTE`, `sp_executesql`), rather than using a fixed, pre-written statement. It's needed when part of the query's *structure* — not just a value, but a table name, column name, or the number of conditions — can't be known until runtime, which parameterized static SQL can't express.
+</QuestionCard>
+
+<QuestionCard id="dyn-02" number={2} question="What is the primary security risk of dynamic SQL, and how do you mitigate it?" difficulty="medium" topic="Dynamic SQL">
+SQL injection — if any part of the dynamically built string comes from unsanitized user input, an attacker can inject SQL that changes the query's meaning. Mitigation: still use parameterized placeholders for *values* even within dynamic SQL (`sp_executesql` supports this), and never directly concatenate raw user input for structural parts like table/column names without strict allow-listing.
+</QuestionCard>
+
+<QuestionCard id="dyn-03" number={3} question="Give an example of a legitimate use case for dynamic SQL." difficulty="medium" topic="Dynamic SQL">
+Building a search query where the number and combination of filter conditions varies based on which optional filters the user actually supplied — rather than writing dozens of near-duplicate static queries for every possible combination, dynamic SQL assembles exactly the conditions needed. Generic admin tooling that operates on a table name supplied at runtime is another common, legitimate case.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Write a query to show each employee's salary alongside their department's average salary, without collapsing rows."** A direct window-function prompt — `AVG(salary) OVER (PARTITION BY department)` — testing the core "why not just GROUP BY" distinction.
+- **"How would you find, for each customer, their first and second-ever order?"** A `ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date)` prompt, filtered to `rn <= 2`.
+- **"Design a query to flatten a company's org chart into a list of every employee with their full management chain."** A recursive CTE prompt — a strong signal of comfort with hierarchical data.
+- **"When would you choose a window function over a self-join to compare a row to the previous one?"** Discuss `LAG`/`LEAD`'s readability and (often) performance advantage over the equivalent self-join.
+
+---
+
+## Further Reading
+
+- [Aggregate Queries](/level-1-foundations/sql/aggregate-queries/) — the COUNT/SUM/AVG/MIN/MAX functions window functions extend without collapsing rows
+- [Subqueries](/level-1-foundations/sql/subqueries/) — the non-recursive foundation CTEs build a more readable structure on top of
+- [Performance Optimization](/level-1-foundations/sql/performance-optimization/) — how CTE materialization behavior factors into query performance

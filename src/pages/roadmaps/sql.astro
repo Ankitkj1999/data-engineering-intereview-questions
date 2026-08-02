@@ -151,26 +151,26 @@ const ROADMAP = [
     { id:"grant-revoke",   label:"GRANT and REVOKE",                desc:"Managing user privileges — SELECT, INSERT, UPDATE, DELETE, EXECUTE.", link:"/level-1-foundations/sql/data-integrity-security/#grant-and-revoke" },
     { id:"security-best",  label:"DB Security Best Practices",      desc:"Least privilege, parameterised queries, auditing, encryption at rest.", link:"/level-1-foundations/sql/data-integrity-security/#db-security-best-practices" },
   ]},
-  { id:"stored-procs", label:"Stored Procedures & Functions", desc:"Reusable server-side logic stored in the database.", subs:[
-    { id:"scalar-fn",      label:"Scalar Functions",                desc:"Return a single value — used in SELECT lists and WHERE clauses." },
-    { id:"table-fn",       label:"Table-valued Functions",          desc:"Return a result set — inline and multi-statement variants." },
-    { id:"row-fn",         label:"Row & Column Functions",          desc:"Functions that operate per-row — window function foundations." },
+  { id:"stored-procs", label:"Stored Procedures & Functions", desc:"Reusable server-side logic stored in the database.", link:"/level-1-foundations/sql/stored-procedures-functions/", subs:[
+    { id:"scalar-fn",      label:"Scalar Functions",                desc:"Return a single value — used in SELECT lists and WHERE clauses.", link:"/level-1-foundations/sql/stored-procedures-functions/#scalar-functions" },
+    { id:"table-fn",       label:"Table-valued Functions",          desc:"Return a result set — inline and multi-statement variants.", link:"/level-1-foundations/sql/stored-procedures-functions/#table-valued-functions" },
+    { id:"row-fn",         label:"Row & Column Functions",          desc:"Functions that operate per-row — window function foundations.", link:"/level-1-foundations/sql/stored-procedures-functions/#row--column-functions" },
   ]},
-  { id:"perf-opt", label:"Performance Optimization", desc:"Techniques to make SQL queries run faster at scale.", subs:[
-    { id:"query-analysis", label:"Query Analysis Techniques",       desc:"EXPLAIN / EXPLAIN ANALYZE — reading query plans, identifying bottlenecks." },
-    { id:"using-indexes",  label:"Using Indexes Effectively",       desc:"Index selectivity, covering indexes, avoiding index scans on low-cardinality columns." },
-    { id:"opt-joins",      label:"Optimizing Joins",                desc:"Join order, hash joins vs nested loop vs merge join." },
-    { id:"reduce-subs",    label:"Reducing Subqueries",             desc:"Rewriting correlated subqueries as joins or CTEs for better performance." },
-    { id:"selective-proj", label:"Selective Projection",            desc:"Selecting only needed columns — avoiding SELECT * in production queries." },
+  { id:"perf-opt", label:"Performance Optimization", desc:"Techniques to make SQL queries run faster at scale.", link:"/level-1-foundations/sql/performance-optimization/", subs:[
+    { id:"query-analysis", label:"Query Analysis Techniques",       desc:"EXPLAIN / EXPLAIN ANALYZE — reading query plans, identifying bottlenecks.", link:"/level-1-foundations/sql/performance-optimization/#query-analysis-techniques" },
+    { id:"using-indexes",  label:"Using Indexes Effectively",       desc:"Index selectivity, covering indexes, avoiding index scans on low-cardinality columns.", link:"/level-1-foundations/sql/performance-optimization/#using-indexes-effectively" },
+    { id:"opt-joins",      label:"Optimizing Joins",                desc:"Join order, hash joins vs nested loop vs merge join.", link:"/level-1-foundations/sql/performance-optimization/#optimizing-joins" },
+    { id:"reduce-subs",    label:"Reducing Subqueries",             desc:"Rewriting correlated subqueries as joins or CTEs for better performance.", link:"/level-1-foundations/sql/performance-optimization/#reducing-subqueries" },
+    { id:"selective-proj", label:"Selective Projection",            desc:"Selecting only needed columns — avoiding SELECT * in production queries.", link:"/level-1-foundations/sql/performance-optimization/#selective-projection" },
   ]},
-  { id:"advanced-sql", label:"Advanced SQL", desc:"Power features for complex analytical and programmatic SQL work.", subs:[
-    { id:"window-fns",     label:"Window Functions",                desc:"OVER(), PARTITION BY, ROWS/RANGE — running totals, moving averages." },
-    { id:"rank",           label:"RANK / DENSE_RANK / ROW_NUMBER",  desc:"Ranking rows within partitions — differences and use cases." },
-    { id:"lead-lag",       label:"LEAD / LAG",                      desc:"Accessing values from the next or previous row within a partition." },
-    { id:"cte",            label:"Common Table Expressions (CTEs)", desc:"WITH clause — making complex queries readable and enabling recursion." },
-    { id:"recursive",      label:"Recursive Queries",               desc:"Recursive CTEs for hierarchical data — org charts, bill of materials." },
-    { id:"pivot",          label:"Pivot / Unpivot Operations",       desc:"Transforming rows to columns and back — PIVOT, UNPIVOT, conditional aggregation." },
-    { id:"dynamic-sql",    label:"Dynamic SQL",                     desc:"Building and executing SQL strings at runtime — sp_executesql, EXECUTE." },
+  { id:"advanced-sql", label:"Advanced SQL", desc:"Power features for complex analytical and programmatic SQL work.", link:"/level-1-foundations/sql/advanced-sql/", subs:[
+    { id:"window-fns",     label:"Window Functions",                desc:"OVER(), PARTITION BY, ROWS/RANGE — running totals, moving averages.", link:"/level-1-foundations/sql/advanced-sql/#window-functions" },
+    { id:"rank",           label:"RANK / DENSE_RANK / ROW_NUMBER",  desc:"Ranking rows within partitions — differences and use cases.", link:"/level-1-foundations/sql/advanced-sql/#rank--dense_rank--row_number" },
+    { id:"lead-lag",       label:"LEAD / LAG",                      desc:"Accessing values from the next or previous row within a partition.", link:"/level-1-foundations/sql/advanced-sql/#lead--lag" },
+    { id:"cte",            label:"Common Table Expressions (CTEs)", desc:"WITH clause — making complex queries readable and enabling recursion.", link:"/level-1-foundations/sql/advanced-sql/#common-table-expressions-ctes" },
+    { id:"recursive",      label:"Recursive Queries",               desc:"Recursive CTEs for hierarchical data — org charts, bill of materials.", link:"/level-1-foundations/sql/advanced-sql/#recursive-queries" },
+    { id:"pivot",          label:"Pivot / Unpivot Operations",       desc:"Transforming rows to columns and back — PIVOT, UNPIVOT, conditional aggregation.", link:"/level-1-foundations/sql/advanced-sql/#pivot--unpivot-operations" },
+    { id:"dynamic-sql",    label:"Dynamic SQL",                     desc:"Building and executing SQL strings at runtime — sp_executesql, EXECUTE.", link:"/level-1-foundations/sql/advanced-sql/#dynamic-sql" },
   ]},
 ];
 

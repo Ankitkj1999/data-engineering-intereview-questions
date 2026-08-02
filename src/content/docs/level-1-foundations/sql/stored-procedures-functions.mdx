@@ -1,0 +1,106 @@
+---
+title: Stored Procedures & Functions
+description: Interview questions on SQL stored procedures and functions — scalar functions, table-valued functions, and row-level functions.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Stored Procedures & Functions: Reusable Server-Side Logic
+
+**Stored procedures and functions both let you save logic inside the database instead of the application layer, but they answer different questions — a procedure performs an action, a function computes and returns a value — and that distinction determines where each one can legally be used in a query.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Scalar Functions](#scalar-functions)
+- [Table-valued Functions](#table-valued-functions)
+- [Row & Column Functions](#row--column-functions)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A **stored procedure** is a saved block of logic invoked with `CALL`/`EXEC` — it can perform multiple actions, have side effects (inserts, updates, sending output parameters), and doesn't have to return anything at all. A **function** must return a value (or a set of rows) and, in most databases, is restricted from certain side effects specifically so it's safe to call from inside a query — a `SELECT` list, a `WHERE` clause, a `FROM` clause. That "usable inside a query" property is what separates the three function types on this page: a **scalar function** returns one value, a **table-valued function** returns a whole result set (usable like a table in `FROM`), and **row-level functions** compute something per row — the same conceptual foundation window functions are later built on top of.
+
+---
+
+## Scalar Functions
+
+<QuestionList topic="Scalar Functions" storagePrefix="stored-procs-scalar">
+
+<QuestionCard id="sf-01" number={1} question="What is a scalar function, and where can it be used in a query?" difficulty="easy" topic="Scalar Functions">
+A scalar function takes some input and returns exactly one value — built-in examples include `UPPER()`, `ROUND()`, and `LEN()`. Because it resolves to a single value, it can be used anywhere a literal value could go: a `SELECT` list, a `WHERE` condition, an `ORDER BY` expression.
+</QuestionCard>
+
+<QuestionCard id="sf-02" number={2} question="What's the difference between a built-in scalar function and a user-defined scalar function?" difficulty="easy" topic="Scalar Functions">
+Built-in scalar functions (`UPPER`, `ROUND`, `COALESCE`) ship with the database engine. A user-defined scalar function is custom logic written and saved by a developer — `CREATE FUNCTION calculate_discount(price DECIMAL) RETURNS DECIMAL AS ...` — used when a specific single-value calculation is repeated across many queries and worth centralizing.
+</QuestionCard>
+
+<QuestionCard id="sf-03" number={3} question="Why can scalar functions hurt query performance if called per-row on a large table?" difficulty="hard" topic="Scalar Functions">
+A user-defined scalar function called in a `SELECT` list or `WHERE` clause is typically invoked once per row, and unlike a built-in operation the query optimizer can reason about and potentially batch, a UDF is often treated as an opaque black box — executed row-by-row rather than set-based, which becomes expensive at scale. Wrapping an indexed column in a scalar function in `WHERE` can also prevent the optimizer from using an index on that column at all.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Table-valued Functions
+
+<QuestionList topic="Table-valued Functions" storagePrefix="stored-procs-table-valued">
+
+<QuestionCard id="tvf-01" number={1} question="What is a table-valued function, and how is it different from a scalar function?" difficulty="easy" topic="Table-valued Functions">
+A table-valued function returns a full result set — rows and columns — rather than a single value, and can be used directly in a `FROM` clause like a table: `SELECT * FROM get_orders_for_customer(123)`. A scalar function, by contrast, only ever resolves to one value and can never stand in for a table.
+</QuestionCard>
+
+<QuestionCard id="tvf-02" number={2} question="What's the difference between an inline table-valued function and a multi-statement table-valued function?" difficulty="medium" topic="Table-valued Functions">
+An **inline** table-valued function is essentially a parameterized view — a single `SELECT` statement wrapped in a function definition, which the optimizer can often expand and optimize as if it were inlined directly into the calling query. A **multi-statement** table-valued function builds its result across multiple statements into a table variable before returning it, which is more flexible (loops, conditional logic) but generally harder for the optimizer to see through, often performing worse as a result.
+</QuestionCard>
+
+<QuestionCard id="tvf-03" number={3} question="When would you use a table-valued function instead of a view?" difficulty="medium" topic="Table-valued Functions">
+When the logic needs a parameter — a view's definition is fixed at creation time with no way to pass in an argument, while a table-valued function can accept one (e.g., a customer ID) and use it inside the query it runs. For any "give me a filtered/reshaped result set based on some input," a table-valued function is the parameterized option a plain view can't provide.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Row & Column Functions
+
+<QuestionList topic="Row & Column Functions" storagePrefix="stored-procs-row-column">
+
+<QuestionCard id="rcf-01" number={1} question="What are row-level functions, and how do they differ from aggregate functions?" difficulty="medium" topic="Row & Column Functions">
+Row-level functions compute a value independently for each row, producing one output per input row — `UPPER(name)`, `price * quantity`, `DATEDIFF(ship_date, order_date)`. Aggregate functions (`SUM`, `AVG`, `COUNT`) instead collapse many rows into one summary value per group. Both can appear in a `SELECT` list, but they operate at fundamentally different granularities.
+</QuestionCard>
+
+<QuestionCard id="rcf-02" number={2} question="How do row-level functions relate to window functions?" difficulty="medium" topic="Row & Column Functions">
+Window functions are, conceptually, an extension of row-level computation — they still produce one output value per input row (unlike an aggregate collapsing a group into one row), but that value is computed using a *window* of related rows (via `OVER`/`PARTITION BY`) rather than that row's own columns alone. Understanding plain row-level expressions first is what makes window functions' "per-row, but aware of other rows" behavior click.
+</QuestionCard>
+
+<QuestionCard id="rcf-03" number={3} question="Give an example of a per-row computed column using a row-level expression." difficulty="easy" topic="Row & Column Functions">
+```sql
+SELECT order_id, price, quantity, price * quantity AS line_total
+FROM order_items;
+```
+`line_total` is computed independently for every row from that same row's own `price` and `quantity` — no other row's data is involved, which is what makes it a row-level (not aggregate, not windowed) computation.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"When would you write a stored procedure instead of putting the equivalent logic in application code?"** Discuss reduced network round-trips for multi-statement operations, centralizing logic multiple applications share, and the trade-off of moving business logic further from version-controlled application code.
+- **"A scalar UDF wrapped around an indexed WHERE column is making a query slow — what's happening, and how would you fix it?"** Explain how wrapping a column in a function typically prevents index usage, and discuss rewriting the condition so the indexed column is compared directly (or using a computed/functional index if the database supports it).
+- **"Design a table-valued function that returns all orders for a given customer within a date range."** A natural prompt to test parameterized table-valued function syntax and the inline vs. multi-statement trade-off.
+- **"What's the difference between a function and a stored procedure, and when would you have to use one over the other?"** Anchor the answer in usability inside a query (functions) versus performing actions with side effects (procedures) — a function can't `INSERT`/send email/etc. the way a procedure can in most databases.
+
+---
+
+## Further Reading
+
+- [Advanced Functions](/level-1-foundations/sql/advanced-functions/) — the built-in scalar functions (string, math, date) these user-defined functions extend
+- [Views](/level-1-foundations/sql/views/) — the unparameterized counterpart to a table-valued function
+- [Advanced SQL](/level-1-foundations/sql/advanced-sql/) — window functions, the natural next step after row-level computation
