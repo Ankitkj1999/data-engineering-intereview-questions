@@ -1,0 +1,147 @@
+---
+title: Spark on Cloud & Managed Platforms
+description: Interview questions on running Spark on managed platforms — AWS EMR, Google Cloud Dataproc, Azure Synapse Spark pools, autoscaling, and spot/preemptible instances.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Cloud & Managed Platforms: Spark Without Self-Managing a Cluster
+
+**Every major cloud offers a managed Spark platform for the same reason — provisioning, patching, and scaling a cluster is undifferentiated operational work — and the real interview-relevant differences between them come down to how storage integrates, how clusters start and stop, and how aggressively they'll use cheap, interruptible compute.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Databricks Runtime and Photon Execution Engine](#databricks-runtime-and-photon-execution-engine)
+- [AWS EMR Clusters](#aws-emr-clusters)
+- [Google Cloud Dataproc](#google-cloud-dataproc)
+- [Azure Synapse Spark Pools](#azure-synapse-spark-pools)
+- [Managed Service Autoscaling](#managed-service-autoscaling)
+- [Instance Type Selection and Spot/Preemptible Instances](#instance-type-selection-and-spotpreemptible-instances)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+**AWS EMR**, **Google Cloud Dataproc**, and **Azure Synapse Spark pools** all solve the same core problem — provisioning and managing Spark clusters without operating the underlying infrastructure — but with different philosophies: EMR leans toward long-running, S3-integrated clusters; Dataproc emphasizes fast startup and **ephemeral clusters** spun up per job and torn down after; Synapse integrates Spark directly into a broader analytics workspace alongside notebooks and pipelines. All three, plus Databricks, offer **managed autoscaling** and **spot/preemptible instance** support, trading some interruption risk for meaningfully lower compute cost on workloads that can tolerate it.
+
+---
+
+## Databricks Runtime and Photon Execution Engine
+
+For Databricks Runtime and the Photon execution engine, see the dedicated coverage on [Databricks](/level-3-technologies/data-warehouses/databricks/) — it's covered there in full depth alongside Delta Lake, Unity Catalog, and the rest of the Databricks platform.
+
+---
+
+## AWS EMR Clusters
+
+<QuestionList topic="AWS EMR Clusters" storagePrefix="spark-cloud-platforms-emr">
+
+<QuestionCard id="aec-01" number={1} question="What is AWS EMR, and what does it provision?" difficulty="easy" topic="AWS EMR">
+Amazon EMR (Elastic MapReduce) is AWS's managed platform for running Hadoop, Spark, Hive, and related big-data frameworks — it provisions EC2 instances configured as a cluster (master, core, and task nodes), handling cluster setup and framework installation so you don't have to build that from scratch on raw EC2.
+</QuestionCard>
+
+<QuestionCard id="aec-02" number={2} question="How does EMR integrate with S3, and what is EMRFS?" difficulty="medium" topic="AWS EMR">
+EMRFS is EMR's implementation of the Hadoop filesystem interface backed by S3, letting Spark jobs on EMR read and write S3 data using `s3://` paths as if it were a native filesystem — with EMR-specific optimizations (like a consistent view and configurable caching) layered on top of the more general-purpose S3A connector.
+</QuestionCard>
+
+<QuestionCard id="aec-03" number={3} question="How do spot instances fit into an EMR cluster cost strategy, and what's the risk?" difficulty="medium" topic="AWS EMR">
+Spot instances offer significant cost savings (often 60-90% off on-demand pricing) by using AWS's spare capacity, which can be reclaimed with short notice if AWS needs it back. The common strategy is running core/master nodes (which hold cluster state and must stay stable) on on-demand instances, while using spot for task nodes (stateless, purely computational, and safe to lose without threatening the cluster's stability).
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Google Cloud Dataproc
+
+<QuestionList topic="Google Cloud Dataproc" storagePrefix="spark-cloud-platforms-dataproc">
+
+<QuestionCard id="gcd-01" number={1} question="What is Dataproc, and what's its key differentiator versus a self-managed Hadoop/Spark cluster?" difficulty="easy" topic="Dataproc">
+Dataproc is GCP's fully managed service for running Apache Spark and Hadoop clusters. Its standout differentiator is fast cluster startup — often under two minutes — which makes short-lived, per-job clusters practical in a way that's much less appealing on platforms with slower cluster provisioning.
+</QuestionCard>
+
+<QuestionCard id="gcd-02" number={2} question="What does the ephemeral cluster pattern mean on Dataproc, and why is it cost-efficient?" difficulty="medium" topic="Dataproc">
+Rather than running one long-lived cluster that sits partially idle between jobs, an ephemeral cluster is spun up specifically for one job (or a small batch of related jobs) and torn down immediately after — you only pay for compute during actual job execution, not for cluster capacity sitting idle waiting for the next job.
+</QuestionCard>
+
+<QuestionCard id="gcd-03" number={3} question="How does Dataproc integrate with GCS for storage?" difficulty="medium" topic="Dataproc">
+Dataproc clusters read and write Google Cloud Storage directly via the Cloud Storage connector (`gs://` paths), which is the standard pattern for ephemeral clusters specifically — since the cluster itself is temporary, data has to live durably in GCS rather than on the cluster's own transient local/HDFS storage.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Azure Synapse Spark Pools
+
+<QuestionList topic="Azure Synapse Spark Pools" storagePrefix="spark-cloud-platforms-synapse">
+
+<QuestionCard id="assp-01" number={1} question="What are Synapse Spark pools, and how do they fit into Azure Synapse Analytics?" difficulty="easy" topic="Synapse">
+Synapse Spark pools are Spark compute resources provisioned inside Azure Synapse Analytics — a broader unified analytics workspace that also includes SQL pools (data warehousing), pipelines (orchestration), and notebooks, all sharing the same workspace and metadata rather than being separate standalone services.
+</QuestionCard>
+
+<QuestionCard id="assp-02" number={2} question="What does 'on-demand, autoscaling' mean for a Synapse Spark pool specifically?" difficulty="medium" topic="Synapse">
+A Spark pool doesn't run continuously by default — it starts when a job or notebook needs it (with a cold-start delay) and can scale its node count up or down automatically within a configured range based on workload, rather than requiring a fixed cluster size to be provisioned and running at all times.
+</QuestionCard>
+
+<QuestionCard id="assp-03" number={3} question="How do Synapse Spark pools integrate with the rest of the Synapse workspace?" difficulty="medium" topic="Synapse">
+Notebooks in the Synapse workspace can attach directly to a Spark pool for interactive development, and Synapse pipelines can orchestrate Spark notebook or job activities as steps in a larger workflow — all within the same workspace, sharing the same linked services, security model, and Git integration rather than needing separate tooling to connect Spark to the rest of the analytics platform.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Managed Service Autoscaling
+
+<QuestionList topic="Managed Service Autoscaling" storagePrefix="spark-cloud-platforms-autoscaling">
+
+<QuestionCard id="msa-01" number={1} question="How does managed autoscaling differ across EMR, Dataproc, and Databricks conceptually?" difficulty="medium" topic="Autoscaling">
+All three add or remove worker nodes automatically based on observed load (pending tasks, resource utilization), but the specifics differ — EMR's managed scaling and Dataproc's autoscaling policies are configured with min/max node counts and scaling triggers, while Databricks' autoscaling is tightly integrated with its own cluster manager and job scheduling. Conceptually identical goal, different configuration surface per platform.
+</QuestionCard>
+
+<QuestionCard id="msa-02" number={2} question="What's the risk of autoscaling reacting too slowly or too aggressively to load changes?" difficulty="hard" topic="Autoscaling">
+Too slow: a sudden spike in workload sits queued waiting for new capacity to provision, hurting latency-sensitive jobs. Too aggressive: the platform scales up and down repeatedly for short-lived load fluctuations, incurring the overhead (and cost) of constantly provisioning and deprovisioning nodes without ever settling into a stable, efficient state — most platforms let you tune scaling sensitivity/cooldown specifically to avoid this thrashing.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Instance Type Selection and Spot/Preemptible Instances
+
+<QuestionList topic="Instance Type Selection and Spot/Preemptible Instances" storagePrefix="spark-cloud-platforms-instances">
+
+<QuestionCard id="its-01" number={1} question="How do you choose between compute-optimized, memory-optimized, and storage-optimized instance families for a Spark workload?" difficulty="medium" topic="Instance Selection">
+Match the instance family to the job's actual bottleneck: compute-optimized for CPU-bound transformation-heavy workloads, memory-optimized for large shuffles, wide aggregations, or heavy caching, and storage-optimized for jobs with substantial local disk I/O (large shuffle spill volumes, for example). Picking generically without profiling the actual workload often means over-paying for a resource dimension the job doesn't actually need.
+</QuestionCard>
+
+<QuestionCard id="its-02" number={2} question="What's the difference between AWS spot instances and GCP preemptible VMs, conceptually?" difficulty="medium" topic="Instance Selection">
+Both offer spare cloud capacity at a steep discount in exchange for the provider being able to reclaim it with short notice — the core trade-off is identical. The main practical differences are in notice period, maximum runtime guarantees, and pricing model specifics, which vary by cloud provider and have evolved over time, but the underlying "cheap but interruptible" concept is the same.
+</QuestionCard>
+
+<QuestionCard id="its-03" number={3} question="What workload characteristics make a job a good or bad fit for spot/preemptible capacity?" difficulty="medium" topic="Instance Selection">
+Good fit: fault-tolerant, restartable batch jobs where losing a node just means Spark recomputes the lost partitions from lineage — exactly the failure mode Spark is already designed to handle gracefully. Bad fit: jobs with tight SLAs where an interruption-triggered delay is unacceptable, or workloads holding significant unsaved state that would be expensive to lose (better suited to on-demand capacity, or spot only for stateless task nodes as with EMR's core/task split).
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A team wants to cut their EMR costs by 50%+ without hurting reliability — what would you suggest?"** Walk through running core/master nodes on-demand while shifting task nodes to spot, right-sizing instance types to the actual workload bottleneck, and considering ephemeral (per-job) clusters instead of one long-running cluster.
+- **"Why might a team choose Dataproc's ephemeral cluster pattern over a persistent EMR cluster for the same workload?"** Discuss fast startup enabling per-job clusters, and the cost efficiency of not paying for idle capacity between jobs.
+- **"Design a Spark platform on Azure that lets analysts explore data interactively and also run scheduled production pipelines."** A Synapse workspace prompt — notebooks attached to a Spark pool for exploration, pipelines orchestrating scheduled Spark activities for production.
+- **"A job on spot/preemptible instances keeps failing partway through — how would you make it resilient to that?"** Discuss checkpointing for long-running stateful work, keeping critical coordination nodes off spot capacity, and relying on Spark's lineage-based recovery for the stateless computational portion.
+
+---
+
+## Further Reading
+
+- [Databricks](/level-3-technologies/data-warehouses/databricks/) — the full Databricks platform, including Photon, clusters, and jobs
+- [AWS](/level-3-technologies/cloud/aws/) · [GCP](/level-3-technologies/cloud/gcp/) · [Azure](/level-3-technologies/cloud/azure/) — each cloud provider's broader service catalog beyond Spark-specific platforms
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of

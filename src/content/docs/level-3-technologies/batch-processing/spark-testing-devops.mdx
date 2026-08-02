@@ -1,0 +1,215 @@
+---
+title: Spark Application Testing & Development Practices
+description: Interview questions on testing and developing Spark applications — SparkSession fixtures, unit and integration testing, mocking, CI/CD, notebooks, and dependency packaging.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Application Testing & Development Practices: Treating Spark Jobs Like Software
+
+**A Spark job is still just application code, and it deserves the same discipline as any other software — fast, isolated unit tests; realistic integration tests; and a CI/CD pipeline that catches problems before they reach production — even though the distributed, cluster-dependent nature of Spark makes each of those a little harder to pull off than for a typical stateless service.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Shared SparkSession Test Fixtures](#shared-sparksession-test-fixtures)
+- [Unit Testing Transformation Logic](#unit-testing-transformation-logic)
+- [Integration Testing for Pipelines](#integration-testing-for-pipelines)
+- [Mocking Data Source Inputs](#mocking-data-source-inputs)
+- [Performance Regression and Scalability Benchmarking](#performance-regression-and-scalability-benchmarking)
+- [CI/CD Pipeline Automation for Spark Jobs](#cicd-pipeline-automation-for-spark-jobs)
+- [Notebook Development Environments](#notebook-development-environments)
+- [Packaging Dependencies](#packaging-dependencies)
+- [Configuration Management Across Environments](#configuration-management-across-environments)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Good Spark testing practice mirrors the standard test pyramid: fast, isolated **unit tests** on individual transformation functions using small fixture DataFrames and **mocked sources**, sitting on top of a **shared local-mode SparkSession** so the test suite doesn't pay startup overhead per test; fewer, slower **integration tests** running a fuller pipeline against realistic data to catch what unit tests structurally can't. All of that only has value if it's actually run automatically — **CI/CD** packages, tests, and promotes the job across environments — and stays reliable only if **configuration** (paths, credentials, cluster sizing) is externalized so the exact same code runs unmodified from dev through production.
+
+---
+
+## Shared SparkSession Test Fixtures
+
+<QuestionList topic="Shared SparkSession Test Fixtures" storagePrefix="spark-testing-fixtures">
+
+<QuestionCard id="ssf-01" number={1} question="Why use a single shared SparkSession across a test suite instead of creating one per test?" difficulty="medium" topic="Test Fixtures">
+Starting a `SparkSession` has real overhead (JVM startup, session initialization), and creating a fresh one per test multiplies that cost across potentially hundreds of tests — a session-scoped fixture (created once, reused across the whole suite or module) keeps the test suite fast, which matters a lot for a test suite that's meant to be run constantly during development.
+</QuestionCard>
+
+<QuestionCard id="ssf-02" number={2} question="What are the risks of sharing state across tests via a shared SparkSession?" difficulty="hard" topic="Test Fixtures">
+Temp views, cached DataFrames, or configuration changes made in one test can leak into and affect a later test if not explicitly cleaned up between tests — a common source of flaky, order-dependent test failures. Good practice clears temp views and unpersists cached data in a teardown step, or scopes fixtures narrowly enough that this kind of cross-test leakage can't happen.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Unit Testing Transformation Logic
+
+<QuestionList topic="Unit Testing Transformation Logic" storagePrefix="spark-testing-unit">
+
+<QuestionCard id="utl-01" number={1} question="What does unit testing a Spark transformation function actually test?" difficulty="easy" topic="Unit Testing">
+It tests that a specific transformation function, given a small, known input DataFrame, produces the expected output DataFrame — verifying the transformation's logic in isolation, run in local mode against tiny in-memory fixtures rather than real cluster-scale data.
+</QuestionCard>
+
+<QuestionCard id="utl-02" number={2} question="Write an example of asserting on a transformation's output using small fixture DataFrames." difficulty="medium" topic="Unit Testing">
+```python
+def test_calculate_total():
+    input_df = spark.createDataFrame([(1, 10.0, 2)], ["id", "price", "qty"])
+    result_df = calculate_total(input_df)  # the function under test
+    expected_df = spark.createDataFrame([(1, 10.0, 2, 20.0)], ["id", "price", "qty", "total"])
+    assertDataFrameEqual(result_df, expected_df)
+```
+The fixture data is deliberately tiny and specific — just enough to exercise the logic being tested, not a representative sample of production data volume.
+</QuestionCard>
+
+<QuestionCard id="utl-03" number={3} question="Why is asserting on schema, not just row values, an important part of testing a transformation?" difficulty="medium" topic="Unit Testing">
+A transformation can produce numerically correct values but with the wrong column name, type, or nullability — which would break downstream consumers relying on a specific schema contract even though the test only checking values would pass. Asserting on schema catches an entire category of regression that value-only assertions miss.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Integration Testing for Pipelines
+
+<QuestionList topic="Integration Testing for Pipelines" storagePrefix="spark-testing-integration">
+
+<QuestionCard id="itp-01" number={1} question="What does integration testing add that unit tests on individual transformations don't catch?" difficulty="medium" topic="Integration Testing">
+Issues that only appear when transformations are chained together and run against real (or realistic) sources and sinks — schema mismatches between stages, configuration problems, connector behavior, and interactions between transformations that each pass their own unit tests individually but don't compose correctly end-to-end.
+</QuestionCard>
+
+<QuestionCard id="itp-02" number={2} question="What does 'realistic (often sampled) data' mean in this context, and why not use full production data?" difficulty="medium" topic="Integration Testing">
+A representative but much smaller subset of production data — enough to exercise real data shapes, edge cases, and volume-dependent behavior without the cost and time of running against the full dataset on every test run, and without the risk/compliance concerns of using full production data (potentially containing sensitive information) in a test environment.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Mocking Data Source Inputs
+
+<QuestionList topic="Mocking Data Source Inputs" storagePrefix="spark-testing-mocking">
+
+<QuestionCard id="mdi-01" number={1} question="Why mock external sources like S3, Kafka, or JDBC in tests rather than hitting the real thing?" difficulty="easy" topic="Mocking">
+Real external sources make tests slow, flaky (dependent on network and external service availability), and hard to control precisely (you can't easily construct every edge case in a real Kafka topic). Substituting in-memory or local fixture data instead makes tests fast, deterministic, and able to construct exactly the input scenario each test needs.
+</QuestionCard>
+
+<QuestionCard id="mdi-02" number={2} question="How would you mock a Kafka source for a Structured Streaming test?" difficulty="medium" topic="Mocking">
+Use Spark's `MemoryStream` (a testing-oriented streaming source) to feed controlled, in-memory data into the query in place of a real Kafka source, letting a test drive specific batches of input and assert on the corresponding output — without needing an actual running Kafka broker for the test.
+</QuestionCard>
+
+<QuestionCard id="mdi-03" number={3} question="What's the risk of over-relying on mocks, and how does integration testing address it?" difficulty="hard" topic="Mocking">
+A mock only behaves the way you assumed the real system behaves — if that assumption is wrong (an edge case in real Kafka's behavior, a JDBC driver quirk), the mocked tests pass while the real integration still fails. Integration tests against real or realistic sources/sinks exist specifically to catch that gap between assumed and actual external system behavior.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Performance Regression and Scalability Benchmarking
+
+<QuestionList topic="Performance Regression and Scalability Benchmarking" storagePrefix="spark-testing-perf-regression">
+
+<QuestionCard id="prb-01" number={1} question="What does performance regression benchmarking track, and why track it over time rather than just once?" difficulty="medium" topic="Performance Benchmarking">
+It tracks job runtime and resource usage (and often specific stage/shuffle metrics) against a historical baseline, run repeatedly over time — a one-time performance check only tells you about that specific moment, while ongoing tracking catches a gradual or sudden regression introduced by a later code change or data volume growth before it becomes a production incident.
+</QuestionCard>
+
+<QuestionCard id="prb-02" number={2} question="What kind of change commonly causes an undetected performance regression in a Spark job?" difficulty="medium" topic="Performance Benchmarking">
+A seemingly innocuous code change that unintentionally introduces a shuffle where none existed before (a repartition, a join that used to be broadcast but no longer qualifies as data grew), or a change that quietly disables a previously-effective optimization (breaking predicate pushdown by wrapping a filter column in a function, for example) — changes that don't affect correctness at all, so they'd never be caught by functional tests alone.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## CI/CD Pipeline Automation for Spark Jobs
+
+<QuestionList topic="CI/CD Pipeline Automation for Spark Jobs" storagePrefix="spark-testing-cicd">
+
+<QuestionCard id="cca-01" number={1} question="What does a typical CI/CD pipeline for a Spark job include?" difficulty="medium" topic="CI/CD">
+Running the unit (and often integration) test suite on every change, building/packaging the application artifact (fat JAR, wheel), and — on merge to a release branch — deploying that artifact and promoting it through environments (dev → staging → prod), often with some form of approval gate before production.
+</QuestionCard>
+
+<QuestionCard id="cca-02" number={2} question="Why is packaging and testing a Spark job in CI harder than a typical stateless application?" difficulty="hard" topic="CI/CD">
+Running any Spark test at all requires a JVM and Spark runtime available in the CI environment (even for local-mode tests), and full integration tests often need a real or emulated cluster plus external dependencies (Kafka, a database) spun up specifically for the CI run — meaningfully more infrastructure than a typical stateless application's CI pipeline needs just to execute its test suite.
+</QuestionCard>
+
+<QuestionCard id="cca-03" number={3} question="How do you promote a Spark job artifact across dev/staging/prod environments safely?" difficulty="medium" topic="CI/CD">
+Build the artifact once and promote that exact same build through each environment (rather than rebuilding per environment, which risks subtle differences), with environment-specific configuration supplied externally at deploy/run time rather than baked into the artifact itself — so "what code is running" and "what environment it's configured for" stay cleanly separate.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Notebook Development Environments
+
+<QuestionList topic="Notebook Development Environments" storagePrefix="spark-testing-notebooks">
+
+<QuestionCard id="nde-01" number={1} question="What role do notebooks play in a Spark development workflow, and what are their limits for production?" difficulty="easy" topic="Notebooks">
+Jupyter and Zeppelin provide interactive, cell-based development against a live `SparkSession` — excellent for exploration, iterating on transformation logic, and visualizing intermediate results. Their limits for production: no built-in versioning/testing discipline, execution order that can silently diverge from the visible cell order, and no natural path to scheduled, automated, or parameterized execution the way a packaged job has.
+</QuestionCard>
+
+<QuestionCard id="nde-02" number={2} question="What's the risk of 'productionizing' code that was only ever tested interactively in a notebook?" difficulty="medium" topic="Notebooks">
+Interactive notebook execution can hide state dependencies — a cell that only works because an earlier cell (possibly since deleted or reordered) set up some prerequisite state — that don't surface until the code is run as a clean, linear script in production and behaves differently or fails outright. Converting notebook exploration into a properly tested, linearly-executable job is a real, necessary step, not just a copy-paste.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Packaging Dependencies
+
+<QuestionList topic="Packaging Dependencies" storagePrefix="spark-testing-packaging">
+
+<QuestionCard id="pdj-01" number={1} question="What is a fat/uber JAR, and why is it needed for Scala/Java Spark applications?" difficulty="medium" topic="Packaging">
+A fat (or "uber") JAR bundles the application's compiled code together with all of its non-Spark-provided dependencies into a single JAR file, so `spark-submit` can run the application without separately needing to locate and provide each dependency — since the cluster's executors need consistent access to every library the code references.
+</QuestionCard>
+
+<QuestionCard id="pdj-02" number={2} question="How does Python dependency packaging differ, using wheels and --py-files?" difficulty="medium" topic="Packaging">
+Python doesn't compile to a single bundled artifact the way a JAR does — dependencies are typically packaged as wheel files (or a zipped virtual environment) and shipped alongside the job via `--py-files` or `--archives`, so each executor's Python process has access to the same package versions the driver was developed against.
+</QuestionCard>
+
+<QuestionCard id="pdj-03" number={3} question="What's a common failure mode from inconsistent packaging across environments?" difficulty="hard" topic="Packaging">
+A version of a library differs between what was used in development/testing and what's actually available on the cluster's executors at runtime — producing behavior that "worked in testing" but fails or behaves subtly differently in production, often surfacing as a confusing runtime error (or, worse, no error but wrong output) rather than an obvious packaging failure.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Configuration Management Across Environments
+
+<QuestionList topic="Configuration Management Across Environments" storagePrefix="spark-testing-config-mgmt">
+
+<QuestionCard id="cme-01" number={1} question="What does 'externalizing configuration' mean, and why does it matter for running the same job across dev/staging/prod?" difficulty="easy" topic="Configuration Management">
+It means keeping environment-specific values (file paths, credentials, cluster sizing, feature flags) out of the application code itself, supplied instead via configuration files, environment variables, or `spark-submit` arguments at runtime — so the exact same code artifact runs correctly in every environment just by pointing it at different configuration, rather than needing environment-specific code branches or rebuilds.
+</QuestionCard>
+
+<QuestionCard id="cme-02" number={2} question="How would you structure configuration so the same Spark job code runs unmodified across environments?" difficulty="medium" topic="Configuration Management">
+A common pattern: a base configuration file with shared defaults, overridden by environment-specific files (`dev.conf`, `staging.conf`, `prod.conf`) selected at submission time, with secrets pulled separately from a secrets manager rather than living in any checked-in config file at all — the job code itself only ever reads from the resolved configuration object, never hardcoding an environment-specific value directly.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"How would you structure a test suite for a Spark pipeline that reads from Kafka, transforms data, and writes to a warehouse?"** Walk through the layers: fast unit tests on transformation functions with fixture DataFrames, mocked Kafka input via `MemoryStream`, and a smaller number of integration tests against realistic sampled data.
+- **"A Spark job that worked fine in every test suddenly fails in production with a dependency version error — what happened, and how do you prevent it?"** Point to packaging inconsistency between the test/CI environment and the production cluster, and discuss pinning and consistently packaging dependencies (fat JAR or wheel + `--py-files`) across all environments.
+- **"How would you catch a performance regression before it reaches production, given that the job still produces correct output?"** Discuss ongoing runtime/resource benchmarking against a baseline as a distinct check from functional correctness tests, since a regression like an accidentally introduced shuffle wouldn't be caught by output-correctness tests alone.
+- **"A data scientist's notebook analysis needs to become a scheduled production job — walk through what changes."** Discuss removing hidden cell-order state dependencies, adding proper tests, externalizing configuration, and packaging it for `spark-submit` rather than running it interactively.
+
+---
+
+## Further Reading
+
+- [Spark Core Fundamentals](/level-3-technologies/batch-processing/spark-core-fundamentals/) — spark-submit flags and configuration precedence referenced throughout packaging and config management
+- [Spark Cluster Deployment](/level-3-technologies/batch-processing/spark-cluster-deployment/) — Docker containerization as a complementary approach to consistent dependency packaging
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of
