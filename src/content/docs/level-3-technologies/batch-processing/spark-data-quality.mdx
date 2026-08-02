@@ -1,0 +1,172 @@
+---
+title: Spark Data Quality Engineering
+description: Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Data Quality Engineering: Validating Correctness on Spark
+
+**Data quality tooling on Spark answers three questions in sequence — is this data structurally what we expect (schema), does it satisfy the rules we've declared (constraints/expectations), and if something's wrong, can we trace it back to where it actually broke (lineage) — with alerting as the thread connecting a failed check to someone actually finding out.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Deequ Constraint-Based Testing](#deequ-constraint-based-testing)
+- [Great Expectations Integration](#great-expectations-integration)
+- [Statistical Anomaly Detection](#statistical-anomaly-detection)
+- [Schema Enforcement and Evolution Policies](#schema-enforcement-and-evolution-policies)
+- [Data Lineage Verification](#data-lineage-verification)
+- [Pipeline Alerting on Quality Metrics](#pipeline-alerting-on-quality-metrics)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+**Deequ** and **Great Expectations** both let you declare data quality rules rather than hand-write validation logic, but they come from different lineages: Deequ is Amazon's library, purpose-built as scalable Spark aggregations for exactly this use case, while Great Expectations is a broader, engine-agnostic framework that happens to support a Spark backend among several others. **Schema enforcement** is the narrowest, cheapest check — catching structural drift before it even reaches row-level validation. **Statistical anomaly detection** catches the failures neither constraint checks nor schema enforcement would — data that's structurally valid and individually plausible, but collectively off from the norm. None of this matters without **lineage** to trace a failure to its source and **alerting** to make sure a failed check actually reaches a human.
+
+---
+
+## Deequ Constraint-Based Testing
+
+<QuestionList topic="Deequ Constraint-Based Testing" storagePrefix="spark-dq-deequ">
+
+<QuestionCard id="dcb-01" number={1} question="What is Deequ, and how does it differ from a general-purpose testing framework?" difficulty="medium" topic="Deequ">
+Deequ is Amazon's open-source library for defining declarative data quality constraints — completeness, uniqueness, value ranges, statistical properties — computed directly as Spark aggregations over a DataFrame. Unlike a general testing framework bolted onto Spark, it was purpose-built for this use case, so its checks scale natively with the same distributed execution model as the rest of a Spark pipeline.
+</QuestionCard>
+
+<QuestionCard id="dcb-02" number={2} question="Write an example of a Deequ constraint check for completeness and uniqueness." difficulty="medium" topic="Deequ">
+```scala
+val result = VerificationSuite()
+  .onData(df)
+  .addCheck(
+    Check(CheckLevel.Error, "Data quality checks")
+      .isComplete("customer_id")
+      .isUnique("order_id")
+      .hasMin("amount", _ >= 0)
+  )
+  .run()
+```
+Each constraint declares an expectation; Deequ computes the relevant Spark aggregation to evaluate it and reports pass/fail per constraint rather than requiring hand-written validation SQL for each rule.
+</QuestionCard>
+
+<QuestionCard id="dcb-03" number={3} question="Why is Deequ described as 'computed as scalable Spark aggregations'?" difficulty="medium" topic="Deequ">
+Under the hood, a Deequ check like `isComplete` or `hasMin` translates into standard Spark aggregate operations (counts, min/max, approximate distinct counts) that run through the same distributed execution engine as any other Spark job — meaning Deequ checks scale to the same data volumes Spark itself handles, rather than requiring data to be pulled out to a single-machine validation tool.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Great Expectations Integration
+
+<QuestionList topic="Great Expectations Integration" storagePrefix="spark-dq-great-expectations">
+
+<QuestionCard id="gei-01" number={1} question="How does Great Expectations integrate with a Spark DataFrame specifically?" difficulty="medium" topic="Great Expectations">
+Great Expectations supports a Spark execution engine backend, letting you run the same declarative "expectations" (e.g., `expect_column_values_to_not_be_null`) directly against a Spark DataFrame — the expectations themselves are engine-agnostic, but execution against Spark data scales the same way any other Spark computation would.
+</QuestionCard>
+
+<QuestionCard id="gei-02" number={2} question="What does Great Expectations produce beyond pass/fail, and why does that matter?" difficulty="medium" topic="Great Expectations">
+It generates human-readable validation reports and can auto-document a dataset's expectations as living documentation, not just a boolean result — which matters because a quality failure is far more actionable with visibility into exactly which rows/values violated which expectation, rather than a bare "check failed" signal.
+</QuestionCard>
+
+</QuestionList>
+
+For the broader tooling landscape (including when to choose Great Expectations over simpler dbt tests) and Great Expectations' general concepts, see [Data Quality](/level-2-core-concepts/data-quality/#tooling--frameworks).
+
+---
+
+## Statistical Anomaly Detection
+
+<QuestionList topic="Statistical Anomaly Detection" storagePrefix="spark-dq-anomaly">
+
+<QuestionCard id="sad-01" number={1} question="What does statistical anomaly detection look for in a Spark pipeline context?" difficulty="medium" topic="Anomaly Detection">
+It flags rows or entire batches whose statistical properties — mean, standard deviation, null rate, row count — deviate significantly from a learned baseline of what's normal for that dataset, catching problems that are structurally valid but collectively suspicious, like a sudden spike in null values or a batch with dramatically fewer rows than usual.
+</QuestionCard>
+
+<QuestionCard id="sad-02" number={2} question="Why is anomaly detection often computed incrementally per run rather than against the full historical dataset each time?" difficulty="hard" topic="Anomaly Detection">
+Recomputing baseline statistics over the entire historical dataset on every run gets more expensive as the dataset grows, and isn't necessary if the baseline itself is a rolling or incrementally-updated summary — computing per-run metrics and comparing them against a maintained running baseline is far cheaper and still catches the same class of drift.
+</QuestionCard>
+
+</QuestionList>
+
+For anomaly detection as a general data quality monitoring concept, see [Data Quality](/level-2-core-concepts/data-quality/).
+
+---
+
+## Schema Enforcement and Evolution Policies
+
+<QuestionList topic="Schema Enforcement and Evolution Policies" storagePrefix="spark-dq-schema-policy">
+
+<QuestionCard id="sep-01" number={1} question="What does schema enforcement mean in a Spark write context, and what's the default behavior?" difficulty="medium" topic="Schema Policy">
+Schema enforcement means rejecting a write whose schema doesn't match the target table's expected schema, rather than silently accepting it. On formats like Delta, this is the default: an incoming DataFrame with an unexpected extra column, missing column, or mismatched type fails the write outright unless schema evolution is explicitly enabled.
+</QuestionCard>
+
+<QuestionCard id="sep-02" number={2} question="What does mergeSchema do, and why is it not the default?" difficulty="medium" topic="Schema Policy">
+`mergeSchema = true` tells Spark to reconcile a divergent incoming schema with the target table's schema automatically (typically adding new columns) rather than rejecting the write. It's not the default because automatic schema changes bypass any review — an unintended upstream change (a typo'd column, an unexpected new field) could silently and permanently alter a production table's schema without anyone deciding that should happen.
+</QuestionCard>
+
+<QuestionCard id="sep-03" number={3} question="How would you design a policy that rejects breaking schema changes but allows additive ones automatically?" difficulty="hard" topic="Schema Policy">
+Enable schema evolution only for strictly additive, backward-compatible changes (new nullable columns, type widening), while leaving enforcement strict (failing the write) for anything potentially breaking — a renamed or removed column, a type narrowing, or a change to a column another system already depends on — often implemented as a validation step before the write that classifies the incoming schema diff and only proceeds automatically for the safe category.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Data Lineage Verification
+
+<QuestionList topic="Data Lineage Verification" storagePrefix="spark-dq-lineage">
+
+<QuestionCard id="dlv-01" number={1} question="What is data lineage, and why does it matter for root-causing quality issues?" difficulty="easy" topic="Lineage">
+Lineage is the tracked record of which upstream sources and transformations produced a given dataset. It matters for root-causing quality issues because when a downstream quality check fails, lineage is what lets you trace backward through the pipeline to find exactly where the bad data was introduced, instead of guessing across every upstream step.
+</QuestionCard>
+
+<QuestionCard id="dlv-02" number={2} question="How can lineage be captured automatically versus manually documented?" difficulty="medium" topic="Lineage">
+Automatic capture typically comes from instrumenting the pipeline framework itself — Spark's query execution listeners, or a catalog/governance layer (like Unity Catalog) that records column- and table-level lineage from actual query execution. Manual documentation (diagrams, wikis) is easier to start with but reliably goes stale as pipelines change, since nothing forces it to stay in sync with what the code actually does.
+</QuestionCard>
+
+<QuestionCard id="dlv-03" number={3} question="Give an example of how lineage helps trace a downstream quality issue back to its source." difficulty="medium" topic="Lineage">
+A dashboard metric looks wrong; lineage shows it's derived from a specific aggregate table, which in turn was built from three upstream tables through a specific transformation job — following that chain lets you check each upstream table's own quality checks and identify which one first introduced the bad data, rather than manually re-deriving the pipeline's structure from scratch during an incident.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Pipeline Alerting on Quality Metrics
+
+<QuestionList topic="Pipeline Alerting on Quality Metrics" storagePrefix="spark-dq-alerting">
+
+<QuestionCard id="pam-01" number={1} question="Why should a quality check failure stop or flag a pipeline rather than just being logged?" difficulty="easy" topic="Alerting">
+A logged-only failure only gets noticed if someone happens to go looking for it — which usually means bad data has already reached downstream consumers by the time anyone investigates. Failing loudly (blocking the pipeline, or at minimum triggering an active alert) is what actually prevents shipping known-bad data silently.
+</QuestionCard>
+
+<QuestionCard id="pam-02" number={2} question="What's the risk of alerting on every quality check failure without any triage or severity levels?" difficulty="medium" topic="Alerting">
+Alert fatigue — if minor, low-impact check failures page someone with the same urgency as a genuinely critical one, people start ignoring or muting alerts altogether, which defeats the purpose of alerting in the first place. Severity levels (warn vs. block, for example) let teams distinguish "worth investigating this week" from "stop the pipeline right now."
+</QuestionCard>
+
+<QuestionCard id="pam-03" number={3} question="How would you wire a Deequ or Great Expectations failure into an actual alerting system?" difficulty="medium" topic="Alerting">
+Capture the check result (pass/fail, and which specific constraints failed) in the pipeline's orchestration layer, and have a failure trigger a notification through whatever the team already uses for on-call — Slack, PagerDuty, email — ideally including enough context (which table, which constraint, sample failing rows) that someone can start investigating without first having to dig through logs to understand what actually failed.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"How would you design a data quality gate that a pipeline can't proceed past unless a table meets a minimum bar?"** Discuss Deequ/Great Expectations checks integrated into orchestration, with failures blocking downstream steps rather than merely being logged.
+- **"A quality check has been failing intermittently for months and nobody noticed — how did that happen, and how would you prevent it?"** Point to alert fatigue or a check that only logs instead of actively notifying, and discuss severity-based alerting design.
+- **"An upstream team silently renamed a column and a downstream job now has a whole column of nulls — how would schema enforcement have caught this?"** Explain how strict schema enforcement (rejecting the write rather than treating the renamed column as a new one) would have failed loudly at write time instead of producing quietly wrong data.
+- **"A revenue dashboard is showing an unexpected number — walk me through how lineage helps you find the root cause."** Use it to demonstrate tracing backward through tracked transformations rather than guessing which upstream step is responsible.
+
+---
+
+## Further Reading
+
+- [Data Quality](/level-2-core-concepts/data-quality/) — the broader data quality discipline, including dimensions, dbt tests, and ownership models beyond Spark-specific tooling
+- [Data Governance](/level-2-core-concepts/data-governance/) — how lineage and quality fit into a broader governance program
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of

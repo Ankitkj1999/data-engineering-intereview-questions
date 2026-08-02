@@ -1,0 +1,167 @@
+---
+title: Spark Machine Learning & Graph Processing
+description: Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Machine Learning & Graph Processing: MLlib and GraphFrames Beyond ETL
+
+**MLlib and GraphFrames both apply the same underlying idea — describe a computation as a composable pipeline of DataFrame operations and let Spark distribute it — to two workloads that don't look anything like typical ETL: fitting a model across many iterations, and traversing a graph's relationships at scale.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [MLlib Pipeline API](#mllib-pipeline-api)
+- [Feature Engineering at Scale](#feature-engineering-at-scale)
+- [Model Training and Hyperparameter Tuning](#model-training-and-hyperparameter-tuning)
+- [Model Persistence and Serving](#model-persistence-and-serving)
+- [GraphFrames for Graph Processing](#graphframes-for-graph-processing)
+- [Graph Algorithms](#graph-algorithms)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+MLlib's **Pipeline API** chains **Transformers** (stateless, `transform()`-only feature steps) and **Estimators** (`fit()`-producing algorithms, including the feature-engineering steps that need to learn something from the data first, like `StringIndexer`) into one reusable, serializable object — the same Pipeline that trains a model is what gets saved and later loaded for **serving**. **GraphFrames** applies the equivalent idea to graphs: it's the DataFrame-based successor to the older, RDD-based GraphX, representing vertices and edges as DataFrames so graph algorithms (**PageRank**, connected components, shortest paths) and ordinary relational operations can be freely mixed in the same query, instead of living in a separate graph-only API.
+
+---
+
+## MLlib Pipeline API
+
+<QuestionList topic="MLlib Pipeline API" storagePrefix="spark-ml-pipeline-api">
+
+<QuestionCard id="mpa-01" number={1} question="What are Transformers and Estimators, and how do they compose into a Pipeline?" difficulty="medium" topic="Pipeline API">
+A **Transformer** implements `transform()`, converting one DataFrame into another — typically by appending a new column (a feature vector, a prediction). An **Estimator** implements `fit()`, learning from a DataFrame and producing a Model (itself a Transformer). A `Pipeline` is an ordered sequence of these stages, run in order, with each stage's output DataFrame feeding into the next.
+</QuestionCard>
+
+<QuestionCard id="mpa-02" number={2} question="Why does chaining stages into a single Pipeline object matter beyond just calling each step manually?" difficulty="medium" topic="Pipeline API">
+A Pipeline can be fit, evaluated, and — critically — **saved and reloaded as one unit**, guaranteeing that the exact same sequence of feature transformations used during training is applied identically at inference time. Calling each step manually risks the training and serving code silently drifting apart over time, which is a common and hard-to-debug source of model quality issues in production.
+</QuestionCard>
+
+<QuestionCard id="mpa-03" number={3} question="What happens when you call fit() on a Pipeline containing both Transformers and Estimators?" difficulty="hard" topic="Pipeline API">
+Each stage runs in order: a plain Transformer stage just applies its `transform()` and passes the result on, while an Estimator stage calls `fit()` on the current DataFrame to produce a fitted Model (a Transformer), which is then used for `transform()` for the rest of the pipeline's execution — the result of `pipeline.fit(df)` is a `PipelineModel`, a single fitted, ready-to-use Transformer wrapping every stage's fitted state.
+</QuestionCard>
+
+</QuestionList>
+
+For MLlib's broader algorithm catalog and use cases, see [Apache Spark](/level-3-technologies/batch-processing/spark/#mllib--graphx).
+
+---
+
+## Feature Engineering at Scale
+
+<QuestionList topic="Feature Engineering at Scale" storagePrefix="spark-ml-feature-eng">
+
+<QuestionCard id="fes-01" number={1} question="What does VectorAssembler do, and why do most MLlib algorithms require it?" difficulty="medium" topic="Feature Engineering">
+`VectorAssembler` combines multiple individual columns into a single feature vector column — most MLlib algorithms expect exactly one vector column as their feature input, not a set of separate scalar columns, so `VectorAssembler` is almost always the final feature-prep step immediately before model training.
+</QuestionCard>
+
+<QuestionCard id="fes-02" number={2} question="What's the difference between StringIndexer and OneHotEncoder, and why are they often used together?" difficulty="medium" topic="Feature Engineering">
+`StringIndexer` converts a categorical string column into numeric indices (by frequency). `OneHotEncoder` then converts those numeric indices into a sparse binary vector, avoiding the false sense of ordinal relationship a raw numeric index would otherwise imply to an algorithm (e.g., "category 3" isn't meaningfully "more" than "category 1"). They're typically chained: string → index → one-hot vector.
+</QuestionCard>
+
+<QuestionCard id="fes-03" number={3} question="Why are these feature engineering steps implemented as Pipeline stages rather than one-off DataFrame transformations?" difficulty="hard" topic="Feature Engineering">
+`StringIndexer` and similar steps are Estimators — they need to `fit()` on the training data first (learning the category-to-index mapping, for example) before they can `transform()` anything, including new data at inference time. Wrapping them as Pipeline stages ensures that learned mapping is captured, saved, and reapplied consistently, rather than being silently re-derived (and potentially different) each time the transformation logic runs.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Model Training and Hyperparameter Tuning
+
+<QuestionList topic="Model Training and Hyperparameter Tuning" storagePrefix="spark-ml-tuning">
+
+<QuestionCard id="mht-01" number={1} question="What does CrossValidator do, and how does it differ from TrainValidationSplit?" difficulty="medium" topic="Hyperparameter Tuning">
+`CrossValidator` splits the training data into k folds and evaluates each candidate parameter combination across all k, averaging the results for a more robust estimate. `TrainValidationSplit` instead uses a single train/validation split — faster and cheaper, but a noisier, less reliable estimate of how well a given parameter combination will generalize.
+</QuestionCard>
+
+<QuestionCard id="mht-02" number={2} question="How does a parameter grid work with CrossValidator?" difficulty="medium" topic="Hyperparameter Tuning">
+A `ParamGridBuilder` defines the specific values to try for each hyperparameter (e.g., regularization strength, tree depth), and `CrossValidator` exhaustively evaluates every combination in that grid across all folds — the total number of model fits is `(grid combinations) × (number of folds)`, which grows quickly as either dimension increases.
+</QuestionCard>
+
+<QuestionCard id="mht-03" number={3} question="Why does hyperparameter tuning via CrossValidator get expensive quickly, and how does Spark parallelize it?" difficulty="hard" topic="Hyperparameter Tuning">
+Every combination-fold pair requires a full model fit, so a modest grid (say, 4 parameters × 3 values each) with 5-fold cross-validation means potentially hundreds of full training runs. Spark can run multiple of these fits in parallel across the cluster (`parallelism` parameter on `CrossValidator`) rather than strictly sequentially, trading cluster resource usage for faster overall tuning time.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Model Persistence and Serving
+
+<QuestionList topic="Model Persistence and Serving" storagePrefix="spark-ml-persistence">
+
+<QuestionCard id="mps-01" number={1} question="How do you save and load a trained Pipeline in Spark?" difficulty="easy" topic="Model Persistence">
+`pipelineModel.write.overwrite().save(path)` persists the fitted pipeline (including every stage's learned state) to storage, and `PipelineModel.load(path)` reconstructs it later — the same saved artifact can be loaded back into a fresh Spark session for either continued evaluation or inference.
+</QuestionCard>
+
+<QuestionCard id="mps-02" number={2} question="What's the difference between serving a model by loading it back into Spark versus exporting it to a lighter runtime?" difficulty="medium" topic="Model Persistence">
+Loading it back into Spark means inference still runs through a full Spark application — appropriate for large-batch scoring jobs, but heavyweight (JVM startup, cluster resources) for a single low-latency prediction request. Exporting to a lighter runtime (via formats like ONNX or MLeap) lets a small, fast, dependency-light process serve predictions without needing Spark running at all.
+</QuestionCard>
+
+<QuestionCard id="mps-03" number={3} question="Why might exporting to a lighter runtime be preferred for low-latency inference specifically?" difficulty="medium" topic="Model Persistence">
+A live request-response API (a website recommending a product in real time, for example) can't tolerate Spark's startup and per-request overhead — a lightweight serving runtime can respond in single-digit milliseconds, where invoking a Spark job per request would be orders of magnitude slower and far more resource-intensive for what's ultimately a single small computation.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## GraphFrames for Graph Processing
+
+<QuestionList topic="GraphFrames for Graph Processing" storagePrefix="spark-ml-graphframes">
+
+<QuestionCard id="gfp-01" number={1} question="What is GraphFrames, and how does it differ from GraphX?" difficulty="medium" topic="GraphFrames">
+GraphFrames is a DataFrame-based graph processing library, layered on top of GraphX, that represents a graph's vertices and edges as ordinary DataFrames rather than RDDs. It differs from GraphX the same way DataFrames differ from RDDs generally — schema awareness, Catalyst optimization, and a higher-level, more approachable API, at the cost of being a separate library rather than Spark-core built-in.
+</QuestionCard>
+
+<QuestionCard id="gfp-02" number={2} question="How are vertices and edges represented in GraphFrames?" difficulty="easy" topic="GraphFrames">
+As two DataFrames: a vertices DataFrame with (at minimum) an `id` column plus any vertex properties as additional columns, and an edges DataFrame with `src` and `dst` columns (referencing vertex IDs) plus any edge properties — a `GraphFrame` is constructed from this pair: `GraphFrame(verticesDF, edgesDF)`.
+</QuestionCard>
+
+<QuestionCard id="gfp-03" number={3} question="What's the practical benefit of graph and relational (DataFrame) operations being able to mix freely?" difficulty="medium" topic="GraphFrames">
+A real analysis often needs both — filtering vertices/edges with ordinary DataFrame `WHERE` conditions, joining in external attributes, then running a graph algorithm on the result — and GraphFrames lets all of that happen in one coherent pipeline using familiar DataFrame operations, rather than needing to convert back and forth between a graph-only representation and a DataFrame for each part of the analysis.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Graph Algorithms
+
+<QuestionList topic="Graph Algorithms" storagePrefix="spark-ml-graph-algorithms">
+
+<QuestionCard id="gap-01" number={1} question="What does the connected components algorithm compute, and what's a real use case?" difficulty="medium" topic="Graph Algorithms">
+It finds groups of vertices that are all reachable from each other through some path of edges, assigning each vertex a component ID. A real use case: entity resolution — treating records that share an identifying attribute (same email, same phone number) as edges, connected components groups all records that ultimately trace back to the same underlying entity, even through indirect chains of shared attributes.
+</QuestionCard>
+
+<QuestionCard id="gap-02" number={2} question="What does the shortest paths algorithm compute in GraphFrames?" difficulty="easy" topic="Graph Algorithms">
+For a given set of landmark vertices, it computes the shortest path distance from every vertex in the graph to each landmark — useful for things like measuring degrees of separation in a social network, or finding the minimum number of hops between nodes in a network topology.
+</QuestionCard>
+
+<QuestionCard id="gap-03" number={3} question="How do these built-in algorithms scale across a cluster compared to a hand-written iterative implementation?" difficulty="hard" topic="Graph Algorithms">
+They're implemented using GraphFrames'/GraphX's distributed message-passing model (built on Pregel-style iteration), so the same algorithm runs correctly whether the graph fits on one machine or spans a large cluster — a naive hand-written implementation would need to reinvent that distributed iteration and fault-tolerance logic itself, which the built-in algorithms already handle.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Design a Pipeline that indexes a categorical column, one-hot encodes it, assembles it with numeric features, and trains a classifier — all as one reusable object."** A comprehensive Pipeline-construction prompt, testing whether Estimator vs. Transformer stages are ordered and composed correctly.
+- **"A model's offline evaluation metrics look great, but production predictions are noticeably worse — what would you check first?"** Point to training/serving skew — code that manually reapplies feature transformations instead of using the exact same saved Pipeline is a classic culprit.
+- **"How would you tune a model's hyperparameters without letting the search become prohibitively expensive?"** Discuss narrowing the parameter grid deliberately, using `TrainValidationSplit` for a cheaper first pass before a more expensive `CrossValidator` run, and Spark-level parallelism for the search itself.
+- **"How would you find duplicate customer records scattered across a large dataset, linked only indirectly through shared attributes?"** A connected components prompt — building a graph from shared-attribute edges and grouping by component.
+
+---
+
+## Further Reading
+
+- [Spark DataFrame & Dataset APIs](/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/) — the Column API and schema concepts MLlib Pipelines and GraphFrames both build on
+- [Apache Spark](/level-3-technologies/batch-processing/spark/#mllib--graphx) — the broader MLlib algorithm catalog and the older, RDD-based GraphX API
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of

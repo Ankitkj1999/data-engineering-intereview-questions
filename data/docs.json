@@ -7785,6 +7785,153 @@
     "content": "## Further Reading\n\n- [AWS](/level-3-technologies/cloud/aws/) — broader AWS service interview questions, including S3, IAM, and Redshift beyond Spark-specific connector mechanics\n- [Spark File Formats & Storage Optimization](/level-3-technologies/batch-processing/spark-file-formats-storage/) — the file formats these connectors ultimately read and write\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
   },
   {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "## Cluster Deployment & Environment Setup: Running Spark on a Real Cluster\n\n**Choosing a cluster manager is only the first decision — actually running Spark in production means setting up queues so one job doesn't starve another, packaging dependencies consistently, and deciding how strictly different teams' workloads need to stay isolated from each other.**"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Standalone Mode Setup](#standalone-mode-setup)\n- [YARN Deployment and Queue Management](#yarn-deployment-and-queue-management)\n- [Kubernetes Operator and Native Scheduling](#kubernetes-operator-and-native-scheduling)\n- [Client Mode versus Cluster Mode](#client-mode-versus-cluster-mode)\n- [Containerization with Docker](#containerization-with-docker)\n- [Legacy Mesos Integration](#legacy-mesos-integration)\n- [Multi-Tenancy and Resource Queue Isolation](#multi-tenancy-and-resource-queue-isolation)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "## Key Concepts\n\nBeyond simply picking a cluster manager, deploying Spark in a shared environment means solving for **multi-tenancy** — making sure one team's job can't starve or crash another's — which each platform handles differently: YARN through **capacity/fair scheduler queues**, Kubernetes through **namespaces and resource quotas**. **Docker containerization** has become the common thread across modern deployments, since it's how Spark ships consistently to Kubernetes (and increasingly to containerized YARN) regardless of which specific cluster manager sits underneath.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "## Standalone Mode Setup\n\n<QuestionList topic=\"Standalone Mode Setup\" storagePrefix=\"spark-deploy-standalone\">\n\n<QuestionCard id=\"sms-01\" number={1} question=\"What is Standalone mode, and when does it make sense to use it?\" difficulty=\"easy\" topic=\"Standalone Mode\">\nSpark's own built-in cluster manager — a lightweight master/worker setup with no external dependency (no YARN, no Kubernetes required). It makes sense for dedicated, Spark-only clusters where the operational simplicity of not running a separate resource manager outweighs the more advanced scheduling and multi-framework sharing that YARN or Kubernetes provide.\n</QuestionCard>\n\n<QuestionCard id=\"sms-02\" number={2} question=\"What does setting up Standalone mode involve at a basic level?\" difficulty=\"medium\" topic=\"Standalone Mode\""
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": ">\nStarting a master process (`start-master.sh`) and one or more worker processes (`start-worker.sh`, pointed at the master's URL) on the cluster's machines — workers register with the master on startup, and applications are submitted with `--master spark://host:port` to run against that cluster.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "## YARN Deployment and Queue Management\n\n<QuestionList topic=\"YARN Deployment and Queue Management\" storagePrefix=\"spark-deploy-yarn\">\n\n<QuestionCard id=\"ydq-01\" number={1} question=\"How does Spark run as a YARN application, and what's the practical benefit of that model?\" difficulty=\"medium\" topic=\"YARN Deployment\">\nSpark submits itself as a YARN application, with YARN's ResourceManager allocating containers for the driver (in cluster mode) and executors, the same way it would for any other YARN workload. The benefit is resource sharing — Spark jobs coexist on the same cluster as other Hadoop-ecosystem workloads (Hive, MapReduce), governed by the same central resource allocation.\n</QuestionCard>\n\n<QuestionCard id=\"ydq-02\" number={2} question=\"What is queue management, and why does it matt"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "er for running Spark on a shared YARN cluster?\" difficulty=\"medium\" topic=\"YARN Deployment\">\nYARN's Capacity Scheduler or Fair Scheduler lets administrators define queues with guaranteed and maximum resource shares, and jobs are submitted into a specific queue (`--queue` flag) rather than competing for the whole cluster unconstrained. This matters because without queues, a single large or runaway Spark job could consume the entire cluster's capacity, starving every other team's workload.\n</QuestionCard>\n\n<QuestionCard id=\"ydq-03\" number={3} question=\"What's the practical difference between the Capacity Scheduler and the Fair Scheduler?\" difficulty=\"hard\" topic=\"YARN Deployment\">\nThe Capacity Scheduler guarantees each queue a configured minimum share of cluster capacity, allowing queues to"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "borrow unused capacity from others but reclaiming it when the owning queue needs it back — geared toward predictable, guaranteed allocations. The Fair Scheduler instead aims to give all running applications roughly equal resource shares over time, rebalancing dynamically as jobs start and finish — geared more toward fairness across many smaller, shorter jobs.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "## Kubernetes Operator and Native Scheduling\n\n<QuestionList topic=\"Kubernetes Operator and Native Scheduling\" storagePrefix=\"spark-deploy-k8s\">\n\n<QuestionCard id=\"kos-01\" number={1} question=\"How does Spark run natively on Kubernetes, without a separate operator?\" difficulty=\"medium\" topic=\"Kubernetes\">\n`spark-submit` with `--master k8s://https://<api-server>` talks directly to the Kubernetes API to launch the driver as a pod, which in turn requests executor pods the same way — no separate cluster manager process (unlike Standalone's master or YARN's ResourceManager) is needed; Kubernetes' own scheduler places the pods.\n</QuestionCard>\n\n<QuestionCard id=\"kos-02\" number={2} question=\"What does the Spark Operator (a Kubernetes CRD-based controller) add on top of native spark-submit?\" difficu"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "lty=\"medium\" topic=\"Kubernetes\">\nIt introduces a `SparkApplication` custom resource, letting you define and manage Spark jobs declaratively (as YAML applied via `kubectl`) the same way you'd manage any other Kubernetes resource — including built-in support for things like automatic restarts, scheduled (cron-based) Spark applications, and integration with Kubernetes-native tooling that plain `spark-submit` doesn't provide on its own.\n</QuestionCard>\n\n<QuestionCard id=\"kos-03\" number={3} question=\"What Kubernetes-native capabilities does running Spark this way integrate with, that a traditional cluster manager wouldn't?\" difficulty=\"medium\" topic=\"Kubernetes\">\nKubernetes namespaces (for isolating teams/environments), resource quotas, pod-level autoscaling (cluster autoscaler adding/removing"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "nodes based on pending pod resource requests), and the same RBAC and network policy tooling used for every other workload on the cluster — Spark becomes just another Kubernetes-native workload instead of requiring its own separate operational tooling.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "## Client Mode versus Cluster Mode\n\nFor the client mode vs. cluster mode distinction across cluster managers, see [Spark Distributed Computing](/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/#cluster-manager-concepts) — it's covered there as a cross-cutting concept that applies the same way regardless of which cluster manager is in use.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "## Containerization with Docker\n\n<QuestionList topic=\"Containerization with Docker\" storagePrefix=\"spark-deploy-docker\">\n\n<QuestionCard id=\"cwd-01\" number={1} question=\"Why containerize a Spark application with Docker?\" difficulty=\"easy\" topic=\"Docker\">\nA container image bundles the application code, its dependencies, and often a specific Spark/Python/Scala version together into one reproducible artifact — eliminating \"works on my machine\" or \"works on this cluster but not that one\" issues caused by inconsistent environments across executors or between dev and production.\n</QuestionCard>\n\n<QuestionCard id=\"cwd-02\" number={2} question=\"How does containerization fit into a Kubernetes-based Spark deployment specifically?\" difficulty=\"medium\" topic=\"Docker\">\nIt's essentially required — Kuberne"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "tes runs everything as containers, so both the driver and executor pods run from a Spark-based Docker image (extending Spark's own base images, typically). Custom dependencies, whether JVM libraries or Python packages, get baked into that image rather than installed at runtime on each node.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "## Legacy Mesos Integration\n\nFor Apache Mesos setup and integration with Spark, see [Apache Spark](/level-3-technologies/batch-processing/spark/#cluster-management--deployment) — Mesos support has been deprecated and removed from recent Spark releases in favor of Kubernetes, so it's covered there as part of the broader deployment history rather than a page of its own here.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "## Multi-Tenancy and Resource Queue Isolation\n\n<QuestionList topic=\"Multi-Tenancy and Resource Queue Isolation\" storagePrefix=\"spark-deploy-multi-tenancy\">\n\n<QuestionCard id=\"mtq-01\" number={1} question=\"What does multi-tenancy mean for a shared Spark platform, and why does it need explicit isolation mechanisms?\" difficulty=\"medium\" topic=\"Multi-Tenancy\">\nMulti-tenancy means multiple teams or applications share the same underlying cluster infrastructure. Without explicit isolation, one team's misbehaving or resource-hungry job can degrade or starve every other team's workload running on the same shared capacity — isolation mechanisms exist specifically to prevent that \"noisy neighbor\" problem.\n</QuestionCard>\n\n<QuestionCard id=\"mtq-02\" number={2} question=\"What are the concrete isolation m"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "echanisms available on YARN versus Kubernetes?\" difficulty=\"medium\" topic=\"Multi-Tenancy\">\nOn YARN: queues (Capacity or Fair Scheduler) with guaranteed and maximum resource shares per team/queue. On Kubernetes: namespaces per team combined with resource quotas capping how much CPU/memory a namespace's workloads can consume in total, plus network policies restricting cross-namespace communication if needed.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "## Common Interview Scenarios\n\n- **\"A team's overnight batch job is starving other teams' jobs of cluster resources — how would you prevent that going forward?\"** Discuss configuring YARN queues (or Kubernetes namespace resource quotas) with guaranteed and maximum shares per team, rather than leaving all jobs competing for the whole cluster unconstrained.\n- **\"Why would a platform team migrate from a self-managed YARN cluster to running Spark on Kubernetes?\"** Discuss operational consolidation with the rest of the org's container infrastructure, native autoscaling, and the trade-off against an existing mature Hadoop/YARN investment.\n- **\"Design the isolation boundaries for a Spark platform shared by five data teams, some running sensitive workloads.\"** A namespaces/queues-plus-network-poli"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "cy design question, potentially touching on separate clusters entirely for the most sensitive workloads.\n- **\"How would you package a Spark application with a specific set of Python dependencies to ensure it runs identically across every executor?\"** A Docker containerization prompt — baking dependencies into the image rather than relying on per-node installation consistency.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "locale": "en",
+    "title": "Spark Cluster Deployment & Environment Setup",
+    "description": "Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.",
+    "content": "## Further Reading\n\n- [Spark Distributed Computing](/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/) — cluster manager concepts (Standalone, YARN, Mesos, Kubernetes) and client vs. cluster mode in depth\n- [Kubernetes](/level-3-technologies/orchestration/kubernetes/) — Kubernetes' own architecture, namespaces, and scheduling model beyond Spark-specific integration\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
+  },
+  {
     "path": "/level-3-technologies/batch-processing/spark-core-fundamentals/",
     "locale": "en",
     "title": "Spark Core Fundamentals",
@@ -7965,6 +8112,174 @@
     "title": "Spark Core Fundamentals",
     "description": "Interview questions on getting a Spark application up, configured, and observable — SparkSession, spark-submit, configuration precedence, logging, the Spark UI, and Spark Connect.",
     "content": "## Further Reading\n\n- [Spark Distributed Computing](/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/) — the driver/executor/cluster-manager architecture that spark-submit's flags target\n- [Apache Spark](/level-3-technologies/batch-processing/spark/#core-concepts--fundamentals) — the broader Spark fundamentals and Spark-vs-Hadoop comparisons this page builds on\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "## Data Quality Engineering: Validating Correctness on Spark\n\n**Data quality tooling on Spark answers three questions in sequence — is this data structurally what we expect (schema), does it satisfy the rules we've declared (constraints/expectations), and if something's wrong, can we trace it back to where it actually broke (lineage) — with alerting as the thread connecting a failed check to someone actually finding out.**"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Deequ Constraint-Based Testing](#deequ-constraint-based-testing)\n- [Great Expectations Integration](#great-expectations-integration)\n- [Statistical Anomaly Detection](#statistical-anomaly-detection)\n- [Schema Enforcement and Evolution Policies](#schema-enforcement-and-evolution-policies)\n- [Data Lineage Verification](#data-lineage-verification)\n- [Pipeline Alerting on Quality Metrics](#pipeline-alerting-on-quality-metrics)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "## Key Concepts\n\n**Deequ** and **Great Expectations** both let you declare data quality rules rather than hand-write validation logic, but they come from different lineages: Deequ is Amazon's library, purpose-built as scalable Spark aggregations for exactly this use case, while Great Expectations is a broader, engine-agnostic framework that happens to support a Spark backend among several others. **Schema enforcement** is the narrowest, cheapest check — catching structural drift before it even reaches row-level validation. **Statistical anomaly detection** catches the failures neither constraint checks nor schema enforcement would — data that's structurally valid and individually plausible, but collectively off from the norm. None of this matters without **lineage** to trace a failure to i"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "ts source and **alerting** to make sure a failed check actually reaches a human.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "## Deequ Constraint-Based Testing\n\n<QuestionList topic=\"Deequ Constraint-Based Testing\" storagePrefix=\"spark-dq-deequ\">\n\n<QuestionCard id=\"dcb-01\" number={1} question=\"What is Deequ, and how does it differ from a general-purpose testing framework?\" difficulty=\"medium\" topic=\"Deequ\">\nDeequ is Amazon's open-source library for defining declarative data quality constraints — completeness, uniqueness, value ranges, statistical properties — computed directly as Spark aggregations over a DataFrame. Unlike a general testing framework bolted onto Spark, it was purpose-built for this use case, so its checks scale natively with the same distributed execution model as the rest of a Spark pipeline.\n</QuestionCard>\n\n<QuestionCard id=\"dcb-02\" number={2} question=\"Write an example of a Deequ constraint ch"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "eck for completeness and uniqueness.\" difficulty=\"medium\" topic=\"Deequ\">\n```scala\nval result = VerificationSuite()\n  .onData(df)\n  .addCheck(\n    Check(CheckLevel.Error, \"Data quality checks\")\n      .isComplete(\"customer_id\")\n      .isUnique(\"order_id\")\n      .hasMin(\"amount\", _ >= 0)\n  )\n  .run()\n```\nEach constraint declares an expectation; Deequ computes the relevant Spark aggregation to evaluate it and reports pass/fail per constraint rather than requiring hand-written validation SQL for each rule.\n</QuestionCard>\n\n<QuestionCard id=\"dcb-03\" number={3} question=\"Why is Deequ described as 'computed as scalable Spark aggregations'?\" difficulty=\"medium\" topic=\"Deequ\">\nUnder the hood, a Deequ check like `isComplete` or `hasMin` translates into standard Spark aggregate operations (counts, min"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "/max, approximate distinct counts) that run through the same distributed execution engine as any other Spark job — meaning Deequ checks scale to the same data volumes Spark itself handles, rather than requiring data to be pulled out to a single-machine validation tool.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "## Great Expectations Integration\n\n<QuestionList topic=\"Great Expectations Integration\" storagePrefix=\"spark-dq-great-expectations\">\n\n<QuestionCard id=\"gei-01\" number={1} question=\"How does Great Expectations integrate with a Spark DataFrame specifically?\" difficulty=\"medium\" topic=\"Great Expectations\">\nGreat Expectations supports a Spark execution engine backend, letting you run the same declarative \"expectations\" (e.g., `expect_column_values_to_not_be_null`) directly against a Spark DataFrame — the expectations themselves are engine-agnostic, but execution against Spark data scales the same way any other Spark computation would.\n</QuestionCard>\n\n<QuestionCard id=\"gei-02\" number={2} question=\"What does Great Expectations produce beyond pass/fail, and why does that matter?\" difficulty=\"med"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "ium\" topic=\"Great Expectations\">\nIt generates human-readable validation reports and can auto-document a dataset's expectations as living documentation, not just a boolean result — which matters because a quality failure is far more actionable with visibility into exactly which rows/values violated which expectation, rather than a bare \"check failed\" signal.\n</QuestionCard>\n\n</QuestionList>\n\nFor the broader tooling landscape (including when to choose Great Expectations over simpler dbt tests) and Great Expectations' general concepts, see [Data Quality](/level-2-core-concepts/data-quality/#tooling--frameworks).\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "## Statistical Anomaly Detection\n\n<QuestionList topic=\"Statistical Anomaly Detection\" storagePrefix=\"spark-dq-anomaly\">\n\n<QuestionCard id=\"sad-01\" number={1} question=\"What does statistical anomaly detection look for in a Spark pipeline context?\" difficulty=\"medium\" topic=\"Anomaly Detection\">\nIt flags rows or entire batches whose statistical properties — mean, standard deviation, null rate, row count — deviate significantly from a learned baseline of what's normal for that dataset, catching problems that are structurally valid but collectively suspicious, like a sudden spike in null values or a batch with dramatically fewer rows than usual.\n</QuestionCard>\n\n<QuestionCard id=\"sad-02\" number={2} question=\"Why is anomaly detection often computed incrementally per run rather than against the f"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "ull historical dataset each time?\" difficulty=\"hard\" topic=\"Anomaly Detection\">\nRecomputing baseline statistics over the entire historical dataset on every run gets more expensive as the dataset grows, and isn't necessary if the baseline itself is a rolling or incrementally-updated summary — computing per-run metrics and comparing them against a maintained running baseline is far cheaper and still catches the same class of drift.\n</QuestionCard>\n\n</QuestionList>\n\nFor anomaly detection as a general data quality monitoring concept, see [Data Quality](/level-2-core-concepts/data-quality/).\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "## Schema Enforcement and Evolution Policies\n\n<QuestionList topic=\"Schema Enforcement and Evolution Policies\" storagePrefix=\"spark-dq-schema-policy\">\n\n<QuestionCard id=\"sep-01\" number={1} question=\"What does schema enforcement mean in a Spark write context, and what's the default behavior?\" difficulty=\"medium\" topic=\"Schema Policy\">\nSchema enforcement means rejecting a write whose schema doesn't match the target table's expected schema, rather than silently accepting it. On formats like Delta, this is the default: an incoming DataFrame with an unexpected extra column, missing column, or mismatched type fails the write outright unless schema evolution is explicitly enabled.\n</QuestionCard>\n\n<QuestionCard id=\"sep-02\" number={2} question=\"What does mergeSchema do, and why is it not the defaul"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "t?\" difficulty=\"medium\" topic=\"Schema Policy\">\n`mergeSchema = true` tells Spark to reconcile a divergent incoming schema with the target table's schema automatically (typically adding new columns) rather than rejecting the write. It's not the default because automatic schema changes bypass any review — an unintended upstream change (a typo'd column, an unexpected new field) could silently and permanently alter a production table's schema without anyone deciding that should happen.\n</QuestionCard>\n\n<QuestionCard id=\"sep-03\" number={3} question=\"How would you design a policy that rejects breaking schema changes but allows additive ones automatically?\" difficulty=\"hard\" topic=\"Schema Policy\">\nEnable schema evolution only for strictly additive, backward-compatible changes (new nullable columns"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": ", type widening), while leaving enforcement strict (failing the write) for anything potentially breaking — a renamed or removed column, a type narrowing, or a change to a column another system already depends on — often implemented as a validation step before the write that classifies the incoming schema diff and only proceeds automatically for the safe category.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "## Data Lineage Verification\n\n<QuestionList topic=\"Data Lineage Verification\" storagePrefix=\"spark-dq-lineage\">\n\n<QuestionCard id=\"dlv-01\" number={1} question=\"What is data lineage, and why does it matter for root-causing quality issues?\" difficulty=\"easy\" topic=\"Lineage\">\nLineage is the tracked record of which upstream sources and transformations produced a given dataset. It matters for root-causing quality issues because when a downstream quality check fails, lineage is what lets you trace backward through the pipeline to find exactly where the bad data was introduced, instead of guessing across every upstream step.\n</QuestionCard>\n\n<QuestionCard id=\"dlv-02\" number={2} question=\"How can lineage be captured automatically versus manually documented?\" difficulty=\"medium\" topic=\"Lineage\">\nAu"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "tomatic capture typically comes from instrumenting the pipeline framework itself — Spark's query execution listeners, or a catalog/governance layer (like Unity Catalog) that records column- and table-level lineage from actual query execution. Manual documentation (diagrams, wikis) is easier to start with but reliably goes stale as pipelines change, since nothing forces it to stay in sync with what the code actually does.\n</QuestionCard>\n\n<QuestionCard id=\"dlv-03\" number={3} question=\"Give an example of how lineage helps trace a downstream quality issue back to its source.\" difficulty=\"medium\" topic=\"Lineage\">\nA dashboard metric looks wrong; lineage shows it's derived from a specific aggregate table, which in turn was built from three upstream tables through a specific transformation job —"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "following that chain lets you check each upstream table's own quality checks and identify which one first introduced the bad data, rather than manually re-deriving the pipeline's structure from scratch during an incident.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "## Pipeline Alerting on Quality Metrics\n\n<QuestionList topic=\"Pipeline Alerting on Quality Metrics\" storagePrefix=\"spark-dq-alerting\">\n\n<QuestionCard id=\"pam-01\" number={1} question=\"Why should a quality check failure stop or flag a pipeline rather than just being logged?\" difficulty=\"easy\" topic=\"Alerting\">\nA logged-only failure only gets noticed if someone happens to go looking for it — which usually means bad data has already reached downstream consumers by the time anyone investigates. Failing loudly (blocking the pipeline, or at minimum triggering an active alert) is what actually prevents shipping known-bad data silently.\n</QuestionCard>\n\n<QuestionCard id=\"pam-02\" number={2} question=\"What's the risk of alerting on every quality check failure without any triage or severity levels?\" d"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "ifficulty=\"medium\" topic=\"Alerting\">\nAlert fatigue — if minor, low-impact check failures page someone with the same urgency as a genuinely critical one, people start ignoring or muting alerts altogether, which defeats the purpose of alerting in the first place. Severity levels (warn vs. block, for example) let teams distinguish \"worth investigating this week\" from \"stop the pipeline right now.\"\n</QuestionCard>\n\n<QuestionCard id=\"pam-03\" number={3} question=\"How would you wire a Deequ or Great Expectations failure into an actual alerting system?\" difficulty=\"medium\" topic=\"Alerting\">\nCapture the check result (pass/fail, and which specific constraints failed) in the pipeline's orchestration layer, and have a failure trigger a notification through whatever the team already uses for on-call —"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "Slack, PagerDuty, email — ideally including enough context (which table, which constraint, sample failing rows) that someone can start investigating without first having to dig through logs to understand what actually failed.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "## Common Interview Scenarios\n\n- **\"How would you design a data quality gate that a pipeline can't proceed past unless a table meets a minimum bar?\"** Discuss Deequ/Great Expectations checks integrated into orchestration, with failures blocking downstream steps rather than merely being logged.\n- **\"A quality check has been failing intermittently for months and nobody noticed — how did that happen, and how would you prevent it?\"** Point to alert fatigue or a check that only logs instead of actively notifying, and discuss severity-based alerting design.\n- **\"An upstream team silently renamed a column and a downstream job now has a whole column of nulls — how would schema enforcement have caught this?\"** Explain how strict schema enforcement (rejecting the write rather than treating the renam"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "ed column as a new one) would have failed loudly at write time instead of producing quietly wrong data.\n- **\"A revenue dashboard is showing an unexpected number — walk me through how lineage helps you find the root cause.\"** Use it to demonstrate tracing backward through tracked transformations rather than guessing which upstream step is responsible.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "locale": "en",
+    "title": "Spark Data Quality Engineering",
+    "description": "Interview questions on Spark data quality tooling — Deequ, Great Expectations, statistical anomaly detection, schema enforcement, lineage verification, and pipeline alerting.",
+    "content": "## Further Reading\n\n- [Data Quality](/level-2-core-concepts/data-quality/) — the broader data quality discipline, including dimensions, dbt tests, and ownership models beyond Spark-specific tooling\n- [Data Governance](/level-2-core-concepts/data-governance/) — how lineage and quality fit into a broader governance program\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
   },
   {
     "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
@@ -9234,6 +9549,181 @@
     "content": "## Further Reading\n\n- [Hive](/level-3-technologies/batch-processing/hive/) — the Hive Metastore's internal structure and data model in depth\n- [Databricks](/level-3-technologies/data-warehouses/databricks/) — Unity Catalog's full governance model, three-level namespace, and lineage tracking\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
   },
   {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "## Machine Learning & Graph Processing: MLlib and GraphFrames Beyond ETL\n\n**MLlib and GraphFrames both apply the same underlying idea — describe a computation as a composable pipeline of DataFrame operations and let Spark distribute it — to two workloads that don't look anything like typical ETL: fitting a model across many iterations, and traversing a graph's relationships at scale.**"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [MLlib Pipeline API](#mllib-pipeline-api)\n- [Feature Engineering at Scale](#feature-engineering-at-scale)\n- [Model Training and Hyperparameter Tuning](#model-training-and-hyperparameter-tuning)\n- [Model Persistence and Serving](#model-persistence-and-serving)\n- [GraphFrames for Graph Processing](#graphframes-for-graph-processing)\n- [Graph Algorithms](#graph-algorithms)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "## Key Concepts\n\nMLlib's **Pipeline API** chains **Transformers** (stateless, `transform()`-only feature steps) and **Estimators** (`fit()`-producing algorithms, including the feature-engineering steps that need to learn something from the data first, like `StringIndexer`) into one reusable, serializable object — the same Pipeline that trains a model is what gets saved and later loaded for **serving**. **GraphFrames** applies the equivalent idea to graphs: it's the DataFrame-based successor to the older, RDD-based GraphX, representing vertices and edges as DataFrames so graph algorithms (**PageRank**, connected components, shortest paths) and ordinary relational operations can be freely mixed in the same query, instead of living in a separate graph-only API.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "## MLlib Pipeline API\n\n<QuestionList topic=\"MLlib Pipeline API\" storagePrefix=\"spark-ml-pipeline-api\">\n\n<QuestionCard id=\"mpa-01\" number={1} question=\"What are Transformers and Estimators, and how do they compose into a Pipeline?\" difficulty=\"medium\" topic=\"Pipeline API\">\nA **Transformer** implements `transform()`, converting one DataFrame into another — typically by appending a new column (a feature vector, a prediction). An **Estimator** implements `fit()`, learning from a DataFrame and producing a Model (itself a Transformer). A `Pipeline` is an ordered sequence of these stages, run in order, with each stage's output DataFrame feeding into the next.\n</QuestionCard>\n\n<QuestionCard id=\"mpa-02\" number={2} question=\"Why does chaining stages into a single Pipeline object matter beyond just c"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "alling each step manually?\" difficulty=\"medium\" topic=\"Pipeline API\">\nA Pipeline can be fit, evaluated, and — critically — **saved and reloaded as one unit**, guaranteeing that the exact same sequence of feature transformations used during training is applied identically at inference time. Calling each step manually risks the training and serving code silently drifting apart over time, which is a common and hard-to-debug source of model quality issues in production.\n</QuestionCard>\n\n<QuestionCard id=\"mpa-03\" number={3} question=\"What happens when you call fit() on a Pipeline containing both Transformers and Estimators?\" difficulty=\"hard\" topic=\"Pipeline API\">\nEach stage runs in order: a plain Transformer stage just applies its `transform()` and passes the result on, while an Estimator stag"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "e calls `fit()` on the current DataFrame to produce a fitted Model (a Transformer), which is then used for `transform()` for the rest of the pipeline's execution — the result of `pipeline.fit(df)` is a `PipelineModel`, a single fitted, ready-to-use Transformer wrapping every stage's fitted state.\n</QuestionCard>\n\n</QuestionList>\n\nFor MLlib's broader algorithm catalog and use cases, see [Apache Spark](/level-3-technologies/batch-processing/spark/#mllib--graphx).\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "## Feature Engineering at Scale\n\n<QuestionList topic=\"Feature Engineering at Scale\" storagePrefix=\"spark-ml-feature-eng\">\n\n<QuestionCard id=\"fes-01\" number={1} question=\"What does VectorAssembler do, and why do most MLlib algorithms require it?\" difficulty=\"medium\" topic=\"Feature Engineering\">\n`VectorAssembler` combines multiple individual columns into a single feature vector column — most MLlib algorithms expect exactly one vector column as their feature input, not a set of separate scalar columns, so `VectorAssembler` is almost always the final feature-prep step immediately before model training.\n</QuestionCard>\n\n<QuestionCard id=\"fes-02\" number={2} question=\"What's the difference between StringIndexer and OneHotEncoder, and why are they often used together?\" difficulty=\"medium\" topic=\"F"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "eature Engineering\">\n`StringIndexer` converts a categorical string column into numeric indices (by frequency). `OneHotEncoder` then converts those numeric indices into a sparse binary vector, avoiding the false sense of ordinal relationship a raw numeric index would otherwise imply to an algorithm (e.g., \"category 3\" isn't meaningfully \"more\" than \"category 1\"). They're typically chained: string → index → one-hot vector.\n</QuestionCard>\n\n<QuestionCard id=\"fes-03\" number={3} question=\"Why are these feature engineering steps implemented as Pipeline stages rather than one-off DataFrame transformations?\" difficulty=\"hard\" topic=\"Feature Engineering\">\n`StringIndexer` and similar steps are Estimators — they need to `fit()` on the training data first (learning the category-to-index mapping, for e"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "xample) before they can `transform()` anything, including new data at inference time. Wrapping them as Pipeline stages ensures that learned mapping is captured, saved, and reapplied consistently, rather than being silently re-derived (and potentially different) each time the transformation logic runs.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "## Model Training and Hyperparameter Tuning\n\n<QuestionList topic=\"Model Training and Hyperparameter Tuning\" storagePrefix=\"spark-ml-tuning\">\n\n<QuestionCard id=\"mht-01\" number={1} question=\"What does CrossValidator do, and how does it differ from TrainValidationSplit?\" difficulty=\"medium\" topic=\"Hyperparameter Tuning\">\n`CrossValidator` splits the training data into k folds and evaluates each candidate parameter combination across all k, averaging the results for a more robust estimate. `TrainValidationSplit` instead uses a single train/validation split — faster and cheaper, but a noisier, less reliable estimate of how well a given parameter combination will generalize.\n</QuestionCard>\n\n<QuestionCard id=\"mht-02\" number={2} question=\"How does a parameter grid work with CrossValidator?\" diffic"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "ulty=\"medium\" topic=\"Hyperparameter Tuning\">\nA `ParamGridBuilder` defines the specific values to try for each hyperparameter (e.g., regularization strength, tree depth), and `CrossValidator` exhaustively evaluates every combination in that grid across all folds — the total number of model fits is `(grid combinations) × (number of folds)`, which grows quickly as either dimension increases.\n</QuestionCard>\n\n<QuestionCard id=\"mht-03\" number={3} question=\"Why does hyperparameter tuning via CrossValidator get expensive quickly, and how does Spark parallelize it?\" difficulty=\"hard\" topic=\"Hyperparameter Tuning\">\nEvery combination-fold pair requires a full model fit, so a modest grid (say, 4 parameters × 3 values each) with 5-fold cross-validation means potentially hundreds of full training runs."
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "Spark can run multiple of these fits in parallel across the cluster (`parallelism` parameter on `CrossValidator`) rather than strictly sequentially, trading cluster resource usage for faster overall tuning time.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "## Model Persistence and Serving\n\n<QuestionList topic=\"Model Persistence and Serving\" storagePrefix=\"spark-ml-persistence\">\n\n<QuestionCard id=\"mps-01\" number={1} question=\"How do you save and load a trained Pipeline in Spark?\" difficulty=\"easy\" topic=\"Model Persistence\">\n`pipelineModel.write.overwrite().save(path)` persists the fitted pipeline (including every stage's learned state) to storage, and `PipelineModel.load(path)` reconstructs it later — the same saved artifact can be loaded back into a fresh Spark session for either continued evaluation or inference.\n</QuestionCard>\n\n<QuestionCard id=\"mps-02\" number={2} question=\"What's the difference between serving a model by loading it back into Spark versus exporting it to a lighter runtime?\" difficulty=\"medium\" topic=\"Model Persistence\">\nL"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "oading it back into Spark means inference still runs through a full Spark application — appropriate for large-batch scoring jobs, but heavyweight (JVM startup, cluster resources) for a single low-latency prediction request. Exporting to a lighter runtime (via formats like ONNX or MLeap) lets a small, fast, dependency-light process serve predictions without needing Spark running at all.\n</QuestionCard>\n\n<QuestionCard id=\"mps-03\" number={3} question=\"Why might exporting to a lighter runtime be preferred for low-latency inference specifically?\" difficulty=\"medium\" topic=\"Model Persistence\">\nA live request-response API (a website recommending a product in real time, for example) can't tolerate Spark's startup and per-request overhead — a lightweight serving runtime can respond in single-digit"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "milliseconds, where invoking a Spark job per request would be orders of magnitude slower and far more resource-intensive for what's ultimately a single small computation.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "## GraphFrames for Graph Processing\n\n<QuestionList topic=\"GraphFrames for Graph Processing\" storagePrefix=\"spark-ml-graphframes\">\n\n<QuestionCard id=\"gfp-01\" number={1} question=\"What is GraphFrames, and how does it differ from GraphX?\" difficulty=\"medium\" topic=\"GraphFrames\">\nGraphFrames is a DataFrame-based graph processing library, layered on top of GraphX, that represents a graph's vertices and edges as ordinary DataFrames rather than RDDs. It differs from GraphX the same way DataFrames differ from RDDs generally — schema awareness, Catalyst optimization, and a higher-level, more approachable API, at the cost of being a separate library rather than Spark-core built-in.\n</QuestionCard>\n\n<QuestionCard id=\"gfp-02\" number={2} question=\"How are vertices and edges represented in GraphFrames?\""
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "difficulty=\"easy\" topic=\"GraphFrames\">\nAs two DataFrames: a vertices DataFrame with (at minimum) an `id` column plus any vertex properties as additional columns, and an edges DataFrame with `src` and `dst` columns (referencing vertex IDs) plus any edge properties — a `GraphFrame` is constructed from this pair: `GraphFrame(verticesDF, edgesDF)`.\n</QuestionCard>\n\n<QuestionCard id=\"gfp-03\" number={3} question=\"What's the practical benefit of graph and relational (DataFrame) operations being able to mix freely?\" difficulty=\"medium\" topic=\"GraphFrames\">\nA real analysis often needs both — filtering vertices/edges with ordinary DataFrame `WHERE` conditions, joining in external attributes, then running a graph algorithm on the result — and GraphFrames lets all of that happen in one coherent pipel"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "ine using familiar DataFrame operations, rather than needing to convert back and forth between a graph-only representation and a DataFrame for each part of the analysis.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "## Graph Algorithms\n\n<QuestionList topic=\"Graph Algorithms\" storagePrefix=\"spark-ml-graph-algorithms\">\n\n<QuestionCard id=\"gap-01\" number={1} question=\"What does the connected components algorithm compute, and what's a real use case?\" difficulty=\"medium\" topic=\"Graph Algorithms\">\nIt finds groups of vertices that are all reachable from each other through some path of edges, assigning each vertex a component ID. A real use case: entity resolution — treating records that share an identifying attribute (same email, same phone number) as edges, connected components groups all records that ultimately trace back to the same underlying entity, even through indirect chains of shared attributes.\n</QuestionCard>\n\n<QuestionCard id=\"gap-02\" number={2} question=\"What does the shortest paths algorithm com"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "pute in GraphFrames?\" difficulty=\"easy\" topic=\"Graph Algorithms\">\nFor a given set of landmark vertices, it computes the shortest path distance from every vertex in the graph to each landmark — useful for things like measuring degrees of separation in a social network, or finding the minimum number of hops between nodes in a network topology.\n</QuestionCard>\n\n<QuestionCard id=\"gap-03\" number={3} question=\"How do these built-in algorithms scale across a cluster compared to a hand-written iterative implementation?\" difficulty=\"hard\" topic=\"Graph Algorithms\">\nThey're implemented using GraphFrames'/GraphX's distributed message-passing model (built on Pregel-style iteration), so the same algorithm runs correctly whether the graph fits on one machine or spans a large cluster — a naive hand-writte"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "n implementation would need to reinvent that distributed iteration and fault-tolerance logic itself, which the built-in algorithms already handle.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "## Common Interview Scenarios\n\n- **\"Design a Pipeline that indexes a categorical column, one-hot encodes it, assembles it with numeric features, and trains a classifier — all as one reusable object.\"** A comprehensive Pipeline-construction prompt, testing whether Estimator vs. Transformer stages are ordered and composed correctly.\n- **\"A model's offline evaluation metrics look great, but production predictions are noticeably worse — what would you check first?\"** Point to training/serving skew — code that manually reapplies feature transformations instead of using the exact same saved Pipeline is a classic culprit.\n- **\"How would you tune a model's hyperparameters without letting the search become prohibitively expensive?\"** Discuss narrowing the parameter grid deliberately, using `TrainVa"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "lidationSplit` for a cheaper first pass before a more expensive `CrossValidator` run, and Spark-level parallelism for the search itself.\n- **\"How would you find duplicate customer records scattered across a large dataset, linked only indirectly through shared attributes?\"** A connected components prompt — building a graph from shared-attribute edges and grouping by component.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "locale": "en",
+    "title": "Spark Machine Learning & Graph Processing",
+    "description": "Interview questions on MLlib's Pipeline API, feature engineering, hyperparameter tuning, model persistence, and GraphFrames graph algorithms.",
+    "content": "## Further Reading\n\n- [Spark DataFrame & Dataset APIs](/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/) — the Column API and schema concepts MLlib Pipelines and GraphFrames both build on\n- [Apache Spark](/level-3-technologies/batch-processing/spark/#mllib--graphx) — the broader MLlib algorithm catalog and the older, RDD-based GraphX API\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
+  },
+  {
     "path": "/level-3-technologies/batch-processing/spark-nosql-integration/",
     "locale": "en",
     "title": "Spark NoSQL Database Integration",
@@ -9435,6 +9925,244 @@
     "title": "Spark NoSQL Database Integration",
     "description": "Interview questions on connecting Spark to Cassandra and MongoDB — connector setup, token-range-aware partitioning, consistency/write concern, pipeline pushdown, and schema conversion.",
     "content": "## Further Reading\n\n- [Cassandra](/level-3-technologies/databases/cassandra/) — Cassandra's own architecture, consistency model, and CAP theorem trade-offs in depth\n- [MongoDB](/level-3-technologies/databases/mongodb/) — MongoDB's document model, aggregation pipeline, and write concern in depth\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Performance Tuning & Memory Management: Diagnosing Slow, Unstable, or Expensive Jobs\n\n**Almost every Spark performance problem traces back to one of three things — memory pressure, an imbalanced shuffle, or too much data crossing the network — and the tuning knobs on this page are the standard toolkit for diagnosing which one you're actually looking at.**"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Execution Memory versus Storage Memory](#execution-memory-versus-storage-memory)\n- [Garbage Collection Tuning](#garbage-collection-tuning)\n- [Off-Heap Memory Allocation](#off-heap-memory-allocation)\n- [Memory Overhead Limits and OOM Troubleshooting](#memory-overhead-limits-and-oom-troubleshooting)\n- [Serialization Format Comparison](#serialization-format-comparison)\n- [Shuffle Partition Sizing](#shuffle-partition-sizing)\n- [Data Skew Mitigation and Salting Techniques](#data-skew-mitigation-and-salting-techniques)\n- [Speculative Execution](#speculative-execution)\n- [Task Concurrency and Core Allocation Tuning](#task-concurrency-and-core-allocation-tuning)\n- [Compression Codec Tradeoffs](#compression-codec-tradeoffs)\n- [Network and Shuf"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "fle I/O Optimization](#network-and-shuffle-io-optimization)\n- [Broadcast Join Threshold Tuning](#broadcast-join-threshold-tuning)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Key Concepts\n\nAn executor's JVM heap is split between **execution memory** (shuffles, joins, sorts) and **storage memory** (cached data) under a **unified memory model** that lets one borrow from the other under pressure — the first place to look when an executor is unstable. Beyond the heap itself, **off-heap memory**, **memory overhead**, and **GC tuning** each address a different flavor of memory pressure. Separately, **shuffle partition sizing**, **data skew**, and **broadcast thresholds** all govern how evenly (and how much) data actually moves across the network during a shuffle — usually the second place to look once memory itself isn't the bottleneck.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Execution Memory versus Storage Memory\n\n<QuestionList topic=\"Execution Memory versus Storage Memory\" storagePrefix=\"spark-perf-exec-storage-mem\">\n\n<QuestionCard id=\"evm-01\" number={1} question=\"What's the difference between execution memory and storage memory?\" difficulty=\"medium\" topic=\"Memory Model\">\nExecution memory is used for computation that needs working space — shuffles, joins, sorts, aggregations. Storage memory holds cached/persisted RDDs and DataFrames. Both draw from the same overall executor heap region under Spark's unified memory manager, rather than being fixed, separately-sized pools.\n</QuestionCard>\n\n<QuestionCard id=\"evm-02\" number={2} question=\"How does the unified memory model let these two share one region?\" difficulty=\"medium\" topic=\"Memory Model\">\nRather than sta"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "tically partitioning memory into separate execution and storage pools (as older Spark versions did), the unified model lets either side use more of the shared region when the other isn't using its share, up to configurable boundaries (`spark.memory.fraction`, `spark.memory.storageFraction`) — dynamically adapting to whichever workload actually needs more space at a given moment.\n</QuestionCard>\n\n<QuestionCard id=\"evm-03\" number={3} question=\"What happens when execution memory needs more space but storage memory (cached data) is using it?\" difficulty=\"hard\" topic=\"Memory Model\">\nExecution memory can **evict cached blocks** to reclaim space, since execution (an in-progress computation that must complete) takes priority over storage (cached data that can always be recomputed from lineage if e"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "victed). This is a deliberate design choice: a running computation failing outright is worse than a cache miss forcing some recomputation later.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Garbage Collection Tuning\n\n<QuestionList topic=\"Garbage Collection Tuning\" storagePrefix=\"spark-perf-gc\">\n\n<QuestionCard id=\"gct-01\" number={1} question=\"Why does GC tuning matter specifically for Spark executors?\" difficulty=\"medium\" topic=\"GC Tuning\">\nExecutors often run with large heaps holding significant cached and in-flight data, and a long garbage collection pause on an executor stalls every task running on it simultaneously — at scale, GC pauses are a common, meaningful contributor to overall job latency, not just a background JVM concern.\n</QuestionCard>\n\n<QuestionCard id=\"gct-02\" number={2} question=\"What's the difference between G1GC and Parallel GC?\" difficulty=\"medium\" topic=\"GC Tuning\">\n**G1GC** targets predictable, bounded pause times even on large heaps by collecting inc"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "rementally across regions — the modern default for most Spark deployments. **Parallel GC** instead maximizes overall throughput, using multiple threads for collection but with longer stop-the-world pauses — a reasonable choice when raw throughput matters more than pause-time predictability.\n</QuestionCard>\n\n<QuestionCard id=\"gct-03\" number={3} question=\"What symptom in the Spark UI suggests GC is a real bottleneck?\" difficulty=\"medium\" topic=\"GC Tuning\">\nA high proportion of task time reported as \"GC Time\" relative to total task duration in the Stages tab — if a meaningful fraction of executor time is spent collecting garbage rather than doing actual work, that's a direct, measurable signal to look at heap sizing, caching behavior, or the collector choice itself.\n</QuestionCard>\n\n</Questio"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "nList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Off-Heap Memory Allocation\n\n<QuestionList topic=\"Off-Heap Memory Allocation\" storagePrefix=\"spark-perf-off-heap\">\n\n<QuestionCard id=\"ohm-01\" number={1} question=\"What does off-heap memory allocation mean, and what configuration enables it?\" difficulty=\"medium\" topic=\"Off-Heap Memory\">\nIt means storing some data (Tungsten's internal binary row format, for example) outside the JVM heap entirely, in raw allocated memory the garbage collector doesn't manage. Enabled via `spark.memory.offHeap.enabled = true` with a size set by `spark.memory.offHeap.size`.\n</QuestionCard>\n\n<QuestionCard id=\"ohm-02\" number={2} question=\"What's the trade-off of moving data storage off-heap?\" difficulty=\"hard\" topic=\"Off-Heap Memory\">\nIt reduces GC pressure, since the garbage collector never has to scan or manag"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "e that memory — but it comes at the cost of losing automatic memory management for that portion of memory entirely, meaning bugs or misconfiguration there can manifest as harder-to-diagnose native memory issues rather than a straightforward JVM heap OOM.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Memory Overhead Limits and OOM Troubleshooting\n\n<QuestionList topic=\"Memory Overhead Limits and OOM Troubleshooting\" storagePrefix=\"spark-perf-oom\">\n\n<QuestionCard id=\"moo-01\" number={1} question=\"What does spark.executor.memoryOverhead reserve space for?\" difficulty=\"medium\" topic=\"OOM Troubleshooting\">\nMemory beyond the JVM heap that the executor process still needs — JVM overhead itself (thread stacks, metaspace), off-heap allocations, native library memory (e.g., for Python UDFs or certain connectors), and other non-heap usage the cluster manager's container limit still has to account for.\n</QuestionCard>\n\n<QuestionCard id=\"moo-02\" number={2} question=\"What's a common symptom of undersized memory overhead, and how does it typically manifest?\" difficulty=\"medium\" topic=\"OOM Troublesh"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "ooting\">\nThe executor's *container* gets killed by the cluster manager (YARN, Kubernetes) for exceeding its total memory limit — even though the JVM heap itself never technically ran out — because the overhead portion (outside the heap) exceeded what was reserved for it. This often shows up as a cryptic \"container killed by YARN for exceeding memory limits\" error rather than a standard Java `OutOfMemoryError`.\n</QuestionCard>\n\n<QuestionCard id=\"moo-03\" number={3} question=\"How would you diagnose whether an OOM was caused by executor heap memory, overhead, or driver memory?\" difficulty=\"hard\" topic=\"OOM Troubleshooting\">\nCheck which process actually failed and how: a Java `OutOfMemoryError` in executor logs points to heap memory; a container-killed message from the cluster manager (with no"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "Java OOM in the logs) points to overhead being undersized; and a failure affecting the whole application at once, with driver-side logs showing the error, points to driver memory — often caused by an action like `collect()` pulling too much data back.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Serialization Format Comparison\n\nFor the Java vs. Kryo serialization trade-off, see [Spark Execution Lifecycle](/level-3-technologies/batch-processing/spark-execution-lifecycle/#data-serialization-during-shuffle) — serialization format is primarily a shuffle-performance concern, covered there in depth alongside the rest of the shuffle mechanics it affects.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Shuffle Partition Sizing\n\n<QuestionList topic=\"Shuffle Partition Sizing\" storagePrefix=\"spark-perf-shuffle-partitions\">\n\n<QuestionCard id=\"sps-01\" number={1} question=\"What does spark.sql.shuffle.partitions control, and what's its default?\" difficulty=\"easy\" topic=\"Shuffle Partitioning\">\nIt sets the number of partitions Spark uses for shuffle operations (joins, aggregations) in DataFrame/SQL queries, defaulting to 200 — a fixed number applied regardless of the actual data volume involved, unless AQE's dynamic partition coalescing is enabled to adjust it at runtime.\n</QuestionCard>\n\n<QuestionCard id=\"sps-02\" number={2} question=\"What happens if shuffle partitions are set too low for the data volume?\" difficulty=\"medium\" topic=\"Shuffle Partitioning\">\nEach partition ends up holding more da"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "ta than it comfortably should, increasing memory pressure per task and raising the risk of spills or executor OOMs — too few, overly large partitions is a common root cause when a shuffle-heavy stage is both slow and unstable.\n</QuestionCard>\n\n<QuestionCard id=\"sps-03\" number={3} question=\"What happens if shuffle partitions are set too high?\" difficulty=\"medium\" topic=\"Shuffle Partitioning\">\nEach partition holds too little data to justify its own task, so scheduling overhead (launching, tracking, and finalizing a huge number of tiny tasks) starts to dominate over actual useful work — a different, opposite failure mode from setting the count too low, but also a real performance drag.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Data Skew Mitigation and Salting Techniques\n\n<QuestionList topic=\"Data Skew Mitigation and Salting Techniques\" storagePrefix=\"spark-perf-skew\">\n\n<QuestionCard id=\"dsm-01\" number={1} question=\"Beyond joins, where else does data skew commonly cause problems in a Spark job?\" difficulty=\"medium\" topic=\"Data Skew\">\n`groupBy`/aggregation operations on a skewed key have the same fundamental problem as a skewed join — one key's rows all land on one task, overloading it while other tasks finish quickly. Any shuffle-based operation keyed on a column with an uneven value distribution is susceptible, not just joins specifically.\n</QuestionCard>\n\n<QuestionCard id=\"dsm-02\" number={2} question=\"How does salting work as a general technique, not just for joins?\" difficulty=\"hard\" topic=\"Data Skew\">\nThe"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "same idea applies beyond joins: append a random suffix to a skewed key before grouping, spreading what would have been one overloaded partition's rows across several artificial sub-keys, then combine the partial results in a second aggregation step afterward — trading one extra aggregation pass for eliminating the single-task bottleneck.\n</QuestionCard>\n\n</QuestionList>\n\nFor the join-specific version of this problem — including AQE's automatic skew join optimization — see [Spark Joins](/level-3-technologies/batch-processing/spark-joins/#handling-data-skew-in-joins).\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Speculative Execution\n\n<QuestionList topic=\"Speculative Execution\" storagePrefix=\"spark-perf-speculative\">\n\n<QuestionCard id=\"spx-01\" number={1} question=\"What is speculative execution, and what problem does it solve?\" difficulty=\"medium\" topic=\"Speculative Execution\">\nWhen a task runs noticeably slower than the median of already-completed tasks in the same stage, Spark launches a duplicate copy of it on a different executor and keeps whichever finishes first, killing the other. It solves the straggler problem — a single slow or partially-failing node dragging out an entire stage's completion time, even though every other task finished long ago.\n</QuestionCard>\n\n<QuestionCard id=\"spx-02\" number={2} question=\"What are the risks of enabling speculative execution too aggressively?\" difficu"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "lty=\"hard\" topic=\"Speculative Execution\">\nWasted cluster resources running duplicate work for tasks that were simply doing more work legitimately (not actually stragglers due to a failing node), and — critically — correctness risk for any task with side effects that aren't idempotent (writing to an external system, for example), where running the same logical task twice could cause duplicate writes if not handled carefully.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Task Concurrency and Core Allocation Tuning\n\n<QuestionList topic=\"Task Concurrency and Core Allocation Tuning\" storagePrefix=\"spark-perf-concurrency\">\n\n<QuestionCard id=\"tca-01\" number={1} question=\"What's the relationship between executor cores, task slots, and concurrency?\" difficulty=\"medium\" topic=\"Task Concurrency\">\n`spark.executor.cores` sets how many task slots an executor has, and each slot can run one task concurrently — so an executor with 4 cores runs up to 4 tasks in parallel. Total cluster-wide concurrency is roughly `(cores per executor) × (number of executors)`.\n</QuestionCard>\n\n<QuestionCard id=\"tca-02\" number={2} question=\"Why doesn't simply maximizing cores per executor always improve throughput?\" difficulty=\"hard\" topic=\"Task Concurrency\">\nMore cores per executor mean"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "s more tasks sharing that executor's single JVM heap and garbage collector concurrently, which can increase GC pressure and memory contention past a certain point — very large executors (many cores, huge heap) can actually perform worse than a larger number of moderately-sized executors, which is why a common rule of thumb caps executor cores around 4-5 rather than maximizing them.\n</QuestionCard>\n\n</QuestionList>\n\nFor how this same executor-sizing trade-off applies at the cluster resource-request level, see [Spark Distributed Computing](/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/#resource-allocation-strategies).\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Compression Codec Tradeoffs\n\n<QuestionList topic=\"Compression Codec Tradeoffs\" storagePrefix=\"spark-perf-compression\">\n\n<QuestionCard id=\"cct-01\" number={1} question=\"What compression codecs does Spark commonly use for shuffle and storage, and how do they trade off?\" difficulty=\"medium\" topic=\"Compression\">\n`lz4` and `snappy` prioritize decompression speed with modest compression ratios — good defaults for interactive, latency-sensitive workloads. `zstd` (Zstandard) achieves meaningfully better compression ratios at somewhat higher CPU cost — a good fit when I/O/network is the bottleneck and CPU headroom is available.\n</QuestionCard>\n\n<QuestionCard id=\"cct-02\" number={2} question=\"Why might you choose lz4 or snappy over zstd for shuffle compression specifically?\" difficulty=\"medium\" top"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "ic=\"Compression\">\nShuffle data is compressed and decompressed constantly, on the hot path of nearly every job — a codec that's fast to decompress keeps that per-shuffle overhead low, even if the resulting data is somewhat larger than a stronger codec would produce. For latency-sensitive, shuffle-heavy workloads, decompression speed usually matters more than squeezing out the last bit of size reduction.\n</QuestionCard>\n\n<QuestionCard id=\"cct-03\" number={3} question=\"When would a higher-compression, higher-CPU codec like zstd be worth the trade-off?\" difficulty=\"hard\" topic=\"Compression\">\nWhen network or storage I/O is the actual bottleneck and spare CPU capacity is available — a batch job writing large output files to cheaper but slower cloud storage, for example, where reducing the transfe"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "rred/stored volume meaningfully speeds up the job more than the extra CPU cost of compression slows it down.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Network and Shuffle I/O Optimization\n\n<QuestionList topic=\"Network and Shuffle I/O Optimization\" storagePrefix=\"spark-perf-network-io\">\n\n<QuestionCard id=\"nsi-01\" number={1} question=\"What is the external shuffle service, and what problem does it solve?\" difficulty=\"medium\" topic=\"Network I/O\">\nThe external shuffle service runs shuffle-serving independently of individual executor processes, so shuffle output an executor produced remains available for other tasks to fetch even after that executor is removed or lost — without it, losing an executor mid-job means its shuffle output has to be recomputed from scratch, not just re-fetched.\n</QuestionCard>\n\n<QuestionCard id=\"nsi-02\" number={2} question=\"What shuffle-related settings would you tune to reduce network round-trips?\" difficulty=\"ha"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "rd\" topic=\"Network I/O\">\nIncreasing shuffle fetch buffer sizes to pull more data per network request rather than many small ones, tuning the number of concurrent fetch connections, and enabling shuffle compression to reduce the actual bytes transferred per request — all aimed at the same goal of getting more useful data per network round-trip rather than paying per-request overhead repeatedly.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Broadcast Join Threshold Tuning\n\nFor `spark.sql.autoBroadcastJoinThreshold` and forcing a broadcast join with hints, see [Spark Joins](/level-3-technologies/batch-processing/spark-joins/#broadcast-hash-join) — broadcast threshold tuning is join-strategy-specific and covered there alongside the rest of Spark's join strategy selection.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Common Interview Scenarios\n\n- **\"An executor keeps getting killed with no Java OutOfMemoryError in its logs — what's your first hypothesis?\"** Point to undersized `memoryOverhead` and a container-killed condition rather than a heap OOM, and how to distinguish the two from the available logs.\n- **\"A shuffle-heavy job's Stages tab shows most tasks finishing quickly but a handful taking 10x longer — what would you check, in order?\"** Walk through checking for data skew first (a hot key), then whether speculative execution is enabled as a mitigation, distinct from a genuine skew fix.\n- **\"How would you decide the right number of shuffle partitions for a job whose data volume varies a lot day to day?\"** Discuss the static-sizing trade-off and how AQE's dynamic partition coalescing removes th"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "e need to hand-tune this per run.\n- **\"A job's GC time is consistently 30%+ of total task time — what levers would you pull?\"** Discuss reducing cached data footprint, adjusting executor heap/core sizing, considering off-heap memory, and evaluating G1GC vs. Parallel GC for the specific workload.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "locale": "en",
+    "title": "Spark Performance Tuning & Memory Management",
+    "description": "Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.",
+    "content": "## Further Reading\n\n- [Spark Distributed Computing](/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/) — executor and resource allocation fundamentals this page's tuning builds on\n- [Spark Execution Lifecycle](/level-3-technologies/batch-processing/spark-execution-lifecycle/) — the shuffle mechanics and serialization these performance settings actually affect\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
   },
   {
     "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
@@ -9932,6 +10660,265 @@
     "title": "Spark SQL Catalyst Optimizer",
     "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
     "content": "## Further Reading\n\n- [Spark Joins](/level-3-technologies/batch-processing/spark-joins/) — the specific join strategies (broadcast, sort-merge, shuffle hash) this optimizer chooses between\n- [Spark Execution Lifecycle](/level-3-technologies/batch-processing/spark-execution-lifecycle/) — the stage/shuffle boundaries where AQE re-optimization actually happens\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "## Structured Streaming: Unbounded Data on the Same DataFrame API\n\n**Structured Streaming's core idea is that a stream is just a table that keeps growing — the same DataFrame operations you'd write for a batch job work unmodified, and the engine handles turning that into a sequence of incremental, fault-tolerant micro-batches (or, experimentally, truly continuous processing) underneath.**"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Micro-Batch Processing Model](#micro-batch-processing-model)\n- [Continuous (Low-Latency) Processing Mode](#continuous-low-latency-processing-mode)\n- [Streaming Sources and Sinks](#streaming-sources-and-sinks)\n- [Kafka Source Integration and Offset Management](#kafka-source-integration-and-offset-management)\n- [Event-Time Watermarking](#event-time-watermarking)\n- [Stateful Stream Processing and State Stores](#stateful-stream-processing-and-state-stores)\n- [Late Data Handling](#late-data-handling)\n- [Output Modes](#output-modes)\n- [Checkpointing and Fault Recovery](#checkpointing-and-fault-recovery)\n- [Stream-Stream and Stream-Static Joins](#stream-stream-and-stream-static-joins)\n- [Common Interview Scenarios](#common-interview-scenario"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "s)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "## Key Concepts\n\nBy default, Structured Streaming runs on the **micro-batch** engine — treating an unbounded stream as a sequence of small, discrete batch jobs, each one a normal Spark SQL execution under the hood. **Watermarking** is the mechanism that makes stateful operations (windowed aggregations, deduplication) tractable at all: it declares how late data is allowed to arrive relative to event time, letting Spark eventually drop old state instead of buffering forever. Every one of the ten subtopics on this page ultimately serves one goal — processing a stream **exactly like a batch DataFrame**, with the same API, while still delivering the fault tolerance (**checkpointing**), correctness (**output modes**, **watermarks**), and scale (**state stores**, **joins**) a genuinely unbounded"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "workload demands.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "## Micro-Batch Processing Model\n\n<QuestionList topic=\"Micro-Batch Processing Model\" storagePrefix=\"spark-streaming-microbatch\">\n\n<QuestionCard id=\"mbp-01\" number={1} question=\"What is the micro-batch processing model in Structured Streaming?\" difficulty=\"easy\" topic=\"Micro-Batch\">\nStructured Streaming's default engine treats the incoming stream as a sequence of small batch jobs — each trigger interval, it processes whatever new data has arrived since the last batch, using the exact same Spark SQL execution engine and query plan as a batch job would.\n</QuestionCard>\n\n<QuestionCard id=\"mbp-02\" number={2} question=\"What latency and consistency guarantees does the micro-batch model provide?\" difficulty=\"medium\" topic=\"Micro-Batch\">\nLatencies typically in the ~100ms range (bounded by how often"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "a micro-batch can be triggered and completed), paired with strong exactly-once processing guarantees end-to-end — each micro-batch either fully commits its results and offsets together, or the whole batch is retried, avoiding both duplicate and lost processing.\n</QuestionCard>\n\n<QuestionCard id=\"mbp-03\" number={3} question=\"What determines how often a micro-batch triggers?\" difficulty=\"medium\" topic=\"Micro-Batch\">\nThe configured trigger interval (`Trigger.ProcessingTime(\"10 seconds\")`, for example) — or, with no trigger explicitly specified, Spark starts a new micro-batch as soon as the previous one finishes, processing continuously back-to-back rather than on a fixed schedule.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "## Continuous (Low-Latency) Processing Mode\n\n<QuestionList topic=\"Continuous (Low-Latency) Processing Mode\" storagePrefix=\"spark-streaming-continuous\">\n\n<QuestionCard id=\"clp-01\" number={1} question=\"What is Continuous Processing mode, and how does it differ from micro-batch?\" difficulty=\"medium\" topic=\"Continuous Mode\">\nAn experimental engine that processes each record as it arrives, rather than grouping records into discrete micro-batches — targeting latencies around ~1ms instead of the ~100ms typical of the micro-batch model, by removing the batch-boundary overhead entirely.\n</QuestionCard>\n\n<QuestionCard id=\"clp-02\" number={2} question=\"What guarantees does Continuous mode weaken compared to micro-batch?\" difficulty=\"hard\" topic=\"Continuous Mode\">\nIt only provides at-least-once guarant"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "ees rather than micro-batch's exactly-once, and supports a meaningfully smaller subset of the DataFrame API — many operations (including most aggregations) aren't supported in Continuous mode at all, since the underlying execution model doesn't fit the same batch-boundary-based state management.\n</QuestionCard>\n\n<QuestionCard id=\"clp-03\" number={3} question=\"Why is Continuous mode still considered experimental/limited in adoption?\" difficulty=\"medium\" topic=\"Continuous Mode\">\nThe combination of weaker guarantees and a much smaller supported operation set makes it a narrow fit — useful specifically for latency-critical, relatively simple pipelines that can tolerate at-least-once semantics, but not a drop-in replacement for the micro-batch engine's broader feature set and stronger guarantees"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "for most workloads.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "## Streaming Sources and Sinks\n\n<QuestionList topic=\"Streaming Sources and Sinks\" storagePrefix=\"spark-streaming-sources-sinks\">\n\n<QuestionCard id=\"ssk-01\" number={1} question=\"What streaming sources and sinks does Structured Streaming support?\" difficulty=\"easy\" topic=\"Sources & Sinks\">\nCommon sources: Kafka, files (landing in a monitored directory), and sockets (mainly for testing). Common sinks: files, Kafka, the console (for debugging), `foreach`/`foreachBatch` (custom per-row or per-batch logic), and the memory sink (for interactive testing/debugging).\n</QuestionCard>\n\n<QuestionCard id=\"ssk-02\" number={2} question=\"Why do sources and sinks plug into the same DataFrame API used for batch?\" difficulty=\"medium\" topic=\"Sources & Sinks\">\nStructured Streaming's design goal is that the same"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "query logic works for both batch and streaming — `spark.readStream` and `spark.writeStream` mirror `spark.read`/`spark.write`'s interface almost exactly, so transformations written against a streaming DataFrame are largely indistinguishable from ones written against a batch one, aside from the source/sink configuration itself.\n</QuestionCard>\n\n<QuestionCard id=\"ssk-03\" number={3} question=\"What's the difference between the foreach sink and the memory sink?\" difficulty=\"medium\" topic=\"Sources & Sinks\">\n`foreach`/`foreachBatch` lets you run arbitrary custom logic against each row or micro-batch — writing to a system with no built-in sink, for example. The memory sink stores results in an in-memory table queryable from the same Spark session, useful for interactive debugging but not meant for"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "production use given its lack of durability and scale.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "## Kafka Source Integration and Offset Management\n\n<QuestionList topic=\"Kafka Source Integration and Offset Management\" storagePrefix=\"spark-streaming-kafka\">\n\n<QuestionCard id=\"ksi-01\" number={1} question=\"What columns does reading a Kafka topic as a streaming DataFrame produce?\" difficulty=\"easy\" topic=\"Kafka Integration\">\nA DataFrame with columns including `key`, `value` (both as bytes, requiring explicit deserialization), `topic`, `partition`, `offset`, `timestamp`, and `timestampType` — the raw message envelope, not automatically parsed into your application's actual schema.\n</QuestionCard>\n\n<QuestionCard id=\"ksi-02\" number={2} question=\"How does Structured Streaming track Kafka offsets by default?\" difficulty=\"medium\" topic=\"Kafka Integration\">\nOffsets are tracked in the query's own"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "checkpoint location, not committed back to the Kafka consumer group the way a traditional Kafka consumer would — Spark manages progress itself, which is part of what makes exactly-once processing possible without relying on Kafka's own offset-commit semantics.\n</QuestionCard>\n\n<QuestionCard id=\"ksi-03\" number={3} question=\"What happens if you restart a streaming query without its original checkpoint directory?\" difficulty=\"medium\" topic=\"Kafka Integration\">\nSpark has no record of previously processed offsets, so it starts from whatever `startingOffsets` is configured to (`earliest` or `latest`) rather than resuming exactly where it left off — this typically means either reprocessing already-handled data or silently skipping data that arrived in the gap, neither of which is usually the inte"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "nded behavior.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "## Event-Time Watermarking\n\n<QuestionList topic=\"Event-Time Watermarking\" storagePrefix=\"spark-streaming-watermarking\">\n\n<QuestionCard id=\"etw-01\" number={1} question=\"What is a watermark, and what problem does it solve?\" difficulty=\"medium\" topic=\"Watermarking\">\nA watermark declares how late data is allowed to arrive, relative to the maximum event time seen so far, before Spark considers it too late to affect existing results. It solves the problem of unbounded state growth — without a watermark, a windowed aggregation would have to keep state for every open window forever, since data could theoretically still arrive for it.\n</QuestionCard>\n\n<QuestionCard id=\"etw-02\" number={2} question=\"Write an example declaring a watermark on an event-time column.\" difficulty=\"medium\" topic=\"Watermarki"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "ng\">\n```scala\ndf.withWatermark(\"event_time\", \"10 minutes\")\n  .groupBy(window(col(\"event_time\"), \"5 minutes\"))\n  .count()\n```\nThis tells Spark it can safely drop state for any window more than 10 minutes older than the latest event time it's seen, bounding how long windowed aggregation state has to be kept around.\n</QuestionCard>\n\n<QuestionCard id=\"etw-03\" number={3} question=\"What's the trade-off in choosing a watermark threshold that's too short versus too long?\" difficulty=\"hard\" topic=\"Watermarking\">\nToo short: legitimately late (but not malicious or broken) data gets dropped and excluded from aggregations, silently producing incomplete results. Too long: state is retained far longer than necessary, growing memory/storage usage and increasing the latency before a window's result is cons"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "idered final — the threshold has to be tuned against how late real-world data for a given source actually tends to arrive.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "## Stateful Stream Processing and State Stores\n\n<QuestionList topic=\"Stateful Stream Processing and State Stores\" storagePrefix=\"spark-streaming-state-stores\">\n\n<QuestionCard id=\"ssp-01\" number={1} question=\"What is a state store, and what operations require one?\" difficulty=\"medium\" topic=\"State Stores\">\nA state store is a versioned, checkpointed key-value store that Structured Streaming uses to persist running state across micro-batches — required by operations like streaming aggregations, deduplication, and `mapGroupsWithState`/`flatMapGroupsWithState`, all of which need to remember something from prior batches to process the current one correctly.\n</QuestionCard>\n\n<QuestionCard id=\"ssp-02\" number={2} question=\"What state store backends does Spark support, and why would you choose Rocks"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "DB over the default?\" difficulty=\"medium\" topic=\"State Stores\">\nThe default is an in-memory HDFS-backed state store; RocksDB is an alternative backend that stores state on local disk instead of purely in the JVM heap. RocksDB is chosen for large state sizes that would otherwise strain executor memory or trigger excessive GC pauses — trading some access latency for much better scalability of state size.\n</QuestionCard>\n\n<QuestionCard id=\"ssp-03\" number={3} question=\"How is state store data made fault-tolerant across micro-batches?\" difficulty=\"hard\" topic=\"State Stores\">\nState changes are checkpointed to durable storage (alongside offsets) after each micro-batch, so if an executor or the whole application fails, the state store can be reconstructed from the last successful checkpoint rather"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "than being lost — the same checkpointing mechanism that protects offsets also protects accumulated stateful computation.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "## Late Data Handling\n\n<QuestionList topic=\"Late Data Handling\" storagePrefix=\"spark-streaming-late-data\">\n\n<QuestionCard id=\"ldh-01\" number={1} question=\"What counts as 'late data' in Structured Streaming, and what happens to it?\" difficulty=\"medium\" topic=\"Late Data\">\nData whose event time falls before the current watermark — meaning Spark has already decided any window it would belong to is closed and its state discarded. Such records are dropped from windowed aggregations rather than reopening already-finalized results.\n</QuestionCard>\n\n<QuestionCard id=\"ldh-02\" number={2} question=\"How does late data handling relate to watermarking specifically?\" difficulty=\"medium\" topic=\"Late Data\">\nThe watermark is exactly what defines the cutoff between \"acceptably late, still processed\" and \"too"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "late, dropped\" — late data handling isn't a separate mechanism, it's the direct consequence of the watermark threshold chosen for a given stateful operation.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "## Output Modes\n\n<QuestionList topic=\"Output Modes\" storagePrefix=\"spark-streaming-output-modes\">\n\n<QuestionCard id=\"omd-01\" number={1} question=\"What do append, update, and complete output modes each emit?\" difficulty=\"medium\" topic=\"Output Modes\">\n**Append** emits only new rows added since the last trigger (rows already emitted are never modified). **Update** emits rows that are new or have changed since the last trigger. **Complete** re-emits the entire, current result table every single trigger, regardless of what changed.\n</QuestionCard>\n\n<QuestionCard id=\"omd-02\" number={2} question=\"Which output modes are compatible with which kinds of queries?\" difficulty=\"hard\" topic=\"Output Modes\">\nSimple, non-aggregating streaming queries (a filter, a map) generally only support `append`. Aggreg"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "ations without a watermark generally require `complete` or `update` (since any row could still change). Aggregations *with* a watermark can support `append` too, because the watermark gives Spark a defined point where a window's result becomes final and won't change again.\n</QuestionCard>\n\n<QuestionCard id=\"omd-03\" number={3} question=\"Why can't append mode be used with an aggregation that has no watermark?\" difficulty=\"hard\" topic=\"Output Modes\">\nAppend mode promises a row, once emitted, will never be updated — but without a watermark, Spark has no way to know when an aggregate result is truly final, since late-arriving data could theoretically still update any existing group's result at any point. Emitting it under `append` would risk contradicting that \"never changes again\" guarantee.\n<"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "/QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "## Checkpointing and Fault Recovery\n\n<QuestionList topic=\"Checkpointing and Fault Recovery\" storagePrefix=\"spark-streaming-checkpointing\">\n\n<QuestionCard id=\"cfr-01\" number={1} question=\"What does a Structured Streaming checkpoint store?\" difficulty=\"medium\" topic=\"Checkpointing\">\nSource offsets already processed, the query's metadata (including its configuration), and any operator state (for stateful operations) — everything needed to resume the query from exactly where it left off, rather than restarting from scratch or from an arbitrary point.\n</QuestionCard>\n\n<QuestionCard id=\"cfr-02\" number={2} question=\"What happens when a streaming query resumes from a checkpoint after a failure?\" difficulty=\"medium\" topic=\"Checkpointing\">\nSpark reads the last committed offsets and state from the ch"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "eckpoint directory and resumes processing from there — any micro-batch that was in progress but not yet fully committed at the time of failure gets reprocessed, which is what preserves the exactly-once guarantee across a restart.\n</QuestionCard>\n\n<QuestionCard id=\"cfr-03\" number={3} question=\"What breaks a checkpoint's compatibility, forcing you to start fresh?\" difficulty=\"hard\" topic=\"Checkpointing\">\nCertain changes to the query itself — altering the aggregation logic, changing the number of stateful operations, or in some cases a Spark version upgrade that changes internal state store formats — can make an existing checkpoint incompatible with the new query plan, forcing a restart from a new checkpoint (and the data-loss or reprocessing trade-off that comes with that) rather than a seam"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "less resume.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "## Stream-Stream and Stream-Static Joins\n\n<QuestionList topic=\"Stream-Stream and Stream-Static Joins\" storagePrefix=\"spark-streaming-joins\">\n\n<QuestionCard id=\"ssj-01\" number={1} question=\"What is a stream-static join, and how does it behave each micro-batch?\" difficulty=\"medium\" topic=\"Streaming Joins\">\nJoining a streaming DataFrame against a static (batch-sourced) DataFrame — the static side is effectively re-scanned (or re-read, depending on caching) each micro-batch, joined against whatever new streaming rows arrived in that batch. It's the simpler of the two join types, since only one side has unbounded state concerns.\n</QuestionCard>\n\n<QuestionCard id=\"ssj-02\" number={2} question=\"What is a stream-stream join, and why does it require watermarks on both sides?\" difficulty=\"hard\" topic"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "=\"Streaming Joins\">\nJoining two streaming DataFrames against each other — both sides are unbounded, so Spark has to buffer unmatched rows from each side, waiting for a potential future match from the other stream. Watermarks on both sides bound how long that buffered, unmatched state is kept before being given up on, the same way a watermark bounds windowed aggregation state.\n</QuestionCard>\n\n<QuestionCard id=\"ssj-03\" number={3} question=\"What happens to unmatched buffered rows in a stream-stream join over time?\" difficulty=\"hard\" topic=\"Streaming Joins\">\nOnce a row has been buffered longer than the watermark threshold allows without finding a match, Spark drops it (for an inner join) — it's treated the same way late data is treated for a windowed aggregation: past the watermark cutoff, th"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "e possibility of a match is considered closed, and holding onto it indefinitely would defeat the purpose of having a watermark at all.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "## Common Interview Scenarios\n\n- **\"Design a Structured Streaming pipeline that computes a 5-minute rolling count of events, tolerating up to 10 minutes of late-arriving data.\"** A direct `withWatermark` + windowed `groupBy` prompt, testing the watermark-threshold trade-off explicitly.\n- **\"A streaming query was restarted after a crash and is now producing duplicate results downstream — what would you check?\"** Point to the checkpoint directory (was it preserved and reused correctly?) and whether the sink itself is idempotent for the specific failure/retry scenario.\n- **\"Why would you choose the micro-batch engine over Continuous mode for a production pipeline that needs aggregations?\"** Test whether the candidate knows Continuous mode's operation-support and guarantee limitations, not jus"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "t its latency advantage.\n- **\"How would you join a stream of clickstream events against a slowly-changing dimension table of user profiles?\"** A stream-static join prompt, with a follow-up on how the static side's freshness is handled across micro-batches.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "locale": "en",
+    "title": "Spark Structured Streaming",
+    "description": "Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.",
+    "content": "## Further Reading\n\n- [Spark Execution Lifecycle](/level-3-technologies/batch-processing/spark-execution-lifecycle/) — the job/stage/task model each streaming micro-batch runs through\n- [Kafka](/level-3-technologies/streaming/kafka/) — Kafka's own architecture, partitions, and consumer group semantics in depth\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
   },
   {
     "path": "/level-3-technologies/batch-processing/spark-udfs/",

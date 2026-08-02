@@ -1,0 +1,250 @@
+---
+title: Spark Structured Streaming
+description: Interview questions on Structured Streaming — micro-batch and continuous processing, sources/sinks, Kafka integration, watermarking, state stores, output modes, and streaming joins.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Structured Streaming: Unbounded Data on the Same DataFrame API
+
+**Structured Streaming's core idea is that a stream is just a table that keeps growing — the same DataFrame operations you'd write for a batch job work unmodified, and the engine handles turning that into a sequence of incremental, fault-tolerant micro-batches (or, experimentally, truly continuous processing) underneath.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Micro-Batch Processing Model](#micro-batch-processing-model)
+- [Continuous (Low-Latency) Processing Mode](#continuous-low-latency-processing-mode)
+- [Streaming Sources and Sinks](#streaming-sources-and-sinks)
+- [Kafka Source Integration and Offset Management](#kafka-source-integration-and-offset-management)
+- [Event-Time Watermarking](#event-time-watermarking)
+- [Stateful Stream Processing and State Stores](#stateful-stream-processing-and-state-stores)
+- [Late Data Handling](#late-data-handling)
+- [Output Modes](#output-modes)
+- [Checkpointing and Fault Recovery](#checkpointing-and-fault-recovery)
+- [Stream-Stream and Stream-Static Joins](#stream-stream-and-stream-static-joins)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+By default, Structured Streaming runs on the **micro-batch** engine — treating an unbounded stream as a sequence of small, discrete batch jobs, each one a normal Spark SQL execution under the hood. **Watermarking** is the mechanism that makes stateful operations (windowed aggregations, deduplication) tractable at all: it declares how late data is allowed to arrive relative to event time, letting Spark eventually drop old state instead of buffering forever. Every one of the ten subtopics on this page ultimately serves one goal — processing a stream **exactly like a batch DataFrame**, with the same API, while still delivering the fault tolerance (**checkpointing**), correctness (**output modes**, **watermarks**), and scale (**state stores**, **joins**) a genuinely unbounded workload demands.
+
+---
+
+## Micro-Batch Processing Model
+
+<QuestionList topic="Micro-Batch Processing Model" storagePrefix="spark-streaming-microbatch">
+
+<QuestionCard id="mbp-01" number={1} question="What is the micro-batch processing model in Structured Streaming?" difficulty="easy" topic="Micro-Batch">
+Structured Streaming's default engine treats the incoming stream as a sequence of small batch jobs — each trigger interval, it processes whatever new data has arrived since the last batch, using the exact same Spark SQL execution engine and query plan as a batch job would.
+</QuestionCard>
+
+<QuestionCard id="mbp-02" number={2} question="What latency and consistency guarantees does the micro-batch model provide?" difficulty="medium" topic="Micro-Batch">
+Latencies typically in the ~100ms range (bounded by how often a micro-batch can be triggered and completed), paired with strong exactly-once processing guarantees end-to-end — each micro-batch either fully commits its results and offsets together, or the whole batch is retried, avoiding both duplicate and lost processing.
+</QuestionCard>
+
+<QuestionCard id="mbp-03" number={3} question="What determines how often a micro-batch triggers?" difficulty="medium" topic="Micro-Batch">
+The configured trigger interval (`Trigger.ProcessingTime("10 seconds")`, for example) — or, with no trigger explicitly specified, Spark starts a new micro-batch as soon as the previous one finishes, processing continuously back-to-back rather than on a fixed schedule.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Continuous (Low-Latency) Processing Mode
+
+<QuestionList topic="Continuous (Low-Latency) Processing Mode" storagePrefix="spark-streaming-continuous">
+
+<QuestionCard id="clp-01" number={1} question="What is Continuous Processing mode, and how does it differ from micro-batch?" difficulty="medium" topic="Continuous Mode">
+An experimental engine that processes each record as it arrives, rather than grouping records into discrete micro-batches — targeting latencies around ~1ms instead of the ~100ms typical of the micro-batch model, by removing the batch-boundary overhead entirely.
+</QuestionCard>
+
+<QuestionCard id="clp-02" number={2} question="What guarantees does Continuous mode weaken compared to micro-batch?" difficulty="hard" topic="Continuous Mode">
+It only provides at-least-once guarantees rather than micro-batch's exactly-once, and supports a meaningfully smaller subset of the DataFrame API — many operations (including most aggregations) aren't supported in Continuous mode at all, since the underlying execution model doesn't fit the same batch-boundary-based state management.
+</QuestionCard>
+
+<QuestionCard id="clp-03" number={3} question="Why is Continuous mode still considered experimental/limited in adoption?" difficulty="medium" topic="Continuous Mode">
+The combination of weaker guarantees and a much smaller supported operation set makes it a narrow fit — useful specifically for latency-critical, relatively simple pipelines that can tolerate at-least-once semantics, but not a drop-in replacement for the micro-batch engine's broader feature set and stronger guarantees for most workloads.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Streaming Sources and Sinks
+
+<QuestionList topic="Streaming Sources and Sinks" storagePrefix="spark-streaming-sources-sinks">
+
+<QuestionCard id="ssk-01" number={1} question="What streaming sources and sinks does Structured Streaming support?" difficulty="easy" topic="Sources & Sinks">
+Common sources: Kafka, files (landing in a monitored directory), and sockets (mainly for testing). Common sinks: files, Kafka, the console (for debugging), `foreach`/`foreachBatch` (custom per-row or per-batch logic), and the memory sink (for interactive testing/debugging).
+</QuestionCard>
+
+<QuestionCard id="ssk-02" number={2} question="Why do sources and sinks plug into the same DataFrame API used for batch?" difficulty="medium" topic="Sources & Sinks">
+Structured Streaming's design goal is that the same query logic works for both batch and streaming — `spark.readStream` and `spark.writeStream` mirror `spark.read`/`spark.write`'s interface almost exactly, so transformations written against a streaming DataFrame are largely indistinguishable from ones written against a batch one, aside from the source/sink configuration itself.
+</QuestionCard>
+
+<QuestionCard id="ssk-03" number={3} question="What's the difference between the foreach sink and the memory sink?" difficulty="medium" topic="Sources & Sinks">
+`foreach`/`foreachBatch` lets you run arbitrary custom logic against each row or micro-batch — writing to a system with no built-in sink, for example. The memory sink stores results in an in-memory table queryable from the same Spark session, useful for interactive debugging but not meant for production use given its lack of durability and scale.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Kafka Source Integration and Offset Management
+
+<QuestionList topic="Kafka Source Integration and Offset Management" storagePrefix="spark-streaming-kafka">
+
+<QuestionCard id="ksi-01" number={1} question="What columns does reading a Kafka topic as a streaming DataFrame produce?" difficulty="easy" topic="Kafka Integration">
+A DataFrame with columns including `key`, `value` (both as bytes, requiring explicit deserialization), `topic`, `partition`, `offset`, `timestamp`, and `timestampType` — the raw message envelope, not automatically parsed into your application's actual schema.
+</QuestionCard>
+
+<QuestionCard id="ksi-02" number={2} question="How does Structured Streaming track Kafka offsets by default?" difficulty="medium" topic="Kafka Integration">
+Offsets are tracked in the query's own checkpoint location, not committed back to the Kafka consumer group the way a traditional Kafka consumer would — Spark manages progress itself, which is part of what makes exactly-once processing possible without relying on Kafka's own offset-commit semantics.
+</QuestionCard>
+
+<QuestionCard id="ksi-03" number={3} question="What happens if you restart a streaming query without its original checkpoint directory?" difficulty="medium" topic="Kafka Integration">
+Spark has no record of previously processed offsets, so it starts from whatever `startingOffsets` is configured to (`earliest` or `latest`) rather than resuming exactly where it left off — this typically means either reprocessing already-handled data or silently skipping data that arrived in the gap, neither of which is usually the intended behavior.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Event-Time Watermarking
+
+<QuestionList topic="Event-Time Watermarking" storagePrefix="spark-streaming-watermarking">
+
+<QuestionCard id="etw-01" number={1} question="What is a watermark, and what problem does it solve?" difficulty="medium" topic="Watermarking">
+A watermark declares how late data is allowed to arrive, relative to the maximum event time seen so far, before Spark considers it too late to affect existing results. It solves the problem of unbounded state growth — without a watermark, a windowed aggregation would have to keep state for every open window forever, since data could theoretically still arrive for it.
+</QuestionCard>
+
+<QuestionCard id="etw-02" number={2} question="Write an example declaring a watermark on an event-time column." difficulty="medium" topic="Watermarking">
+```scala
+df.withWatermark("event_time", "10 minutes")
+  .groupBy(window(col("event_time"), "5 minutes"))
+  .count()
+```
+This tells Spark it can safely drop state for any window more than 10 minutes older than the latest event time it's seen, bounding how long windowed aggregation state has to be kept around.
+</QuestionCard>
+
+<QuestionCard id="etw-03" number={3} question="What's the trade-off in choosing a watermark threshold that's too short versus too long?" difficulty="hard" topic="Watermarking">
+Too short: legitimately late (but not malicious or broken) data gets dropped and excluded from aggregations, silently producing incomplete results. Too long: state is retained far longer than necessary, growing memory/storage usage and increasing the latency before a window's result is considered final — the threshold has to be tuned against how late real-world data for a given source actually tends to arrive.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Stateful Stream Processing and State Stores
+
+<QuestionList topic="Stateful Stream Processing and State Stores" storagePrefix="spark-streaming-state-stores">
+
+<QuestionCard id="ssp-01" number={1} question="What is a state store, and what operations require one?" difficulty="medium" topic="State Stores">
+A state store is a versioned, checkpointed key-value store that Structured Streaming uses to persist running state across micro-batches — required by operations like streaming aggregations, deduplication, and `mapGroupsWithState`/`flatMapGroupsWithState`, all of which need to remember something from prior batches to process the current one correctly.
+</QuestionCard>
+
+<QuestionCard id="ssp-02" number={2} question="What state store backends does Spark support, and why would you choose RocksDB over the default?" difficulty="medium" topic="State Stores">
+The default is an in-memory HDFS-backed state store; RocksDB is an alternative backend that stores state on local disk instead of purely in the JVM heap. RocksDB is chosen for large state sizes that would otherwise strain executor memory or trigger excessive GC pauses — trading some access latency for much better scalability of state size.
+</QuestionCard>
+
+<QuestionCard id="ssp-03" number={3} question="How is state store data made fault-tolerant across micro-batches?" difficulty="hard" topic="State Stores">
+State changes are checkpointed to durable storage (alongside offsets) after each micro-batch, so if an executor or the whole application fails, the state store can be reconstructed from the last successful checkpoint rather than being lost — the same checkpointing mechanism that protects offsets also protects accumulated stateful computation.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Late Data Handling
+
+<QuestionList topic="Late Data Handling" storagePrefix="spark-streaming-late-data">
+
+<QuestionCard id="ldh-01" number={1} question="What counts as 'late data' in Structured Streaming, and what happens to it?" difficulty="medium" topic="Late Data">
+Data whose event time falls before the current watermark — meaning Spark has already decided any window it would belong to is closed and its state discarded. Such records are dropped from windowed aggregations rather than reopening already-finalized results.
+</QuestionCard>
+
+<QuestionCard id="ldh-02" number={2} question="How does late data handling relate to watermarking specifically?" difficulty="medium" topic="Late Data">
+The watermark is exactly what defines the cutoff between "acceptably late, still processed" and "too late, dropped" — late data handling isn't a separate mechanism, it's the direct consequence of the watermark threshold chosen for a given stateful operation.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Output Modes
+
+<QuestionList topic="Output Modes" storagePrefix="spark-streaming-output-modes">
+
+<QuestionCard id="omd-01" number={1} question="What do append, update, and complete output modes each emit?" difficulty="medium" topic="Output Modes">
+**Append** emits only new rows added since the last trigger (rows already emitted are never modified). **Update** emits rows that are new or have changed since the last trigger. **Complete** re-emits the entire, current result table every single trigger, regardless of what changed.
+</QuestionCard>
+
+<QuestionCard id="omd-02" number={2} question="Which output modes are compatible with which kinds of queries?" difficulty="hard" topic="Output Modes">
+Simple, non-aggregating streaming queries (a filter, a map) generally only support `append`. Aggregations without a watermark generally require `complete` or `update` (since any row could still change). Aggregations *with* a watermark can support `append` too, because the watermark gives Spark a defined point where a window's result becomes final and won't change again.
+</QuestionCard>
+
+<QuestionCard id="omd-03" number={3} question="Why can't append mode be used with an aggregation that has no watermark?" difficulty="hard" topic="Output Modes">
+Append mode promises a row, once emitted, will never be updated — but without a watermark, Spark has no way to know when an aggregate result is truly final, since late-arriving data could theoretically still update any existing group's result at any point. Emitting it under `append` would risk contradicting that "never changes again" guarantee.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Checkpointing and Fault Recovery
+
+<QuestionList topic="Checkpointing and Fault Recovery" storagePrefix="spark-streaming-checkpointing">
+
+<QuestionCard id="cfr-01" number={1} question="What does a Structured Streaming checkpoint store?" difficulty="medium" topic="Checkpointing">
+Source offsets already processed, the query's metadata (including its configuration), and any operator state (for stateful operations) — everything needed to resume the query from exactly where it left off, rather than restarting from scratch or from an arbitrary point.
+</QuestionCard>
+
+<QuestionCard id="cfr-02" number={2} question="What happens when a streaming query resumes from a checkpoint after a failure?" difficulty="medium" topic="Checkpointing">
+Spark reads the last committed offsets and state from the checkpoint directory and resumes processing from there — any micro-batch that was in progress but not yet fully committed at the time of failure gets reprocessed, which is what preserves the exactly-once guarantee across a restart.
+</QuestionCard>
+
+<QuestionCard id="cfr-03" number={3} question="What breaks a checkpoint's compatibility, forcing you to start fresh?" difficulty="hard" topic="Checkpointing">
+Certain changes to the query itself — altering the aggregation logic, changing the number of stateful operations, or in some cases a Spark version upgrade that changes internal state store formats — can make an existing checkpoint incompatible with the new query plan, forcing a restart from a new checkpoint (and the data-loss or reprocessing trade-off that comes with that) rather than a seamless resume.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Stream-Stream and Stream-Static Joins
+
+<QuestionList topic="Stream-Stream and Stream-Static Joins" storagePrefix="spark-streaming-joins">
+
+<QuestionCard id="ssj-01" number={1} question="What is a stream-static join, and how does it behave each micro-batch?" difficulty="medium" topic="Streaming Joins">
+Joining a streaming DataFrame against a static (batch-sourced) DataFrame — the static side is effectively re-scanned (or re-read, depending on caching) each micro-batch, joined against whatever new streaming rows arrived in that batch. It's the simpler of the two join types, since only one side has unbounded state concerns.
+</QuestionCard>
+
+<QuestionCard id="ssj-02" number={2} question="What is a stream-stream join, and why does it require watermarks on both sides?" difficulty="hard" topic="Streaming Joins">
+Joining two streaming DataFrames against each other — both sides are unbounded, so Spark has to buffer unmatched rows from each side, waiting for a potential future match from the other stream. Watermarks on both sides bound how long that buffered, unmatched state is kept before being given up on, the same way a watermark bounds windowed aggregation state.
+</QuestionCard>
+
+<QuestionCard id="ssj-03" number={3} question="What happens to unmatched buffered rows in a stream-stream join over time?" difficulty="hard" topic="Streaming Joins">
+Once a row has been buffered longer than the watermark threshold allows without finding a match, Spark drops it (for an inner join) — it's treated the same way late data is treated for a windowed aggregation: past the watermark cutoff, the possibility of a match is considered closed, and holding onto it indefinitely would defeat the purpose of having a watermark at all.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Design a Structured Streaming pipeline that computes a 5-minute rolling count of events, tolerating up to 10 minutes of late-arriving data."** A direct `withWatermark` + windowed `groupBy` prompt, testing the watermark-threshold trade-off explicitly.
+- **"A streaming query was restarted after a crash and is now producing duplicate results downstream — what would you check?"** Point to the checkpoint directory (was it preserved and reused correctly?) and whether the sink itself is idempotent for the specific failure/retry scenario.
+- **"Why would you choose the micro-batch engine over Continuous mode for a production pipeline that needs aggregations?"** Test whether the candidate knows Continuous mode's operation-support and guarantee limitations, not just its latency advantage.
+- **"How would you join a stream of clickstream events against a slowly-changing dimension table of user profiles?"** A stream-static join prompt, with a follow-up on how the static side's freshness is handled across micro-batches.
+
+---
+
+## Further Reading
+
+- [Spark Execution Lifecycle](/level-3-technologies/batch-processing/spark-execution-lifecycle/) — the job/stage/task model each streaming micro-batch runs through
+- [Kafka](/level-3-technologies/streaming/kafka/) — Kafka's own architecture, partitions, and consumer group semantics in depth
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of

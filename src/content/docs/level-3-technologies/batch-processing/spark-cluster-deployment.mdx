@@ -1,0 +1,146 @@
+---
+title: Spark Cluster Deployment & Environment Setup
+description: Interview questions on deploying Spark — Standalone setup, YARN queue management, Kubernetes operator scheduling, Docker containerization, and multi-tenant isolation.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Cluster Deployment & Environment Setup: Running Spark on a Real Cluster
+
+**Choosing a cluster manager is only the first decision — actually running Spark in production means setting up queues so one job doesn't starve another, packaging dependencies consistently, and deciding how strictly different teams' workloads need to stay isolated from each other.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Standalone Mode Setup](#standalone-mode-setup)
+- [YARN Deployment and Queue Management](#yarn-deployment-and-queue-management)
+- [Kubernetes Operator and Native Scheduling](#kubernetes-operator-and-native-scheduling)
+- [Client Mode versus Cluster Mode](#client-mode-versus-cluster-mode)
+- [Containerization with Docker](#containerization-with-docker)
+- [Legacy Mesos Integration](#legacy-mesos-integration)
+- [Multi-Tenancy and Resource Queue Isolation](#multi-tenancy-and-resource-queue-isolation)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Beyond simply picking a cluster manager, deploying Spark in a shared environment means solving for **multi-tenancy** — making sure one team's job can't starve or crash another's — which each platform handles differently: YARN through **capacity/fair scheduler queues**, Kubernetes through **namespaces and resource quotas**. **Docker containerization** has become the common thread across modern deployments, since it's how Spark ships consistently to Kubernetes (and increasingly to containerized YARN) regardless of which specific cluster manager sits underneath.
+
+---
+
+## Standalone Mode Setup
+
+<QuestionList topic="Standalone Mode Setup" storagePrefix="spark-deploy-standalone">
+
+<QuestionCard id="sms-01" number={1} question="What is Standalone mode, and when does it make sense to use it?" difficulty="easy" topic="Standalone Mode">
+Spark's own built-in cluster manager — a lightweight master/worker setup with no external dependency (no YARN, no Kubernetes required). It makes sense for dedicated, Spark-only clusters where the operational simplicity of not running a separate resource manager outweighs the more advanced scheduling and multi-framework sharing that YARN or Kubernetes provide.
+</QuestionCard>
+
+<QuestionCard id="sms-02" number={2} question="What does setting up Standalone mode involve at a basic level?" difficulty="medium" topic="Standalone Mode">
+Starting a master process (`start-master.sh`) and one or more worker processes (`start-worker.sh`, pointed at the master's URL) on the cluster's machines — workers register with the master on startup, and applications are submitted with `--master spark://host:port` to run against that cluster.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## YARN Deployment and Queue Management
+
+<QuestionList topic="YARN Deployment and Queue Management" storagePrefix="spark-deploy-yarn">
+
+<QuestionCard id="ydq-01" number={1} question="How does Spark run as a YARN application, and what's the practical benefit of that model?" difficulty="medium" topic="YARN Deployment">
+Spark submits itself as a YARN application, with YARN's ResourceManager allocating containers for the driver (in cluster mode) and executors, the same way it would for any other YARN workload. The benefit is resource sharing — Spark jobs coexist on the same cluster as other Hadoop-ecosystem workloads (Hive, MapReduce), governed by the same central resource allocation.
+</QuestionCard>
+
+<QuestionCard id="ydq-02" number={2} question="What is queue management, and why does it matter for running Spark on a shared YARN cluster?" difficulty="medium" topic="YARN Deployment">
+YARN's Capacity Scheduler or Fair Scheduler lets administrators define queues with guaranteed and maximum resource shares, and jobs are submitted into a specific queue (`--queue` flag) rather than competing for the whole cluster unconstrained. This matters because without queues, a single large or runaway Spark job could consume the entire cluster's capacity, starving every other team's workload.
+</QuestionCard>
+
+<QuestionCard id="ydq-03" number={3} question="What's the practical difference between the Capacity Scheduler and the Fair Scheduler?" difficulty="hard" topic="YARN Deployment">
+The Capacity Scheduler guarantees each queue a configured minimum share of cluster capacity, allowing queues to borrow unused capacity from others but reclaiming it when the owning queue needs it back — geared toward predictable, guaranteed allocations. The Fair Scheduler instead aims to give all running applications roughly equal resource shares over time, rebalancing dynamically as jobs start and finish — geared more toward fairness across many smaller, shorter jobs.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Kubernetes Operator and Native Scheduling
+
+<QuestionList topic="Kubernetes Operator and Native Scheduling" storagePrefix="spark-deploy-k8s">
+
+<QuestionCard id="kos-01" number={1} question="How does Spark run natively on Kubernetes, without a separate operator?" difficulty="medium" topic="Kubernetes">
+`spark-submit` with `--master k8s://https://<api-server>` talks directly to the Kubernetes API to launch the driver as a pod, which in turn requests executor pods the same way — no separate cluster manager process (unlike Standalone's master or YARN's ResourceManager) is needed; Kubernetes' own scheduler places the pods.
+</QuestionCard>
+
+<QuestionCard id="kos-02" number={2} question="What does the Spark Operator (a Kubernetes CRD-based controller) add on top of native spark-submit?" difficulty="medium" topic="Kubernetes">
+It introduces a `SparkApplication` custom resource, letting you define and manage Spark jobs declaratively (as YAML applied via `kubectl`) the same way you'd manage any other Kubernetes resource — including built-in support for things like automatic restarts, scheduled (cron-based) Spark applications, and integration with Kubernetes-native tooling that plain `spark-submit` doesn't provide on its own.
+</QuestionCard>
+
+<QuestionCard id="kos-03" number={3} question="What Kubernetes-native capabilities does running Spark this way integrate with, that a traditional cluster manager wouldn't?" difficulty="medium" topic="Kubernetes">
+Kubernetes namespaces (for isolating teams/environments), resource quotas, pod-level autoscaling (cluster autoscaler adding/removing nodes based on pending pod resource requests), and the same RBAC and network policy tooling used for every other workload on the cluster — Spark becomes just another Kubernetes-native workload instead of requiring its own separate operational tooling.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Client Mode versus Cluster Mode
+
+For the client mode vs. cluster mode distinction across cluster managers, see [Spark Distributed Computing](/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/#cluster-manager-concepts) — it's covered there as a cross-cutting concept that applies the same way regardless of which cluster manager is in use.
+
+---
+
+## Containerization with Docker
+
+<QuestionList topic="Containerization with Docker" storagePrefix="spark-deploy-docker">
+
+<QuestionCard id="cwd-01" number={1} question="Why containerize a Spark application with Docker?" difficulty="easy" topic="Docker">
+A container image bundles the application code, its dependencies, and often a specific Spark/Python/Scala version together into one reproducible artifact — eliminating "works on my machine" or "works on this cluster but not that one" issues caused by inconsistent environments across executors or between dev and production.
+</QuestionCard>
+
+<QuestionCard id="cwd-02" number={2} question="How does containerization fit into a Kubernetes-based Spark deployment specifically?" difficulty="medium" topic="Docker">
+It's essentially required — Kubernetes runs everything as containers, so both the driver and executor pods run from a Spark-based Docker image (extending Spark's own base images, typically). Custom dependencies, whether JVM libraries or Python packages, get baked into that image rather than installed at runtime on each node.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Legacy Mesos Integration
+
+For Apache Mesos setup and integration with Spark, see [Apache Spark](/level-3-technologies/batch-processing/spark/#cluster-management--deployment) — Mesos support has been deprecated and removed from recent Spark releases in favor of Kubernetes, so it's covered there as part of the broader deployment history rather than a page of its own here.
+
+---
+
+## Multi-Tenancy and Resource Queue Isolation
+
+<QuestionList topic="Multi-Tenancy and Resource Queue Isolation" storagePrefix="spark-deploy-multi-tenancy">
+
+<QuestionCard id="mtq-01" number={1} question="What does multi-tenancy mean for a shared Spark platform, and why does it need explicit isolation mechanisms?" difficulty="medium" topic="Multi-Tenancy">
+Multi-tenancy means multiple teams or applications share the same underlying cluster infrastructure. Without explicit isolation, one team's misbehaving or resource-hungry job can degrade or starve every other team's workload running on the same shared capacity — isolation mechanisms exist specifically to prevent that "noisy neighbor" problem.
+</QuestionCard>
+
+<QuestionCard id="mtq-02" number={2} question="What are the concrete isolation mechanisms available on YARN versus Kubernetes?" difficulty="medium" topic="Multi-Tenancy">
+On YARN: queues (Capacity or Fair Scheduler) with guaranteed and maximum resource shares per team/queue. On Kubernetes: namespaces per team combined with resource quotas capping how much CPU/memory a namespace's workloads can consume in total, plus network policies restricting cross-namespace communication if needed.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A team's overnight batch job is starving other teams' jobs of cluster resources — how would you prevent that going forward?"** Discuss configuring YARN queues (or Kubernetes namespace resource quotas) with guaranteed and maximum shares per team, rather than leaving all jobs competing for the whole cluster unconstrained.
+- **"Why would a platform team migrate from a self-managed YARN cluster to running Spark on Kubernetes?"** Discuss operational consolidation with the rest of the org's container infrastructure, native autoscaling, and the trade-off against an existing mature Hadoop/YARN investment.
+- **"Design the isolation boundaries for a Spark platform shared by five data teams, some running sensitive workloads."** A namespaces/queues-plus-network-policy design question, potentially touching on separate clusters entirely for the most sensitive workloads.
+- **"How would you package a Spark application with a specific set of Python dependencies to ensure it runs identically across every executor?"** A Docker containerization prompt — baking dependencies into the image rather than relying on per-node installation consistency.
+
+---
+
+## Further Reading
+
+- [Spark Distributed Computing](/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/) — cluster manager concepts (Standalone, YARN, Mesos, Kubernetes) and client vs. cluster mode in depth
+- [Kubernetes](/level-3-technologies/orchestration/kubernetes/) — Kubernetes' own architecture, namespaces, and scheduling model beyond Spark-specific integration
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of

@@ -1,0 +1,247 @@
+---
+title: Spark Performance Tuning & Memory Management
+description: Interview questions on Spark performance tuning — unified memory model, GC tuning, off-heap memory, OOM troubleshooting, shuffle partitioning, skew, and I/O optimization.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Performance Tuning & Memory Management: Diagnosing Slow, Unstable, or Expensive Jobs
+
+**Almost every Spark performance problem traces back to one of three things — memory pressure, an imbalanced shuffle, or too much data crossing the network — and the tuning knobs on this page are the standard toolkit for diagnosing which one you're actually looking at.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Execution Memory versus Storage Memory](#execution-memory-versus-storage-memory)
+- [Garbage Collection Tuning](#garbage-collection-tuning)
+- [Off-Heap Memory Allocation](#off-heap-memory-allocation)
+- [Memory Overhead Limits and OOM Troubleshooting](#memory-overhead-limits-and-oom-troubleshooting)
+- [Serialization Format Comparison](#serialization-format-comparison)
+- [Shuffle Partition Sizing](#shuffle-partition-sizing)
+- [Data Skew Mitigation and Salting Techniques](#data-skew-mitigation-and-salting-techniques)
+- [Speculative Execution](#speculative-execution)
+- [Task Concurrency and Core Allocation Tuning](#task-concurrency-and-core-allocation-tuning)
+- [Compression Codec Tradeoffs](#compression-codec-tradeoffs)
+- [Network and Shuffle I/O Optimization](#network-and-shuffle-io-optimization)
+- [Broadcast Join Threshold Tuning](#broadcast-join-threshold-tuning)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+An executor's JVM heap is split between **execution memory** (shuffles, joins, sorts) and **storage memory** (cached data) under a **unified memory model** that lets one borrow from the other under pressure — the first place to look when an executor is unstable. Beyond the heap itself, **off-heap memory**, **memory overhead**, and **GC tuning** each address a different flavor of memory pressure. Separately, **shuffle partition sizing**, **data skew**, and **broadcast thresholds** all govern how evenly (and how much) data actually moves across the network during a shuffle — usually the second place to look once memory itself isn't the bottleneck.
+
+---
+
+## Execution Memory versus Storage Memory
+
+<QuestionList topic="Execution Memory versus Storage Memory" storagePrefix="spark-perf-exec-storage-mem">
+
+<QuestionCard id="evm-01" number={1} question="What's the difference between execution memory and storage memory?" difficulty="medium" topic="Memory Model">
+Execution memory is used for computation that needs working space — shuffles, joins, sorts, aggregations. Storage memory holds cached/persisted RDDs and DataFrames. Both draw from the same overall executor heap region under Spark's unified memory manager, rather than being fixed, separately-sized pools.
+</QuestionCard>
+
+<QuestionCard id="evm-02" number={2} question="How does the unified memory model let these two share one region?" difficulty="medium" topic="Memory Model">
+Rather than statically partitioning memory into separate execution and storage pools (as older Spark versions did), the unified model lets either side use more of the shared region when the other isn't using its share, up to configurable boundaries (`spark.memory.fraction`, `spark.memory.storageFraction`) — dynamically adapting to whichever workload actually needs more space at a given moment.
+</QuestionCard>
+
+<QuestionCard id="evm-03" number={3} question="What happens when execution memory needs more space but storage memory (cached data) is using it?" difficulty="hard" topic="Memory Model">
+Execution memory can **evict cached blocks** to reclaim space, since execution (an in-progress computation that must complete) takes priority over storage (cached data that can always be recomputed from lineage if evicted). This is a deliberate design choice: a running computation failing outright is worse than a cache miss forcing some recomputation later.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Garbage Collection Tuning
+
+<QuestionList topic="Garbage Collection Tuning" storagePrefix="spark-perf-gc">
+
+<QuestionCard id="gct-01" number={1} question="Why does GC tuning matter specifically for Spark executors?" difficulty="medium" topic="GC Tuning">
+Executors often run with large heaps holding significant cached and in-flight data, and a long garbage collection pause on an executor stalls every task running on it simultaneously — at scale, GC pauses are a common, meaningful contributor to overall job latency, not just a background JVM concern.
+</QuestionCard>
+
+<QuestionCard id="gct-02" number={2} question="What's the difference between G1GC and Parallel GC?" difficulty="medium" topic="GC Tuning">
+**G1GC** targets predictable, bounded pause times even on large heaps by collecting incrementally across regions — the modern default for most Spark deployments. **Parallel GC** instead maximizes overall throughput, using multiple threads for collection but with longer stop-the-world pauses — a reasonable choice when raw throughput matters more than pause-time predictability.
+</QuestionCard>
+
+<QuestionCard id="gct-03" number={3} question="What symptom in the Spark UI suggests GC is a real bottleneck?" difficulty="medium" topic="GC Tuning">
+A high proportion of task time reported as "GC Time" relative to total task duration in the Stages tab — if a meaningful fraction of executor time is spent collecting garbage rather than doing actual work, that's a direct, measurable signal to look at heap sizing, caching behavior, or the collector choice itself.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Off-Heap Memory Allocation
+
+<QuestionList topic="Off-Heap Memory Allocation" storagePrefix="spark-perf-off-heap">
+
+<QuestionCard id="ohm-01" number={1} question="What does off-heap memory allocation mean, and what configuration enables it?" difficulty="medium" topic="Off-Heap Memory">
+It means storing some data (Tungsten's internal binary row format, for example) outside the JVM heap entirely, in raw allocated memory the garbage collector doesn't manage. Enabled via `spark.memory.offHeap.enabled = true` with a size set by `spark.memory.offHeap.size`.
+</QuestionCard>
+
+<QuestionCard id="ohm-02" number={2} question="What's the trade-off of moving data storage off-heap?" difficulty="hard" topic="Off-Heap Memory">
+It reduces GC pressure, since the garbage collector never has to scan or manage that memory — but it comes at the cost of losing automatic memory management for that portion of memory entirely, meaning bugs or misconfiguration there can manifest as harder-to-diagnose native memory issues rather than a straightforward JVM heap OOM.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Memory Overhead Limits and OOM Troubleshooting
+
+<QuestionList topic="Memory Overhead Limits and OOM Troubleshooting" storagePrefix="spark-perf-oom">
+
+<QuestionCard id="moo-01" number={1} question="What does spark.executor.memoryOverhead reserve space for?" difficulty="medium" topic="OOM Troubleshooting">
+Memory beyond the JVM heap that the executor process still needs — JVM overhead itself (thread stacks, metaspace), off-heap allocations, native library memory (e.g., for Python UDFs or certain connectors), and other non-heap usage the cluster manager's container limit still has to account for.
+</QuestionCard>
+
+<QuestionCard id="moo-02" number={2} question="What's a common symptom of undersized memory overhead, and how does it typically manifest?" difficulty="medium" topic="OOM Troubleshooting">
+The executor's *container* gets killed by the cluster manager (YARN, Kubernetes) for exceeding its total memory limit — even though the JVM heap itself never technically ran out — because the overhead portion (outside the heap) exceeded what was reserved for it. This often shows up as a cryptic "container killed by YARN for exceeding memory limits" error rather than a standard Java `OutOfMemoryError`.
+</QuestionCard>
+
+<QuestionCard id="moo-03" number={3} question="How would you diagnose whether an OOM was caused by executor heap memory, overhead, or driver memory?" difficulty="hard" topic="OOM Troubleshooting">
+Check which process actually failed and how: a Java `OutOfMemoryError` in executor logs points to heap memory; a container-killed message from the cluster manager (with no Java OOM in the logs) points to overhead being undersized; and a failure affecting the whole application at once, with driver-side logs showing the error, points to driver memory — often caused by an action like `collect()` pulling too much data back.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Serialization Format Comparison
+
+For the Java vs. Kryo serialization trade-off, see [Spark Execution Lifecycle](/level-3-technologies/batch-processing/spark-execution-lifecycle/#data-serialization-during-shuffle) — serialization format is primarily a shuffle-performance concern, covered there in depth alongside the rest of the shuffle mechanics it affects.
+
+---
+
+## Shuffle Partition Sizing
+
+<QuestionList topic="Shuffle Partition Sizing" storagePrefix="spark-perf-shuffle-partitions">
+
+<QuestionCard id="sps-01" number={1} question="What does spark.sql.shuffle.partitions control, and what's its default?" difficulty="easy" topic="Shuffle Partitioning">
+It sets the number of partitions Spark uses for shuffle operations (joins, aggregations) in DataFrame/SQL queries, defaulting to 200 — a fixed number applied regardless of the actual data volume involved, unless AQE's dynamic partition coalescing is enabled to adjust it at runtime.
+</QuestionCard>
+
+<QuestionCard id="sps-02" number={2} question="What happens if shuffle partitions are set too low for the data volume?" difficulty="medium" topic="Shuffle Partitioning">
+Each partition ends up holding more data than it comfortably should, increasing memory pressure per task and raising the risk of spills or executor OOMs — too few, overly large partitions is a common root cause when a shuffle-heavy stage is both slow and unstable.
+</QuestionCard>
+
+<QuestionCard id="sps-03" number={3} question="What happens if shuffle partitions are set too high?" difficulty="medium" topic="Shuffle Partitioning">
+Each partition holds too little data to justify its own task, so scheduling overhead (launching, tracking, and finalizing a huge number of tiny tasks) starts to dominate over actual useful work — a different, opposite failure mode from setting the count too low, but also a real performance drag.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Data Skew Mitigation and Salting Techniques
+
+<QuestionList topic="Data Skew Mitigation and Salting Techniques" storagePrefix="spark-perf-skew">
+
+<QuestionCard id="dsm-01" number={1} question="Beyond joins, where else does data skew commonly cause problems in a Spark job?" difficulty="medium" topic="Data Skew">
+`groupBy`/aggregation operations on a skewed key have the same fundamental problem as a skewed join — one key's rows all land on one task, overloading it while other tasks finish quickly. Any shuffle-based operation keyed on a column with an uneven value distribution is susceptible, not just joins specifically.
+</QuestionCard>
+
+<QuestionCard id="dsm-02" number={2} question="How does salting work as a general technique, not just for joins?" difficulty="hard" topic="Data Skew">
+The same idea applies beyond joins: append a random suffix to a skewed key before grouping, spreading what would have been one overloaded partition's rows across several artificial sub-keys, then combine the partial results in a second aggregation step afterward — trading one extra aggregation pass for eliminating the single-task bottleneck.
+</QuestionCard>
+
+</QuestionList>
+
+For the join-specific version of this problem — including AQE's automatic skew join optimization — see [Spark Joins](/level-3-technologies/batch-processing/spark-joins/#handling-data-skew-in-joins).
+
+---
+
+## Speculative Execution
+
+<QuestionList topic="Speculative Execution" storagePrefix="spark-perf-speculative">
+
+<QuestionCard id="spx-01" number={1} question="What is speculative execution, and what problem does it solve?" difficulty="medium" topic="Speculative Execution">
+When a task runs noticeably slower than the median of already-completed tasks in the same stage, Spark launches a duplicate copy of it on a different executor and keeps whichever finishes first, killing the other. It solves the straggler problem — a single slow or partially-failing node dragging out an entire stage's completion time, even though every other task finished long ago.
+</QuestionCard>
+
+<QuestionCard id="spx-02" number={2} question="What are the risks of enabling speculative execution too aggressively?" difficulty="hard" topic="Speculative Execution">
+Wasted cluster resources running duplicate work for tasks that were simply doing more work legitimately (not actually stragglers due to a failing node), and — critically — correctness risk for any task with side effects that aren't idempotent (writing to an external system, for example), where running the same logical task twice could cause duplicate writes if not handled carefully.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Task Concurrency and Core Allocation Tuning
+
+<QuestionList topic="Task Concurrency and Core Allocation Tuning" storagePrefix="spark-perf-concurrency">
+
+<QuestionCard id="tca-01" number={1} question="What's the relationship between executor cores, task slots, and concurrency?" difficulty="medium" topic="Task Concurrency">
+`spark.executor.cores` sets how many task slots an executor has, and each slot can run one task concurrently — so an executor with 4 cores runs up to 4 tasks in parallel. Total cluster-wide concurrency is roughly `(cores per executor) × (number of executors)`.
+</QuestionCard>
+
+<QuestionCard id="tca-02" number={2} question="Why doesn't simply maximizing cores per executor always improve throughput?" difficulty="hard" topic="Task Concurrency">
+More cores per executor means more tasks sharing that executor's single JVM heap and garbage collector concurrently, which can increase GC pressure and memory contention past a certain point — very large executors (many cores, huge heap) can actually perform worse than a larger number of moderately-sized executors, which is why a common rule of thumb caps executor cores around 4-5 rather than maximizing them.
+</QuestionCard>
+
+</QuestionList>
+
+For how this same executor-sizing trade-off applies at the cluster resource-request level, see [Spark Distributed Computing](/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/#resource-allocation-strategies).
+
+---
+
+## Compression Codec Tradeoffs
+
+<QuestionList topic="Compression Codec Tradeoffs" storagePrefix="spark-perf-compression">
+
+<QuestionCard id="cct-01" number={1} question="What compression codecs does Spark commonly use for shuffle and storage, and how do they trade off?" difficulty="medium" topic="Compression">
+`lz4` and `snappy` prioritize decompression speed with modest compression ratios — good defaults for interactive, latency-sensitive workloads. `zstd` (Zstandard) achieves meaningfully better compression ratios at somewhat higher CPU cost — a good fit when I/O/network is the bottleneck and CPU headroom is available.
+</QuestionCard>
+
+<QuestionCard id="cct-02" number={2} question="Why might you choose lz4 or snappy over zstd for shuffle compression specifically?" difficulty="medium" topic="Compression">
+Shuffle data is compressed and decompressed constantly, on the hot path of nearly every job — a codec that's fast to decompress keeps that per-shuffle overhead low, even if the resulting data is somewhat larger than a stronger codec would produce. For latency-sensitive, shuffle-heavy workloads, decompression speed usually matters more than squeezing out the last bit of size reduction.
+</QuestionCard>
+
+<QuestionCard id="cct-03" number={3} question="When would a higher-compression, higher-CPU codec like zstd be worth the trade-off?" difficulty="hard" topic="Compression">
+When network or storage I/O is the actual bottleneck and spare CPU capacity is available — a batch job writing large output files to cheaper but slower cloud storage, for example, where reducing the transferred/stored volume meaningfully speeds up the job more than the extra CPU cost of compression slows it down.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Network and Shuffle I/O Optimization
+
+<QuestionList topic="Network and Shuffle I/O Optimization" storagePrefix="spark-perf-network-io">
+
+<QuestionCard id="nsi-01" number={1} question="What is the external shuffle service, and what problem does it solve?" difficulty="medium" topic="Network I/O">
+The external shuffle service runs shuffle-serving independently of individual executor processes, so shuffle output an executor produced remains available for other tasks to fetch even after that executor is removed or lost — without it, losing an executor mid-job means its shuffle output has to be recomputed from scratch, not just re-fetched.
+</QuestionCard>
+
+<QuestionCard id="nsi-02" number={2} question="What shuffle-related settings would you tune to reduce network round-trips?" difficulty="hard" topic="Network I/O">
+Increasing shuffle fetch buffer sizes to pull more data per network request rather than many small ones, tuning the number of concurrent fetch connections, and enabling shuffle compression to reduce the actual bytes transferred per request — all aimed at the same goal of getting more useful data per network round-trip rather than paying per-request overhead repeatedly.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Broadcast Join Threshold Tuning
+
+For `spark.sql.autoBroadcastJoinThreshold` and forcing a broadcast join with hints, see [Spark Joins](/level-3-technologies/batch-processing/spark-joins/#broadcast-hash-join) — broadcast threshold tuning is join-strategy-specific and covered there alongside the rest of Spark's join strategy selection.
+
+---
+
+## Common Interview Scenarios
+
+- **"An executor keeps getting killed with no Java OutOfMemoryError in its logs — what's your first hypothesis?"** Point to undersized `memoryOverhead` and a container-killed condition rather than a heap OOM, and how to distinguish the two from the available logs.
+- **"A shuffle-heavy job's Stages tab shows most tasks finishing quickly but a handful taking 10x longer — what would you check, in order?"** Walk through checking for data skew first (a hot key), then whether speculative execution is enabled as a mitigation, distinct from a genuine skew fix.
+- **"How would you decide the right number of shuffle partitions for a job whose data volume varies a lot day to day?"** Discuss the static-sizing trade-off and how AQE's dynamic partition coalescing removes the need to hand-tune this per run.
+- **"A job's GC time is consistently 30%+ of total task time — what levers would you pull?"** Discuss reducing cached data footprint, adjusting executor heap/core sizing, considering off-heap memory, and evaluating G1GC vs. Parallel GC for the specific workload.
+
+---
+
+## Further Reading
+
+- [Spark Distributed Computing](/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/) — executor and resource allocation fundamentals this page's tuning builds on
+- [Spark Execution Lifecycle](/level-3-technologies/batch-processing/spark-execution-lifecycle/) — the shuffle mechanics and serialization these performance settings actually affect
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of
