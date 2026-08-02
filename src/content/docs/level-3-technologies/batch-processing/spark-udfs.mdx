@@ -1,0 +1,211 @@
+---
+title: Spark User Defined Functions (UDFs)
+description: Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## User Defined Functions (UDFs): Extending Spark SQL, and What It Costs
+
+**A UDF lets you write custom logic Spark SQL can't express natively, but that convenience has a real price — Catalyst can't see inside it, can't optimize through it, and (in Python especially) it pays a serialization tax the built-in functions never do.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Scalar UDF Implementation](#scalar-udf-implementation)
+- [User-Defined Aggregate Functions (UDAFs)](#user-defined-aggregate-functions-udafs)
+- [Pandas (Vectorized) UDFs](#pandas-vectorized-udfs)
+- [Arrow-Based Data Transfer for UDFs](#arrow-based-data-transfer-for-udfs)
+- [Python versus JVM Execution Overhead](#python-versus-jvm-execution-overhead)
+- [Built-in Functions versus Custom UDFs](#built-in-functions-versus-custom-udfs)
+- [Higher-Order Functions for Array/Map Columns](#higher-order-functions-for-arraymap-columns)
+- [Dependency Isolation for UDF Environments](#dependency-isolation-for-udf-environments)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A **scalar UDF** is the simplest extension point — custom row-at-a-time logic registered and used like any built-in function — but Spark SQL's optimizer treats it as an **opaque black box**: no predicate pushdown through it, no whole-stage code generation across it, none of Catalyst's usual tricks. For Python specifically, a regular UDF pays an even steeper cost: each row crosses the JVM/Python process boundary, serialized and deserialized on the way. **Pandas UDFs** (vectorized, using **Apache Arrow** for the data transfer) close most of that gap by operating on batches instead of single rows. **Higher-order functions** (`transform`, `filter`, `exists`) sidestep the whole trade-off for array/map columns by expressing the logic natively in Spark SQL, no UDF required at all.
+
+---
+
+## Scalar UDF Implementation
+
+<QuestionList topic="Scalar UDF Implementation" storagePrefix="spark-udf-scalar">
+
+<QuestionCard id="sud-01" number={1} question="What is a scalar UDF, and how do you register one?" difficulty="easy" topic="Scalar UDFs">
+A scalar UDF wraps a custom function so it can be called like any built-in Spark SQL function, applied one row at a time. Registered via `udf()` for use in the DataFrame API (`val myUdf = udf((x: Int) => x * 2)`), or `spark.udf.register("my_udf", ...)` to additionally make it callable from SQL strings.
+</QuestionCard>
+
+<QuestionCard id="sud-02" number={2} question="What does 'row-at-a-time' mean for a scalar UDF, and why does it matter for performance?" difficulty="medium" topic="Scalar UDFs">
+It means the function is invoked once per individual row, rather than operating on a batch. It matters because each invocation carries its own overhead (especially crossing the JVM/Python boundary for Python UDFs), which compounds linearly with row count — a cost that vectorized alternatives like Pandas UDFs specifically avoid by batching.
+</QuestionCard>
+
+<QuestionCard id="sud-03" number={3} question="What are the main limitations of a scalar UDF compared to a built-in Spark SQL function?" difficulty="medium" topic="Scalar UDFs">
+The optimizer can't see inside it, so it can't push predicates through it, apply whole-stage code generation across it, or otherwise optimize around what the UDF actually does — it's treated as an unavoidable, opaque step in the plan. It's also generally slower than an equivalent built-in function, sometimes substantially so for Python UDFs specifically.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## User-Defined Aggregate Functions (UDAFs)
+
+<QuestionList topic="User-Defined Aggregate Functions (UDAFs)" storagePrefix="spark-udf-udaf">
+
+<QuestionCard id="uda-01" number={1} question="What is a UDAF, and when would you need one instead of a built-in aggregate?" difficulty="medium" topic="UDAFs">
+A UDAF is a custom aggregation — combining many rows into one value — for logic the built-in aggregates (`sum`, `avg`, `collect_list`, etc.) can't express. Needed when the aggregation logic is genuinely custom: a weighted average with a non-standard weighting rule, a custom statistical measure, or combining values in a domain-specific way no built-in covers.
+</QuestionCard>
+
+<QuestionCard id="uda-02" number={2} question="What's the difference between the typed Aggregator API and the legacy UserDefinedAggregateFunction?" difficulty="medium" topic="UDAFs">
+The `Aggregator` API (Scala/Java, Dataset-based) is typed and generally preferred in modern Spark — it integrates with Dataset's compile-time type checking and tends to perform better. `UserDefinedAggregateFunction` is the older, untyped, DataFrame-based API, still supported for backward compatibility but not the recommended starting point for new code.
+</QuestionCard>
+
+<QuestionCard id="uda-03" number={3} question="What methods does a UDAF typically need to implement?" difficulty="hard" topic="UDAFs">
+Broadly: an initial/zero value for the aggregation buffer, a function to merge one new row into that buffer, a function to merge two partial buffers together (needed because aggregation happens in parallel across partitions before being combined), and a function to produce the final output value from the completed buffer.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Pandas (Vectorized) UDFs
+
+<QuestionList topic="Pandas (Vectorized) UDFs" storagePrefix="spark-udf-pandas">
+
+<QuestionCard id="pvu-01" number={1} question="What is a Pandas UDF, and how is it different from a regular scalar UDF?" difficulty="medium" topic="Pandas UDFs">
+A Pandas UDF operates on batches of data as pandas Series/DataFrame objects, rather than one row at a time — the function is written using vectorized pandas operations and applied to a whole batch per invocation, drastically reducing the number of times the Python/JVM boundary is crossed compared to a regular row-at-a-time UDF.
+</QuestionCard>
+
+<QuestionCard id="pvu-02" number={2} question="What types of Pandas UDFs are available?" difficulty="hard" topic="Pandas UDFs">
+**Series to Series** — takes and returns pandas Series, for straightforward column transformations. **Iterator of Series** — processes multiple batches without reinitializing expensive state between them (useful for loading a model once). **Grouped map** (`applyInPandas`) — operates on an entire group's data as a pandas DataFrame, for per-group custom logic that doesn't map cleanly to a simple aggregate.
+</QuestionCard>
+
+<QuestionCard id="pvu-03" number={3} question="Why are Pandas UDFs generally much faster than regular Python UDFs?" difficulty="medium" topic="Pandas UDFs">
+They use Apache Arrow to transfer entire batches of data between the JVM and Python process in one efficient, columnar operation, instead of serializing and deserializing each row individually — cutting both the per-row overhead and the total number of cross-process round trips dramatically.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Arrow-Based Data Transfer for UDFs
+
+<QuestionList topic="Arrow-Based Data Transfer for UDFs" storagePrefix="spark-udf-arrow">
+
+<QuestionCard id="abd-01" number={1} question="What is Apache Arrow, and what role does it play in Spark?" difficulty="medium" topic="Arrow">
+Apache Arrow is a language-independent, columnar in-memory data format designed for efficient data interchange between systems without needing to serialize into an intermediate format each time. In Spark, it's used to move batches of data between the JVM and a Python process for Pandas UDFs, avoiding the row-by-row serialization a regular Python UDF requires.
+</QuestionCard>
+
+<QuestionCard id="abd-02" number={2} question="Why does moving data via Arrow avoid the serialization cost regular Python UDFs pay?" difficulty="hard" topic="Arrow">
+Both the JVM side and the Python side understand Arrow's columnar memory layout directly, so a whole batch can effectively be handed across the process boundary as a shared, structured block rather than converting each individual row into a separate serialized Python object and back. It replaces many small, per-row conversions with far fewer, larger, more efficient ones.
+</QuestionCard>
+
+<QuestionCard id="abd-03" number={3} question="What configuration enables Arrow-based data transfer, and are there caveats?" difficulty="medium" topic="Arrow">
+`spark.sql.execution.arrow.pyspark.enabled = true` enables it (used automatically for Pandas UDFs). Caveats: not every data type is fully supported by Arrow-based conversion, and if a batch fails to convert, Spark can silently fall back to the slower non-Arrow path unless configured to fail loudly instead — worth being aware of when performance doesn't match expectations.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Python versus JVM Execution Overhead
+
+<QuestionList topic="Python versus JVM Execution Overhead" storagePrefix="spark-udf-python-jvm">
+
+<QuestionCard id="pjo-01" number={1} question="Why do Python UDFs incur overhead that Scala/Java UDFs don't?" difficulty="medium" topic="Python vs JVM">
+Spark itself runs on the JVM. A Scala/Java UDF executes directly inside that same JVM process, with no boundary to cross. A Python UDF requires data to leave the JVM, be serialized, handed to a separate Python worker process, deserialized, processed, and sent back the other way — an entire extra layer of overhead the JVM-native path simply doesn't have.
+</QuestionCard>
+
+<QuestionCard id="pjo-02" number={2} question="What is the 'process boundary tax,' concretely?" difficulty="medium" topic="Python vs JVM">
+The combined cost of serializing data out of the JVM, inter-process communication to the Python worker, deserializing it into Python objects, executing the function, and reversing the whole process to bring the result back — all of which is pure overhead unrelated to the actual computation the UDF performs.
+</QuestionCard>
+
+<QuestionCard id="pjo-03" number={3} question="How does this overhead compound on a large dataset with many rows?" difficulty="medium" topic="Python vs JVM">
+For a regular (non-vectorized) Python UDF, that boundary-crossing cost is paid once *per row*, so it scales linearly with row count and can dominate total runtime on large datasets, even if the actual per-row logic is trivial. This is exactly the cost Pandas UDFs cut down by amortizing the boundary crossing over whole batches instead of individual rows.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Built-in Functions versus Custom UDFs
+
+<QuestionList topic="Built-in Functions versus Custom UDFs" storagePrefix="spark-udf-builtin-vs-custom">
+
+<QuestionCard id="bvc-01" number={1} question="Why do built-in Spark SQL functions typically outperform an equivalent UDF?" difficulty="medium" topic="Built-in vs UDF">
+Built-in functions run inside Catalyst's optimized execution path — eligible for whole-stage code generation, predicate pushdown, and other Catalyst optimizations the planner can reason about ahead of time. A UDF is opaque to all of that; the optimizer treats it as a fixed, unoptimizable black box it has to work around rather than through.
+</QuestionCard>
+
+<QuestionCard id="bvc-02" number={2} question="What is whole-stage code generation, and why can't it apply to UDFs?" difficulty="hard" topic="Built-in vs UDF">
+Whole-stage code generation fuses several physical operators into a single generated Java function per stage, eliminating the virtual-function-call overhead of processing rows through separate operator objects one at a time. It can't extend across a UDF because the UDF's logic is arbitrary, opaque code the code generator has no visibility into — it has to be called as a black-box step, breaking the fused pipeline at that point.
+</QuestionCard>
+
+<QuestionCard id="bvc-03" number={3} question="What's a rule of thumb for when a UDF is actually necessary versus avoidable?" difficulty="medium" topic="Built-in vs UDF">
+Check whether the logic can be expressed via existing built-in functions or higher-order functions first — combinations of `when`/`otherwise`, string/date/math functions, and array/map higher-order functions cover a surprising amount of "custom-feeling" logic. Reach for a UDF only once that combination genuinely can't express what's needed, since a UDF should be the fallback, not the default.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Higher-Order Functions for Array/Map Columns
+
+<QuestionList topic="Higher-Order Functions for Array/Map Columns" storagePrefix="spark-udf-higher-order">
+
+<QuestionCard id="hof-01" number={1} question="What are higher-order functions in Spark SQL, and name a few?" difficulty="medium" topic="Higher-Order Functions">
+They're built-in functions that take a lambda expression as an argument and operate directly on array or map columns: `transform` (apply a function to each element), `filter` (keep elements matching a condition), `exists` (check if any element matches), and `aggregate` (reduce an array to a single value) — all native, optimizer-visible operations, not UDFs.
+</QuestionCard>
+
+<QuestionCard id="hof-02" number={2} question="How does transform() avoid needing a UDF or an explode/collect round-trip?" difficulty="medium" topic="Higher-Order Functions">
+Without it, applying a per-element transformation to an array column traditionally meant `explode`-ing it into separate rows, transforming each, then `collect_list`-ing them back into an array — extra shuffles and row multiplication. `transform(array_col, x -> x * 2)` applies the logic directly to the array in place, in one native expression, with no explode/re-aggregate round-trip and no UDF needed.
+</QuestionCard>
+
+<QuestionCard id="hof-03" number={3} question="Write an example using filter() (the higher-order function) on an array column." difficulty="medium" topic="Higher-Order Functions">
+```sql
+SELECT id, filter(scores, x -> x >= 60) AS passing_scores
+FROM students;
+```
+This keeps only the elements of the `scores` array that are `>= 60`, producing a new, filtered array per row — all natively, without exploding the array into separate rows first.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Dependency Isolation for UDF Environments
+
+<QuestionList topic="Dependency Isolation for UDF Environments" storagePrefix="spark-udf-dependency-isolation">
+
+<QuestionCard id="die-01" number={1} question="Why do Python UDF environments need dependency isolation across executors?" difficulty="medium" topic="Dependency Isolation">
+A Python UDF's code (and any libraries it imports) has to run identically on every executor's Python worker process. If executors have inconsistent package versions — or the driver's environment doesn't match the executors' — a UDF can behave differently, fail unpredictably, or throw serialization errors depending on which executor happens to run it.
+</QuestionCard>
+
+<QuestionCard id="die-02" number={2} question="What are the common ways to package and ship a consistent Python environment to executors?" difficulty="medium" topic="Dependency Isolation">
+Shipping a `virtualenv` or `conda` environment archive alongside the job (via `spark-submit --archives`), or, increasingly, running Spark on Kubernetes/YARN with a container image that already has the exact required environment baked in — both approaches guarantee every executor runs against the identical, known dependency set rather than whatever happens to be installed locally.
+</QuestionCard>
+
+<QuestionCard id="die-03" number={3} question="What happens if executor Python environments are inconsistent with each other or the driver?" difficulty="hard" topic="Dependency Isolation">
+Best case, a clear failure — a missing package or an incompatible version raises an obvious import error. Worse case, a *silent* correctness bug: a library behaves subtly differently across versions (a changed default parameter, a bug fix that alters output), and the same UDF produces different results depending on which executor happened to run a given task, which is far harder to detect and debug than an outright crash.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A Python UDF that does simple arithmetic is unexpectedly slow on a 500M-row DataFrame — how would you speed it up?"** Walk through converting it to a Pandas UDF (or, better, checking whether it can be expressed with built-in functions at all), and explain the row-at-a-time vs. vectorized batch distinction.
+- **"Why can't Spark optimize a query the same way once a UDF is introduced into it?"** Test understanding of the optimizer's black-box treatment of UDFs — no pushdown, no whole-stage codegen across it.
+- **"You need to double every value in an array column — would you use a UDF, and why or why not?"** The expected strong answer is `transform()`, a higher-order function, rather than reaching for a UDF or an explode/collect round-trip.
+- **"A UDF works fine in local testing but fails intermittently in production with a library version error — what's the likely cause?"** Point to inconsistent Python environments across executors, and discuss packaging a consistent environment via virtualenv/conda archives or container images.
+
+---
+
+## Further Reading
+
+- [Spark DataFrame & Dataset APIs](/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/) — the Column API and built-in functions UDFs extend beyond
+- [Spark Core Fundamentals](/level-3-technologies/batch-processing/spark-core-fundamentals/) — Spark Connect and configuration, relevant when packaging consistent execution environments
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of

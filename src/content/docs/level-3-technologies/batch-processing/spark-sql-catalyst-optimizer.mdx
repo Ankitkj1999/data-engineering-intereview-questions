@@ -1,0 +1,280 @@
+---
+title: Spark SQL Catalyst Optimizer
+description: Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Spark SQL Engine & Catalyst Optimizer: From Query Text to Execution
+
+**Every DataFrame operation or SQL query passes through the same pipeline — parsed, analyzed against the catalog, rewritten by rule-based optimization, turned into a physical plan, compiled into fused code, and (increasingly) re-optimized again at runtime once Spark can see the data it's actually working with.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Logical Plan Analysis and Validation](#logical-plan-analysis-and-validation)
+- [Rule-Based Logical Plan Optimization](#rule-based-logical-plan-optimization)
+- [Physical Plan Generation and Selection](#physical-plan-generation-and-selection)
+- [Cost-Based Optimization (CBO)](#cost-based-optimization-cbo)
+- [Whole-Stage Code Generation](#whole-stage-code-generation)
+- [Vectorized Execution](#vectorized-execution)
+- [Adaptive Query Execution (AQE)](#adaptive-query-execution-aqe)
+- [Dynamic Partition Coalescing](#dynamic-partition-coalescing)
+- [Dynamic Join Strategy Switching](#dynamic-join-strategy-switching)
+- [Skew Join Optimization](#skew-join-optimization)
+- [Plan Caching](#plan-caching)
+- [Reading and Interpreting Explain Plans](#reading-and-interpreting-explain-plans)
+- [Spark Thrift Server](#spark-thrift-server)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A query moves through four phases before it runs: **analysis** (resolve references against the catalog, validate types), **logical optimization** (apply a fixed set of rewrite rules), **physical planning** (generate candidate execution strategies and pick one, ideally cost-informed), and **code generation** (compile the chosen plan into fused JVM bytecode). That whole pipeline runs *before* any data is touched — it's all planning based on estimates. **Adaptive Query Execution (AQE)** is the newer layer on top: instead of trusting upfront estimates for the whole query, Spark pauses at shuffle boundaries and re-optimizes the *remaining* plan using real, observed statistics — which is how it can coalesce partitions, downgrade a join strategy, or split a skewed partition after seeing actual data, not just an estimate of it.
+
+---
+
+## Logical Plan Analysis and Validation
+
+<QuestionList topic="Logical Plan Analysis and Validation" storagePrefix="spark-catalyst-analysis">
+
+<QuestionCard id="lpa-01" number={1} question="What does the Analyzer do, and what does an 'unresolved' logical plan mean?" difficulty="medium" topic="Analysis">
+When a query is first parsed, column and table references are just names — the plan doesn't yet know if `orders` refers to a real table or if `customer_id` is a valid column, which makes it "unresolved." The Analyzer resolves those references against the catalog (checking tables and columns actually exist), and validates types, turning the unresolved plan into a validated logical plan — or failing with an analysis error if something doesn't check out.
+</QuestionCard>
+
+<QuestionCard id="lpa-02" number={2} question="What kind of error would you expect from a typo in a column name, and when does it surface?" difficulty="easy" topic="Analysis">
+An `AnalysisException`, raised during the analysis phase — before any actual computation runs, since resolving column references against the catalog happens as part of building the validated logical plan, not at execution time. This is why a misspelled column name fails fast, even under Spark's generally lazy execution model.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Rule-Based Logical Plan Optimization
+
+<QuestionList topic="Rule-Based Logical Plan Optimization" storagePrefix="spark-catalyst-rule-based">
+
+<QuestionCard id="rbo-01" number={1} question="What is rule-based logical plan optimization?" difficulty="medium" topic="Rule-Based Optimization">
+Once a logical plan is validated, Catalyst applies a fixed set of rewrite rules to transform it into an equivalent but cheaper plan — without yet considering the actual data or cost. It's "rule-based" because each rule fires whenever its pattern matches, regardless of how large the tables involved actually are.
+</QuestionCard>
+
+<QuestionCard id="rbo-02" number={2} question="Name a few common rule-based optimizations Catalyst applies." difficulty="medium" topic="Rule-Based Optimization">
+**Predicate pushdown** — moving filters as close to the data source as possible. **Constant folding** — evaluating constant expressions once at plan time instead of per row (`1 + 1` becomes `2`). **Column pruning** — removing columns from a scan that the query never actually uses, so they're never read at all.
+</QuestionCard>
+
+<QuestionCard id="rbo-03" number={3} question="Why can rule-based optimization alone sometimes make a suboptimal choice?" difficulty="hard" topic="Rule-Based Optimization">
+Because it applies rules mechanically without weighing actual cost — a rule that's usually beneficial can occasionally produce a worse plan for a specific data shape it has no visibility into (e.g., reordering joins without knowing which table is actually smaller). This is exactly the gap cost-based optimization, and later AQE, exist to close.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Physical Plan Generation and Selection
+
+<QuestionList topic="Physical Plan Generation and Selection" storagePrefix="spark-catalyst-physical-plan">
+
+<QuestionCard id="pgs-01" number={1} question="What happens during physical plan generation?" difficulty="medium" topic="Physical Planning">
+The optimized logical plan (still an abstract description of *what* to compute) is turned into one or more concrete physical plans describing *how* to compute it — for example, choosing among broadcast hash join, sort-merge join, or shuffle hash join for a given join in the query.
+</QuestionCard>
+
+<QuestionCard id="pgs-02" number={2} question="How does the planner pick among multiple candidate physical plans?" difficulty="medium" topic="Physical Planning">
+By estimated cost — using whatever statistics are available (table/column stats if collected, otherwise file size and row count estimates) to predict which candidate plan will be cheapest, then selecting it. Without collected statistics, this falls back to simpler heuristics (like size thresholds for broadcast joins) rather than genuine cost comparison.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Cost-Based Optimization (CBO)
+
+<QuestionList topic="Cost-Based Optimization (CBO)" storagePrefix="spark-catalyst-cbo">
+
+<QuestionCard id="cbo-01" number={1} question="What is cost-based optimization, and how does it differ from rule-based optimization?" difficulty="medium" topic="CBO">
+CBO uses collected table and column statistics (row counts, distinct value counts, min/max, null counts) to estimate the actual cost of different plan choices, then picks the cheapest. Rule-based optimization applies fixed heuristics regardless of data size; CBO makes data-size-aware decisions — most usefully, choosing a better join order or join strategy than a blind heuristic would.
+</QuestionCard>
+
+<QuestionCard id="cbo-02" number={2} question="How do you enable CBO and provide it the statistics it needs?" difficulty="medium" topic="CBO">
+Set `spark.sql.cbo.enabled = true`, and run `ANALYZE TABLE table_name COMPUTE STATISTICS FOR COLUMNS col1, col2` to collect the column-level statistics CBO relies on. Without running `ANALYZE TABLE`, CBO has no real statistics to work from and can't meaningfully improve on rule-based/heuristic decisions.
+</QuestionCard>
+
+<QuestionCard id="cbo-03" number={3} question="What's a concrete example of a decision CBO can make better than a rule-based approach?" difficulty="hard" topic="CBO">
+Choosing join order for a query joining three or more tables — a rule-based approach might join them in the order they're written, while CBO can use row count and selectivity estimates to start with the smallest intermediate result, reducing the amount of data every subsequent join has to process.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Whole-Stage Code Generation
+
+<QuestionList topic="Whole-Stage Code Generation" storagePrefix="spark-catalyst-codegen">
+
+<QuestionCard id="wcg-01" number={1} question="What is whole-stage code generation?" difficulty="medium" topic="Code Generation">
+It fuses multiple physical operators in a stage (a filter, a projection, an aggregation) into a single generated Java function, compiled and executed as one unit — instead of each operator processing a row and passing it to the next operator through a chain of virtual function calls.
+</QuestionCard>
+
+<QuestionCard id="wcg-02" number={2} question="What overhead does whole-stage code generation eliminate?" difficulty="medium" topic="Code Generation">
+The per-row, per-operator virtual function call overhead of the traditional "Volcano" iterator model, where each row passes through a `next()` call at every operator boundary. Fusing operators into one generated function lets the JVM optimize the whole sequence as straight-line code, closer to what a hand-written loop would look like.
+</QuestionCard>
+
+<QuestionCard id="wcg-03" number={3} question="Why can't whole-stage code generation extend across a UDF?" difficulty="hard" topic="Code Generation">
+Because a UDF's logic is arbitrary, opaque code — the code generator has no visibility into what it does, so it can't be inlined into the generated function the way built-in operators can. The UDF has to be called as a separate, un-fused black-box step, which breaks the otherwise fused pipeline at that point.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Vectorized Execution
+
+<QuestionList topic="Vectorized Execution" storagePrefix="spark-catalyst-vectorized">
+
+<QuestionCard id="vex-01" number={1} question="What is vectorized execution?" difficulty="medium" topic="Vectorized Execution">
+Processing columnar batches of rows at once, rather than one row at a time — commonly used for reading columnar formats like Parquet, where a whole batch of values for a column can be decoded and processed together as a contiguous block instead of individually.
+</QuestionCard>
+
+<QuestionCard id="vex-02" number={2} question="Why does vectorized execution perform better than row-at-a-time processing?" difficulty="hard" topic="Vectorized Execution">
+Processing data in contiguous, columnar batches makes much better use of CPU cache locality and enables SIMD (single-instruction-multiple-data) style operations on modern hardware, since the same operation is applied uniformly across many values in a tight loop — something a row-at-a-time model, jumping between different fields of different rows, can't exploit nearly as well.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Adaptive Query Execution (AQE)
+
+<QuestionList topic="Adaptive Query Execution (AQE)" storagePrefix="spark-catalyst-aqe">
+
+<QuestionCard id="aqe-01" number={1} question="What is Adaptive Query Execution, and why does it exist alongside CBO?" difficulty="medium" topic="AQE">
+AQE re-optimizes the physical plan **at runtime**, using actual statistics gathered from completed shuffle stages — rather than relying purely on upfront estimates the way CBO does. It exists because even good statistics collected ahead of time can be wrong by the time a query actually runs (stale stats, filters that narrow data more than estimated), and AQE can correct for that using real, observed numbers.
+</QuestionCard>
+
+<QuestionCard id="aqe-02" number={2} question="At what point in query execution does AQE actually re-optimize?" difficulty="medium" topic="AQE">
+At shuffle boundaries — since a shuffle is already a natural synchronization point where all of a stage's output has to be materialized before the next stage can start, Spark can pause there, inspect the real size and distribution of that output, and adjust the remaining plan accordingly before continuing.
+</QuestionCard>
+
+<QuestionCard id="aqe-03" number={3} question="What are the three main things AQE can do once it re-optimizes?" difficulty="medium" topic="AQE">
+**Coalesce** small post-shuffle partitions into larger ones, **switch join strategies** (e.g., downgrade a planned sort-merge join to a broadcast join once actual output size is known to be small), and **split skewed partitions** into smaller sub-partitions to avoid a single straggler task — each covered in more depth below.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Dynamic Partition Coalescing
+
+<QuestionList topic="Dynamic Partition Coalescing" storagePrefix="spark-catalyst-partition-coalescing">
+
+<QuestionCard id="dpc-01" number={1} question="What problem does dynamic partition coalescing solve?" difficulty="medium" topic="Partition Coalescing">
+A statically configured shuffle partition count (`spark.sql.shuffle.partitions`) is a single number applied regardless of how much data actually ends up in each partition after filtering — too high a count on a smaller-than-expected result produces many tiny, wasteful tasks with scheduling overhead disproportionate to the actual work.
+</QuestionCard>
+
+<QuestionCard id="dpc-02" number={2} question="How does AQE merge small partitions at runtime?" difficulty="medium" topic="Partition Coalescing">
+After a shuffle, AQE looks at the actual size of each resulting partition and merges adjacent small ones together up to a target size, so the next stage runs with a more sensibly sized set of tasks — fewer, larger tasks instead of many tiny ones — without the developer having to hand-tune the shuffle partition count for every query's specific output size.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Dynamic Join Strategy Switching
+
+<QuestionList topic="Dynamic Join Strategy Switching" storagePrefix="spark-catalyst-join-switching">
+
+<QuestionCard id="djs-01" number={1} question="What is dynamic join strategy switching?" difficulty="medium" topic="Join Strategy Switching">
+AQE can change a join's execution strategy at runtime — most commonly, downgrading a planned sort-merge join to a broadcast hash join once it observes that one side's actual post-shuffle output is small enough to broadcast, even though the upfront size estimate didn't indicate that.
+</QuestionCard>
+
+<QuestionCard id="djs-02" number={2} question="Why would the upfront plan choose sort-merge join when a broadcast join turns out to be possible?" difficulty="hard" topic="Join Strategy Switching">
+The upfront estimate is based on stale statistics, file size before filtering, or simply a conservative guess — if a heavy filter earlier in the query dramatically shrinks one side's actual row count, the planner had no way to know that in advance. AQE's runtime view, taken after the shuffle has actually happened, sees the true post-filter size and can correct the earlier, necessarily uncertain decision.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Skew Join Optimization
+
+<QuestionList topic="Skew Join Optimization" storagePrefix="spark-catalyst-skew-join">
+
+<QuestionCard id="sjo-01" number={1} question="What does AQE's skew join optimization do?" difficulty="medium" topic="Skew Join">
+It detects shuffle partitions that are disproportionately larger than the rest (a sign of data skew on the join key) using real post-shuffle size statistics, and splits those oversized partitions into smaller sub-partitions that are joined separately against the corresponding data on the other side.
+</QuestionCard>
+
+<QuestionCard id="sjo-02" number={2} question="How is this different from manually salting a skewed key?" difficulty="hard" topic="Skew Join">
+Salting requires the developer to identify which keys are skewed and manually rewrite the join logic to split them. AQE's skew join optimization does this automatically at runtime, based on actually observed partition sizes, without needing the skewed keys to be known or hand-coded around in advance — though manual salting can still be useful in cases or Spark versions where AQE's detection doesn't apply.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Plan Caching
+
+<QuestionList topic="Plan Caching" storagePrefix="spark-catalyst-plan-caching">
+
+<QuestionCard id="plc-01" number={1} question="What does plan caching do?" difficulty="medium" topic="Plan Caching">
+Spark caches parsed and analyzed logical plans for repeated query shapes, so a query executed many times (or with only its literal parameter values changing) doesn't have to re-run the full parser and analyzer from scratch on every single execution.
+</QuestionCard>
+
+<QuestionCard id="plc-02" number={2} question="Why does plan caching matter more for some workloads than others?" difficulty="medium" topic="Plan Caching">
+It matters most for workloads that execute the same or very similar query shape a large number of times in a short period — a BI tool or application issuing parameterized queries repeatedly. For a one-off analytical query run once, parsing/analysis overhead is negligible relative to the actual execution time, so plan caching has little to offer there.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Reading and Interpreting Explain Plans
+
+<QuestionList topic="Reading and Interpreting Explain Plans" storagePrefix="spark-catalyst-explain">
+
+<QuestionCard id="rep-01" number={1} question="What does explain() show, and what are its main variants?" difficulty="medium" topic="Explain Plans">
+`explain()` prints the physical plan by default. `explain("extended")` (or `explain(true)`) shows all four stages — parsed, analyzed, optimized logical plan, and physical plan — letting you see exactly what each phase of the pipeline did. `explain("cost")` additionally includes cost estimates where statistics are available; `explain("formatted")` gives a more structured, readable layout.
+</QuestionCard>
+
+<QuestionCard id="rep-02" number={2} question="What would you look for in an explain plan to diagnose an unexpectedly expensive join?" difficulty="medium" topic="Explain Plans">
+The specific physical join operator chosen (`BroadcastHashJoin`, `SortMergeJoin`, `ShuffleHashJoin`) to confirm it matches what was expected, whether an `Exchange` (shuffle) node appears where it shouldn't need to, and whether a `CartesianProduct` or unhinted broadcast of a large table appears — any of which point to the optimizer choosing a strategy that doesn't fit the query's actual data shape.
+</QuestionCard>
+
+<QuestionCard id="rep-03" number={3} question="How would you tell from an explain plan whether AQE actually changed anything at runtime?" difficulty="hard" topic="Explain Plans">
+Calling `explain()` before execution shows the initial plan; the **Spark UI's SQL tab**, after the query has actually run, shows the final, AQE-adjusted plan alongside the original — comparing the two (or looking for `AdaptiveSparkPlan` nodes and any noted strategy changes) reveals what AQE altered based on real runtime statistics that a pre-execution `explain()` alone can't show.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Spark Thrift Server
+
+<QuestionList topic="Spark Thrift Server" storagePrefix="spark-catalyst-thrift">
+
+<QuestionCard id="sts-01" number={1} question="What is the Spark Thrift Server, and what problem does it solve?" difficulty="medium" topic="Thrift Server">
+A long-running server process that exposes Spark SQL over JDBC/ODBC, letting external BI tools (Tableau, Power BI, and similar) connect and run SQL queries against Spark without needing a Spark-specific client library — it speaks a standard protocol those tools already know how to use.
+</QuestionCard>
+
+<QuestionCard id="sts-02" number={2} question="How does the Thrift Server handle multiple concurrent client connections?" difficulty="hard" topic="Thrift Server">
+It shares a single underlying `SparkContext` across concurrent client sessions/connections, rather than spinning up a separate Spark application per client — which is efficient for many lightweight BI queries, but also means all connected clients compete for the same cluster resources and are affected by each other's workload, unlike fully isolated per-client Spark applications.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Walk me through what happens between writing a DataFrame query and it actually running on the cluster."** Trace the full pipeline: parsing, analysis/resolution, rule-based logical optimization, physical plan generation and selection, code generation — and now AQE's runtime re-optimization at shuffle boundaries.
+- **"A query's explain plan shows a sort-merge join, but the Spark UI shows it actually ran as a broadcast join — why the mismatch?"** A direct AQE dynamic join strategy switching question — the pre-execution plan reflects estimates; the actual runtime plan reflects what AQE observed and adjusted.
+- **"Why would running ANALYZE TABLE on your source tables improve query performance, without changing any query code?"** Explain that it feeds cost-based optimization real statistics, letting the planner make better join-order and strategy decisions than heuristics alone.
+- **"A single task in a join stage is taking 20x longer than the others — what Spark feature would you check is enabled, and why?"** Point to AQE's skew join optimization, and discuss how it automatically detects and splits oversized shuffle partitions.
+
+---
+
+## Further Reading
+
+- [Spark Joins](/level-3-technologies/batch-processing/spark-joins/) — the specific join strategies (broadcast, sort-merge, shuffle hash) this optimizer chooses between
+- [Spark Execution Lifecycle](/level-3-technologies/batch-processing/spark-execution-lifecycle/) — the stage/shuffle boundaries where AQE re-optimization actually happens
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of

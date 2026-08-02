@@ -1,0 +1,165 @@
+---
+title: Spark Advanced Transformations
+description: Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Advanced RDD & DataFrame Transformations: Less Common, Still Important
+
+**These transformations don't come up in every pipeline, but each one solves a specific problem the basic map/filter/select vocabulary can't — amortizing per-partition setup cost, reading less data than what's on disk, reshaping between wide and long formats, or turning nested data into something queryable.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [mapPartitions and mapPartitionsWithIndex](#mappartitions-and-mappartitionswithindex)
+- [Filter and Predicate Pushdown](#filter-and-predicate-pushdown)
+- [Set-Based Operations](#set-based-operations)
+- [Pivoting and Unpivoting Data](#pivoting-and-unpivoting-data)
+- [Sampling and Data Splitting](#sampling-and-data-splitting)
+- [Exploding and Flattening Nested/Array Structures](#exploding-and-flattening-nestedarray-structures)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Most of these patterns exist to avoid doing more work than necessary: **`mapPartitions`** amortizes expensive per-partition setup (like opening a connection) instead of paying that cost per row. **Predicate pushdown** avoids reading data that a filter would discard anyway, by pushing the condition down into the source scan itself. **Sampling** and **set operations** avoid processing a full dataset when a subset or a comparison is all that's needed. **Pivoting** and **exploding** are the odd ones out — not optimizations, but genuine reshaping operations, turning data between row-oriented and column-oriented, or between nested and flat, to match what a downstream consumer actually expects.
+
+---
+
+## mapPartitions and mapPartitionsWithIndex
+
+<QuestionList topic="mapPartitions and mapPartitionsWithIndex" storagePrefix="spark-adv-map-partitions">
+
+<QuestionCard id="mpi-01" number={1} question="What does mapPartitions do differently from map?" difficulty="medium" topic="mapPartitions">
+`map` applies a function to each element individually, one call per row. `mapPartitions` applies a function once per *partition*, receiving an iterator over that partition's rows and returning an iterator of results — any setup work inside the function runs once per partition instead of once per row.
+</QuestionCard>
+
+<QuestionCard id="mpi-02" number={2} question="What's a practical example where mapPartitions meaningfully outperforms map?" difficulty="medium" topic="mapPartitions">
+Opening a database connection or an HTTP client to enrich each row with external data. With `map`, that connection would be created and torn down once per row — enormously wasteful. With `mapPartitions`, it's created once per partition, reused for every row in that partition, and closed once at the end.
+</QuestionCard>
+
+<QuestionCard id="mpi-03" number={3} question="What does mapPartitionsWithIndex add, and when would you need the partition index?" difficulty="medium" topic="mapPartitions">
+It provides the partition's index alongside its iterator of rows. It's useful when the logic needs to know *which* partition it's processing — for example, generating IDs that must be unique and deterministic across the whole dataset by combining the partition index with a per-row counter, without any coordination between partitions.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Filter and Predicate Pushdown
+
+<QuestionList topic="Filter and Predicate Pushdown" storagePrefix="spark-adv-predicate-pushdown">
+
+<QuestionCard id="fpp-01" number={1} question="What is predicate pushdown?" difficulty="medium" topic="Predicate Pushdown">
+Predicate pushdown moves a filter condition from after the data is read into the read itself — the data source only returns rows (or blocks of rows) that could actually match, rather than Spark reading everything and filtering afterward. Less data crosses the network and gets deserialized in the first place.
+</QuestionCard>
+
+<QuestionCard id="fpp-02" number={2} question="Why does predicate pushdown work especially well with Parquet?" difficulty="medium" topic="Predicate Pushdown">
+Parquet stores column-level statistics (min/max values) per row group. If a filter's range doesn't overlap a row group's min/max for that column, Spark can skip reading that entire row group without decompressing or scanning a single row inside it — a much coarser, cheaper form of pushdown than row-by-row filtering.
+</QuestionCard>
+
+<QuestionCard id="fpp-03" number={3} question="When does predicate pushdown NOT happen, even though a filter is present?" difficulty="hard" topic="Predicate Pushdown">
+When the filter wraps the column in a function (`WHERE UPPER(name) = 'X'`), since the source usually can't evaluate arbitrary transformations during a scan — only direct comparisons on raw column values. It also doesn't apply to data sources that don't support it at all (plain text files, most databases without a pushdown-capable JDBC driver setup), and won't help if the filter references a column not present in the source's own statistics.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Set-Based Operations
+
+<QuestionList topic="Set-Based Operations" storagePrefix="spark-adv-set-ops">
+
+<QuestionCard id="sbo-01" number={1} question="What do union, intersect, and except do, and what do they require of the two DataFrames?" difficulty="easy" topic="Set Operations">
+`union` combines the rows of two DataFrames into one. `intersect` returns only rows present in both. `except` returns rows present in the first but not the second. All three require both DataFrames to have the same number of columns with compatible types — they match columns by *position*, not by name.
+</QuestionCard>
+
+<QuestionCard id="sbo-02" number={2} question="What's the difference between union and unionByName?" difficulty="medium" topic="Set Operations">
+`union` matches columns purely by position — if the two DataFrames' columns are in a different order, the result silently mismatches data under the wrong column names. `unionByName` matches columns by name instead, which is safer whenever there's any chance the two DataFrames' column ordering doesn't line up exactly.
+</QuestionCard>
+
+<QuestionCard id="sbo-03" number={3} question="Does union remove duplicate rows the way a SQL UNION (without ALL) does?" difficulty="medium" topic="Set Operations">
+No — Spark's `union` behaves like SQL's `UNION ALL`: it keeps duplicates. To deduplicate the combined result, you have to explicitly call `.distinct()` afterward, since `union` alone won't do it for you.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Pivoting and Unpivoting Data
+
+<QuestionList topic="Pivoting and Unpivoting Data" storagePrefix="spark-adv-pivot">
+
+<QuestionCard id="piv-01" number={1} question="What does pivot() do, and what's the basic syntax?" difficulty="medium" topic="Pivoting">
+`pivot()` turns distinct values from one column into separate output columns, typically paired with an aggregate — reshaping row-oriented data into a cross-tab layout: `df.groupBy("product").pivot("month").sum("sales")` produces one row per product with a separate column for each distinct month's total sales.
+</QuestionCard>
+
+<QuestionCard id="piv-02" number={2} question="Why is it recommended to pass an explicit list of pivot values when possible?" difficulty="hard" topic="Pivoting">
+Without an explicit list, Spark has to first scan the data to discover all distinct values of the pivot column before it can even plan the output columns — an extra, potentially expensive pass. Passing the values explicitly (`pivot("month", Seq("Jan", "Feb", "Mar"))`) skips that discovery scan entirely, and also guarantees a stable, predictable set of output columns.
+</QuestionCard>
+
+<QuestionCard id="piv-03" number={3} question="How do you unpivot (turn columns back into rows) in Spark?" difficulty="medium" topic="Pivoting">
+Spark's DataFrame API doesn't have a single built-in `unpivot` the way `pivot` exists (newer versions added `unpivot`/`melt` in Spark 3.4+); the common approach in earlier versions is a `stack()` SQL expression: `selectExpr("id", "stack(3, 'Jan', jan, 'Feb', feb, 'Mar', mar) AS (month, value)")`, which explicitly maps each column into a `(month, value)` row pair.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Sampling and Data Splitting
+
+<QuestionList topic="Sampling and Data Splitting" storagePrefix="spark-adv-sampling">
+
+<QuestionCard id="sds-01" number={1} question="What does sample() do, and what's the difference between sampling with and without replacement?" difficulty="easy" topic="Sampling">
+`sample(withReplacement, fraction, seed)` draws a random subset of rows. Without replacement, each row can be selected at most once. With replacement, the same row can theoretically be selected multiple times (each row is independently considered, potentially more than once) — used less often for DataFrames than in classic statistical bootstrapping contexts.
+</QuestionCard>
+
+<QuestionCard id="sds-02" number={2} question="What does randomSplit() do, and what's a common use case?" difficulty="easy" topic="Sampling">
+`randomSplit(weights, seed)` partitions a DataFrame into multiple DataFrames based on given weights, e.g. `df.randomSplit(Array(0.8, 0.2))` for an 80/20 split. The most common use case is generating train/test (or train/validation/test) splits for a machine learning workflow directly on a distributed dataset.
+</QuestionCard>
+
+<QuestionCard id="sds-03" number={3} question="Why might randomSplit()'s actual split sizes not exactly match the requested weights?" difficulty="hard" topic="Sampling">
+The split is implemented probabilistically per row rather than by an exact global count — each row is independently assigned to a bucket based on the weights, so on a smaller dataset the actual proportions can deviate noticeably from the requested ones purely by chance, converging closer to the exact weights only as the dataset grows large.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Exploding and Flattening Nested/Array Structures
+
+<QuestionList topic="Exploding and Flattening Nested/Array Structures" storagePrefix="spark-adv-explode">
+
+<QuestionCard id="efn-01" number={1} question="What does explode() do?" difficulty="easy" topic="Exploding">
+`explode(column)` takes an array or map column and produces one output row per element — a row with an array of 3 items becomes 3 separate rows, each with one of those items and every other original column duplicated across them. It's the standard way to turn nested, repeated data into a flat, queryable row-per-item shape.
+</QuestionCard>
+
+<QuestionCard id="efn-02" number={2} question="What's the difference between explode() and explode_outer()?" difficulty="medium" topic="Exploding">
+`explode()` drops the row entirely if the array/map column is `NULL` or empty. `explode_outer()` keeps it, producing a single row with `NULL` in the exploded column's place — the same distinction as an inner join versus a left outer join, applied to array unpacking.
+</QuestionCard>
+
+<QuestionCard id="efn-03" number={3} question="How do you flatten a nested struct column into top-level columns?" difficulty="medium" topic="Exploding">
+`df.select("id", "address.street", "address.city")` (or `col("address.*")` to expand every field of the struct at once) pulls a struct's nested fields up to the top level of the output. This differs from `explode`, which is for arrays/maps with a variable number of elements — struct flattening is for a fixed, known set of nested fields.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A pipeline enriches every row with a call to an external API and it's extremely slow — how would you speed it up?"** Point to `mapPartitions` to amortize connection/client setup per partition instead of per row, plus batching the actual API calls where possible.
+- **"Why did wrapping a filter column in a function (like UPPER()) make a query noticeably slower on a large Parquet dataset?"** Explain how that breaks predicate pushdown, forcing Spark to read and decompress row groups it could otherwise have skipped entirely.
+- **"How would you build a monthly sales report with one column per month from a long-format sales table?"** A direct `groupBy().pivot()` prompt, including why passing explicit pivot values is worth doing.
+- **"You have a column of JSON arrays and need one row per array element for downstream analysis — how do you do it?"** A straightforward `explode()`/`explode_outer()` prompt, testing whether the candidate knows to consider empty/null arrays.
+
+---
+
+## Further Reading
+
+- [Spark DataFrame & Dataset APIs](/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/) — the Column API and schema concepts these transformations build on
+- [Spark RDD API](/level-3-technologies/batch-processing/spark-rdd-api/) — mapPartitions' RDD-level origins and how it relates to plain map
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of

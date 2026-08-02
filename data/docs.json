@@ -7400,6 +7400,167 @@
     "content": "## Technologies Covered\r\n\r\n- **Hadoop**: Distributed processing framework\r\n- **Spark**: Fast unified computing engine\r\n- **Hive**: SQL interface for Hadoop"
   },
   {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "## Advanced RDD & DataFrame Transformations: Less Common, Still Important\n\n**These transformations don't come up in every pipeline, but each one solves a specific problem the basic map/filter/select vocabulary can't — amortizing per-partition setup cost, reading less data than what's on disk, reshaping between wide and long formats, or turning nested data into something queryable.**"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [mapPartitions and mapPartitionsWithIndex](#mappartitions-and-mappartitionswithindex)\n- [Filter and Predicate Pushdown](#filter-and-predicate-pushdown)\n- [Set-Based Operations](#set-based-operations)\n- [Pivoting and Unpivoting Data](#pivoting-and-unpivoting-data)\n- [Sampling and Data Splitting](#sampling-and-data-splitting)\n- [Exploding and Flattening Nested/Array Structures](#exploding-and-flattening-nestedarray-structures)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "## Key Concepts\n\nMost of these patterns exist to avoid doing more work than necessary: **`mapPartitions`** amortizes expensive per-partition setup (like opening a connection) instead of paying that cost per row. **Predicate pushdown** avoids reading data that a filter would discard anyway, by pushing the condition down into the source scan itself. **Sampling** and **set operations** avoid processing a full dataset when a subset or a comparison is all that's needed. **Pivoting** and **exploding** are the odd ones out — not optimizations, but genuine reshaping operations, turning data between row-oriented and column-oriented, or between nested and flat, to match what a downstream consumer actually expects.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "## mapPartitions and mapPartitionsWithIndex\n\n<QuestionList topic=\"mapPartitions and mapPartitionsWithIndex\" storagePrefix=\"spark-adv-map-partitions\">\n\n<QuestionCard id=\"mpi-01\" number={1} question=\"What does mapPartitions do differently from map?\" difficulty=\"medium\" topic=\"mapPartitions\">\n`map` applies a function to each element individually, one call per row. `mapPartitions` applies a function once per *partition*, receiving an iterator over that partition's rows and returning an iterator of results — any setup work inside the function runs once per partition instead of once per row.\n</QuestionCard>\n\n<QuestionCard id=\"mpi-02\" number={2} question=\"What's a practical example where mapPartitions meaningfully outperforms map?\" difficulty=\"medium\" topic=\"mapPartitions\">\nOpening a database con"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "nection or an HTTP client to enrich each row with external data. With `map`, that connection would be created and torn down once per row — enormously wasteful. With `mapPartitions`, it's created once per partition, reused for every row in that partition, and closed once at the end.\n</QuestionCard>\n\n<QuestionCard id=\"mpi-03\" number={3} question=\"What does mapPartitionsWithIndex add, and when would you need the partition index?\" difficulty=\"medium\" topic=\"mapPartitions\">\nIt provides the partition's index alongside its iterator of rows. It's useful when the logic needs to know *which* partition it's processing — for example, generating IDs that must be unique and deterministic across the whole dataset by combining the partition index with a per-row counter, without any coordination between pa"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "rtitions.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "## Filter and Predicate Pushdown\n\n<QuestionList topic=\"Filter and Predicate Pushdown\" storagePrefix=\"spark-adv-predicate-pushdown\">\n\n<QuestionCard id=\"fpp-01\" number={1} question=\"What is predicate pushdown?\" difficulty=\"medium\" topic=\"Predicate Pushdown\">\nPredicate pushdown moves a filter condition from after the data is read into the read itself — the data source only returns rows (or blocks of rows) that could actually match, rather than Spark reading everything and filtering afterward. Less data crosses the network and gets deserialized in the first place.\n</QuestionCard>\n\n<QuestionCard id=\"fpp-02\" number={2} question=\"Why does predicate pushdown work especially well with Parquet?\" difficulty=\"medium\" topic=\"Predicate Pushdown\">\nParquet stores column-level statistics (min/max values) p"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "er row group. If a filter's range doesn't overlap a row group's min/max for that column, Spark can skip reading that entire row group without decompressing or scanning a single row inside it — a much coarser, cheaper form of pushdown than row-by-row filtering.\n</QuestionCard>\n\n<QuestionCard id=\"fpp-03\" number={3} question=\"When does predicate pushdown NOT happen, even though a filter is present?\" difficulty=\"hard\" topic=\"Predicate Pushdown\">\nWhen the filter wraps the column in a function (`WHERE UPPER(name) = 'X'`), since the source usually can't evaluate arbitrary transformations during a scan — only direct comparisons on raw column values. It also doesn't apply to data sources that don't support it at all (plain text files, most databases without a pushdown-capable JDBC driver setup), an"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "d won't help if the filter references a column not present in the source's own statistics.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "## Set-Based Operations\n\n<QuestionList topic=\"Set-Based Operations\" storagePrefix=\"spark-adv-set-ops\">\n\n<QuestionCard id=\"sbo-01\" number={1} question=\"What do union, intersect, and except do, and what do they require of the two DataFrames?\" difficulty=\"easy\" topic=\"Set Operations\">\n`union` combines the rows of two DataFrames into one. `intersect` returns only rows present in both. `except` returns rows present in the first but not the second. All three require both DataFrames to have the same number of columns with compatible types — they match columns by *position*, not by name.\n</QuestionCard>\n\n<QuestionCard id=\"sbo-02\" number={2} question=\"What's the difference between union and unionByName?\" difficulty=\"medium\" topic=\"Set Operations\">\n`union` matches columns purely by position — if the"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "two DataFrames' columns are in a different order, the result silently mismatches data under the wrong column names. `unionByName` matches columns by name instead, which is safer whenever there's any chance the two DataFrames' column ordering doesn't line up exactly.\n</QuestionCard>\n\n<QuestionCard id=\"sbo-03\" number={3} question=\"Does union remove duplicate rows the way a SQL UNION (without ALL) does?\" difficulty=\"medium\" topic=\"Set Operations\">\nNo — Spark's `union` behaves like SQL's `UNION ALL`: it keeps duplicates. To deduplicate the combined result, you have to explicitly call `.distinct()` afterward, since `union` alone won't do it for you.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "## Pivoting and Unpivoting Data\n\n<QuestionList topic=\"Pivoting and Unpivoting Data\" storagePrefix=\"spark-adv-pivot\">\n\n<QuestionCard id=\"piv-01\" number={1} question=\"What does pivot() do, and what's the basic syntax?\" difficulty=\"medium\" topic=\"Pivoting\">\n`pivot()` turns distinct values from one column into separate output columns, typically paired with an aggregate — reshaping row-oriented data into a cross-tab layout: `df.groupBy(\"product\").pivot(\"month\").sum(\"sales\")` produces one row per product with a separate column for each distinct month's total sales.\n</QuestionCard>\n\n<QuestionCard id=\"piv-02\" number={2} question=\"Why is it recommended to pass an explicit list of pivot values when possible?\" difficulty=\"hard\" topic=\"Pivoting\">\nWithout an explicit list, Spark has to first scan the d"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "ata to discover all distinct values of the pivot column before it can even plan the output columns — an extra, potentially expensive pass. Passing the values explicitly (`pivot(\"month\", Seq(\"Jan\", \"Feb\", \"Mar\"))`) skips that discovery scan entirely, and also guarantees a stable, predictable set of output columns.\n</QuestionCard>\n\n<QuestionCard id=\"piv-03\" number={3} question=\"How do you unpivot (turn columns back into rows) in Spark?\" difficulty=\"medium\" topic=\"Pivoting\">\nSpark's DataFrame API doesn't have a single built-in `unpivot` the way `pivot` exists (newer versions added `unpivot`/`melt` in Spark 3.4+); the common approach in earlier versions is a `stack()` SQL expression: `selectExpr(\"id\", \"stack(3, 'Jan', jan, 'Feb', feb, 'Mar', mar) AS (month, value)\")`, which explicitly maps eac"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "h column into a `(month, value)` row pair.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "## Sampling and Data Splitting\n\n<QuestionList topic=\"Sampling and Data Splitting\" storagePrefix=\"spark-adv-sampling\">\n\n<QuestionCard id=\"sds-01\" number={1} question=\"What does sample() do, and what's the difference between sampling with and without replacement?\" difficulty=\"easy\" topic=\"Sampling\">\n`sample(withReplacement, fraction, seed)` draws a random subset of rows. Without replacement, each row can be selected at most once. With replacement, the same row can theoretically be selected multiple times (each row is independently considered, potentially more than once) — used less often for DataFrames than in classic statistical bootstrapping contexts.\n</QuestionCard>\n\n<QuestionCard id=\"sds-02\" number={2} question=\"What does randomSplit() do, and what's a common use case?\" difficulty=\"easy\""
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "topic=\"Sampling\">\n`randomSplit(weights, seed)` partitions a DataFrame into multiple DataFrames based on given weights, e.g. `df.randomSplit(Array(0.8, 0.2))` for an 80/20 split. The most common use case is generating train/test (or train/validation/test) splits for a machine learning workflow directly on a distributed dataset.\n</QuestionCard>\n\n<QuestionCard id=\"sds-03\" number={3} question=\"Why might randomSplit()'s actual split sizes not exactly match the requested weights?\" difficulty=\"hard\" topic=\"Sampling\">\nThe split is implemented probabilistically per row rather than by an exact global count — each row is independently assigned to a bucket based on the weights, so on a smaller dataset the actual proportions can deviate noticeably from the requested ones purely by chance, converging c"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "loser to the exact weights only as the dataset grows large.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "## Exploding and Flattening Nested/Array Structures\n\n<QuestionList topic=\"Exploding and Flattening Nested/Array Structures\" storagePrefix=\"spark-adv-explode\">\n\n<QuestionCard id=\"efn-01\" number={1} question=\"What does explode() do?\" difficulty=\"easy\" topic=\"Exploding\">\n`explode(column)` takes an array or map column and produces one output row per element — a row with an array of 3 items becomes 3 separate rows, each with one of those items and every other original column duplicated across them. It's the standard way to turn nested, repeated data into a flat, queryable row-per-item shape.\n</QuestionCard>\n\n<QuestionCard id=\"efn-02\" number={2} question=\"What's the difference between explode() and explode_outer()?\" difficulty=\"medium\" topic=\"Exploding\">\n`explode()` drops the row entirely if the"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "array/map column is `NULL` or empty. `explode_outer()` keeps it, producing a single row with `NULL` in the exploded column's place — the same distinction as an inner join versus a left outer join, applied to array unpacking.\n</QuestionCard>\n\n<QuestionCard id=\"efn-03\" number={3} question=\"How do you flatten a nested struct column into top-level columns?\" difficulty=\"medium\" topic=\"Exploding\">\n`df.select(\"id\", \"address.street\", \"address.city\")` (or `col(\"address.*\")` to expand every field of the struct at once) pulls a struct's nested fields up to the top level of the output. This differs from `explode`, which is for arrays/maps with a variable number of elements — struct flattening is for a fixed, known set of nested fields.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "## Common Interview Scenarios\n\n- **\"A pipeline enriches every row with a call to an external API and it's extremely slow — how would you speed it up?\"** Point to `mapPartitions` to amortize connection/client setup per partition instead of per row, plus batching the actual API calls where possible.\n- **\"Why did wrapping a filter column in a function (like UPPER()) make a query noticeably slower on a large Parquet dataset?\"** Explain how that breaks predicate pushdown, forcing Spark to read and decompress row groups it could otherwise have skipped entirely.\n- **\"How would you build a monthly sales report with one column per month from a long-format sales table?\"** A direct `groupBy().pivot()` prompt, including why passing explicit pivot values is worth doing.\n- **\"You have a column of JSON a"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "rrays and need one row per array element for downstream analysis — how do you do it?\"** A straightforward `explode()`/`explode_outer()` prompt, testing whether the candidate knows to consider empty/null arrays.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "locale": "en",
+    "title": "Spark Advanced Transformations",
+    "description": "Interview questions on advanced Spark transformations — mapPartitions, predicate pushdown, set operations, pivoting, sampling, and exploding nested structures.",
+    "content": "## Further Reading\n\n- [Spark DataFrame & Dataset APIs](/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/) — the Column API and schema concepts these transformations build on\n- [Spark RDD API](/level-3-technologies/batch-processing/spark-rdd-api/) — mapPartitions' RDD-level origins and how it relates to plain map\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
+  },
+  {
     "path": "/level-3-technologies/batch-processing/spark-core-fundamentals/",
     "locale": "en",
     "title": "Spark Core Fundamentals",
@@ -8637,6 +8798,503 @@
     "title": "Spark RDD API",
     "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
     "content": "## Further Reading\n\n- [Apache Spark](/level-3-technologies/batch-processing/spark/#rdds-transformations--actions) — the broader RDD operation reference, including Pair RDDs and common transformation/action lists\n- [Spark Execution Lifecycle](/level-3-technologies/batch-processing/spark-execution-lifecycle/) — how narrow vs. wide dependencies (built on this page's lineage model) determine stage boundaries\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Spark SQL Engine & Catalyst Optimizer: From Query Text to Execution\n\n**Every DataFrame operation or SQL query passes through the same pipeline — parsed, analyzed against the catalog, rewritten by rule-based optimization, turned into a physical plan, compiled into fused code, and (increasingly) re-optimized again at runtime once Spark can see the data it's actually working with.**"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Logical Plan Analysis and Validation](#logical-plan-analysis-and-validation)\n- [Rule-Based Logical Plan Optimization](#rule-based-logical-plan-optimization)\n- [Physical Plan Generation and Selection](#physical-plan-generation-and-selection)\n- [Cost-Based Optimization (CBO)](#cost-based-optimization-cbo)\n- [Whole-Stage Code Generation](#whole-stage-code-generation)\n- [Vectorized Execution](#vectorized-execution)\n- [Adaptive Query Execution (AQE)](#adaptive-query-execution-aqe)\n- [Dynamic Partition Coalescing](#dynamic-partition-coalescing)\n- [Dynamic Join Strategy Switching](#dynamic-join-strategy-switching)\n- [Skew Join Optimization](#skew-join-optimization)\n- [Plan Caching](#plan-caching)\n- [Reading and Interpreting Explain Plans](#r"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "eading-and-interpreting-explain-plans)\n- [Spark Thrift Server](#spark-thrift-server)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Key Concepts\n\nA query moves through four phases before it runs: **analysis** (resolve references against the catalog, validate types), **logical optimization** (apply a fixed set of rewrite rules), **physical planning** (generate candidate execution strategies and pick one, ideally cost-informed), and **code generation** (compile the chosen plan into fused JVM bytecode). That whole pipeline runs *before* any data is touched — it's all planning based on estimates. **Adaptive Query Execution (AQE)** is the newer layer on top: instead of trusting upfront estimates for the whole query, Spark pauses at shuffle boundaries and re-optimizes the *remaining* plan using real, observed statistics — which is how it can coalesce partitions, downgrade a join strategy, or split a skewed partition after"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "seeing actual data, not just an estimate of it.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Logical Plan Analysis and Validation\n\n<QuestionList topic=\"Logical Plan Analysis and Validation\" storagePrefix=\"spark-catalyst-analysis\">\n\n<QuestionCard id=\"lpa-01\" number={1} question=\"What does the Analyzer do, and what does an 'unresolved' logical plan mean?\" difficulty=\"medium\" topic=\"Analysis\">\nWhen a query is first parsed, column and table references are just names — the plan doesn't yet know if `orders` refers to a real table or if `customer_id` is a valid column, which makes it \"unresolved.\" The Analyzer resolves those references against the catalog (checking tables and columns actually exist), and validates types, turning the unresolved plan into a validated logical plan — or failing with an analysis error if something doesn't check out.\n</QuestionCard>\n\n<QuestionCard id=\"lpa-0"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "2\" number={2} question=\"What kind of error would you expect from a typo in a column name, and when does it surface?\" difficulty=\"easy\" topic=\"Analysis\">\nAn `AnalysisException`, raised during the analysis phase — before any actual computation runs, since resolving column references against the catalog happens as part of building the validated logical plan, not at execution time. This is why a misspelled column name fails fast, even under Spark's generally lazy execution model.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Rule-Based Logical Plan Optimization\n\n<QuestionList topic=\"Rule-Based Logical Plan Optimization\" storagePrefix=\"spark-catalyst-rule-based\">\n\n<QuestionCard id=\"rbo-01\" number={1} question=\"What is rule-based logical plan optimization?\" difficulty=\"medium\" topic=\"Rule-Based Optimization\">\nOnce a logical plan is validated, Catalyst applies a fixed set of rewrite rules to transform it into an equivalent but cheaper plan — without yet considering the actual data or cost. It's \"rule-based\" because each rule fires whenever its pattern matches, regardless of how large the tables involved actually are.\n</QuestionCard>\n\n<QuestionCard id=\"rbo-02\" number={2} question=\"Name a few common rule-based optimizations Catalyst applies.\" difficulty=\"medium\" topic=\"Rule-Based Optimization\">\n**Predicate pushd"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "own** — moving filters as close to the data source as possible. **Constant folding** — evaluating constant expressions once at plan time instead of per row (`1 + 1` becomes `2`). **Column pruning** — removing columns from a scan that the query never actually uses, so they're never read at all.\n</QuestionCard>\n\n<QuestionCard id=\"rbo-03\" number={3} question=\"Why can rule-based optimization alone sometimes make a suboptimal choice?\" difficulty=\"hard\" topic=\"Rule-Based Optimization\">\nBecause it applies rules mechanically without weighing actual cost — a rule that's usually beneficial can occasionally produce a worse plan for a specific data shape it has no visibility into (e.g., reordering joins without knowing which table is actually smaller). This is exactly the gap cost-based optimization,"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "and later AQE, exist to close.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Physical Plan Generation and Selection\n\n<QuestionList topic=\"Physical Plan Generation and Selection\" storagePrefix=\"spark-catalyst-physical-plan\">\n\n<QuestionCard id=\"pgs-01\" number={1} question=\"What happens during physical plan generation?\" difficulty=\"medium\" topic=\"Physical Planning\">\nThe optimized logical plan (still an abstract description of *what* to compute) is turned into one or more concrete physical plans describing *how* to compute it — for example, choosing among broadcast hash join, sort-merge join, or shuffle hash join for a given join in the query.\n</QuestionCard>\n\n<QuestionCard id=\"pgs-02\" number={2} question=\"How does the planner pick among multiple candidate physical plans?\" difficulty=\"medium\" topic=\"Physical Planning\">\nBy estimated cost — using whatever statistics a"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "re available (table/column stats if collected, otherwise file size and row count estimates) to predict which candidate plan will be cheapest, then selecting it. Without collected statistics, this falls back to simpler heuristics (like size thresholds for broadcast joins) rather than genuine cost comparison.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Cost-Based Optimization (CBO)\n\n<QuestionList topic=\"Cost-Based Optimization (CBO)\" storagePrefix=\"spark-catalyst-cbo\">\n\n<QuestionCard id=\"cbo-01\" number={1} question=\"What is cost-based optimization, and how does it differ from rule-based optimization?\" difficulty=\"medium\" topic=\"CBO\">\nCBO uses collected table and column statistics (row counts, distinct value counts, min/max, null counts) to estimate the actual cost of different plan choices, then picks the cheapest. Rule-based optimization applies fixed heuristics regardless of data size; CBO makes data-size-aware decisions — most usefully, choosing a better join order or join strategy than a blind heuristic would.\n</QuestionCard>\n\n<QuestionCard id=\"cbo-02\" number={2} question=\"How do you enable CBO and provide it the statistics it nee"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "ds?\" difficulty=\"medium\" topic=\"CBO\">\nSet `spark.sql.cbo.enabled = true`, and run `ANALYZE TABLE table_name COMPUTE STATISTICS FOR COLUMNS col1, col2` to collect the column-level statistics CBO relies on. Without running `ANALYZE TABLE`, CBO has no real statistics to work from and can't meaningfully improve on rule-based/heuristic decisions.\n</QuestionCard>\n\n<QuestionCard id=\"cbo-03\" number={3} question=\"What's a concrete example of a decision CBO can make better than a rule-based approach?\" difficulty=\"hard\" topic=\"CBO\">\nChoosing join order for a query joining three or more tables — a rule-based approach might join them in the order they're written, while CBO can use row count and selectivity estimates to start with the smallest intermediate result, reducing the amount of data every subse"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "quent join has to process.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Whole-Stage Code Generation\n\n<QuestionList topic=\"Whole-Stage Code Generation\" storagePrefix=\"spark-catalyst-codegen\">\n\n<QuestionCard id=\"wcg-01\" number={1} question=\"What is whole-stage code generation?\" difficulty=\"medium\" topic=\"Code Generation\">\nIt fuses multiple physical operators in a stage (a filter, a projection, an aggregation) into a single generated Java function, compiled and executed as one unit — instead of each operator processing a row and passing it to the next operator through a chain of virtual function calls.\n</QuestionCard>\n\n<QuestionCard id=\"wcg-02\" number={2} question=\"What overhead does whole-stage code generation eliminate?\" difficulty=\"medium\" topic=\"Code Generation\">\nThe per-row, per-operator virtual function call overhead of the traditional \"Volcano\" iterator"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "model, where each row passes through a `next()` call at every operator boundary. Fusing operators into one generated function lets the JVM optimize the whole sequence as straight-line code, closer to what a hand-written loop would look like.\n</QuestionCard>\n\n<QuestionCard id=\"wcg-03\" number={3} question=\"Why can't whole-stage code generation extend across a UDF?\" difficulty=\"hard\" topic=\"Code Generation\">\nBecause a UDF's logic is arbitrary, opaque code — the code generator has no visibility into what it does, so it can't be inlined into the generated function the way built-in operators can. The UDF has to be called as a separate, un-fused black-box step, which breaks the otherwise fused pipeline at that point.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Vectorized Execution\n\n<QuestionList topic=\"Vectorized Execution\" storagePrefix=\"spark-catalyst-vectorized\">\n\n<QuestionCard id=\"vex-01\" number={1} question=\"What is vectorized execution?\" difficulty=\"medium\" topic=\"Vectorized Execution\">\nProcessing columnar batches of rows at once, rather than one row at a time — commonly used for reading columnar formats like Parquet, where a whole batch of values for a column can be decoded and processed together as a contiguous block instead of individually.\n</QuestionCard>\n\n<QuestionCard id=\"vex-02\" number={2} question=\"Why does vectorized execution perform better than row-at-a-time processing?\" difficulty=\"hard\" topic=\"Vectorized Execution\">\nProcessing data in contiguous, columnar batches makes much better use of CPU cache locality and enables SIMD"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "(single-instruction-multiple-data) style operations on modern hardware, since the same operation is applied uniformly across many values in a tight loop — something a row-at-a-time model, jumping between different fields of different rows, can't exploit nearly as well.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Adaptive Query Execution (AQE)\n\n<QuestionList topic=\"Adaptive Query Execution (AQE)\" storagePrefix=\"spark-catalyst-aqe\">\n\n<QuestionCard id=\"aqe-01\" number={1} question=\"What is Adaptive Query Execution, and why does it exist alongside CBO?\" difficulty=\"medium\" topic=\"AQE\">\nAQE re-optimizes the physical plan **at runtime**, using actual statistics gathered from completed shuffle stages — rather than relying purely on upfront estimates the way CBO does. It exists because even good statistics collected ahead of time can be wrong by the time a query actually runs (stale stats, filters that narrow data more than estimated), and AQE can correct for that using real, observed numbers.\n</QuestionCard>\n\n<QuestionCard id=\"aqe-02\" number={2} question=\"At what point in query execution does AQE actua"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "lly re-optimize?\" difficulty=\"medium\" topic=\"AQE\">\nAt shuffle boundaries — since a shuffle is already a natural synchronization point where all of a stage's output has to be materialized before the next stage can start, Spark can pause there, inspect the real size and distribution of that output, and adjust the remaining plan accordingly before continuing.\n</QuestionCard>\n\n<QuestionCard id=\"aqe-03\" number={3} question=\"What are the three main things AQE can do once it re-optimizes?\" difficulty=\"medium\" topic=\"AQE\">\n**Coalesce** small post-shuffle partitions into larger ones, **switch join strategies** (e.g., downgrade a planned sort-merge join to a broadcast join once actual output size is known to be small), and **split skewed partitions** into smaller sub-partitions to avoid a single str"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "aggler task — each covered in more depth below.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Dynamic Partition Coalescing\n\n<QuestionList topic=\"Dynamic Partition Coalescing\" storagePrefix=\"spark-catalyst-partition-coalescing\">\n\n<QuestionCard id=\"dpc-01\" number={1} question=\"What problem does dynamic partition coalescing solve?\" difficulty=\"medium\" topic=\"Partition Coalescing\">\nA statically configured shuffle partition count (`spark.sql.shuffle.partitions`) is a single number applied regardless of how much data actually ends up in each partition after filtering — too high a count on a smaller-than-expected result produces many tiny, wasteful tasks with scheduling overhead disproportionate to the actual work.\n</QuestionCard>\n\n<QuestionCard id=\"dpc-02\" number={2} question=\"How does AQE merge small partitions at runtime?\" difficulty=\"medium\" topic=\"Partition Coalescing\">\nAfter a sh"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "uffle, AQE looks at the actual size of each resulting partition and merges adjacent small ones together up to a target size, so the next stage runs with a more sensibly sized set of tasks — fewer, larger tasks instead of many tiny ones — without the developer having to hand-tune the shuffle partition count for every query's specific output size.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Dynamic Join Strategy Switching\n\n<QuestionList topic=\"Dynamic Join Strategy Switching\" storagePrefix=\"spark-catalyst-join-switching\">\n\n<QuestionCard id=\"djs-01\" number={1} question=\"What is dynamic join strategy switching?\" difficulty=\"medium\" topic=\"Join Strategy Switching\">\nAQE can change a join's execution strategy at runtime — most commonly, downgrading a planned sort-merge join to a broadcast hash join once it observes that one side's actual post-shuffle output is small enough to broadcast, even though the upfront size estimate didn't indicate that.\n</QuestionCard>\n\n<QuestionCard id=\"djs-02\" number={2} question=\"Why would the upfront plan choose sort-merge join when a broadcast join turns out to be possible?\" difficulty=\"hard\" topic=\"Join Strategy Switching\">\nThe upfront estimate i"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "s based on stale statistics, file size before filtering, or simply a conservative guess — if a heavy filter earlier in the query dramatically shrinks one side's actual row count, the planner had no way to know that in advance. AQE's runtime view, taken after the shuffle has actually happened, sees the true post-filter size and can correct the earlier, necessarily uncertain decision.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Skew Join Optimization\n\n<QuestionList topic=\"Skew Join Optimization\" storagePrefix=\"spark-catalyst-skew-join\">\n\n<QuestionCard id=\"sjo-01\" number={1} question=\"What does AQE's skew join optimization do?\" difficulty=\"medium\" topic=\"Skew Join\">\nIt detects shuffle partitions that are disproportionately larger than the rest (a sign of data skew on the join key) using real post-shuffle size statistics, and splits those oversized partitions into smaller sub-partitions that are joined separately against the corresponding data on the other side.\n</QuestionCard>\n\n<QuestionCard id=\"sjo-02\" number={2} question=\"How is this different from manually salting a skewed key?\" difficulty=\"hard\" topic=\"Skew Join\">\nSalting requires the developer to identify which keys are skewed and manually rewrite the join"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "logic to split them. AQE's skew join optimization does this automatically at runtime, based on actually observed partition sizes, without needing the skewed keys to be known or hand-coded around in advance — though manual salting can still be useful in cases or Spark versions where AQE's detection doesn't apply.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Plan Caching\n\n<QuestionList topic=\"Plan Caching\" storagePrefix=\"spark-catalyst-plan-caching\">\n\n<QuestionCard id=\"plc-01\" number={1} question=\"What does plan caching do?\" difficulty=\"medium\" topic=\"Plan Caching\">\nSpark caches parsed and analyzed logical plans for repeated query shapes, so a query executed many times (or with only its literal parameter values changing) doesn't have to re-run the full parser and analyzer from scratch on every single execution.\n</QuestionCard>\n\n<QuestionCard id=\"plc-02\" number={2} question=\"Why does plan caching matter more for some workloads than others?\" difficulty=\"medium\" topic=\"Plan Caching\">\nIt matters most for workloads that execute the same or very similar query shape a large number of times in a short period — a BI tool or application issuing param"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "eterized queries repeatedly. For a one-off analytical query run once, parsing/analysis overhead is negligible relative to the actual execution time, so plan caching has little to offer there.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Reading and Interpreting Explain Plans\n\n<QuestionList topic=\"Reading and Interpreting Explain Plans\" storagePrefix=\"spark-catalyst-explain\">\n\n<QuestionCard id=\"rep-01\" number={1} question=\"What does explain() show, and what are its main variants?\" difficulty=\"medium\" topic=\"Explain Plans\">\n`explain()` prints the physical plan by default. `explain(\"extended\")` (or `explain(true)`) shows all four stages — parsed, analyzed, optimized logical plan, and physical plan — letting you see exactly what each phase of the pipeline did. `explain(\"cost\")` additionally includes cost estimates where statistics are available; `explain(\"formatted\")` gives a more structured, readable layout.\n</QuestionCard>\n\n<QuestionCard id=\"rep-02\" number={2} question=\"What would you look for in an explain plan to diagn"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "ose an unexpectedly expensive join?\" difficulty=\"medium\" topic=\"Explain Plans\">\nThe specific physical join operator chosen (`BroadcastHashJoin`, `SortMergeJoin`, `ShuffleHashJoin`) to confirm it matches what was expected, whether an `Exchange` (shuffle) node appears where it shouldn't need to, and whether a `CartesianProduct` or unhinted broadcast of a large table appears — any of which point to the optimizer choosing a strategy that doesn't fit the query's actual data shape.\n</QuestionCard>\n\n<QuestionCard id=\"rep-03\" number={3} question=\"How would you tell from an explain plan whether AQE actually changed anything at runtime?\" difficulty=\"hard\" topic=\"Explain Plans\">\nCalling `explain()` before execution shows the initial plan; the **Spark UI's SQL tab**, after the query has actually run,"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "shows the final, AQE-adjusted plan alongside the original — comparing the two (or looking for `AdaptiveSparkPlan` nodes and any noted strategy changes) reveals what AQE altered based on real runtime statistics that a pre-execution `explain()` alone can't show.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Spark Thrift Server\n\n<QuestionList topic=\"Spark Thrift Server\" storagePrefix=\"spark-catalyst-thrift\">\n\n<QuestionCard id=\"sts-01\" number={1} question=\"What is the Spark Thrift Server, and what problem does it solve?\" difficulty=\"medium\" topic=\"Thrift Server\">\nA long-running server process that exposes Spark SQL over JDBC/ODBC, letting external BI tools (Tableau, Power BI, and similar) connect and run SQL queries against Spark without needing a Spark-specific client library — it speaks a standard protocol those tools already know how to use.\n</QuestionCard>\n\n<QuestionCard id=\"sts-02\" number={2} question=\"How does the Thrift Server handle multiple concurrent client connections?\" difficulty=\"hard\" topic=\"Thrift Server\">\nIt shares a single underlying `SparkContext` across concurrent client s"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "essions/connections, rather than spinning up a separate Spark application per client — which is efficient for many lightweight BI queries, but also means all connected clients compete for the same cluster resources and are affected by each other's workload, unlike fully isolated per-client Spark applications.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Common Interview Scenarios\n\n- **\"Walk me through what happens between writing a DataFrame query and it actually running on the cluster.\"** Trace the full pipeline: parsing, analysis/resolution, rule-based logical optimization, physical plan generation and selection, code generation — and now AQE's runtime re-optimization at shuffle boundaries.\n- **\"A query's explain plan shows a sort-merge join, but the Spark UI shows it actually ran as a broadcast join — why the mismatch?\"** A direct AQE dynamic join strategy switching question — the pre-execution plan reflects estimates; the actual runtime plan reflects what AQE observed and adjusted.\n- **\"Why would running ANALYZE TABLE on your source tables improve query performance, without changing any query code?\"** Explain that it feeds cost-bas"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "ed optimization real statistics, letting the planner make better join-order and strategy decisions than heuristics alone.\n- **\"A single task in a join stage is taking 20x longer than the others — what Spark feature would you check is enabled, and why?\"** Point to AQE's skew join optimization, and discuss how it automatically detects and splits oversized shuffle partitions.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "locale": "en",
+    "title": "Spark SQL Catalyst Optimizer",
+    "description": "Interview questions on Spark's Catalyst optimizer — logical/physical plan optimization, CBO, whole-stage codegen, vectorized execution, AQE, plan caching, and explain plans.",
+    "content": "## Further Reading\n\n- [Spark Joins](/level-3-technologies/batch-processing/spark-joins/) — the specific join strategies (broadcast, sort-merge, shuffle hash) this optimizer chooses between\n- [Spark Execution Lifecycle](/level-3-technologies/batch-processing/spark-execution-lifecycle/) — the stage/shuffle boundaries where AQE re-optimization actually happens\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "## User Defined Functions (UDFs): Extending Spark SQL, and What It Costs\n\n**A UDF lets you write custom logic Spark SQL can't express natively, but that convenience has a real price — Catalyst can't see inside it, can't optimize through it, and (in Python especially) it pays a serialization tax the built-in functions never do.**"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Scalar UDF Implementation](#scalar-udf-implementation)\n- [User-Defined Aggregate Functions (UDAFs)](#user-defined-aggregate-functions-udafs)\n- [Pandas (Vectorized) UDFs](#pandas-vectorized-udfs)\n- [Arrow-Based Data Transfer for UDFs](#arrow-based-data-transfer-for-udfs)\n- [Python versus JVM Execution Overhead](#python-versus-jvm-execution-overhead)\n- [Built-in Functions versus Custom UDFs](#built-in-functions-versus-custom-udfs)\n- [Higher-Order Functions for Array/Map Columns](#higher-order-functions-for-arraymap-columns)\n- [Dependency Isolation for UDF Environments](#dependency-isolation-for-udf-environments)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "## Key Concepts\n\nA **scalar UDF** is the simplest extension point — custom row-at-a-time logic registered and used like any built-in function — but Spark SQL's optimizer treats it as an **opaque black box**: no predicate pushdown through it, no whole-stage code generation across it, none of Catalyst's usual tricks. For Python specifically, a regular UDF pays an even steeper cost: each row crosses the JVM/Python process boundary, serialized and deserialized on the way. **Pandas UDFs** (vectorized, using **Apache Arrow** for the data transfer) close most of that gap by operating on batches instead of single rows. **Higher-order functions** (`transform`, `filter`, `exists`) sidestep the whole trade-off for array/map columns by expressing the logic natively in Spark SQL, no UDF required at all"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": ".\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "## Scalar UDF Implementation\n\n<QuestionList topic=\"Scalar UDF Implementation\" storagePrefix=\"spark-udf-scalar\">\n\n<QuestionCard id=\"sud-01\" number={1} question=\"What is a scalar UDF, and how do you register one?\" difficulty=\"easy\" topic=\"Scalar UDFs\">\nA scalar UDF wraps a custom function so it can be called like any built-in Spark SQL function, applied one row at a time. Registered via `udf()` for use in the DataFrame API (`val myUdf = udf((x: Int) => x * 2)`), or `spark.udf.register(\"my_udf\", ...)` to additionally make it callable from SQL strings.\n</QuestionCard>\n\n<QuestionCard id=\"sud-02\" number={2} question=\"What does 'row-at-a-time' mean for a scalar UDF, and why does it matter for performance?\" difficulty=\"medium\" topic=\"Scalar UDFs\">\nIt means the function is invoked once per individu"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "al row, rather than operating on a batch. It matters because each invocation carries its own overhead (especially crossing the JVM/Python boundary for Python UDFs), which compounds linearly with row count — a cost that vectorized alternatives like Pandas UDFs specifically avoid by batching.\n</QuestionCard>\n\n<QuestionCard id=\"sud-03\" number={3} question=\"What are the main limitations of a scalar UDF compared to a built-in Spark SQL function?\" difficulty=\"medium\" topic=\"Scalar UDFs\">\nThe optimizer can't see inside it, so it can't push predicates through it, apply whole-stage code generation across it, or otherwise optimize around what the UDF actually does — it's treated as an unavoidable, opaque step in the plan. It's also generally slower than an equivalent built-in function, sometimes sub"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "stantially so for Python UDFs specifically.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "## User-Defined Aggregate Functions (UDAFs)\n\n<QuestionList topic=\"User-Defined Aggregate Functions (UDAFs)\" storagePrefix=\"spark-udf-udaf\">\n\n<QuestionCard id=\"uda-01\" number={1} question=\"What is a UDAF, and when would you need one instead of a built-in aggregate?\" difficulty=\"medium\" topic=\"UDAFs\">\nA UDAF is a custom aggregation — combining many rows into one value — for logic the built-in aggregates (`sum`, `avg`, `collect_list`, etc.) can't express. Needed when the aggregation logic is genuinely custom: a weighted average with a non-standard weighting rule, a custom statistical measure, or combining values in a domain-specific way no built-in covers.\n</QuestionCard>\n\n<QuestionCard id=\"uda-02\" number={2} question=\"What's the difference between the typed Aggregator API and the legacy User"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "DefinedAggregateFunction?\" difficulty=\"medium\" topic=\"UDAFs\">\nThe `Aggregator` API (Scala/Java, Dataset-based) is typed and generally preferred in modern Spark — it integrates with Dataset's compile-time type checking and tends to perform better. `UserDefinedAggregateFunction` is the older, untyped, DataFrame-based API, still supported for backward compatibility but not the recommended starting point for new code.\n</QuestionCard>\n\n<QuestionCard id=\"uda-03\" number={3} question=\"What methods does a UDAF typically need to implement?\" difficulty=\"hard\" topic=\"UDAFs\">\nBroadly: an initial/zero value for the aggregation buffer, a function to merge one new row into that buffer, a function to merge two partial buffers together (needed because aggregation happens in parallel across partitions before"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "being combined), and a function to produce the final output value from the completed buffer.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "## Pandas (Vectorized) UDFs\n\n<QuestionList topic=\"Pandas (Vectorized) UDFs\" storagePrefix=\"spark-udf-pandas\">\n\n<QuestionCard id=\"pvu-01\" number={1} question=\"What is a Pandas UDF, and how is it different from a regular scalar UDF?\" difficulty=\"medium\" topic=\"Pandas UDFs\">\nA Pandas UDF operates on batches of data as pandas Series/DataFrame objects, rather than one row at a time — the function is written using vectorized pandas operations and applied to a whole batch per invocation, drastically reducing the number of times the Python/JVM boundary is crossed compared to a regular row-at-a-time UDF.\n</QuestionCard>\n\n<QuestionCard id=\"pvu-02\" number={2} question=\"What types of Pandas UDFs are available?\" difficulty=\"hard\" topic=\"Pandas UDFs\">\n**Series to Series** — takes and returns pandas Seri"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "es, for straightforward column transformations. **Iterator of Series** — processes multiple batches without reinitializing expensive state between them (useful for loading a model once). **Grouped map** (`applyInPandas`) — operates on an entire group's data as a pandas DataFrame, for per-group custom logic that doesn't map cleanly to a simple aggregate.\n</QuestionCard>\n\n<QuestionCard id=\"pvu-03\" number={3} question=\"Why are Pandas UDFs generally much faster than regular Python UDFs?\" difficulty=\"medium\" topic=\"Pandas UDFs\">\nThey use Apache Arrow to transfer entire batches of data between the JVM and Python process in one efficient, columnar operation, instead of serializing and deserializing each row individually — cutting both the per-row overhead and the total number of cross-process rou"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "nd trips dramatically.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "## Arrow-Based Data Transfer for UDFs\n\n<QuestionList topic=\"Arrow-Based Data Transfer for UDFs\" storagePrefix=\"spark-udf-arrow\">\n\n<QuestionCard id=\"abd-01\" number={1} question=\"What is Apache Arrow, and what role does it play in Spark?\" difficulty=\"medium\" topic=\"Arrow\">\nApache Arrow is a language-independent, columnar in-memory data format designed for efficient data interchange between systems without needing to serialize into an intermediate format each time. In Spark, it's used to move batches of data between the JVM and a Python process for Pandas UDFs, avoiding the row-by-row serialization a regular Python UDF requires.\n</QuestionCard>\n\n<QuestionCard id=\"abd-02\" number={2} question=\"Why does moving data via Arrow avoid the serialization cost regular Python UDFs pay?\" difficulty=\"hard"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "\" topic=\"Arrow\">\nBoth the JVM side and the Python side understand Arrow's columnar memory layout directly, so a whole batch can effectively be handed across the process boundary as a shared, structured block rather than converting each individual row into a separate serialized Python object and back. It replaces many small, per-row conversions with far fewer, larger, more efficient ones.\n</QuestionCard>\n\n<QuestionCard id=\"abd-03\" number={3} question=\"What configuration enables Arrow-based data transfer, and are there caveats?\" difficulty=\"medium\" topic=\"Arrow\">\n`spark.sql.execution.arrow.pyspark.enabled = true` enables it (used automatically for Pandas UDFs). Caveats: not every data type is fully supported by Arrow-based conversion, and if a batch fails to convert, Spark can silently fall"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "back to the slower non-Arrow path unless configured to fail loudly instead — worth being aware of when performance doesn't match expectations.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "## Python versus JVM Execution Overhead\n\n<QuestionList topic=\"Python versus JVM Execution Overhead\" storagePrefix=\"spark-udf-python-jvm\">\n\n<QuestionCard id=\"pjo-01\" number={1} question=\"Why do Python UDFs incur overhead that Scala/Java UDFs don't?\" difficulty=\"medium\" topic=\"Python vs JVM\">\nSpark itself runs on the JVM. A Scala/Java UDF executes directly inside that same JVM process, with no boundary to cross. A Python UDF requires data to leave the JVM, be serialized, handed to a separate Python worker process, deserialized, processed, and sent back the other way — an entire extra layer of overhead the JVM-native path simply doesn't have.\n</QuestionCard>\n\n<QuestionCard id=\"pjo-02\" number={2} question=\"What is the 'process boundary tax,' concretely?\" difficulty=\"medium\" topic=\"Python vs JV"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "M\">\nThe combined cost of serializing data out of the JVM, inter-process communication to the Python worker, deserializing it into Python objects, executing the function, and reversing the whole process to bring the result back — all of which is pure overhead unrelated to the actual computation the UDF performs.\n</QuestionCard>\n\n<QuestionCard id=\"pjo-03\" number={3} question=\"How does this overhead compound on a large dataset with many rows?\" difficulty=\"medium\" topic=\"Python vs JVM\">\nFor a regular (non-vectorized) Python UDF, that boundary-crossing cost is paid once *per row*, so it scales linearly with row count and can dominate total runtime on large datasets, even if the actual per-row logic is trivial. This is exactly the cost Pandas UDFs cut down by amortizing the boundary crossing ove"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "r whole batches instead of individual rows.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "## Built-in Functions versus Custom UDFs\n\n<QuestionList topic=\"Built-in Functions versus Custom UDFs\" storagePrefix=\"spark-udf-builtin-vs-custom\">\n\n<QuestionCard id=\"bvc-01\" number={1} question=\"Why do built-in Spark SQL functions typically outperform an equivalent UDF?\" difficulty=\"medium\" topic=\"Built-in vs UDF\">\nBuilt-in functions run inside Catalyst's optimized execution path — eligible for whole-stage code generation, predicate pushdown, and other Catalyst optimizations the planner can reason about ahead of time. A UDF is opaque to all of that; the optimizer treats it as a fixed, unoptimizable black box it has to work around rather than through.\n</QuestionCard>\n\n<QuestionCard id=\"bvc-02\" number={2} question=\"What is whole-stage code generation, and why can't it apply to UDFs?\" difficu"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "lty=\"hard\" topic=\"Built-in vs UDF\">\nWhole-stage code generation fuses several physical operators into a single generated Java function per stage, eliminating the virtual-function-call overhead of processing rows through separate operator objects one at a time. It can't extend across a UDF because the UDF's logic is arbitrary, opaque code the code generator has no visibility into — it has to be called as a black-box step, breaking the fused pipeline at that point.\n</QuestionCard>\n\n<QuestionCard id=\"bvc-03\" number={3} question=\"What's a rule of thumb for when a UDF is actually necessary versus avoidable?\" difficulty=\"medium\" topic=\"Built-in vs UDF\">\nCheck whether the logic can be expressed via existing built-in functions or higher-order functions first — combinations of `when`/`otherwise`, s"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "tring/date/math functions, and array/map higher-order functions cover a surprising amount of \"custom-feeling\" logic. Reach for a UDF only once that combination genuinely can't express what's needed, since a UDF should be the fallback, not the default.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "## Higher-Order Functions for Array/Map Columns\n\n<QuestionList topic=\"Higher-Order Functions for Array/Map Columns\" storagePrefix=\"spark-udf-higher-order\">\n\n<QuestionCard id=\"hof-01\" number={1} question=\"What are higher-order functions in Spark SQL, and name a few?\" difficulty=\"medium\" topic=\"Higher-Order Functions\">\nThey're built-in functions that take a lambda expression as an argument and operate directly on array or map columns: `transform` (apply a function to each element), `filter` (keep elements matching a condition), `exists` (check if any element matches), and `aggregate` (reduce an array to a single value) — all native, optimizer-visible operations, not UDFs.\n</QuestionCard>\n\n<QuestionCard id=\"hof-02\" number={2} question=\"How does transform() avoid needing a UDF or an explode/co"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "llect round-trip?\" difficulty=\"medium\" topic=\"Higher-Order Functions\">\nWithout it, applying a per-element transformation to an array column traditionally meant `explode`-ing it into separate rows, transforming each, then `collect_list`-ing them back into an array — extra shuffles and row multiplication. `transform(array_col, x -> x * 2)` applies the logic directly to the array in place, in one native expression, with no explode/re-aggregate round-trip and no UDF needed.\n</QuestionCard>\n\n<QuestionCard id=\"hof-03\" number={3} question=\"Write an example using filter() (the higher-order function) on an array column.\" difficulty=\"medium\" topic=\"Higher-Order Functions\">\n```sql\nSELECT id, filter(scores, x -> x >= 60) AS passing_scores\nFROM students;\n```\nThis keeps only the elements of the `scores`"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "array that are `>= 60`, producing a new, filtered array per row — all natively, without exploding the array into separate rows first.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "## Dependency Isolation for UDF Environments\n\n<QuestionList topic=\"Dependency Isolation for UDF Environments\" storagePrefix=\"spark-udf-dependency-isolation\">\n\n<QuestionCard id=\"die-01\" number={1} question=\"Why do Python UDF environments need dependency isolation across executors?\" difficulty=\"medium\" topic=\"Dependency Isolation\">\nA Python UDF's code (and any libraries it imports) has to run identically on every executor's Python worker process. If executors have inconsistent package versions — or the driver's environment doesn't match the executors' — a UDF can behave differently, fail unpredictably, or throw serialization errors depending on which executor happens to run it.\n</QuestionCard>\n\n<QuestionCard id=\"die-02\" number={2} question=\"What are the common ways to package and ship a cons"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "istent Python environment to executors?\" difficulty=\"medium\" topic=\"Dependency Isolation\">\nShipping a `virtualenv` or `conda` environment archive alongside the job (via `spark-submit --archives`), or, increasingly, running Spark on Kubernetes/YARN with a container image that already has the exact required environment baked in — both approaches guarantee every executor runs against the identical, known dependency set rather than whatever happens to be installed locally.\n</QuestionCard>\n\n<QuestionCard id=\"die-03\" number={3} question=\"What happens if executor Python environments are inconsistent with each other or the driver?\" difficulty=\"hard\" topic=\"Dependency Isolation\">\nBest case, a clear failure — a missing package or an incompatible version raises an obvious import error. Worse case, a"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "*silent* correctness bug: a library behaves subtly differently across versions (a changed default parameter, a bug fix that alters output), and the same UDF produces different results depending on which executor happened to run a given task, which is far harder to detect and debug than an outright crash.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "## Common Interview Scenarios\n\n- **\"A Python UDF that does simple arithmetic is unexpectedly slow on a 500M-row DataFrame — how would you speed it up?\"** Walk through converting it to a Pandas UDF (or, better, checking whether it can be expressed with built-in functions at all), and explain the row-at-a-time vs. vectorized batch distinction.\n- **\"Why can't Spark optimize a query the same way once a UDF is introduced into it?\"** Test understanding of the optimizer's black-box treatment of UDFs — no pushdown, no whole-stage codegen across it.\n- **\"You need to double every value in an array column — would you use a UDF, and why or why not?\"** The expected strong answer is `transform()`, a higher-order function, rather than reaching for a UDF or an explode/collect round-trip.\n- **\"A UDF works"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "fine in local testing but fails intermittently in production with a library version error — what's the likely cause?\"** Point to inconsistent Python environments across executors, and discuss packaging a consistent environment via virtualenv/conda archives or container images.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-udfs/",
+    "locale": "en",
+    "title": "Spark User Defined Functions (UDFs)",
+    "description": "Interview questions on Spark UDFs — scalar UDFs, UDAFs, Pandas/vectorized UDFs, Arrow-based data transfer, Python vs. JVM overhead, and higher-order functions.",
+    "content": "## Further Reading\n\n- [Spark DataFrame & Dataset APIs](/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/) — the Column API and built-in functions UDFs extend beyond\n- [Spark Core Fundamentals](/level-3-technologies/batch-processing/spark-core-fundamentals/) — Spark Connect and configuration, relevant when packaging consistent execution environments\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
   },
   {
     "path": "/level-3-technologies/batch-processing/spark-window-functions/",
