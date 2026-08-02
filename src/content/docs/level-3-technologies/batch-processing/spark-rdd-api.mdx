@@ -1,0 +1,236 @@
+---
+title: Spark RDD API
+description: Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Resilient Distributed Datasets (RDDs): Spark's Low-Level Foundation
+
+**RDDs are the layer everything else in Spark — DataFrames, Datasets, Spark SQL — is ultimately compiled down to, and the concepts that live here (lazy evaluation, lineage, partitioning) are the ones that explain *why* Spark behaves the way it does everywhere else.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [RDD Creation Methods](#rdd-creation-methods)
+- [Transformation Operations](#transformation-operations)
+- [Action Operations](#action-operations)
+- [Lazy Evaluation Model](#lazy-evaluation-model)
+- [Dependency Graphs and Lineage](#dependency-graphs-and-lineage)
+- [Persistence and Storage Levels](#persistence-and-storage-levels)
+- [RDD Checkpointing and Lineage Truncation](#rdd-checkpointing-and-lineage-truncation)
+- [Recovering Failed Tasks and Executor Loss Mitigation](#recovering-failed-tasks-and-executor-loss-mitigation)
+- [Broadcast Variables](#broadcast-variables)
+- [Accumulator Usage Patterns](#accumulator-usage-patterns)
+- [Custom Partitioning (Hash and Range)](#custom-partitioning-hash-and-range)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+An RDD is an immutable, partitioned, fault-tolerant collection distributed across a cluster. It supports two kinds of operations — **transformations** (lazy, build up a plan) and **actions** (trigger real computation) — and its fault tolerance comes from **lineage**: instead of replicating data, Spark remembers the chain of transformations that produced each RDD, so a lost partition is simply recomputed rather than restored from a copy. Everything else on this page builds on that: **persistence** trades memory for avoiding recomputation, **checkpointing** trims a lineage chain that's gotten too long to recompute cheaply, and **broadcast variables**/**accumulators** are the two escape hatches for sharing state across tasks without an actual shuffle.
+
+---
+
+## RDD Creation Methods
+
+<QuestionList topic="RDD Creation Methods" storagePrefix="spark-rdd-api-creation">
+
+<QuestionCard id="rcm-01" number={1} question="What are the ways to create an RDD?" difficulty="easy" topic="Creation">
+Three ways: **parallelizing** an existing driver-side collection (`sc.parallelize(list)`), **reading from external storage** (HDFS, S3, a local filesystem — `sc.textFile(path)`), or **transforming an existing RDD** into a new one via a transformation like `map` or `filter`.
+</QuestionCard>
+
+<QuestionCard id="rcm-02" number={2} question="How many partitions does an RDD get by default when read from external storage?" difficulty="medium" topic="Creation">
+Typically one partition per block of the source file (e.g., one per 128 MB HDFS block), unless a minimum partition count is passed explicitly — `sc.textFile(path, minPartitions)`. Requesting more partitions than blocks splits each block further; too few relative to cluster size under-utilizes available parallelism.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Transformation Operations
+
+<QuestionList topic="Transformation Operations" storagePrefix="spark-rdd-api-transformations">
+
+<QuestionCard id="tro-01" number={1} question="What is a transformation, and why is it lazy?" difficulty="easy" topic="Transformations">
+A transformation (`map`, `filter`, `flatMap`, `groupByKey`, and similar) takes an RDD and returns a new RDD, without modifying the original. It's lazy because Spark doesn't execute it immediately — it only records the operation into the DAG, deferring actual computation until an action forces it, which gives Spark the chance to optimize the whole chain before running any of it.
+</QuestionCard>
+
+<QuestionCard id="tro-02" number={2} question="Why does chaining many transformations together not cost anything until an action runs?" difficulty="medium" topic="Transformations">
+Because each transformation just appends to the lineage graph rather than touching data — `rdd.map(f).filter(g).map(h)` builds a three-step plan with zero computation performed, regardless of how large the underlying dataset is. The cost only materializes once an action triggers the DAG scheduler to actually execute that plan against real data.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Action Operations
+
+<QuestionList topic="Action Operations" storagePrefix="spark-rdd-api-actions">
+
+<QuestionCard id="aco-01" number={1} question="What is an action, and how is it different from a transformation?" difficulty="easy" topic="Actions">
+An action (`collect`, `count`, `reduce`, `take`, `foreach`, `saveAsTextFile`) triggers execution of the RDD's full lineage and returns a real result — to the driver, or written to storage. Where a transformation returns another RDD (still just a plan), an action returns a concrete value or performs a concrete side effect.
+</QuestionCard>
+
+<QuestionCard id="aco-02" number={2} question="Why is calling collect() on a very large RDD dangerous?" difficulty="medium" topic="Actions">
+`collect()` pulls every element of the (potentially huge, cluster-distributed) RDD back into the driver's single-process memory — if the dataset is larger than the driver can hold, it crashes the driver with an out-of-memory error, taking down the whole application. Actions like `take(n)` or writing directly to storage (`saveAsTextFile`) avoid that risk by never requiring the full dataset to live in one place.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Lazy Evaluation Model
+
+<QuestionList topic="Lazy Evaluation Model" storagePrefix="spark-rdd-api-lazy-eval">
+
+<QuestionCard id="lem-01" number={1} question="What is lazy evaluation, and what does it let Spark do that eager execution couldn't?" difficulty="medium" topic="Lazy Evaluation">
+Lazy evaluation delays running any transformation until an action forces it, building up a full DAG of pending work first. That upfront visibility lets Spark optimize the entire pipeline as a whole — reordering, combining, or eliminating steps — rather than executing and optimizing one operation at a time in isolation, the way eager execution would be forced to.
+</QuestionCard>
+
+<QuestionCard id="lem-02" number={2} question="What's a practical debugging consequence of lazy evaluation?" difficulty="medium" topic="Lazy Evaluation">
+An error inside a transformation (e.g., a bad `map` function) doesn't surface at the line where the transformation was written — it only surfaces later, when an action finally triggers execution, potentially far away in the code from where the actual mistake was introduced. This makes stack traces from Spark errors sometimes point to the action call rather than the transformation that logically caused the problem.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Dependency Graphs and Lineage
+
+<QuestionList topic="Dependency Graphs and Lineage" storagePrefix="spark-rdd-api-lineage">
+
+<QuestionCard id="dgl-01" number={1} question="What is RDD lineage, and what is it used for?" difficulty="easy" topic="Lineage">
+Lineage is the record of an RDD's parent RDD(s) and the specific transformation that produced it from them, chained all the way back to the original data source. It's what Spark uses for fault recovery: if a partition is lost, Spark replays just the relevant portion of the lineage to rebuild it, instead of needing a replicated copy the way Hadoop does.
+</QuestionCard>
+
+<QuestionCard id="dgl-02" number={2} question="What's the cost of a very long, unbroken lineage chain?" difficulty="hard" topic="Lineage">
+Recomputing from a very long lineage chain after a failure gets progressively more expensive, since it means replaying many transformations, potentially from the very beginning of the pipeline. In extreme cases (very deep iterative algorithms), an excessively long lineage graph can even cause stack overflow issues in the driver when Spark tries to process it — which is exactly the problem checkpointing exists to solve.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Persistence and Storage Levels
+
+<QuestionList topic="Persistence and Storage Levels" storagePrefix="spark-rdd-api-persistence">
+
+<QuestionCard id="psl-01" number={1} question="What's the difference between cache() and persist(), and what storage levels are available?" difficulty="medium" topic="Persistence">
+`cache()` is shorthand for `persist()` using the default storage level, `MEMORY_ONLY`. `persist()` lets you choose explicitly among levels like `MEMORY_ONLY`, `MEMORY_AND_DISK` (spills to disk if it doesn't fit in memory), `MEMORY_ONLY_SER`/`MEMORY_AND_DISK_SER` (serialized, more space-efficient), and `DISK_ONLY`, plus off-heap and replicated variants.
+</QuestionCard>
+
+<QuestionCard id="psl-02" number={2} question="When would you choose MEMORY_AND_DISK over MEMORY_ONLY?" difficulty="medium" topic="Persistence">
+When the dataset doesn't reliably fit entirely in available memory — `MEMORY_ONLY` simply recomputes whatever doesn't fit (from lineage) every time it's needed again, while `MEMORY_AND_DISK` spills the overflow to disk instead, trading some read speed for avoiding repeated, potentially expensive recomputation.
+</QuestionCard>
+
+</QuestionList>
+
+For the full trade-off table across all storage levels and how to pick one, see [Apache Spark](/level-3-technologies/batch-processing/spark/#memory-management--persistence).
+
+---
+
+## RDD Checkpointing and Lineage Truncation
+
+<QuestionList topic="RDD Checkpointing and Lineage Truncation" storagePrefix="spark-rdd-api-checkpointing">
+
+<QuestionCard id="rct-01" number={1} question="What does checkpointing do, and how is it different from persistence?" difficulty="medium" topic="Checkpointing">
+Checkpointing writes an RDD's actual data to reliable, durable storage (like HDFS or S3) and, critically, **truncates its lineage** — the checkpointed RDD forgets how it was derived and is treated as a fresh source going forward. Persistence (`cache`/`persist`) only keeps data around for reuse; it doesn't touch or shorten the lineage graph at all.
+</QuestionCard>
+
+<QuestionCard id="rct-02" number={2} question="Why does truncating lineage matter, beyond just saving recomputation time?" difficulty="hard" topic="Checkpointing">
+An extremely long, unbroken lineage chain (common in iterative algorithms that repeatedly transform the same RDD) can grow large enough that Spark itself struggles to process the lineage graph, sometimes triggering driver-side stack overflow errors. Checkpointing periodically resets that chain to a short, known-good starting point, preventing lineage from growing unbounded over a long iterative job.
+</QuestionCard>
+
+<QuestionCard id="rct-03" number={3} question="How do you decide what to checkpoint, and when?" difficulty="medium" topic="Checkpointing">
+Checkpointing isn't automatic — the developer decides what's worth it, typically RDDs with long lineage chains and wide (shuffle-requiring) dependencies, where recomputation from scratch would be expensive. It's commonly applied periodically in iterative algorithms (every N iterations) rather than on every single RDD, since checkpointing itself has a real I/O cost.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Recovering Failed Tasks and Executor Loss Mitigation
+
+<QuestionList topic="Recovering Failed Tasks and Executor Loss Mitigation" storagePrefix="spark-rdd-api-recovery">
+
+<QuestionCard id="rft-01" number={1} question="What happens when a single task fails, as opposed to an entire executor being lost?" difficulty="medium" topic="Recovery">
+A single failed task is simply retried, typically on a different executor, up to a configured retry limit (`spark.task.maxFailures`) before the whole job is failed. An executor loss is more disruptive — every task that was running on it is marked failed and rescheduled, and any data that was only cached on that executor has to be recomputed from lineage.
+</QuestionCard>
+
+<QuestionCard id="rft-02" number={2} question="What role does lineage play specifically in recovering from executor loss, versus just retrying a task?" difficulty="medium" topic="Recovery">
+Retrying a task only replays that one task's own logic. Recovering a *lost partition* that was only cached on the failed executor requires lineage — Spark walks back through the transformations that originally produced that partition and recomputes just it, on a healthy executor, rather than needing to redo the entire job from the start.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Broadcast Variables
+
+<QuestionList topic="Broadcast Variables" storagePrefix="spark-rdd-api-broadcast">
+
+<QuestionCard id="bcv-01" number={1} question="What is a broadcast variable, and what problem does it solve?" difficulty="easy" topic="Broadcast Variables">
+A broadcast variable caches a read-only value on every executor once, instead of Spark shipping a fresh serialized copy of it with every individual task. It solves the redundant-transfer cost of using a large lookup table or set of join keys inside a closure that many tasks reference — without broadcasting, that same data would be re-sent over and over.
+</QuestionCard>
+
+<QuestionCard id="bcv-02" number={2} question="When is a broadcast variable specifically useful for joins?" difficulty="medium" topic="Broadcast Variables">
+When joining a large RDD/DataFrame with a much smaller one — broadcasting the small side to every executor lets the join happen locally against in-memory data, avoiding a full shuffle of the large side entirely. This is the same underlying idea behind Spark SQL's broadcast hash join strategy.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Accumulator Usage Patterns
+
+<QuestionList topic="Accumulator Usage Patterns" storagePrefix="spark-rdd-api-accumulators">
+
+<QuestionCard id="aup-01" number={1} question="What is an accumulator, and what operations must it support?" difficulty="easy" topic="Accumulators">
+An accumulator is a shared variable that tasks running across the cluster can add to, but generally only the driver can read the final value from. It requires the combining operation to be associative and commutative, so it produces the same result regardless of the order tasks happen to run or retry in.
+</QuestionCard>
+
+<QuestionCard id="aup-02" number={2} question="What's a common pitfall when using accumulators for anything beyond simple counters?" difficulty="hard" topic="Accumulators">
+Relying on an accumulator's value being updated exactly once per element inside a *transformation* is unsafe — if a task is retried or recomputed (due to a failure, or lazy re-evaluation), the accumulator update inside that transformation can be applied more than once. Accumulator updates inside *actions* are guaranteed exactly-once; the safe pattern is to only rely on accumulators for approximate debugging/monitoring counters, not for values that must be exactly correct.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Custom Partitioning (Hash and Range)
+
+<QuestionList topic="Custom Partitioning (Hash and Range)" storagePrefix="spark-rdd-api-partitioning">
+
+<QuestionCard id="cph-01" number={1} question="What is a Partitioner, and what does it guarantee?" difficulty="medium" topic="Custom Partitioning">
+A `Partitioner` defines how key-value pairs are distributed across an RDD's partitions, mapping each key to a partition ID. Its core guarantee is that every record for a given key always lands in the same partition — which is what lets operations like `join` and `reduceByKey` avoid a shuffle when both sides already share the same partitioner.
+</QuestionCard>
+
+<QuestionCard id="cph-02" number={2} question="What's the difference between HashPartitioner and RangePartitioner?" difficulty="medium" topic="Custom Partitioning">
+`HashPartitioner` assigns a key to a partition based on its hash value, aiming for a roughly even spread regardless of the keys' actual values. `RangePartitioner` instead sorts keys into ordered ranges, so keys close in value end up in the same or adjacent partitions — useful when downstream operations benefit from sorted or range-based access, at the cost of needing to sample the data first to determine good range boundaries.
+</QuestionCard>
+
+<QuestionCard id="cph-03" number={3} question="When would you write a custom Partitioner instead of using the built-in Hash or Range partitioners?" difficulty="hard" topic="Custom Partitioning">
+When the data has a known structure the built-in partitioners can't exploit well — for example, deliberately co-locating related keys that don't hash or sort near each other naturally (like grouping by a composite business key), or correcting for skew by explicitly spreading a small number of disproportionately common keys across more partitions than a plain hash would.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Why does Spark recompute a lost partition instead of just failing the job?"** Walk through lineage-based recovery, and why it's a genuinely different (and cheaper) fault-tolerance model than Hadoop's replication-based approach.
+- **"An iterative machine learning job gets slower and eventually fails after many iterations — what's likely wrong, and how would you fix it?"** Point to unbounded lineage growth on a repeatedly-transformed RDD, and periodic checkpointing as the fix.
+- **"You're joining a 500 GB RDD with a 10 MB lookup table — how would you make that efficient?"** A direct broadcast-variable prompt, explaining why shuffling the large side is unnecessary once the small side is broadcast.
+- **"Why might using an accumulator inside a map() transformation give you a wrong count?"** Test understanding of the retry/recompute risk for accumulators updated inside transformations versus actions.
+
+---
+
+## Further Reading
+
+- [Apache Spark](/level-3-technologies/batch-processing/spark/#rdds-transformations--actions) — the broader RDD operation reference, including Pair RDDs and common transformation/action lists
+- [Spark Execution Lifecycle](/level-3-technologies/batch-processing/spark-execution-lifecycle/) — how narrow vs. wide dependencies (built on this page's lineage model) determine stage boundaries
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of

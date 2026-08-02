@@ -1,0 +1,228 @@
+---
+title: Spark DataFrame & Dataset APIs
+description: Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## DataFrame & Dataset APIs: The Structured Layer Most Spark Code Lives In
+
+**DataFrames add a schema on top of an RDD's opaque distributed collection, and that one addition is what unlocks everything modern Spark development actually relies on — column expressions, the Catalyst optimizer, and (in Scala/Java) compile-time type safety through Datasets.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [DataFrame Creation Patterns](#dataframe-creation-patterns)
+- [Column Expressions and Operations](#column-expressions-and-operations)
+- [Row Manipulation Functions](#row-manipulation-functions)
+- [Schema Definition and Inference](#schema-definition-and-inference)
+- [Null Handling Strategies](#null-handling-strategies)
+- [Column Type Casting](#column-type-casting)
+- [Dataset API and Type Safety](#dataset-api-and-type-safety)
+- [Encoders and Compile-Time Checks](#encoders-and-compile-time-checks)
+- [Filtering, Sorting, and Selection Logic](#filtering-sorting-and-selection-logic)
+- [Pandas API on Spark](#pandas-api-on-spark)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A DataFrame is a distributed collection organized into **named, typed columns** — the schema is what lets the Catalyst optimizer reason about a query instead of treating it as an opaque function over unstructured records the way it must for RDDs. Working with DataFrames means working through the **Column API** (`col()`, `expr()`, `withColumn()`) to build expressions, being deliberate about **schema** (inferred at a scan cost, or declared upfront via `StructType` for stability and speed), and explicitly handling **`NULL`** and **type mismatches** rather than letting them fail silently downstream. In Scala/Java, the **Dataset API** layers compile-time type safety on top of the same DataFrame execution engine via **encoders**, which convert between JVM objects and Spark's internal binary row format.
+
+---
+
+## DataFrame Creation Patterns
+
+<QuestionList topic="DataFrame Creation Patterns" storagePrefix="spark-df-creation">
+
+<QuestionCard id="dcp-01" number={1} question="What are the common ways to create a DataFrame?" difficulty="easy" topic="Creation">
+From an existing RDD (`rdd.toDF()`, given a schema), by reading structured files (`spark.read.parquet(...)`, `.json(...)`, `.csv(...)`), from a JDBC source or Hive table, or from an in-memory collection via `spark.createDataFrame(data, schema)`.
+</QuestionCard>
+
+<QuestionCard id="dcp-02" number={2} question="Why is reading directly from a structured file format usually preferred over building a DataFrame from an RDD?" difficulty="medium" topic="Creation">
+Reading structured formats (Parquet especially) lets Spark's Data Source API push filtering and column selection down to the read itself, and often skip schema inference entirely since the format embeds its own schema. Building from an RDD means Spark starts with no structural information at all, requiring either an explicit schema or an inference pass before any of DataFrame's optimizations can apply.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Column Expressions and Operations
+
+<QuestionList topic="Column Expressions and Operations" storagePrefix="spark-df-columns">
+
+<QuestionCard id="ceo-01" number={1} question="What is the Column API, and what's the difference between col() and expr()?" difficulty="medium" topic="Column API">
+The Column API represents a column or a computed expression over one, usable in `select`, `withColumn`, `filter`, and similar. `col("price")` references an existing column by name. `expr("price * 1.1")` parses a SQL-like string expression, letting you write arithmetic, function calls, or conditional logic without chaining multiple Column API method calls.
+</QuestionCard>
+
+<QuestionCard id="ceo-02" number={2} question="What does withColumn() do, and what happens if you use it with an existing column name?" difficulty="easy" topic="Column API">
+`withColumn(name, expr)` returns a new DataFrame with a column added — or, if `name` already exists, that existing column is **replaced** with the new expression rather than a duplicate being created. This is a common pattern for both adding derived columns and overwriting a column in place (e.g., casting or cleaning it).
+</QuestionCard>
+
+<QuestionCard id="ceo-03" number={3} question="What kinds of operations can a Column expression represent beyond simple arithmetic?" difficulty="medium" topic="Column API">
+String operations (`upper`, `substring`, `concat`), conditional logic (`when`/`otherwise`), null checks (`isNull`, `isNotNull`), type casting (`cast`), and aggregate or window function calls — the Column API is the general-purpose building block for essentially any per-row or per-group computation expressible in Spark SQL.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Row Manipulation Functions
+
+<QuestionList topic="Row Manipulation Functions" storagePrefix="spark-df-rows">
+
+<QuestionCard id="rmf-01" number={1} question="What functions are commonly used to reshape rows in a DataFrame?" difficulty="easy" topic="Row Manipulation">
+`select` (choose/reorder columns), `withColumn`/`withColumnRenamed` (add, replace, or rename a column), `drop` (remove columns), and `struct()` (bundle several columns into a single nested struct column) — together these cover most of the "reshape this row" work outside of filtering or joining.
+</QuestionCard>
+
+<QuestionCard id="rmf-02" number={2} question="What does struct() do, and why would you bundle columns together instead of leaving them flat?" difficulty="medium" topic="Row Manipulation">
+`struct(col1, col2, ...)` combines several columns into one nested column with those as fields. It's used to group logically related fields together (e.g., an `address` struct with `street`/`city`/`zip`), which is often the natural shape when writing out to a format like JSON or Parquet where nesting is expected, or when passing a bundled value into a function that expects one argument.
+</QuestionCard>
+
+<QuestionCard id="rmf-03" number={3} question="How would you rename a column and drop another in the same chain?" difficulty="easy" topic="Row Manipulation">
+```scala
+df.withColumnRenamed("old_name", "new_name").drop("unused_column")
+```
+Each DataFrame method returns a new DataFrame, so these operations chain naturally — the original DataFrame is never mutated, consistent with Spark's general immutable-transformation model.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Schema Definition and Inference
+
+<QuestionList topic="Schema Definition and Inference" storagePrefix="spark-df-schema">
+
+<QuestionCard id="sdi-01" number={1} question="What's the difference between schema inference and an explicit schema?" difficulty="easy" topic="Schema">
+Inference lets Spark scan the data (or a sample of it) to guess each column's type automatically — convenient, but it costs an extra pass over the data and can guess wrong on ambiguous or messy input. An explicit schema, defined via `StructType`/`StructField`, is declared upfront in code, skipping that scan entirely and guaranteeing the types Spark uses match exactly what you intended.
+</QuestionCard>
+
+<QuestionCard id="sdi-02" number={2} question="Why is an explicit schema generally recommended for production pipelines over inference?" difficulty="medium" topic="Schema">
+It avoids the inference scan's performance cost (which can be significant on large datasets or many small files), and it makes the pipeline's behavior stable and predictable — inference can silently produce a different schema if the input data's shape shifts slightly between runs, while an explicit schema either matches or fails loudly.
+</QuestionCard>
+
+</QuestionList>
+
+For how inference and explicit schemas trade off in practice, see [Apache Spark](/level-3-technologies/batch-processing/spark/#dataframes-datasets--spark-sql).
+
+---
+
+## Null Handling Strategies
+
+<QuestionList topic="Null Handling Strategies" storagePrefix="spark-df-nulls">
+
+<QuestionCard id="nhs-01" number={1} question="What are the main tools for detecting and handling NULLs in a DataFrame?" difficulty="easy" topic="Null Handling">
+`isNull`/`isNotNull` for filtering based on nullness, `na.drop()` to remove rows containing nulls (optionally scoped to specific columns or a minimum non-null threshold), `na.fill(value)` to substitute a default for nulls, and `coalesce(col1, col2, ...)` to return the first non-null value across several columns.
+</QuestionCard>
+
+<QuestionCard id="nhs-02" number={2} question="What's the difference between na.drop() and na.drop('all')?" difficulty="medium" topic="Null Handling">
+The default `na.drop()` removes a row if **any** column is null. `na.drop("all")` only removes a row if **every** column is null — a much more conservative filter, useful when a row with some missing fields is still meaningful but a completely empty row isn't.
+</QuestionCard>
+
+<QuestionCard id="nhs-03" number={3} question="How would you fill nulls with different default values per column?" difficulty="medium" topic="Null Handling">
+`na.fill(Map("age" -> 0, "name" -> "Unknown"))` — passing a map lets you specify a different fallback value per column in a single call, rather than chaining several single-column `na.fill` calls.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Column Type Casting
+
+<QuestionList topic="Column Type Casting" storagePrefix="spark-df-casting">
+
+<QuestionCard id="ctc-01" number={1} question="How do you explicitly cast a column's type, and why prefer that over relying on implicit conversion?" difficulty="easy" topic="Type Casting">
+`df.withColumn("price", col("price").cast("double"))` (or `.astype()` in PySpark). Explicit casting is preferred because relying on implicit conversion means the actual comparison or arithmetic behavior depends on Spark's specific conversion rules, which can silently produce `NULL` or an unexpected value instead of failing loudly when types don't line up as assumed.
+</QuestionCard>
+
+<QuestionCard id="ctc-02" number={2} question="What happens when a cast can't succeed — for example, casting the string 'abc' to an integer?" difficulty="medium" topic="Type Casting">
+By default, Spark returns `NULL` for that value rather than throwing an error — the cast fails silently per-row instead of failing the whole job. This makes it easy to lose bad data quietly unless you explicitly check for newly-introduced nulls after a cast, comparing counts before and after.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Dataset API and Type Safety
+
+<QuestionList topic="Dataset API and Type Safety" storagePrefix="spark-df-dataset-api">
+
+<QuestionCard id="dts-01" number={1} question="What does the Dataset API add on top of DataFrame, and in which languages is it available?" difficulty="medium" topic="Dataset API">
+The Dataset API adds compile-time type safety — operations are checked against a known JVM type at compile time instead of only being validated against the schema at runtime. It's only available in Scala and Java, since Python and R are dynamically typed and have no compile-time type-checking phase for Spark to hook into; DataFrame in Python is effectively `Dataset[Row]` without the added type safety.
+</QuestionCard>
+
+<QuestionCard id="dts-02" number={2} question="What's a concrete example of a mistake Dataset catches at compile time that DataFrame wouldn't?" difficulty="medium" topic="Dataset API">
+Referencing a nonexistent or misspelled field on a typed case class — `ds.map(_.naem)` where the case class only has `name` — fails to compile with a Dataset, since the type checker knows the class's real fields. The equivalent DataFrame mistake, `df.select("naem")`, only fails at runtime, once that code path actually executes against the schema.
+</QuestionCard>
+
+</QuestionList>
+
+For a full RDD/DataFrame/Dataset comparison table, see [Apache Spark](/level-3-technologies/batch-processing/spark/#dataframes-datasets--spark-sql).
+
+---
+
+## Encoders and Compile-Time Checks
+
+<QuestionList topic="Encoders and Compile-Time Checks" storagePrefix="spark-df-encoders">
+
+<QuestionCard id="enc-01" number={1} question="What is an Encoder, and why does the Dataset API need one?" difficulty="medium" topic="Encoders">
+An Encoder converts between JVM objects (like a Scala case class instance) and Spark's internal binary row format (Tungsten). The Dataset API needs one because it exposes a typed, object-oriented view over data that's actually stored internally in Spark's optimized binary layout, not as live JVM objects — the encoder is what bridges those two representations efficiently.
+</QuestionCard>
+
+<QuestionCard id="enc-02" number={2} question="How do encoders enable efficiency gains beyond just type conversion?" difficulty="hard" topic="Encoders">
+Spark's built-in encoders can generate bytecode that accesses individual fields of the binary representation directly, without first fully deserializing the whole object into a live JVM instance — useful when an operation only needs one or two fields out of a larger record. This avoids both the CPU cost of full deserialization and the extra memory pressure of materializing complete objects that aren't fully needed.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Filtering, Sorting, and Selection Logic
+
+<QuestionList topic="Filtering, Sorting, and Selection Logic" storagePrefix="spark-df-filter-sort">
+
+<QuestionCard id="fss-01" number={1} question="What's the difference between filter()/where() and select()/selectExpr()?" difficulty="easy" topic="Filtering & Sorting">
+`filter()`/`where()` (aliases for the same operation) narrow the **rows** based on a condition. `select()`/`selectExpr()` narrow or transform the **columns** — choosing which ones appear in the output, optionally computing new ones. They're independent operations that are typically chained together in the same query.
+</QuestionCard>
+
+<QuestionCard id="fss-02" number={2} question="How do orderBy() and sort() differ, and how do you sort by multiple columns with mixed directions?" difficulty="easy" topic="Filtering & Sorting">
+`orderBy()` and `sort()` are aliases for the same operation. Multiple columns with mixed directions: `df.orderBy(col("department").asc, col("salary").desc)` — each column's direction is specified individually rather than applying one direction to the whole sort.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Pandas API on Spark
+
+<QuestionList topic="Pandas API on Spark" storagePrefix="spark-df-pandas-api">
+
+<QuestionCard id="pas-01" number={1} question="What is the Pandas API on Spark, and what was it called before?" difficulty="easy" topic="Pandas API">
+It's a pandas-compatible API (`pyspark.pandas`) that runs on distributed Spark DataFrames underneath, letting code written against familiar pandas syntax scale out across a cluster instead of being limited to a single machine's memory. It was previously a separate project called **Koalas**, later merged directly into PySpark.
+</QuestionCard>
+
+<QuestionCard id="pas-02" number={2} question="What problem does the Pandas API on Spark solve, and what are its limits?" difficulty="medium" topic="Pandas API">
+It eases migrating existing single-node pandas code to a distributed setting without a full rewrite into native Spark DataFrame syntax, lowering the barrier for teams already fluent in pandas. Its limits: not every pandas operation has a distributed equivalent that makes sense at scale, some operations that are cheap on a single machine (like preserving strict row order) are inherently expensive in a distributed setting, and performance still depends on writing distribution-aware code rather than assuming pandas' exact single-node behavior transfers directly.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"A cast is silently turning valid-looking data into nulls — how would you catch that in a pipeline?"** Discuss comparing null counts before and after a cast, or using stricter validation before casting rather than trusting a silent-null cast to fail loudly.
+- **"Why would you define an explicit schema instead of letting Spark infer one, for a pipeline that runs daily on a new file?"** Anchor the answer in both the performance cost of repeated inference and the risk of a shifting inferred schema between runs.
+- **"Compare RDD, DataFrame, and Dataset — when would you reach for each?"** Use it to walk through the schema/optimization/type-safety trade-offs, and that Dataset is Scala/Java-only.
+- **"How would you migrate an existing single-node pandas script to run on a large dataset with minimal rewrite?"** A natural prompt for the Pandas API on Spark, along with an honest discussion of where it won't be a drop-in replacement.
+
+---
+
+## Further Reading
+
+- [Spark RDD API](/level-3-technologies/batch-processing/spark-rdd-api/) — the lower-level foundation DataFrames and Datasets compile down to
+- [Apache Spark](/level-3-technologies/batch-processing/spark/#dataframes-datasets--spark-sql) — the Catalyst optimizer and broader Spark SQL ecosystem this API feeds into
+- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of

@@ -7582,6 +7582,216 @@
     "content": "## Further Reading\n\n- [Spark Distributed Computing](/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/) — the driver/executor/cluster-manager architecture that spark-submit's flags target\n- [Apache Spark](/level-3-technologies/batch-processing/spark/#core-concepts--fundamentals) — the broader Spark fundamentals and Spark-vs-Hadoop comparisons this page builds on\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
   },
   {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "## DataFrame & Dataset APIs: The Structured Layer Most Spark Code Lives In\n\n**DataFrames add a schema on top of an RDD's opaque distributed collection, and that one addition is what unlocks everything modern Spark development actually relies on — column expressions, the Catalyst optimizer, and (in Scala/Java) compile-time type safety through Datasets.**"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [DataFrame Creation Patterns](#dataframe-creation-patterns)\n- [Column Expressions and Operations](#column-expressions-and-operations)\n- [Row Manipulation Functions](#row-manipulation-functions)\n- [Schema Definition and Inference](#schema-definition-and-inference)\n- [Null Handling Strategies](#null-handling-strategies)\n- [Column Type Casting](#column-type-casting)\n- [Dataset API and Type Safety](#dataset-api-and-type-safety)\n- [Encoders and Compile-Time Checks](#encoders-and-compile-time-checks)\n- [Filtering, Sorting, and Selection Logic](#filtering-sorting-and-selection-logic)\n- [Pandas API on Spark](#pandas-api-on-spark)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "## Key Concepts\n\nA DataFrame is a distributed collection organized into **named, typed columns** — the schema is what lets the Catalyst optimizer reason about a query instead of treating it as an opaque function over unstructured records the way it must for RDDs. Working with DataFrames means working through the **Column API** (`col()`, `expr()`, `withColumn()`) to build expressions, being deliberate about **schema** (inferred at a scan cost, or declared upfront via `StructType` for stability and speed), and explicitly handling **`NULL`** and **type mismatches** rather than letting them fail silently downstream. In Scala/Java, the **Dataset API** layers compile-time type safety on top of the same DataFrame execution engine via **encoders**, which convert between JVM objects and Spark's int"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "ernal binary row format.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "## DataFrame Creation Patterns\n\n<QuestionList topic=\"DataFrame Creation Patterns\" storagePrefix=\"spark-df-creation\">\n\n<QuestionCard id=\"dcp-01\" number={1} question=\"What are the common ways to create a DataFrame?\" difficulty=\"easy\" topic=\"Creation\">\nFrom an existing RDD (`rdd.toDF()`, given a schema), by reading structured files (`spark.read.parquet(...)`, `.json(...)`, `.csv(...)`), from a JDBC source or Hive table, or from an in-memory collection via `spark.createDataFrame(data, schema)`.\n</QuestionCard>\n\n<QuestionCard id=\"dcp-02\" number={2} question=\"Why is reading directly from a structured file format usually preferred over building a DataFrame from an RDD?\" difficulty=\"medium\" topic=\"Creation\">\nReading structured formats (Parquet especially) lets Spark's Data Source API push filterin"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "g and column selection down to the read itself, and often skip schema inference entirely since the format embeds its own schema. Building from an RDD means Spark starts with no structural information at all, requiring either an explicit schema or an inference pass before any of DataFrame's optimizations can apply.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "## Column Expressions and Operations\n\n<QuestionList topic=\"Column Expressions and Operations\" storagePrefix=\"spark-df-columns\">\n\n<QuestionCard id=\"ceo-01\" number={1} question=\"What is the Column API, and what's the difference between col() and expr()?\" difficulty=\"medium\" topic=\"Column API\">\nThe Column API represents a column or a computed expression over one, usable in `select`, `withColumn`, `filter`, and similar. `col(\"price\")` references an existing column by name. `expr(\"price * 1.1\")` parses a SQL-like string expression, letting you write arithmetic, function calls, or conditional logic without chaining multiple Column API method calls.\n</QuestionCard>\n\n<QuestionCard id=\"ceo-02\" number={2} question=\"What does withColumn() do, and what happens if you use it with an existing column nam"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "e?\" difficulty=\"easy\" topic=\"Column API\">\n`withColumn(name, expr)` returns a new DataFrame with a column added — or, if `name` already exists, that existing column is **replaced** with the new expression rather than a duplicate being created. This is a common pattern for both adding derived columns and overwriting a column in place (e.g., casting or cleaning it).\n</QuestionCard>\n\n<QuestionCard id=\"ceo-03\" number={3} question=\"What kinds of operations can a Column expression represent beyond simple arithmetic?\" difficulty=\"medium\" topic=\"Column API\">\nString operations (`upper`, `substring`, `concat`), conditional logic (`when`/`otherwise`), null checks (`isNull`, `isNotNull`), type casting (`cast`), and aggregate or window function calls — the Column API is the general-purpose building bloc"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "k for essentially any per-row or per-group computation expressible in Spark SQL.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "## Row Manipulation Functions\n\n<QuestionList topic=\"Row Manipulation Functions\" storagePrefix=\"spark-df-rows\">\n\n<QuestionCard id=\"rmf-01\" number={1} question=\"What functions are commonly used to reshape rows in a DataFrame?\" difficulty=\"easy\" topic=\"Row Manipulation\">\n`select` (choose/reorder columns), `withColumn`/`withColumnRenamed` (add, replace, or rename a column), `drop` (remove columns), and `struct()` (bundle several columns into a single nested struct column) — together these cover most of the \"reshape this row\" work outside of filtering or joining.\n</QuestionCard>\n\n<QuestionCard id=\"rmf-02\" number={2} question=\"What does struct() do, and why would you bundle columns together instead of leaving them flat?\" difficulty=\"medium\" topic=\"Row Manipulation\">\n`struct(col1, col2, ...)` com"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "bines several columns into one nested column with those as fields. It's used to group logically related fields together (e.g., an `address` struct with `street`/`city`/`zip`), which is often the natural shape when writing out to a format like JSON or Parquet where nesting is expected, or when passing a bundled value into a function that expects one argument.\n</QuestionCard>\n\n<QuestionCard id=\"rmf-03\" number={3} question=\"How would you rename a column and drop another in the same chain?\" difficulty=\"easy\" topic=\"Row Manipulation\">\n```scala\ndf.withColumnRenamed(\"old_name\", \"new_name\").drop(\"unused_column\")\n```\nEach DataFrame method returns a new DataFrame, so these operations chain naturally — the original DataFrame is never mutated, consistent with Spark's general immutable-transformation m"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "odel.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "## Schema Definition and Inference\n\n<QuestionList topic=\"Schema Definition and Inference\" storagePrefix=\"spark-df-schema\">\n\n<QuestionCard id=\"sdi-01\" number={1} question=\"What's the difference between schema inference and an explicit schema?\" difficulty=\"easy\" topic=\"Schema\">\nInference lets Spark scan the data (or a sample of it) to guess each column's type automatically — convenient, but it costs an extra pass over the data and can guess wrong on ambiguous or messy input. An explicit schema, defined via `StructType`/`StructField`, is declared upfront in code, skipping that scan entirely and guaranteeing the types Spark uses match exactly what you intended.\n</QuestionCard>\n\n<QuestionCard id=\"sdi-02\" number={2} question=\"Why is an explicit schema generally recommended for production pipelin"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "es over inference?\" difficulty=\"medium\" topic=\"Schema\">\nIt avoids the inference scan's performance cost (which can be significant on large datasets or many small files), and it makes the pipeline's behavior stable and predictable — inference can silently produce a different schema if the input data's shape shifts slightly between runs, while an explicit schema either matches or fails loudly.\n</QuestionCard>\n\n</QuestionList>\n\nFor how inference and explicit schemas trade off in practice, see [Apache Spark](/level-3-technologies/batch-processing/spark/#dataframes-datasets--spark-sql).\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "## Null Handling Strategies\n\n<QuestionList topic=\"Null Handling Strategies\" storagePrefix=\"spark-df-nulls\">\n\n<QuestionCard id=\"nhs-01\" number={1} question=\"What are the main tools for detecting and handling NULLs in a DataFrame?\" difficulty=\"easy\" topic=\"Null Handling\">\n`isNull`/`isNotNull` for filtering based on nullness, `na.drop()` to remove rows containing nulls (optionally scoped to specific columns or a minimum non-null threshold), `na.fill(value)` to substitute a default for nulls, and `coalesce(col1, col2, ...)` to return the first non-null value across several columns.\n</QuestionCard>\n\n<QuestionCard id=\"nhs-02\" number={2} question=\"What's the difference between na.drop() and na.drop('all')?\" difficulty=\"medium\" topic=\"Null Handling\">\nThe default `na.drop()` removes a row if **any*"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "* column is null. `na.drop(\"all\")` only removes a row if **every** column is null — a much more conservative filter, useful when a row with some missing fields is still meaningful but a completely empty row isn't.\n</QuestionCard>\n\n<QuestionCard id=\"nhs-03\" number={3} question=\"How would you fill nulls with different default values per column?\" difficulty=\"medium\" topic=\"Null Handling\">\n`na.fill(Map(\"age\" -> 0, \"name\" -> \"Unknown\"))` — passing a map lets you specify a different fallback value per column in a single call, rather than chaining several single-column `na.fill` calls.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "## Column Type Casting\n\n<QuestionList topic=\"Column Type Casting\" storagePrefix=\"spark-df-casting\">\n\n<QuestionCard id=\"ctc-01\" number={1} question=\"How do you explicitly cast a column's type, and why prefer that over relying on implicit conversion?\" difficulty=\"easy\" topic=\"Type Casting\">\n`df.withColumn(\"price\", col(\"price\").cast(\"double\"))` (or `.astype()` in PySpark). Explicit casting is preferred because relying on implicit conversion means the actual comparison or arithmetic behavior depends on Spark's specific conversion rules, which can silently produce `NULL` or an unexpected value instead of failing loudly when types don't line up as assumed.\n</QuestionCard>\n\n<QuestionCard id=\"ctc-02\" number={2} question=\"What happens when a cast can't succeed — for example, casting the string 'abc"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "' to an integer?\" difficulty=\"medium\" topic=\"Type Casting\">\nBy default, Spark returns `NULL` for that value rather than throwing an error — the cast fails silently per-row instead of failing the whole job. This makes it easy to lose bad data quietly unless you explicitly check for newly-introduced nulls after a cast, comparing counts before and after.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "## Dataset API and Type Safety\n\n<QuestionList topic=\"Dataset API and Type Safety\" storagePrefix=\"spark-df-dataset-api\">\n\n<QuestionCard id=\"dts-01\" number={1} question=\"What does the Dataset API add on top of DataFrame, and in which languages is it available?\" difficulty=\"medium\" topic=\"Dataset API\">\nThe Dataset API adds compile-time type safety — operations are checked against a known JVM type at compile time instead of only being validated against the schema at runtime. It's only available in Scala and Java, since Python and R are dynamically typed and have no compile-time type-checking phase for Spark to hook into; DataFrame in Python is effectively `Dataset[Row]` without the added type safety.\n</QuestionCard>\n\n<QuestionCard id=\"dts-02\" number={2} question=\"What's a concrete example of a"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "mistake Dataset catches at compile time that DataFrame wouldn't?\" difficulty=\"medium\" topic=\"Dataset API\">\nReferencing a nonexistent or misspelled field on a typed case class — `ds.map(_.naem)` where the case class only has `name` — fails to compile with a Dataset, since the type checker knows the class's real fields. The equivalent DataFrame mistake, `df.select(\"naem\")`, only fails at runtime, once that code path actually executes against the schema.\n</QuestionCard>\n\n</QuestionList>\n\nFor a full RDD/DataFrame/Dataset comparison table, see [Apache Spark](/level-3-technologies/batch-processing/spark/#dataframes-datasets--spark-sql).\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "## Encoders and Compile-Time Checks\n\n<QuestionList topic=\"Encoders and Compile-Time Checks\" storagePrefix=\"spark-df-encoders\">\n\n<QuestionCard id=\"enc-01\" number={1} question=\"What is an Encoder, and why does the Dataset API need one?\" difficulty=\"medium\" topic=\"Encoders\">\nAn Encoder converts between JVM objects (like a Scala case class instance) and Spark's internal binary row format (Tungsten). The Dataset API needs one because it exposes a typed, object-oriented view over data that's actually stored internally in Spark's optimized binary layout, not as live JVM objects — the encoder is what bridges those two representations efficiently.\n</QuestionCard>\n\n<QuestionCard id=\"enc-02\" number={2} question=\"How do encoders enable efficiency gains beyond just type conversion?\" difficulty=\"hard\" t"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "opic=\"Encoders\">\nSpark's built-in encoders can generate bytecode that accesses individual fields of the binary representation directly, without first fully deserializing the whole object into a live JVM instance — useful when an operation only needs one or two fields out of a larger record. This avoids both the CPU cost of full deserialization and the extra memory pressure of materializing complete objects that aren't fully needed.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "## Filtering, Sorting, and Selection Logic\n\n<QuestionList topic=\"Filtering, Sorting, and Selection Logic\" storagePrefix=\"spark-df-filter-sort\">\n\n<QuestionCard id=\"fss-01\" number={1} question=\"What's the difference between filter()/where() and select()/selectExpr()?\" difficulty=\"easy\" topic=\"Filtering & Sorting\">\n`filter()`/`where()` (aliases for the same operation) narrow the **rows** based on a condition. `select()`/`selectExpr()` narrow or transform the **columns** — choosing which ones appear in the output, optionally computing new ones. They're independent operations that are typically chained together in the same query.\n</QuestionCard>\n\n<QuestionCard id=\"fss-02\" number={2} question=\"How do orderBy() and sort() differ, and how do you sort by multiple columns with mixed directions?\" dif"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "ficulty=\"easy\" topic=\"Filtering & Sorting\">\n`orderBy()` and `sort()` are aliases for the same operation. Multiple columns with mixed directions: `df.orderBy(col(\"department\").asc, col(\"salary\").desc)` — each column's direction is specified individually rather than applying one direction to the whole sort.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "## Pandas API on Spark\n\n<QuestionList topic=\"Pandas API on Spark\" storagePrefix=\"spark-df-pandas-api\">\n\n<QuestionCard id=\"pas-01\" number={1} question=\"What is the Pandas API on Spark, and what was it called before?\" difficulty=\"easy\" topic=\"Pandas API\">\nIt's a pandas-compatible API (`pyspark.pandas`) that runs on distributed Spark DataFrames underneath, letting code written against familiar pandas syntax scale out across a cluster instead of being limited to a single machine's memory. It was previously a separate project called **Koalas**, later merged directly into PySpark.\n</QuestionCard>\n\n<QuestionCard id=\"pas-02\" number={2} question=\"What problem does the Pandas API on Spark solve, and what are its limits?\" difficulty=\"medium\" topic=\"Pandas API\">\nIt eases migrating existing single-node"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "pandas code to a distributed setting without a full rewrite into native Spark DataFrame syntax, lowering the barrier for teams already fluent in pandas. Its limits: not every pandas operation has a distributed equivalent that makes sense at scale, some operations that are cheap on a single machine (like preserving strict row order) are inherently expensive in a distributed setting, and performance still depends on writing distribution-aware code rather than assuming pandas' exact single-node behavior transfers directly.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "## Common Interview Scenarios\n\n- **\"A cast is silently turning valid-looking data into nulls — how would you catch that in a pipeline?\"** Discuss comparing null counts before and after a cast, or using stricter validation before casting rather than trusting a silent-null cast to fail loudly.\n- **\"Why would you define an explicit schema instead of letting Spark infer one, for a pipeline that runs daily on a new file?\"** Anchor the answer in both the performance cost of repeated inference and the risk of a shifting inferred schema between runs.\n- **\"Compare RDD, DataFrame, and Dataset — when would you reach for each?\"** Use it to walk through the schema/optimization/type-safety trade-offs, and that Dataset is Scala/Java-only.\n- **\"How would you migrate an existing single-node pandas script t"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "o run on a large dataset with minimal rewrite?\"** A natural prompt for the Pandas API on Spark, along with an honest discussion of where it won't be a drop-in replacement.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "locale": "en",
+    "title": "Spark DataFrame & Dataset APIs",
+    "description": "Interview questions on Spark's structured APIs — DataFrame creation, column expressions, schemas, null handling, type casting, Datasets, encoders, and pandas API on Spark.",
+    "content": "## Further Reading\n\n- [Spark RDD API](/level-3-technologies/batch-processing/spark-rdd-api/) — the lower-level foundation DataFrames and Datasets compile down to\n- [Apache Spark](/level-3-technologies/batch-processing/spark/#dataframes-datasets--spark-sql) — the Catalyst optimizer and broader Spark SQL ecosystem this API feeds into\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
+  },
+  {
     "path": "/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/",
     "locale": "en",
     "title": "Spark Distributed Computing",
@@ -8014,6 +8224,230 @@
     "title": "Spark Execution Lifecycle",
     "description": "Interview questions on how a Spark application is scheduled and executed — job/stage/task hierarchy, the DAG scheduler, dependencies, data locality, and shuffle mechanics.",
     "content": "## Further Reading\n\n- [Spark Distributed Computing](/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/) — the driver/executor/cluster-manager architecture this execution flow runs on top of\n- [Apache Spark](/level-3-technologies/batch-processing/spark/#partitioning-shuffling--performance) — practical shuffle optimization: repartition vs coalesce, broadcast variables, and accumulators\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## Resilient Distributed Datasets (RDDs): Spark's Low-Level Foundation\n\n**RDDs are the layer everything else in Spark — DataFrames, Datasets, Spark SQL — is ultimately compiled down to, and the concepts that live here (lazy evaluation, lineage, partitioning) are the ones that explain *why* Spark behaves the way it does everywhere else.**"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [RDD Creation Methods](#rdd-creation-methods)\n- [Transformation Operations](#transformation-operations)\n- [Action Operations](#action-operations)\n- [Lazy Evaluation Model](#lazy-evaluation-model)\n- [Dependency Graphs and Lineage](#dependency-graphs-and-lineage)\n- [Persistence and Storage Levels](#persistence-and-storage-levels)\n- [RDD Checkpointing and Lineage Truncation](#rdd-checkpointing-and-lineage-truncation)\n- [Recovering Failed Tasks and Executor Loss Mitigation](#recovering-failed-tasks-and-executor-loss-mitigation)\n- [Broadcast Variables](#broadcast-variables)\n- [Accumulator Usage Patterns](#accumulator-usage-patterns)\n- [Custom Partitioning (Hash and Range)](#custom-partitioning-hash-and-range)\n- [Common Interview Scenarios]("
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## Key Concepts\n\nAn RDD is an immutable, partitioned, fault-tolerant collection distributed across a cluster. It supports two kinds of operations — **transformations** (lazy, build up a plan) and **actions** (trigger real computation) — and its fault tolerance comes from **lineage**: instead of replicating data, Spark remembers the chain of transformations that produced each RDD, so a lost partition is simply recomputed rather than restored from a copy. Everything else on this page builds on that: **persistence** trades memory for avoiding recomputation, **checkpointing** trims a lineage chain that's gotten too long to recompute cheaply, and **broadcast variables**/**accumulators** are the two escape hatches for sharing state across tasks without an actual shuffle.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## RDD Creation Methods\n\n<QuestionList topic=\"RDD Creation Methods\" storagePrefix=\"spark-rdd-api-creation\">\n\n<QuestionCard id=\"rcm-01\" number={1} question=\"What are the ways to create an RDD?\" difficulty=\"easy\" topic=\"Creation\">\nThree ways: **parallelizing** an existing driver-side collection (`sc.parallelize(list)`), **reading from external storage** (HDFS, S3, a local filesystem — `sc.textFile(path)`), or **transforming an existing RDD** into a new one via a transformation like `map` or `filter`.\n</QuestionCard>\n\n<QuestionCard id=\"rcm-02\" number={2} question=\"How many partitions does an RDD get by default when read from external storage?\" difficulty=\"medium\" topic=\"Creation\">\nTypically one partition per block of the source file (e.g., one per 128 MB HDFS block), unless a minimum partitio"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "n count is passed explicitly — `sc.textFile(path, minPartitions)`. Requesting more partitions than blocks splits each block further; too few relative to cluster size under-utilizes available parallelism.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## Transformation Operations\n\n<QuestionList topic=\"Transformation Operations\" storagePrefix=\"spark-rdd-api-transformations\">\n\n<QuestionCard id=\"tro-01\" number={1} question=\"What is a transformation, and why is it lazy?\" difficulty=\"easy\" topic=\"Transformations\">\nA transformation (`map`, `filter`, `flatMap`, `groupByKey`, and similar) takes an RDD and returns a new RDD, without modifying the original. It's lazy because Spark doesn't execute it immediately — it only records the operation into the DAG, deferring actual computation until an action forces it, which gives Spark the chance to optimize the whole chain before running any of it.\n</QuestionCard>\n\n<QuestionCard id=\"tro-02\" number={2} question=\"Why does chaining many transformations together not cost anything until an action runs?\" dif"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "ficulty=\"medium\" topic=\"Transformations\">\nBecause each transformation just appends to the lineage graph rather than touching data — `rdd.map(f).filter(g).map(h)` builds a three-step plan with zero computation performed, regardless of how large the underlying dataset is. The cost only materializes once an action triggers the DAG scheduler to actually execute that plan against real data.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## Action Operations\n\n<QuestionList topic=\"Action Operations\" storagePrefix=\"spark-rdd-api-actions\">\n\n<QuestionCard id=\"aco-01\" number={1} question=\"What is an action, and how is it different from a transformation?\" difficulty=\"easy\" topic=\"Actions\">\nAn action (`collect`, `count`, `reduce`, `take`, `foreach`, `saveAsTextFile`) triggers execution of the RDD's full lineage and returns a real result — to the driver, or written to storage. Where a transformation returns another RDD (still just a plan), an action returns a concrete value or performs a concrete side effect.\n</QuestionCard>\n\n<QuestionCard id=\"aco-02\" number={2} question=\"Why is calling collect() on a very large RDD dangerous?\" difficulty=\"medium\" topic=\"Actions\">\n`collect()` pulls every element of the (potentially huge, cluster-d"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "istributed) RDD back into the driver's single-process memory — if the dataset is larger than the driver can hold, it crashes the driver with an out-of-memory error, taking down the whole application. Actions like `take(n)` or writing directly to storage (`saveAsTextFile`) avoid that risk by never requiring the full dataset to live in one place.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## Lazy Evaluation Model\n\n<QuestionList topic=\"Lazy Evaluation Model\" storagePrefix=\"spark-rdd-api-lazy-eval\">\n\n<QuestionCard id=\"lem-01\" number={1} question=\"What is lazy evaluation, and what does it let Spark do that eager execution couldn't?\" difficulty=\"medium\" topic=\"Lazy Evaluation\">\nLazy evaluation delays running any transformation until an action forces it, building up a full DAG of pending work first. That upfront visibility lets Spark optimize the entire pipeline as a whole — reordering, combining, or eliminating steps — rather than executing and optimizing one operation at a time in isolation, the way eager execution would be forced to.\n</QuestionCard>\n\n<QuestionCard id=\"lem-02\" number={2} question=\"What's a practical debugging consequence of lazy evaluation?\" difficulty=\"medium"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "\" topic=\"Lazy Evaluation\">\nAn error inside a transformation (e.g., a bad `map` function) doesn't surface at the line where the transformation was written — it only surfaces later, when an action finally triggers execution, potentially far away in the code from where the actual mistake was introduced. This makes stack traces from Spark errors sometimes point to the action call rather than the transformation that logically caused the problem.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## Dependency Graphs and Lineage\n\n<QuestionList topic=\"Dependency Graphs and Lineage\" storagePrefix=\"spark-rdd-api-lineage\">\n\n<QuestionCard id=\"dgl-01\" number={1} question=\"What is RDD lineage, and what is it used for?\" difficulty=\"easy\" topic=\"Lineage\">\nLineage is the record of an RDD's parent RDD(s) and the specific transformation that produced it from them, chained all the way back to the original data source. It's what Spark uses for fault recovery: if a partition is lost, Spark replays just the relevant portion of the lineage to rebuild it, instead of needing a replicated copy the way Hadoop does.\n</QuestionCard>\n\n<QuestionCard id=\"dgl-02\" number={2} question=\"What's the cost of a very long, unbroken lineage chain?\" difficulty=\"hard\" topic=\"Lineage\">\nRecomputing from a very long linea"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "ge chain after a failure gets progressively more expensive, since it means replaying many transformations, potentially from the very beginning of the pipeline. In extreme cases (very deep iterative algorithms), an excessively long lineage graph can even cause stack overflow issues in the driver when Spark tries to process it — which is exactly the problem checkpointing exists to solve.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## Persistence and Storage Levels\n\n<QuestionList topic=\"Persistence and Storage Levels\" storagePrefix=\"spark-rdd-api-persistence\">\n\n<QuestionCard id=\"psl-01\" number={1} question=\"What's the difference between cache() and persist(), and what storage levels are available?\" difficulty=\"medium\" topic=\"Persistence\">\n`cache()` is shorthand for `persist()` using the default storage level, `MEMORY_ONLY`. `persist()` lets you choose explicitly among levels like `MEMORY_ONLY`, `MEMORY_AND_DISK` (spills to disk if it doesn't fit in memory), `MEMORY_ONLY_SER`/`MEMORY_AND_DISK_SER` (serialized, more space-efficient), and `DISK_ONLY`, plus off-heap and replicated variants.\n</QuestionCard>\n\n<QuestionCard id=\"psl-02\" number={2} question=\"When would you choose MEMORY_AND_DISK over MEMORY_ONLY?\" difficulty="
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "\"medium\" topic=\"Persistence\">\nWhen the dataset doesn't reliably fit entirely in available memory — `MEMORY_ONLY` simply recomputes whatever doesn't fit (from lineage) every time it's needed again, while `MEMORY_AND_DISK` spills the overflow to disk instead, trading some read speed for avoiding repeated, potentially expensive recomputation.\n</QuestionCard>\n\n</QuestionList>\n\nFor the full trade-off table across all storage levels and how to pick one, see [Apache Spark](/level-3-technologies/batch-processing/spark/#memory-management--persistence).\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## RDD Checkpointing and Lineage Truncation\n\n<QuestionList topic=\"RDD Checkpointing and Lineage Truncation\" storagePrefix=\"spark-rdd-api-checkpointing\">\n\n<QuestionCard id=\"rct-01\" number={1} question=\"What does checkpointing do, and how is it different from persistence?\" difficulty=\"medium\" topic=\"Checkpointing\">\nCheckpointing writes an RDD's actual data to reliable, durable storage (like HDFS or S3) and, critically, **truncates its lineage** — the checkpointed RDD forgets how it was derived and is treated as a fresh source going forward. Persistence (`cache`/`persist`) only keeps data around for reuse; it doesn't touch or shorten the lineage graph at all.\n</QuestionCard>\n\n<QuestionCard id=\"rct-02\" number={2} question=\"Why does truncating lineage matter, beyond just saving recomputation ti"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "me?\" difficulty=\"hard\" topic=\"Checkpointing\">\nAn extremely long, unbroken lineage chain (common in iterative algorithms that repeatedly transform the same RDD) can grow large enough that Spark itself struggles to process the lineage graph, sometimes triggering driver-side stack overflow errors. Checkpointing periodically resets that chain to a short, known-good starting point, preventing lineage from growing unbounded over a long iterative job.\n</QuestionCard>\n\n<QuestionCard id=\"rct-03\" number={3} question=\"How do you decide what to checkpoint, and when?\" difficulty=\"medium\" topic=\"Checkpointing\">\nCheckpointing isn't automatic — the developer decides what's worth it, typically RDDs with long lineage chains and wide (shuffle-requiring) dependencies, where recomputation from scratch would be"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "expensive. It's commonly applied periodically in iterative algorithms (every N iterations) rather than on every single RDD, since checkpointing itself has a real I/O cost.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## Recovering Failed Tasks and Executor Loss Mitigation\n\n<QuestionList topic=\"Recovering Failed Tasks and Executor Loss Mitigation\" storagePrefix=\"spark-rdd-api-recovery\">\n\n<QuestionCard id=\"rft-01\" number={1} question=\"What happens when a single task fails, as opposed to an entire executor being lost?\" difficulty=\"medium\" topic=\"Recovery\">\nA single failed task is simply retried, typically on a different executor, up to a configured retry limit (`spark.task.maxFailures`) before the whole job is failed. An executor loss is more disruptive — every task that was running on it is marked failed and rescheduled, and any data that was only cached on that executor has to be recomputed from lineage.\n</QuestionCard>\n\n<QuestionCard id=\"rft-02\" number={2} question=\"What role does lineage play specific"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "ally in recovering from executor loss, versus just retrying a task?\" difficulty=\"medium\" topic=\"Recovery\">\nRetrying a task only replays that one task's own logic. Recovering a *lost partition* that was only cached on the failed executor requires lineage — Spark walks back through the transformations that originally produced that partition and recomputes just it, on a healthy executor, rather than needing to redo the entire job from the start.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## Broadcast Variables\n\n<QuestionList topic=\"Broadcast Variables\" storagePrefix=\"spark-rdd-api-broadcast\">\n\n<QuestionCard id=\"bcv-01\" number={1} question=\"What is a broadcast variable, and what problem does it solve?\" difficulty=\"easy\" topic=\"Broadcast Variables\">\nA broadcast variable caches a read-only value on every executor once, instead of Spark shipping a fresh serialized copy of it with every individual task. It solves the redundant-transfer cost of using a large lookup table or set of join keys inside a closure that many tasks reference — without broadcasting, that same data would be re-sent over and over.\n</QuestionCard>\n\n<QuestionCard id=\"bcv-02\" number={2} question=\"When is a broadcast variable specifically useful for joins?\" difficulty=\"medium\" topic=\"Broadcast Variables\">\nWhen"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "joining a large RDD/DataFrame with a much smaller one — broadcasting the small side to every executor lets the join happen locally against in-memory data, avoiding a full shuffle of the large side entirely. This is the same underlying idea behind Spark SQL's broadcast hash join strategy.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## Accumulator Usage Patterns\n\n<QuestionList topic=\"Accumulator Usage Patterns\" storagePrefix=\"spark-rdd-api-accumulators\">\n\n<QuestionCard id=\"aup-01\" number={1} question=\"What is an accumulator, and what operations must it support?\" difficulty=\"easy\" topic=\"Accumulators\">\nAn accumulator is a shared variable that tasks running across the cluster can add to, but generally only the driver can read the final value from. It requires the combining operation to be associative and commutative, so it produces the same result regardless of the order tasks happen to run or retry in.\n</QuestionCard>\n\n<QuestionCard id=\"aup-02\" number={2} question=\"What's a common pitfall when using accumulators for anything beyond simple counters?\" difficulty=\"hard\" topic=\"Accumulators\">\nRelying on an accumulator's va"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "lue being updated exactly once per element inside a *transformation* is unsafe — if a task is retried or recomputed (due to a failure, or lazy re-evaluation), the accumulator update inside that transformation can be applied more than once. Accumulator updates inside *actions* are guaranteed exactly-once; the safe pattern is to only rely on accumulators for approximate debugging/monitoring counters, not for values that must be exactly correct.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## Custom Partitioning (Hash and Range)\n\n<QuestionList topic=\"Custom Partitioning (Hash and Range)\" storagePrefix=\"spark-rdd-api-partitioning\">\n\n<QuestionCard id=\"cph-01\" number={1} question=\"What is a Partitioner, and what does it guarantee?\" difficulty=\"medium\" topic=\"Custom Partitioning\">\nA `Partitioner` defines how key-value pairs are distributed across an RDD's partitions, mapping each key to a partition ID. Its core guarantee is that every record for a given key always lands in the same partition — which is what lets operations like `join` and `reduceByKey` avoid a shuffle when both sides already share the same partitioner.\n</QuestionCard>\n\n<QuestionCard id=\"cph-02\" number={2} question=\"What's the difference between HashPartitioner and RangePartitioner?\" difficulty=\"medium\" topic=\"Cu"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "stom Partitioning\">\n`HashPartitioner` assigns a key to a partition based on its hash value, aiming for a roughly even spread regardless of the keys' actual values. `RangePartitioner` instead sorts keys into ordered ranges, so keys close in value end up in the same or adjacent partitions — useful when downstream operations benefit from sorted or range-based access, at the cost of needing to sample the data first to determine good range boundaries.\n</QuestionCard>\n\n<QuestionCard id=\"cph-03\" number={3} question=\"When would you write a custom Partitioner instead of using the built-in Hash or Range partitioners?\" difficulty=\"hard\" topic=\"Custom Partitioning\">\nWhen the data has a known structure the built-in partitioners can't exploit well — for example, deliberately co-locating related keys tha"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "t don't hash or sort near each other naturally (like grouping by a composite business key), or correcting for skew by explicitly spreading a small number of disproportionately common keys across more partitions than a plain hash would.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## Common Interview Scenarios\n\n- **\"Why does Spark recompute a lost partition instead of just failing the job?\"** Walk through lineage-based recovery, and why it's a genuinely different (and cheaper) fault-tolerance model than Hadoop's replication-based approach.\n- **\"An iterative machine learning job gets slower and eventually fails after many iterations — what's likely wrong, and how would you fix it?\"** Point to unbounded lineage growth on a repeatedly-transformed RDD, and periodic checkpointing as the fix.\n- **\"You're joining a 500 GB RDD with a 10 MB lookup table — how would you make that efficient?\"** A direct broadcast-variable prompt, explaining why shuffling the large side is unnecessary once the small side is broadcast.\n- **\"Why might using an accumulator inside a map() transform"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "ation give you a wrong count?\"** Test understanding of the retry/recompute risk for accumulators updated inside transformations versus actions.\n\n---"
+  },
+  {
+    "path": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "locale": "en",
+    "title": "Spark RDD API",
+    "description": "Interview questions on Spark's RDD API — creation, transformations, actions, lazy evaluation, lineage, persistence, checkpointing, broadcast variables, and custom partitioning.",
+    "content": "## Further Reading\n\n- [Apache Spark](/level-3-technologies/batch-processing/spark/#rdds-transformations--actions) — the broader RDD operation reference, including Pair RDDs and common transformation/action lists\n- [Spark Execution Lifecycle](/level-3-technologies/batch-processing/spark-execution-lifecycle/) — how narrow vs. wide dependencies (built on this page's lineage model) determine stage boundaries\n- [Apache Spark Roadmap](/roadmaps/apache-spark/) — the full curriculum this page's phase is part of"
   },
   {
     "path": "/level-3-technologies/batch-processing/spark/",
