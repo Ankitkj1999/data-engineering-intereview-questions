@@ -1,0 +1,173 @@
+---
+title: Transactions
+description: Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Transactions: Grouping Statements Into Atomic Units of Work
+
+**A transaction bundles a sequence of statements so they succeed or fail together — the control statements (BEGIN, COMMIT, ROLLBACK, SAVEPOINT) are the mechanics, and the isolation level is what decides how much of that in-progress work other concurrent transactions are allowed to see.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [BEGIN](#begin)
+- [COMMIT](#commit)
+- [ROLLBACK](#rollback)
+- [SAVEPOINT](#savepoint)
+- [ACID](#acid)
+- [Transaction Isolation Levels](#transaction-isolation-levels)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A transaction is a sequence of statements treated as one atomic unit: `BEGIN` starts it, `COMMIT` makes its changes permanent, and `ROLLBACK` undoes everything since it started. `SAVEPOINT` adds a partial checkpoint inside a longer transaction, letting you undo just the recent part without discarding everything. These control statements are what *deliver* the ACID guarantees in practice — but ACID also depends on **isolation level**, which governs how much of one transaction's in-progress, uncommitted work a concurrent transaction is allowed to see. That's a separate knob from the control statements themselves: two transactions can both correctly `COMMIT`/`ROLLBACK`, and still produce different results depending on whether the isolation level let them see each other's uncommitted changes along the way.
+
+---
+
+## BEGIN
+
+<QuestionList topic="BEGIN" storagePrefix="transactions-begin">
+
+<QuestionCard id="bg-01" number={1} question="What does BEGIN do, and what's the difference between implicit and explicit transaction management?" difficulty="easy" topic="BEGIN">
+`BEGIN` (or `START TRANSACTION`) explicitly starts a new transaction, after which subsequent statements are grouped together until a `COMMIT` or `ROLLBACK`. Without an explicit `BEGIN`, most databases run in **autocommit** mode by default — each individual statement is implicitly its own complete transaction, committed immediately if it succeeds.
+</QuestionCard>
+
+<QuestionCard id="bg-02" number={2} question="What happens to statements run before an explicit BEGIN in autocommit mode?" difficulty="medium" topic="BEGIN">
+Each one commits immediately on its own as soon as it completes successfully — there's no window to roll multiple of them back together, since autocommit treats every individual statement as a self-contained transaction. This is why any operation that needs several statements to succeed or fail as a unit must start with an explicit `BEGIN` first.
+</QuestionCard>
+
+<QuestionCard id="bg-03" number={3} question="Can you start a transaction inside another already-open transaction?" difficulty="hard" topic="BEGIN">
+Standard SQL doesn't support true nested transactions — calling `BEGIN` again while a transaction is already open typically either raises an error, is silently ignored, or (in some databases) is treated as an implicit `SAVEPOINT` rather than a genuinely independent inner transaction. `SAVEPOINT` is the standard mechanism for partial, nested-like rollback behavior within a single transaction.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## COMMIT
+
+<QuestionList topic="COMMIT" storagePrefix="transactions-commit">
+
+<QuestionCard id="cm-01" number={1} question="What does COMMIT do?" difficulty="easy" topic="COMMIT">
+`COMMIT` permanently applies every change made since the transaction began, making it visible to other connections and durable against a crash. Until `COMMIT` runs, the changes are only visible within the transaction that made them (at most isolation levels).
+</QuestionCard>
+
+<QuestionCard id="cm-02" number={2} question="What happens if the connection is lost before a COMMIT is issued?" difficulty="medium" topic="COMMIT">
+The transaction is left uncommitted, and the database automatically rolls it back — none of its changes take effect. This is a safety property, not a bug: a transaction that never reached `COMMIT` shouldn't be able to leave partial changes behind just because the client disconnected.
+</QuestionCard>
+
+<QuestionCard id="cm-03" number={3} question="Once a transaction is committed, can it still be rolled back?" difficulty="easy" topic="COMMIT">
+No — `COMMIT` is the point of no return for that transaction; `ROLLBACK` only works on a still-open transaction. Undoing a mistake that's already been committed requires a new, separate transaction that explicitly reverses the change (or a restore from backup/point-in-time recovery for larger-scale mistakes).
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## ROLLBACK
+
+<QuestionList topic="ROLLBACK" storagePrefix="transactions-rollback">
+
+<QuestionCard id="rb-01" number={1} question="What does ROLLBACK do?" difficulty="easy" topic="ROLLBACK">
+`ROLLBACK` undoes every change made since the transaction began (or since a specified `SAVEPOINT`), as if none of those statements had run. It's only meaningful on a transaction that hasn't been committed yet.
+</QuestionCard>
+
+<QuestionCard id="rb-02" number={2} question="What's the difference between rolling back to a SAVEPOINT and rolling back the entire transaction?" difficulty="medium" topic="ROLLBACK">
+`ROLLBACK TO SAVEPOINT name` undoes only the changes made after that specific savepoint, leaving everything before it (including the transaction itself) still open and intact. A plain `ROLLBACK` with no savepoint discards the entire transaction from its very start.
+</QuestionCard>
+
+<QuestionCard id="rb-03" number={3} question="Can DDL statements be rolled back the same way DML can?" difficulty="hard" topic="ROLLBACK">
+It depends on the database: PostgreSQL supports transactional DDL, so a `CREATE TABLE` or `ALTER TABLE` inside an open transaction can be rolled back like any DML statement. Many other databases (MySQL among them) auto-commit DDL immediately, meaning it takes effect right away and can't be undone with `ROLLBACK` — this is a meaningful, vendor-specific difference worth knowing before assuming DDL is always safely reversible.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## SAVEPOINT
+
+<QuestionList topic="SAVEPOINT" storagePrefix="transactions-savepoint">
+
+<QuestionCard id="sp-01" number={1} question="What is a SAVEPOINT, and why would you use one instead of just rolling back everything?" difficulty="easy" topic="SAVEPOINT">
+A `SAVEPOINT` marks a named point within an open transaction that you can later roll back to, without discarding the whole transaction. It's useful when a long transaction has several logically separate steps, and a failure partway through should only undo the failed step — not the earlier, successful work.
+</QuestionCard>
+
+<QuestionCard id="sp-02" number={2} question="Write an example of using SAVEPOINT to recover from a partial failure within a larger transaction." difficulty="medium" topic="SAVEPOINT">
+```sql
+BEGIN;
+INSERT INTO orders (...) VALUES (...);
+SAVEPOINT before_discount;
+UPDATE orders SET total = total * 0.9 WHERE id = ...; -- fails or is undesired
+ROLLBACK TO SAVEPOINT before_discount;
+COMMIT;
+```
+The order insert is preserved and eventually committed, while only the discount update — everything after the savepoint — gets undone.
+</QuestionCard>
+
+<QuestionCard id="sp-03" number={3} question="What happens to savepoints after a transaction commits or fully rolls back?" difficulty="medium" topic="SAVEPOINT">
+They're released and no longer valid — a savepoint only has meaning within the transaction it was created in. Once that transaction ends (either way), any attempt to roll back to a savepoint from it will simply fail, since the transaction it belonged to no longer exists.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## ACID
+
+<QuestionList topic="ACID" storagePrefix="transactions-acid">
+
+<QuestionCard id="acid-01" number={1} question="What do the four ACID properties guarantee, at a high level?" difficulty="easy" topic="ACID">
+**Atomicity** — the transaction is all-or-nothing. **Consistency** — it can only move the database from one valid state to another. **Isolation** — concurrent transactions don't see each other's uncommitted work. **Durability** — once committed, changes survive a crash. Together, they're what let application code trust the database instead of re-implementing that safety itself.
+</QuestionCard>
+
+<QuestionCard id="acid-02" number={2} question="How do BEGIN, COMMIT, and ROLLBACK specifically deliver atomicity?" difficulty="medium" topic="ACID">
+Atomicity requires an all-or-nothing outcome, and the transaction control statements are exactly what implement that: `BEGIN` marks where the "all" starts, `COMMIT` is the point where "all" becomes permanent, and `ROLLBACK` is the mechanism that enforces "nothing" if any part fails before that point — without these statements, there would be no way to group several writes into one atomic unit at all.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Transaction Isolation Levels
+
+<QuestionList topic="Transaction Isolation Levels" storagePrefix="transactions-isolation">
+
+<QuestionCard id="iso-01" number={1} question="What are the four standard transaction isolation levels, from least to most strict?" difficulty="medium" topic="Isolation Levels">
+`READ UNCOMMITTED` (weakest — can see other transactions' uncommitted changes), `READ COMMITTED` (only sees committed data, but a value can change between two reads in the same transaction), `REPEATABLE READ` (the same row read twice within a transaction returns the same value), and `SERIALIZABLE` (strongest — transactions behave as if run one at a time, with no concurrency anomalies at all).
+</QuestionCard>
+
+<QuestionCard id="iso-02" number={2} question="What is a dirty read, and which isolation level allows it?" difficulty="medium" topic="Isolation Levels">
+A dirty read happens when a transaction reads data that another transaction has written but not yet committed — if that other transaction then rolls back, the first transaction acted on data that never actually existed. Only `READ UNCOMMITTED` allows dirty reads; every stricter level prevents them.
+</QuestionCard>
+
+<QuestionCard id="iso-03" number={3} question="What's the difference between a non-repeatable read and a phantom read, and which levels prevent each?" difficulty="hard" topic="Isolation Levels">
+A **non-repeatable read** is when re-reading the *same row* within a transaction returns a different value, because another transaction updated and committed it in between — prevented starting at `REPEATABLE READ`. A **phantom read** is when re-running the *same query* returns a different *set of rows* (not just changed values), because another transaction inserted or deleted rows matching the condition in between — only fully prevented at `SERIALIZABLE` in the standard definition, though some databases prevent it earlier through their specific implementation (e.g., PostgreSQL's `REPEATABLE READ`).
+</QuestionCard>
+
+<QuestionCard id="iso-04" number={4} question="Why would you deliberately choose a lower isolation level than SERIALIZABLE?" difficulty="medium" topic="Isolation Levels">
+Stronger isolation requires more locking or version-tracking overhead, which reduces concurrency and throughput. Most application workloads default to `READ COMMITTED` because the anomalies it doesn't prevent (non-repeatable and phantom reads) simply don't matter for most queries — reserving `SERIALIZABLE` for the specific operations where getting a stale or shifting view of the data would actually cause a correctness problem, like financial reconciliation.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"Two transactions both try to update the same row at the same time — walk me through what happens."** Use it to discuss locking behavior, and how the outcome depends on isolation level and which transaction commits first.
+- **"A batch import script partially fails halfway through 10,000 rows — how would you make sure it doesn't leave the database in an inconsistent state?"** Discuss wrapping the batch in a transaction (or transactions with savepoints per chunk) so a failure rolls back cleanly instead of leaving a partial import committed.
+- **"Explain the difference between a dirty read, a non-repeatable read, and a phantom read using a single running example."** A thorough isolation-levels check — walk through the same two concurrent transactions and show what each anomaly looks like.
+- **"Why might a financial application deliberately use SERIALIZABLE isolation for balance transfers but READ COMMITTED everywhere else?"** Discuss the throughput-vs-correctness trade-off, and why that trade-off is decided per-operation, not database-wide.
+
+---
+
+## Further Reading
+
+- [RDBMS Benefits & Limitations](/level-1-foundations/sql/rdbms-benefits-and-limitations/) — a deeper, vendor-comparison look at why ACID matters and where it starts to strain at scale
+- [Data Manipulation Language (DML)](/level-1-foundations/sql/dml/) — the INSERT/UPDATE/DELETE statements transactions typically wrap
+- [Data Definition Language (DDL)](/level-1-foundations/sql/ddl/) — why DDL's auto-commit behavior differs from DML inside a transaction

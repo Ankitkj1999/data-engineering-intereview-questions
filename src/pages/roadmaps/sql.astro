@@ -138,18 +138,18 @@ const ROADMAP = [
     { id:"managing-idx",   label:"Managing Indexes",                desc:"CREATE INDEX, DROP INDEX, partial indexes, and covering indexes.", link:"/level-1-foundations/sql/indexes/#managing-indexes" },
     { id:"query-opt-idx",  label:"Query Optimization with Indexes", desc:"How the query planner uses indexes — EXPLAIN / ANALYZE output.", link:"/level-1-foundations/sql/indexes/#query-optimization-with-indexes" },
   ]},
-  { id:"transactions", label:"Transactions", desc:"Grouping SQL statements into atomic units of work that succeed or fail together.", subs:[
-    { id:"begin",          label:"BEGIN",                           desc:"Starting a transaction — implicit vs explicit transaction management." },
-    { id:"commit",         label:"COMMIT",                          desc:"Permanently saving all changes made in the current transaction." },
-    { id:"rollback",       label:"ROLLBACK",                        desc:"Undoing all changes since the last COMMIT or SAVEPOINT." },
-    { id:"savepoint",      label:"SAVEPOINT",                       desc:"Creating a partial rollback point within a transaction." },
-    { id:"acid",           label:"ACID",                            desc:"Atomicity, Consistency, Isolation, Durability — the four transaction guarantees." },
-    { id:"isolation",      label:"Transaction Isolation Levels",    desc:"READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, SERIALIZABLE." },
+  { id:"transactions", label:"Transactions", desc:"Grouping SQL statements into atomic units of work that succeed or fail together.", link:"/level-1-foundations/sql/transactions/", subs:[
+    { id:"begin",          label:"BEGIN",                           desc:"Starting a transaction — implicit vs explicit transaction management.", link:"/level-1-foundations/sql/transactions/#begin" },
+    { id:"commit",         label:"COMMIT",                          desc:"Permanently saving all changes made in the current transaction.", link:"/level-1-foundations/sql/transactions/#commit" },
+    { id:"rollback",       label:"ROLLBACK",                        desc:"Undoing all changes since the last COMMIT or SAVEPOINT.", link:"/level-1-foundations/sql/transactions/#rollback" },
+    { id:"savepoint",      label:"SAVEPOINT",                       desc:"Creating a partial rollback point within a transaction.", link:"/level-1-foundations/sql/transactions/#savepoint" },
+    { id:"acid",           label:"ACID",                            desc:"Atomicity, Consistency, Isolation, Durability — the four transaction guarantees.", link:"/level-1-foundations/sql/transactions/#acid" },
+    { id:"isolation",      label:"Transaction Isolation Levels",    desc:"READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, SERIALIZABLE.", link:"/level-1-foundations/sql/transactions/#transaction-isolation-levels" },
   ]},
-  { id:"security", label:"Data Integrity & Security", desc:"Protecting data correctness and controlling who can access what.", subs:[
-    { id:"integrity",      label:"Data Integrity Constraints",      desc:"Entity, referential, and domain integrity — enforced at the DB level." },
-    { id:"grant-revoke",   label:"GRANT and REVOKE",                desc:"Managing user privileges — SELECT, INSERT, UPDATE, DELETE, EXECUTE." },
-    { id:"security-best",  label:"DB Security Best Practices",      desc:"Least privilege, parameterised queries, auditing, encryption at rest." },
+  { id:"security", label:"Data Integrity & Security", desc:"Protecting data correctness and controlling who can access what.", link:"/level-1-foundations/sql/data-integrity-security/", subs:[
+    { id:"integrity",      label:"Data Integrity Constraints",      desc:"Entity, referential, and domain integrity — enforced at the DB level.", link:"/level-1-foundations/sql/data-integrity-security/#data-integrity-constraints" },
+    { id:"grant-revoke",   label:"GRANT and REVOKE",                desc:"Managing user privileges — SELECT, INSERT, UPDATE, DELETE, EXECUTE.", link:"/level-1-foundations/sql/data-integrity-security/#grant-and-revoke" },
+    { id:"security-best",  label:"DB Security Best Practices",      desc:"Least privilege, parameterised queries, auditing, encryption at rest.", link:"/level-1-foundations/sql/data-integrity-security/#db-security-best-practices" },
   ]},
   { id:"stored-procs", label:"Stored Procedures & Functions", desc:"Reusable server-side logic stored in the database.", subs:[
     { id:"scalar-fn",      label:"Scalar Functions",                desc:"Return a single value — used in SELECT lists and WHERE clauses." },

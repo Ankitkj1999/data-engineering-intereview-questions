@@ -1,0 +1,106 @@
+---
+title: Data Integrity & Security
+description: Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Data Integrity & Security: Correctness and Access Control
+
+**Data integrity and security answer two related but distinct questions — "is this data actually correct" and "who's allowed to touch it" — and a database that's airtight on one can still fail badly on the other.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Data Integrity Constraints](#data-integrity-constraints)
+- [GRANT and REVOKE](#grant-and-revoke)
+- [DB Security Best Practices](#db-security-best-practices)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Data integrity is usually described in three categories: **entity integrity** (every row can be uniquely identified — enforced by a primary key), **referential integrity** (every reference between tables points at something real — enforced by foreign keys), and **domain integrity** (every value falls within its allowed type, range, or set — enforced by data types, `CHECK`, and `NOT NULL`). Security is a separate concern layered on top: **`GRANT`/`REVOKE`** control who can perform which operations, and best practice centers on **least privilege** — every account, human or application, should hold only the permissions it actually needs, no more. The two overlap at one important point: encryption, masking, and auditing all *look* like security concerns, but they exist specifically to protect the integrity and confidentiality of data that constraints alone can't cover — a `CHECK` constraint can't stop someone with `SELECT` access from reading data they shouldn't see.
+
+---
+
+## Data Integrity Constraints
+
+<QuestionList topic="Data Integrity Constraints" storagePrefix="security-data-integrity">
+
+<QuestionCard id="di-01" number={1} question="What are the three categories of data integrity, and what does each protect?" difficulty="easy" topic="Data Integrity">
+**Entity integrity** ensures every row is uniquely identifiable and never has a missing identifier. **Referential integrity** ensures relationships between tables always point at something that actually exists. **Domain integrity** ensures every value in a column is valid for that column's defined type, range, or allowed set of values.
+</QuestionCard>
+
+<QuestionCard id="di-02" number={2} question="Which SQL constraint enforces entity integrity?" difficulty="easy" topic="Data Integrity">
+`PRIMARY KEY` — it combines uniqueness and `NOT NULL`, which is exactly what entity integrity requires: every row must have an identifier, and that identifier must be unique. Without it, there'd be no reliable way to address a specific row at all.
+</QuestionCard>
+
+<QuestionCard id="di-03" number={3} question="What's the difference between referential integrity and domain integrity, with an example of each?" difficulty="medium" topic="Data Integrity">
+Referential integrity is about relationships between tables — a `FOREIGN KEY` ensuring `orders.customer_id` always matches a real row in `customers`. Domain integrity is about the validity of a single value in isolation — a `CHECK (price >= 0)` or `NOT NULL` on `email` ensuring a value is well-formed, regardless of whether it references anything elsewhere.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## GRANT and REVOKE
+
+<QuestionList topic="GRANT and REVOKE" storagePrefix="security-grant-revoke">
+
+<QuestionCard id="gr-01" number={1} question="What does GRANT do, and what's the basic syntax?" difficulty="easy" topic="GRANT">
+`GRANT` gives a user or role a specific privilege on a specific object: `GRANT SELECT, INSERT ON orders TO analyst_role`. It's how access is deliberately extended, rather than every account defaulting to full access to everything.
+</QuestionCard>
+
+<QuestionCard id="gr-02" number={2} question="What does REVOKE do, and does it remove all previously granted privileges or just specific ones?" difficulty="easy" topic="REVOKE">
+`REVOKE` removes a previously granted privilege: `REVOKE INSERT ON orders FROM analyst_role`. It's scoped exactly like `GRANT` — you revoke the specific privilege(s) named, not automatically every privilege that role or user has been given; other still-granted privileges remain untouched.
+</QuestionCard>
+
+<QuestionCard id="gr-03" number={3} question="What is the principle of least privilege, and how does GRANT/REVOKE let you enforce it in practice?" difficulty="medium" topic="Least Privilege">
+Least privilege means every account should have only the access it actually needs to do its job, and nothing more. `GRANT`/`REVOKE` are the mechanism for enforcing it directly: rather than giving broad access "to be safe" or "in case it's needed later," you grant narrowly scoped privileges (specific tables, specific operations) and expand only when a real, specific need arises.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## DB Security Best Practices
+
+<QuestionList topic="DB Security Best Practices" storagePrefix="security-best-practices">
+
+<QuestionCard id="sec-01" number={1} question="What does the principle of least privilege look like applied to database accounts in practice?" difficulty="medium" topic="Best Practices">
+An application's database user should typically have only `SELECT`/`INSERT`/`UPDATE`/`DELETE` on the specific tables it touches — not admin/superuser access, and not `DROP`/`ALTER` privileges it never needs. Separate accounts are used for separate purposes (a read-only reporting account, a migration account with schema-change privileges) rather than one account with broad access shared across every use case.
+</QuestionCard>
+
+<QuestionCard id="sec-02" number={2} question="Why are parameterized queries important for security, and what do they prevent?" difficulty="easy" topic="Best Practices">
+Parameterized queries separate SQL code from user-supplied data, sending values as bound parameters instead of concatenating them directly into a query string. This prevents **SQL injection** — an attacker crafting input that, if concatenated directly into the query, would change its meaning (e.g., closing a string early and appending their own SQL).
+</QuestionCard>
+
+<QuestionCard id="sec-03" number={3} question="What is auditing in a database security context, and why does it matter even when access controls are already in place?" difficulty="medium" topic="Best Practices">
+Auditing logs who accessed or changed what data, and when. It matters even with solid access controls because access controls prevent *unauthorized* actions, but authorized users can still make mistakes or act maliciously — an audit trail is what lets you detect and investigate that after the fact, which prevention alone can't provide.
+</QuestionCard>
+
+<QuestionCard id="sec-04" number={4} question="What does encryption at rest mean, and how does it differ from encryption in transit?" difficulty="medium" topic="Best Practices">
+Encryption at rest protects data stored on disk — so a stolen disk or unauthorized filesystem access doesn't expose readable data. Encryption in transit (TLS) protects data moving over the network between the client and the database, so it can't be intercepted and read in flight. Both are usually needed together, since each protects a different point of exposure — one doesn't substitute for the other.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+- **"An application's database credentials were leaked — what damage can be limited by good GRANT hygiene alone?"** Discuss how a narrowly-scoped account (no `DROP`, no access to unrelated tables) limits the blast radius compared to credentials with broad or admin access.
+- **"How would you prevent SQL injection in an application that builds queries dynamically based on user input?"** A direct prompt for parameterized queries/prepared statements, and why string concatenation of user input into SQL is the underlying vulnerability.
+- **"Design the access model for a support team that needs to view customer orders but never modify or delete them."** A `GRANT SELECT`-only scenario, possibly combined with a view (see the [Views](/level-1-foundations/sql/views/) page) that limits which columns are exposed too.
+- **"A junior engineer asks why the reporting dashboard's database user can't just use the same admin account as the migration scripts — how do you explain it?"** Use it to walk through least privilege and blast-radius reasoning in plain terms.
+
+---
+
+## Further Reading
+
+- [Data Constraints](/level-1-foundations/sql/data-constraints/) — the specific PRIMARY KEY/FOREIGN KEY/CHECK mechanisms that implement entity, referential, and domain integrity
+- [Views](/level-1-foundations/sql/views/) — a complementary access-control tool alongside GRANT/REVOKE, restricting which columns or rows are exposed
+- [Transactions](/level-1-foundations/sql/transactions/) — how ACID's consistency guarantee relates to, but is distinct from, data integrity constraints

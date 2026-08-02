@@ -1386,6 +1386,125 @@
     "content": "## Further Reading\n\n- [What are Relational Databases?](/level-1-foundations/sql/relational-databases/) — the table and key concepts these constraints build on\n- [Data Definition Language (DDL)](/level-1-foundations/sql/ddl/) — where constraints are declared, inside CREATE TABLE and ALTER TABLE\n- [RDBMS Benefits & Limitations](/level-1-foundations/sql/rdbms-benefits-and-limitations/) — how constraint enforcement fits into the broader ACID guarantees of an RDBMS"
   },
   {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "## Data Integrity & Security: Correctness and Access Control\n\n**Data integrity and security answer two related but distinct questions — \"is this data actually correct\" and \"who's allowed to touch it\" — and a database that's airtight on one can still fail badly on the other.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [Data Integrity Constraints](#data-integrity-constraints)\n- [GRANT and REVOKE](#grant-and-revoke)\n- [DB Security Best Practices](#db-security-best-practices)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "## Key Concepts\n\nData integrity is usually described in three categories: **entity integrity** (every row can be uniquely identified — enforced by a primary key), **referential integrity** (every reference between tables points at something real — enforced by foreign keys), and **domain integrity** (every value falls within its allowed type, range, or set — enforced by data types, `CHECK`, and `NOT NULL`). Security is a separate concern layered on top: **`GRANT`/`REVOKE`** control who can perform which operations, and best practice centers on **least privilege** — every account, human or application, should hold only the permissions it actually needs, no more. The two overlap at one important point: encryption, masking, and auditing all *look* like security concerns, but they exist specifi"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "cally to protect the integrity and confidentiality of data that constraints alone can't cover — a `CHECK` constraint can't stop someone with `SELECT` access from reading data they shouldn't see.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "## Data Integrity Constraints\n\n<QuestionList topic=\"Data Integrity Constraints\" storagePrefix=\"security-data-integrity\">\n\n<QuestionCard id=\"di-01\" number={1} question=\"What are the three categories of data integrity, and what does each protect?\" difficulty=\"easy\" topic=\"Data Integrity\">\n**Entity integrity** ensures every row is uniquely identifiable and never has a missing identifier. **Referential integrity** ensures relationships between tables always point at something that actually exists. **Domain integrity** ensures every value in a column is valid for that column's defined type, range, or allowed set of values.\n</QuestionCard>\n\n<QuestionCard id=\"di-02\" number={2} question=\"Which SQL constraint enforces entity integrity?\" difficulty=\"easy\" topic=\"Data Integrity\">\n`PRIMARY KEY` — it c"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "ombines uniqueness and `NOT NULL`, which is exactly what entity integrity requires: every row must have an identifier, and that identifier must be unique. Without it, there'd be no reliable way to address a specific row at all.\n</QuestionCard>\n\n<QuestionCard id=\"di-03\" number={3} question=\"What's the difference between referential integrity and domain integrity, with an example of each?\" difficulty=\"medium\" topic=\"Data Integrity\">\nReferential integrity is about relationships between tables — a `FOREIGN KEY` ensuring `orders.customer_id` always matches a real row in `customers`. Domain integrity is about the validity of a single value in isolation — a `CHECK (price >= 0)` or `NOT NULL` on `email` ensuring a value is well-formed, regardless of whether it references anything elsewhere.\n</Ques"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "tionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "## GRANT and REVOKE\n\n<QuestionList topic=\"GRANT and REVOKE\" storagePrefix=\"security-grant-revoke\">\n\n<QuestionCard id=\"gr-01\" number={1} question=\"What does GRANT do, and what's the basic syntax?\" difficulty=\"easy\" topic=\"GRANT\">\n`GRANT` gives a user or role a specific privilege on a specific object: `GRANT SELECT, INSERT ON orders TO analyst_role`. It's how access is deliberately extended, rather than every account defaulting to full access to everything.\n</QuestionCard>\n\n<QuestionCard id=\"gr-02\" number={2} question=\"What does REVOKE do, and does it remove all previously granted privileges or just specific ones?\" difficulty=\"easy\" topic=\"REVOKE\">\n`REVOKE` removes a previously granted privilege: `REVOKE INSERT ON orders FROM analyst_role`. It's scoped exactly like `GRANT` — you revoke the s"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "pecific privilege(s) named, not automatically every privilege that role or user has been given; other still-granted privileges remain untouched.\n</QuestionCard>\n\n<QuestionCard id=\"gr-03\" number={3} question=\"What is the principle of least privilege, and how does GRANT/REVOKE let you enforce it in practice?\" difficulty=\"medium\" topic=\"Least Privilege\">\nLeast privilege means every account should have only the access it actually needs to do its job, and nothing more. `GRANT`/`REVOKE` are the mechanism for enforcing it directly: rather than giving broad access \"to be safe\" or \"in case it's needed later,\" you grant narrowly scoped privileges (specific tables, specific operations) and expand only when a real, specific need arises.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "## DB Security Best Practices\n\n<QuestionList topic=\"DB Security Best Practices\" storagePrefix=\"security-best-practices\">\n\n<QuestionCard id=\"sec-01\" number={1} question=\"What does the principle of least privilege look like applied to database accounts in practice?\" difficulty=\"medium\" topic=\"Best Practices\">\nAn application's database user should typically have only `SELECT`/`INSERT`/`UPDATE`/`DELETE` on the specific tables it touches — not admin/superuser access, and not `DROP`/`ALTER` privileges it never needs. Separate accounts are used for separate purposes (a read-only reporting account, a migration account with schema-change privileges) rather than one account with broad access shared across every use case.\n</QuestionCard>\n\n<QuestionCard id=\"sec-02\" number={2} question=\"Why are paramet"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "erized queries important for security, and what do they prevent?\" difficulty=\"easy\" topic=\"Best Practices\">\nParameterized queries separate SQL code from user-supplied data, sending values as bound parameters instead of concatenating them directly into a query string. This prevents **SQL injection** — an attacker crafting input that, if concatenated directly into the query, would change its meaning (e.g., closing a string early and appending their own SQL).\n</QuestionCard>\n\n<QuestionCard id=\"sec-03\" number={3} question=\"What is auditing in a database security context, and why does it matter even when access controls are already in place?\" difficulty=\"medium\" topic=\"Best Practices\">\nAuditing logs who accessed or changed what data, and when. It matters even with solid access controls because"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "access controls prevent *unauthorized* actions, but authorized users can still make mistakes or act maliciously — an audit trail is what lets you detect and investigate that after the fact, which prevention alone can't provide.\n</QuestionCard>\n\n<QuestionCard id=\"sec-04\" number={4} question=\"What does encryption at rest mean, and how does it differ from encryption in transit?\" difficulty=\"medium\" topic=\"Best Practices\">\nEncryption at rest protects data stored on disk — so a stolen disk or unauthorized filesystem access doesn't expose readable data. Encryption in transit (TLS) protects data moving over the network between the client and the database, so it can't be intercepted and read in flight. Both are usually needed together, since each protects a different point of exposure — one doesn'"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "t substitute for the other.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "## Common Interview Scenarios\n\n- **\"An application's database credentials were leaked — what damage can be limited by good GRANT hygiene alone?\"** Discuss how a narrowly-scoped account (no `DROP`, no access to unrelated tables) limits the blast radius compared to credentials with broad or admin access.\n- **\"How would you prevent SQL injection in an application that builds queries dynamically based on user input?\"** A direct prompt for parameterized queries/prepared statements, and why string concatenation of user input into SQL is the underlying vulnerability.\n- **\"Design the access model for a support team that needs to view customer orders but never modify or delete them.\"** A `GRANT SELECT`-only scenario, possibly combined with a view (see the [Views](/level-1-foundations/sql/views/) pa"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "ge) that limits which columns are exposed too.\n- **\"A junior engineer asks why the reporting dashboard's database user can't just use the same admin account as the migration scripts — how do you explain it?\"** Use it to walk through least privilege and blast-radius reasoning in plain terms.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/data-integrity-security/",
+    "locale": "en",
+    "title": "Data Integrity & Security",
+    "description": "Interview questions on data integrity constraints, GRANT/REVOKE privilege management, and database security best practices.",
+    "content": "## Further Reading\n\n- [Data Constraints](/level-1-foundations/sql/data-constraints/) — the specific PRIMARY KEY/FOREIGN KEY/CHECK mechanisms that implement entity, referential, and domain integrity\n- [Views](/level-1-foundations/sql/views/) — a complementary access-control tool alongside GRANT/REVOKE, restricting which columns or rows are exposed\n- [Transactions](/level-1-foundations/sql/transactions/) — how ACID's consistency guarantee relates to, but is distinct from, data integrity constraints"
+  },
+  {
     "path": "/level-1-foundations/sql/ddl/",
     "locale": "en",
     "title": "Data Definition Language (DDL)",
@@ -3104,6 +3223,174 @@
     "locale": "en",
     "title": "",
     "content": "pattern, then fix it by keeping transactions short, accessing tables in a consistent order, and reducing lock scope.\r\n</QuestionCard>\r\n\r\n</QuestionList>"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "import QuestionCard from '../../../../components/mdx/QuestionCard.astro';\nimport QuestionList from '../../../../components/mdx/QuestionList.astro';"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "## Transactions: Grouping Statements Into Atomic Units of Work\n\n**A transaction bundles a sequence of statements so they succeed or fail together — the control statements (BEGIN, COMMIT, ROLLBACK, SAVEPOINT) are the mechanics, and the isolation level is what decides how much of that in-progress work other concurrent transactions are allowed to see.**"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "## Table of Contents\n- [Key Concepts](#key-concepts)\n- [BEGIN](#begin)\n- [COMMIT](#commit)\n- [ROLLBACK](#rollback)\n- [SAVEPOINT](#savepoint)\n- [ACID](#acid)\n- [Transaction Isolation Levels](#transaction-isolation-levels)\n- [Common Interview Scenarios](#common-interview-scenarios)\n- [Further Reading](#further-reading)\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "## Key Concepts\n\nA transaction is a sequence of statements treated as one atomic unit: `BEGIN` starts it, `COMMIT` makes its changes permanent, and `ROLLBACK` undoes everything since it started. `SAVEPOINT` adds a partial checkpoint inside a longer transaction, letting you undo just the recent part without discarding everything. These control statements are what *deliver* the ACID guarantees in practice — but ACID also depends on **isolation level**, which governs how much of one transaction's in-progress, uncommitted work a concurrent transaction is allowed to see. That's a separate knob from the control statements themselves: two transactions can both correctly `COMMIT`/`ROLLBACK`, and still produce different results depending on whether the isolation level let them see each other's unco"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "mmitted changes along the way.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "## BEGIN\n\n<QuestionList topic=\"BEGIN\" storagePrefix=\"transactions-begin\">\n\n<QuestionCard id=\"bg-01\" number={1} question=\"What does BEGIN do, and what's the difference between implicit and explicit transaction management?\" difficulty=\"easy\" topic=\"BEGIN\">\n`BEGIN` (or `START TRANSACTION`) explicitly starts a new transaction, after which subsequent statements are grouped together until a `COMMIT` or `ROLLBACK`. Without an explicit `BEGIN`, most databases run in **autocommit** mode by default — each individual statement is implicitly its own complete transaction, committed immediately if it succeeds.\n</QuestionCard>\n\n<QuestionCard id=\"bg-02\" number={2} question=\"What happens to statements run before an explicit BEGIN in autocommit mode?\" difficulty=\"medium\" topic=\"BEGIN\">\nEach one commits imme"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "diately on its own as soon as it completes successfully — there's no window to roll multiple of them back together, since autocommit treats every individual statement as a self-contained transaction. This is why any operation that needs several statements to succeed or fail as a unit must start with an explicit `BEGIN` first.\n</QuestionCard>\n\n<QuestionCard id=\"bg-03\" number={3} question=\"Can you start a transaction inside another already-open transaction?\" difficulty=\"hard\" topic=\"BEGIN\">\nStandard SQL doesn't support true nested transactions — calling `BEGIN` again while a transaction is already open typically either raises an error, is silently ignored, or (in some databases) is treated as an implicit `SAVEPOINT` rather than a genuinely independent inner transaction. `SAVEPOINT` is the st"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "andard mechanism for partial, nested-like rollback behavior within a single transaction.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "## COMMIT\n\n<QuestionList topic=\"COMMIT\" storagePrefix=\"transactions-commit\">\n\n<QuestionCard id=\"cm-01\" number={1} question=\"What does COMMIT do?\" difficulty=\"easy\" topic=\"COMMIT\">\n`COMMIT` permanently applies every change made since the transaction began, making it visible to other connections and durable against a crash. Until `COMMIT` runs, the changes are only visible within the transaction that made them (at most isolation levels).\n</QuestionCard>\n\n<QuestionCard id=\"cm-02\" number={2} question=\"What happens if the connection is lost before a COMMIT is issued?\" difficulty=\"medium\" topic=\"COMMIT\">\nThe transaction is left uncommitted, and the database automatically rolls it back — none of its changes take effect. This is a safety property, not a bug: a transaction that never reached `COMMI"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "T` shouldn't be able to leave partial changes behind just because the client disconnected.\n</QuestionCard>\n\n<QuestionCard id=\"cm-03\" number={3} question=\"Once a transaction is committed, can it still be rolled back?\" difficulty=\"easy\" topic=\"COMMIT\">\nNo — `COMMIT` is the point of no return for that transaction; `ROLLBACK` only works on a still-open transaction. Undoing a mistake that's already been committed requires a new, separate transaction that explicitly reverses the change (or a restore from backup/point-in-time recovery for larger-scale mistakes).\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "## ROLLBACK\n\n<QuestionList topic=\"ROLLBACK\" storagePrefix=\"transactions-rollback\">\n\n<QuestionCard id=\"rb-01\" number={1} question=\"What does ROLLBACK do?\" difficulty=\"easy\" topic=\"ROLLBACK\">\n`ROLLBACK` undoes every change made since the transaction began (or since a specified `SAVEPOINT`), as if none of those statements had run. It's only meaningful on a transaction that hasn't been committed yet.\n</QuestionCard>\n\n<QuestionCard id=\"rb-02\" number={2} question=\"What's the difference between rolling back to a SAVEPOINT and rolling back the entire transaction?\" difficulty=\"medium\" topic=\"ROLLBACK\">\n`ROLLBACK TO SAVEPOINT name` undoes only the changes made after that specific savepoint, leaving everything before it (including the transaction itself) still open and intact. A plain `ROLLBACK` with"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "no savepoint discards the entire transaction from its very start.\n</QuestionCard>\n\n<QuestionCard id=\"rb-03\" number={3} question=\"Can DDL statements be rolled back the same way DML can?\" difficulty=\"hard\" topic=\"ROLLBACK\">\nIt depends on the database: PostgreSQL supports transactional DDL, so a `CREATE TABLE` or `ALTER TABLE` inside an open transaction can be rolled back like any DML statement. Many other databases (MySQL among them) auto-commit DDL immediately, meaning it takes effect right away and can't be undone with `ROLLBACK` — this is a meaningful, vendor-specific difference worth knowing before assuming DDL is always safely reversible.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "## SAVEPOINT\n\n<QuestionList topic=\"SAVEPOINT\" storagePrefix=\"transactions-savepoint\">\n\n<QuestionCard id=\"sp-01\" number={1} question=\"What is a SAVEPOINT, and why would you use one instead of just rolling back everything?\" difficulty=\"easy\" topic=\"SAVEPOINT\">\nA `SAVEPOINT` marks a named point within an open transaction that you can later roll back to, without discarding the whole transaction. It's useful when a long transaction has several logically separate steps, and a failure partway through should only undo the failed step — not the earlier, successful work.\n</QuestionCard>\n\n<QuestionCard id=\"sp-02\" number={2} question=\"Write an example of using SAVEPOINT to recover from a partial failure within a larger transaction.\" difficulty=\"medium\" topic=\"SAVEPOINT\">\n```sql\nBEGIN;\nINSERT INTO orde"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "rs (...) VALUES (...);\nSAVEPOINT before_discount;\nUPDATE orders SET total = total * 0.9 WHERE id = ...; -- fails or is undesired\nROLLBACK TO SAVEPOINT before_discount;\nCOMMIT;\n```\nThe order insert is preserved and eventually committed, while only the discount update — everything after the savepoint — gets undone.\n</QuestionCard>\n\n<QuestionCard id=\"sp-03\" number={3} question=\"What happens to savepoints after a transaction commits or fully rolls back?\" difficulty=\"medium\" topic=\"SAVEPOINT\">\nThey're released and no longer valid — a savepoint only has meaning within the transaction it was created in. Once that transaction ends (either way), any attempt to roll back to a savepoint from it will simply fail, since the transaction it belonged to no longer exists.\n</QuestionCard>\n\n</QuestionList>"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "---"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "## ACID\n\n<QuestionList topic=\"ACID\" storagePrefix=\"transactions-acid\">\n\n<QuestionCard id=\"acid-01\" number={1} question=\"What do the four ACID properties guarantee, at a high level?\" difficulty=\"easy\" topic=\"ACID\">\n**Atomicity** — the transaction is all-or-nothing. **Consistency** — it can only move the database from one valid state to another. **Isolation** — concurrent transactions don't see each other's uncommitted work. **Durability** — once committed, changes survive a crash. Together, they're what let application code trust the database instead of re-implementing that safety itself.\n</QuestionCard>\n\n<QuestionCard id=\"acid-02\" number={2} question=\"How do BEGIN, COMMIT, and ROLLBACK specifically deliver atomicity?\" difficulty=\"medium\" topic=\"ACID\">\nAtomicity requires an all-or-nothing o"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "utcome, and the transaction control statements are exactly what implement that: `BEGIN` marks where the \"all\" starts, `COMMIT` is the point where \"all\" becomes permanent, and `ROLLBACK` is the mechanism that enforces \"nothing\" if any part fails before that point — without these statements, there would be no way to group several writes into one atomic unit at all.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "## Transaction Isolation Levels\n\n<QuestionList topic=\"Transaction Isolation Levels\" storagePrefix=\"transactions-isolation\">\n\n<QuestionCard id=\"iso-01\" number={1} question=\"What are the four standard transaction isolation levels, from least to most strict?\" difficulty=\"medium\" topic=\"Isolation Levels\">\n`READ UNCOMMITTED` (weakest — can see other transactions' uncommitted changes), `READ COMMITTED` (only sees committed data, but a value can change between two reads in the same transaction), `REPEATABLE READ` (the same row read twice within a transaction returns the same value), and `SERIALIZABLE` (strongest — transactions behave as if run one at a time, with no concurrency anomalies at all).\n</QuestionCard>\n\n<QuestionCard id=\"iso-02\" number={2} question=\"What is a dirty read, and which isola"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "tion level allows it?\" difficulty=\"medium\" topic=\"Isolation Levels\">\nA dirty read happens when a transaction reads data that another transaction has written but not yet committed — if that other transaction then rolls back, the first transaction acted on data that never actually existed. Only `READ UNCOMMITTED` allows dirty reads; every stricter level prevents them.\n</QuestionCard>\n\n<QuestionCard id=\"iso-03\" number={3} question=\"What's the difference between a non-repeatable read and a phantom read, and which levels prevent each?\" difficulty=\"hard\" topic=\"Isolation Levels\">\nA **non-repeatable read** is when re-reading the *same row* within a transaction returns a different value, because another transaction updated and committed it in between — prevented starting at `REPEATABLE READ`. A **"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "phantom read** is when re-running the *same query* returns a different *set of rows* (not just changed values), because another transaction inserted or deleted rows matching the condition in between — only fully prevented at `SERIALIZABLE` in the standard definition, though some databases prevent it earlier through their specific implementation (e.g., PostgreSQL's `REPEATABLE READ`).\n</QuestionCard>\n\n<QuestionCard id=\"iso-04\" number={4} question=\"Why would you deliberately choose a lower isolation level than SERIALIZABLE?\" difficulty=\"medium\" topic=\"Isolation Levels\">\nStronger isolation requires more locking or version-tracking overhead, which reduces concurrency and throughput. Most application workloads default to `READ COMMITTED` because the anomalies it doesn't prevent (non-repeatable"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "and phantom reads) simply don't matter for most queries — reserving `SERIALIZABLE` for the specific operations where getting a stale or shifting view of the data would actually cause a correctness problem, like financial reconciliation.\n</QuestionCard>\n\n</QuestionList>\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "## Common Interview Scenarios\n\n- **\"Two transactions both try to update the same row at the same time — walk me through what happens.\"** Use it to discuss locking behavior, and how the outcome depends on isolation level and which transaction commits first.\n- **\"A batch import script partially fails halfway through 10,000 rows — how would you make sure it doesn't leave the database in an inconsistent state?\"** Discuss wrapping the batch in a transaction (or transactions with savepoints per chunk) so a failure rolls back cleanly instead of leaving a partial import committed.\n- **\"Explain the difference between a dirty read, a non-repeatable read, and a phantom read using a single running example.\"** A thorough isolation-levels check — walk through the same two concurrent transactions and sho"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "w what each anomaly looks like.\n- **\"Why might a financial application deliberately use SERIALIZABLE isolation for balance transfers but READ COMMITTED everywhere else?\"** Discuss the throughput-vs-correctness trade-off, and why that trade-off is decided per-operation, not database-wide.\n\n---"
+  },
+  {
+    "path": "/level-1-foundations/sql/transactions/",
+    "locale": "en",
+    "title": "Transactions",
+    "description": "Interview questions on SQL transactions — BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID guarantees, and transaction isolation levels.",
+    "content": "## Further Reading\n\n- [RDBMS Benefits & Limitations](/level-1-foundations/sql/rdbms-benefits-and-limitations/) — a deeper, vendor-comparison look at why ACID matters and where it starts to strain at scale\n- [Data Manipulation Language (DML)](/level-1-foundations/sql/dml/) — the INSERT/UPDATE/DELETE statements transactions typically wrap\n- [Data Definition Language (DDL)](/level-1-foundations/sql/ddl/) — why DDL's auto-commit behavior differs from DML inside a transaction"
   },
   {
     "path": "/level-1-foundations/sql/views/",
