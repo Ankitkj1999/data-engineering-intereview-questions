@@ -1,0 +1,32 @@
+{
+  "name": "de-tutor-mcp",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy --config wrangler.jsonc",
+    "dev": "wrangler dev --config wrangler.jsonc",
+    "format": "oxfmt --write .",
+    "lint:fix": "oxlint --fix",
+    "start": "wrangler dev --config wrangler.jsonc",
+    "cf-typegen": "wrangler types --config wrangler.jsonc",
+    "seed:parse": "node scripts/seed-from-mdx.mjs",
+    "db:migrate": "wrangler d1 execute de-tutor --config wrangler.jsonc --file=./schema.sql",
+    "db:seed": "wrangler d1 execute de-tutor --config wrangler.jsonc --file=./seed.sql",
+    "db:migrate:remote": "wrangler d1 execute de-tutor --config wrangler.jsonc --remote --file=./schema.sql",
+    "db:seed:remote": "wrangler d1 execute de-tutor --config wrangler.jsonc --remote --file=./seed.sql",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "@modelcontextprotocol/server": "2.0.0",
+    "agents": "^0.20.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "oxfmt": "^0.56.0",
+    "oxlint": "^1.71.0",
+    "typescript": "6.0.3",
+    "wrangler": "^4.118.0"
+  }
+}
