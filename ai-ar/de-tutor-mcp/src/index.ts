@@ -181,17 +181,45 @@ function createServer(env: Env) {
 	server.registerTool(
 		"get_progress",
 		{
-			description: "Per-concept mastery: ease, current interval, and next due date.",
+			description:
+				"Per-concept mastery (ease, current interval, next due date) plus how many of each " +
+				"concept's questions have been covered at least once, and an overall totals summary.",
 			inputSchema: z.object({}),
 		},
 		async () => {
 			const { results } = await env.DB.prepare(
-				`SELECT concept, ease, interval_days, due_ts FROM progress WHERE user_id = ? ORDER BY concept ASC`,
+				`SELECT
+					q.concept AS concept,
+					COUNT(DISTINCT q.id) AS questions_total,
+					COUNT(DISTINCT a.question_id) AS questions_covered,
+					p.ease AS ease,
+					p.interval_days AS interval_days,
+					p.due_ts AS due_ts
+				 FROM questions q
+				 LEFT JOIN attempts a ON a.question_id = q.id AND a.user_id = ?
+				 LEFT JOIN progress p ON p.concept = q.concept AND p.user_id = ?
+				 GROUP BY q.concept
+				 ORDER BY q.concept ASC`,
 			)
-				.bind(USER_ID)
-				.all<ProgressRow>();
+				.bind(USER_ID, USER_ID)
+				.all<{
+					concept: string;
+					questions_total: number;
+					questions_covered: number;
+					ease: number | null;
+					interval_days: number | null;
+					due_ts: number | null;
+				}>();
 
-			return { content: [{ type: "text" as const, text: JSON.stringify(results ?? []) }] };
+			const concepts = results ?? [];
+			const summary = {
+				concepts_total: concepts.length,
+				concepts_started: concepts.filter((c) => c.questions_covered > 0).length,
+				questions_total: concepts.reduce((sum, c) => sum + c.questions_total, 0),
+				questions_covered: concepts.reduce((sum, c) => sum + c.questions_covered, 0),
+			};
+
+			return { content: [{ type: "text" as const, text: JSON.stringify({ summary, concepts }) }] };
 		},
 	);
 
