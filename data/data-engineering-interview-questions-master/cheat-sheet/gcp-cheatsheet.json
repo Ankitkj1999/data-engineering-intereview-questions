@@ -1,0 +1,137 @@
+[
+  {
+    "gcp_cheat_sheet": {
+      "category": "GCP Overview",
+      "topics": [
+        { "name": "Google Cloud Global Infrastructure" },
+        { "name": "Google Cloud Platform Overview" },
+        { "name": "Google Cloud Pricing" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "gcp_cheat_sheet": {
+      "category": "GCP Compute Services",
+      "topics": [
+        { "name": "Cloud Run" },
+        { "name": "Google App Engine" },
+        { "name": "Google Cloud Functions" },
+        { "name": "Google Compute Engine (GCE)" },
+        { "name": "Google Kubernetes Engine (GKE)" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "gcp_cheat_sheet": {
+      "category": "GCP Storage Services",
+      "topics": [
+        { "name": "Google Cloud Filestore" },
+        { "name": "Google Cloud Storage (GCS)" },
+        { "name": "Local SSD" },
+        { "name": "Persistent Disks" }
+      ],
+      "related_notes": [
+        { "name": "Event-driven Transfer on Storage Transfer Service for Google Cloud Storage" }
+      ]
+    }
+  },
+
+  {
+    "gcp_cheat_sheet": {
+      "category": "GCP Database Services",
+      "topics": [
+        { "name": "Google BigQuery" },
+        { "name": "Google Cloud Bigtable" },
+        { "name": "Google Cloud SQL" },
+        { "name": "Google Cloud Spanner" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "gcp_cheat_sheet": {
+      "category": "GCP Networking & Content Delivery",
+      "topics": [
+        { "name": "Google Cloud CDN" },
+        { "name": "Google Cloud DNS" },
+        { "name": "Google Cloud Hybrid Connectivity" },
+        { "name": "Google Cloud Router" },
+        { "name": "Google Cloud Load Balancing" },
+        { "name": "Google Virtual Private Cloud" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "gcp_cheat_sheet": {
+      "category": "GCP Security and Identity Services",
+      "topics": [
+        { "name": "Google Cloud Armor" },
+        { "name": "Google Cloud Identity" },
+        { "name": "Google Cloud Identity and Access Management (IAM)" },
+        { "name": "Google Cloud Key Management" },
+        { "name": "Google Cloud Secret Manager" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "gcp_cheat_sheet": {
+      "category": "GCP Data and Analytics",
+      "topics": [
+        { "name": "Google BigQuery" },
+        { "name": "Google Cloud Dataflow" },
+        { "name": "Google Cloud Dataprep" },
+        { "name": "Google Cloud Dataproc" },
+        { "name": "Google Cloud Pub/Sub" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "gcp_cheat_sheet": {
+      "category": "GCP Management Tools",
+      "topics": [
+        { "name": "Google Cloud Billing" },
+        { "name": "Google Cloud Console" },
+        { "name": "Google Cloud Deployment Manager" },
+        { "name": "Google Cloud Logging" },
+        { "name": "Google Cloud Monitoring" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "gcp_cheat_sheet": {
+      "category": "GCP Developer Tools",
+      "topics": [
+        { "name": "Google Cloud Build" },
+        { "name": "Google Cloud Source Repositories" },
+        { "name": "Google Container Registry" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "gcp_cheat_sheet": {
+      "category": "Comparison of Google Cloud Services",
+      "topics": [
+        { "name": "Google BigQuery vs BigTable" },
+        { "name": "Google Cloud Storage vs Persistent Disks vs Local SSD vs Cloud Filestore" },
+        { "name": "Google Cloud Functions vs App Engine vs Cloud Run vs GKE" },
+        { "name": "Google Compute Engine vs App Engine" }
+      ],
+      "related_notes": []
+    }
+  }
+]

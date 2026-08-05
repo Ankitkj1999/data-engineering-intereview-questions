@@ -1,0 +1,251 @@
+[
+  {
+    "azure_cheat_sheet": {
+      "category": "Azure Overview",
+      "topics": [
+        { "name": "Azure CAPEX vs OPEX" },
+        { "name": "Azure Cloud Concepts" },
+        { "name": "Azure Cloud Architecture Models" },
+        { "name": "Azure Cloud Service Models" },
+        { "name": "Azure Global Infrastructure" },
+        { "name": "Azure User Tools" }
+      ],
+      "related_notes": [
+        { "name": "Azure 101: Regions And Availability Zones" },
+        { "name": "Azure 101: Subscriptions And Management Groups" },
+        { "name": "Cloud Computing Service Types: IaaS vs PaaS vs SaaS" },
+        { "name": "Estimating Your Azure Monthly Usage" },
+        { "name": "How To Reduce Your Monthly Azure Usage" }
+      ]
+    }
+  },
+
+  {
+    "azure_cheat_sheet": {
+      "category": "Azure Pricing",
+      "topics": [
+        { "name": "Azure Pricing Cheat Sheet (standalone page, no sub-topics)" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "azure_cheat_sheet": {
+      "category": "Azure Compute Services",
+      "topics": [
+        { "name": "Azure App Service" },
+        { "name": "Azure Batch" },
+        { "name": "Azure Container Instances" },
+        { "name": "Azure Container Registry" },
+        { "name": "Azure CycleCloud" },
+        { "name": "Azure Kubernetes Service (AKS)" },
+        { "name": "Azure Service Fabric" },
+        { "name": "Azure Virtual Machines" }
+      ],
+      "related_notes": [
+        { "name": "Deploying Docker Images to Azure Container Apps" }
+      ]
+    }
+  },
+
+  {
+    "azure_cheat_sheet": {
+      "category": "Azure Storage Services",
+      "topics": [
+        { "name": "Azure Archive Storage" },
+        { "name": "Azure Blob Storage" },
+        { "name": "Azure Disk Storage" },
+        { "name": "Azure File Storage" },
+        { "name": "Azure Queue Storage" },
+        { "name": "Azure Storage Overview" },
+        { "name": "Azure Table Storage" }
+      ],
+      "related_notes": [
+        { "name": "Azure Storage Redundancy Options" },
+        { "name": "Creating And Mounting An Azure File Share" },
+        { "name": "Configuring Azure Object Replication" }
+      ]
+    }
+  },
+
+  {
+    "azure_cheat_sheet": {
+      "category": "Azure Migration Services",
+      "topics": [
+        { "name": "Azure 101: Azure Migrate" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "azure_cheat_sheet": {
+      "category": "Azure AI Services",
+      "topics": [
+        { "name": "Azure Applied AI Services: Computer Vision and NLP Workloads on Azure" },
+        { "name": "Azure Responsible AI" },
+        { "name": "Automated Machine Learning (AutoML) in Azure" },
+        { "name": "Data Concepts in Azure Machine Learning Cheat sheet" },
+        { "name": "Azure AI Content Safety" },
+        { "name": "Azure AI Document Intelligence" },
+        { "name": "Azure AI Language" },
+        { "name": "Azure AI Vision" },
+        { "name": "Azure AI Translator" },
+        { "name": "Azure AI Search" },
+        { "name": "Azure AI Video Indexer" },
+        { "name": "Azure AI Speech" },
+        { "name": "Azure AI Bot Service" },
+        { "name": "Azure OpenAI" },
+        { "name": "Microsoft 365 Copilot" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "azure_cheat_sheet": {
+      "category": "Azure Database Services",
+      "topics": [
+        { "name": "Azure Cosmos DB" },
+        { "name": "Azure Database Migration Service" },
+        { "name": "Azure Database for MySQL and PostgreSQL" },
+        { "name": "Azure SQL" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "azure_cheat_sheet": {
+      "category": "Azure Networking & Content Delivery",
+      "topics": [
+        { "name": "Azure Application Gateway" },
+        { "name": "Azure Content Delivery Network" },
+        { "name": "Azure DNS" },
+        { "name": "Azure ExpressRoute" },
+        { "name": "Azure Front Door" },
+        { "name": "Azure Load Balancer" },
+        { "name": "Azure Traffic Manager" },
+        { "name": "Azure Virtual Network (VNet)" },
+        { "name": "Azure VPN Gateway" }
+      ],
+      "related_notes": [
+        { "name": "How To Peer Two Azure Virtual Networks" }
+      ]
+    }
+  },
+
+  {
+    "azure_cheat_sheet": {
+      "category": "Azure Security Services",
+      "topics": [
+        { "name": "Advanced Threat Protection (ATP)" },
+        { "name": "Azure Active Directory" },
+        { "name": "Azure DDoS Protection" },
+        { "name": "Azure Firewall" },
+        { "name": "Azure Information Protection" },
+        { "name": "Azure Key Vault" },
+        { "name": "Azure Security Center" },
+        { "name": "Microsoft Compliance Offerings" },
+        { "name": "Microsoft Defender XDR" },
+        { "name": "Microsoft Defender for Cloud" },
+        { "name": "Microsoft Defender for Identity" },
+        { "name": "Microsoft Entra ID" },
+        { "name": "Microsoft Sentinel" },
+        { "name": "Microsoft Defender for Endpoint" },
+        { "name": "Microsoft Copilot for Security" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "azure_cheat_sheet": {
+      "category": "Azure Monitoring and Management Tools",
+      "topics": [
+        { "name": "Azure Advisor" },
+        { "name": "Azure Arc" },
+        { "name": "Azure Blueprints" },
+        { "name": "Azure Compliance Manager" },
+        { "name": "Azure Monitor" },
+        { "name": "Azure Policy" },
+        { "name": "Azure Resource Manager (ARM)" },
+        { "name": "Azure Role-Based Access Control (RBAC)" },
+        { "name": "Azure Service Health" }
+      ],
+      "related_notes": [
+        { "name": "Automate Resources in Azure using ARM templates" },
+        { "name": "Azure 101: Azure Resource Manager and ARM Templates" },
+        { "name": "Azure 101: Protecting Your Resources Using Azure Resource Locks" },
+        { "name": "How to Set Up Alerts Rules and Action Groups in Azure Monitor" }
+      ]
+    }
+  },
+
+  {
+    "azure_cheat_sheet": {
+      "category": "Azure Solutions",
+      "topics": [
+        { "name": "Azure Big Data" },
+        { "name": "Azure DevOps" },
+        { "name": "Azure Internet of Things (IoT)" },
+        { "name": "Azure Machine Learning" },
+        { "name": "Azure Serverless" },
+        { "name": "Azure Pipelines" },
+        { "name": "Microsoft SharePoint" },
+        { "name": "Microsoft Exchange Online" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "azure_cheat_sheet": {
+      "category": "Other Azure Services",
+      "topics": [
+        { "name": "Azure Service Bus" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "azure_cheat_sheet": {
+      "category": "Comparison of Azure Services",
+      "topics": [
+        { "name": "Azure Blob vs Disk vs File Storage" },
+        { "name": "Azure Container Instances (ACI) vs Azure Kubernetes Service (AKS)" },
+        { "name": "Azure Functions vs Logic Apps vs Event Grid" },
+        { "name": "Azure Load Balancer vs App Gateway vs Traffic Manager" },
+        { "name": "Azure Policy vs Azure Role-Based Access Control (RBAC)" },
+        { "name": "Azure Scale Set vs Availability Set" },
+        { "name": "Azure Security Center vs Azure Sentinel" },
+        { "name": "Azure Virtual Machines vs Web App" },
+        { "name": "Locally Redundant Storage (LRS) vs Zone-Redundant Storage (ZRS) vs Geo-Redundant Storage (GRS)" },
+        { "name": "Network Security Group (NSG) vs Application Security Group" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "azure_cheat_sheet": {
+      "category": "AWS vs Azure Comparison of Services",
+      "topics": [
+        { "name": "AWS vs Azure Services Comparison Cheat Sheet (standalone page, no sub-topics)" }
+      ],
+      "related_notes": []
+    }
+  },
+
+  {
+    "azure_cheat_sheet": {
+      "category": "Azure vs AWS vs GCP Service Comparison",
+      "topics": [
+        { "name": "Azure vs AWS vs GCP Service Comparison (standalone page, no sub-topics)" }
+      ],
+      "related_notes": []
+    }
+  }
+]

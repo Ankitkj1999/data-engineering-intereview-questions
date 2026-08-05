@@ -8,7 +8,9 @@
         { "label": "Python",           "link": "/roadmaps/python/" },
         { "label": "SQL",              "link": "/roadmaps/sql/" },
         { "label": "Apache Spark",     "link": "/roadmaps/apache-spark/" },
-        { "label": "AWS Services",     "link": "/roadmaps/aws/" }
+        { "label": "AWS Services",     "link": "/roadmaps/aws/" },
+        { "label": "Azure Services",   "link": "/roadmaps/azure/" },
+        { "label": "GCP Services",     "link": "/roadmaps/gcp/" }
       ]
     },
     {
