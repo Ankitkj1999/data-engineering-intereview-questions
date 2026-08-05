@@ -2,12 +2,11 @@
    Used by python.astro, sql.astro, data-engineering.astro, apache-spark.astro,
    aws.astro, azure.astro, gcp.astro. All selectors are plain (no Astro
    scoping) so JS-generated DOM is styled — every roadmap page builds its
-   nodes/panels/badges via
-   client-side innerHTML template strings, not Astro markup, so this file
-   can only share CSS *recipes* with primitives.css/the ui/ components (same
-   custom properties, same radius/color tokens) — it can't import or render
-   Button.astro/Badge.astro/ProgressBar.astro directly. Don't try to; keep
-   the visual language in sync by hand instead.
+   nodes/panels/badges via client-side innerHTML template strings, not Astro
+   markup, so this file can only share CSS *recipes* with primitives.css/the
+   ui/ components (same custom properties, same radius/color tokens) — it
+   can't import or render Button.astro/Badge.astro/ProgressBar.astro
+   directly. Don't try to; keep the visual language in sync by hand instead.
 ──────────────────────────────────────────────────────────────────────────── */
 
 #rm-root {
@@ -24,6 +23,14 @@
   margin         : 0 auto;
   padding-bottom : 4rem;
 }
+
+/* Starlight's markdown-content typography applies a "stack" margin-top to
+   every element that follows a sibling, so any div/button dropped in here
+   without an explicit override silently inherits a 16px push — that's what
+   was tilting the filter toggle buttons and offsetting the legend/progress
+   rows. Zero-specificity :where() means every class rule below still wins
+   normally; this only sets the baseline for elements that don't. */
+:where(#rm-root) * { margin: 0; }
 
 .sl-markdown-content { max-width: 100% !important; }
 
