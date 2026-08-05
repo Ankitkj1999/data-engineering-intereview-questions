@@ -1,7 +1,8 @@
 /* ── Shared roadmap styles ────────────────────────────────────────────────────
    Used by python.astro, sql.astro, data-engineering.astro, apache-spark.astro,
-   aws.astro. All selectors are plain (no Astro scoping) so JS-generated DOM
-   is styled — every roadmap page builds its nodes/panels/badges via
+   aws.astro, azure.astro, gcp.astro. All selectors are plain (no Astro
+   scoping) so JS-generated DOM is styled — every roadmap page builds its
+   nodes/panels/badges via
    client-side innerHTML template strings, not Astro markup, so this file
    can only share CSS *recipes* with primitives.css/the ui/ components (same
    custom properties, same radius/color tokens) — it can't import or render
@@ -71,6 +72,54 @@
   align-items   : flex-end;
   gap           : 0.6rem;
   padding-top   : 0.25rem;
+}
+
+/* ── Filter toggle (Data Engineering / All services) ─────────────────────────
+   Used by aws.astro/azure.astro/gcp.astro only — those three ship a full
+   cloud-service catalog and need a way to narrow to the DE-relevant subset.
+   Python/SQL/Spark/Data-Engineering roadmaps are already 100% DE-scoped and
+   don't render this markup, so these rules are inert there. */
+.rm-filter-row {
+  display    : flex;
+  align-items: center;
+  gap        : 0.625rem;
+}
+
+.rm-filter-toggle {
+  display      : inline-flex;
+  padding      : 2px;
+  border       : 1.5px solid var(--sl-color-gray-5);
+  border-radius: 999px;
+  background   : var(--sl-color-gray-7, var(--sl-color-bg-sidebar));
+}
+
+.rm-filter-btn {
+  appearance   : none;
+  border       : none;
+  background   : transparent;
+  color        : var(--sl-color-gray-2);
+  font-size    : 0.72rem;
+  font-weight  : 600;
+  line-height  : 1;
+  padding      : 0.4em 0.85em;
+  border-radius: 999px;
+  cursor       : pointer;
+  white-space  : nowrap;
+  transition   : background 0.15s, color 0.15s;
+}
+
+.rm-filter-btn:hover:not(.is-active) { color: var(--sl-color-text); }
+
+.rm-filter-btn.is-active {
+  background: var(--sl-color-accent);
+  color     : var(--sl-color-bg);
+}
+
+.rm-filter-count {
+  font-size  : 0.68rem;
+  font-weight: 600;
+  color      : var(--sl-color-gray-3);
+  white-space: nowrap;
 }
 
 .rm-legend {

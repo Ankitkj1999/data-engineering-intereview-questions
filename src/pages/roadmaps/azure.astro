@@ -16,6 +16,13 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
         <p class="rm-subtitle">Complete map of every Azure service across all categories — track what you've learned or used in production</p>
       </div>
       <div class="rm-header-right">
+        <div class="rm-filter-row">
+          <div class="rm-filter-toggle" id="rm-filter-toggle">
+            <button type="button" class="rm-filter-btn" data-mode="de">Data Engineering</button>
+            <button type="button" class="rm-filter-btn" data-mode="all">All services</button>
+          </div>
+          <span class="rm-filter-count" id="rm-filter-count"></span>
+        </div>
         <div class="rm-legend">
           <span class="rm-legend-item" data-status="pending"><span class="rm-dot"></span>Pending</span>
           <span class="rm-legend-item" data-status="inprogress"><span class="rm-dot"></span>In Progress</span>
@@ -79,31 +86,31 @@ const ROADMAP = [
   ]},
   { id:"compute", label:"Azure Compute Services", desc:"Services for running application code and containers — from fully managed PaaS to full control over virtual machines.", subs:[
     { id:"azure-app-service",      label:"Azure App Service",                  desc:"Fully managed PaaS for hosting web apps, REST APIs, and mobile back ends, with built-in auto-scaling, deployment slots, and CI/CD integration." },
-    { id:"azure-batch",            label:"Azure Batch",                        desc:"Managed service for running large-scale parallel and batch compute jobs across a pool of auto-scaling virtual machines." },
-    { id:"azure-container-instances", label:"Azure Container Instances",       desc:"Serverless container hosting that runs a single container or container group without provisioning or managing VMs." },
+    { id:"azure-batch",            label:"Azure Batch",                        desc:"Managed service for running large-scale parallel and batch compute jobs across a pool of auto-scaling virtual machines.", de:true },
+    { id:"azure-container-instances", label:"Azure Container Instances",       desc:"Serverless container hosting that runs a single container or container group without provisioning or managing VMs.", de:true },
     { id:"azure-container-registry", label:"Azure Container Registry",         desc:"Private, managed Docker registry for storing and managing container images and Helm charts across your Azure deployments." },
     { id:"azure-cyclecloud",       label:"Azure CycleCloud",                   desc:"Tool for orchestrating and managing HPC clusters on Azure, provisioning infrastructure and scheduler software for workload-managed clusters." },
-    { id:"azure-aks",              label:"Azure Kubernetes Service (AKS)",     desc:"Managed Kubernetes service that offloads control-plane operations, letting you deploy and scale containerized applications with native Azure integration." },
+    { id:"azure-aks",              label:"Azure Kubernetes Service (AKS)",     desc:"Managed Kubernetes service that offloads control-plane operations, letting you deploy and scale containerized applications with native Azure integration.", de:true },
     { id:"azure-service-fabric",   label:"Azure Service Fabric",               desc:"Distributed systems platform for building and managing scalable microservices and containers across a cluster of machines." },
-    { id:"azure-virtual-machines", label:"Azure Virtual Machines",             desc:"On-demand, scalable IaaS compute — full control over the OS and configuration, available in a wide range of sizes and pricing tiers." },
+    { id:"azure-virtual-machines", label:"Azure Virtual Machines",             desc:"On-demand, scalable IaaS compute — full control over the OS and configuration, available in a wide range of sizes and pricing tiers.", de:true },
   ]},
   { id:"storage", label:"Azure Storage Services", desc:"Object, block, file, and table storage services covering every durability, access-pattern, and cost tier.", subs:[
-    { id:"azure-archive-storage",  label:"Azure Archive Storage",              desc:"Lowest-cost Blob Storage access tier for rarely accessed data with hours-long retrieval latency, ideal for long-term archival." },
-    { id:"azure-blob-storage",     label:"Azure Blob Storage",                 desc:"Massively scalable object storage for unstructured data — Hot, Cool, and Archive tiers trade access latency for cost." },
-    { id:"azure-disk-storage",     label:"Azure Disk Storage",                 desc:"Persistent, high-performance block storage (HDD, SSD, Premium SSD, Ultra Disk) attached to Azure Virtual Machines." },
-    { id:"azure-file-storage",     label:"Azure File Storage",                 desc:"Fully managed SMB and NFS file shares in the cloud, mountable concurrently by on-premises and cloud VMs." },
-    { id:"azure-queue-storage",    label:"Azure Queue Storage",                desc:"Simple, durable message queuing service for asynchronous communication between application components." },
-    { id:"azure-storage-overview", label:"Azure Storage Overview",             desc:"Umbrella service covering Blob, File, Queue, Table, and Disk storage, unified under a single storage account with shared redundancy options." },
-    { id:"azure-table-storage",    label:"Azure Table Storage",                desc:"NoSQL key-value store for large amounts of structured, non-relational data, now largely superseded by Azure Cosmos DB's Table API." },
+    { id:"azure-archive-storage",  label:"Azure Archive Storage",              desc:"Lowest-cost Blob Storage access tier for rarely accessed data with hours-long retrieval latency, ideal for long-term archival.", de:true },
+    { id:"azure-blob-storage",     label:"Azure Blob Storage",                 desc:"Massively scalable object storage for unstructured data — Hot, Cool, and Archive tiers trade access latency for cost.", de:true },
+    { id:"azure-disk-storage",     label:"Azure Disk Storage",                 desc:"Persistent, high-performance block storage (HDD, SSD, Premium SSD, Ultra Disk) attached to Azure Virtual Machines.", de:true },
+    { id:"azure-file-storage",     label:"Azure File Storage",                 desc:"Fully managed SMB and NFS file shares in the cloud, mountable concurrently by on-premises and cloud VMs.", de:true },
+    { id:"azure-queue-storage",    label:"Azure Queue Storage",                desc:"Simple, durable message queuing service for asynchronous communication between application components.", de:true },
+    { id:"azure-storage-overview", label:"Azure Storage Overview",             desc:"Umbrella service covering Blob, File, Queue, Table, and Disk storage, unified under a single storage account with shared redundancy options.", de:true },
+    { id:"azure-table-storage",    label:"Azure Table Storage",                desc:"NoSQL key-value store for large amounts of structured, non-relational data, now largely superseded by Azure Cosmos DB's Table API.", de:true },
   ]},
   { id:"migration", label:"Azure Migration Services", desc:"Tools for assessing and moving on-premises workloads into Azure.", subs:[
     { id:"azure-migrate",          label:"Azure Migrate",                      desc:"Centralized hub for discovering, assessing, and migrating on-premises servers, databases, and web apps to Azure." },
   ]},
   { id:"database", label:"Azure Database Services", desc:"Purpose-built managed database engines spanning relational and globally distributed NoSQL workloads.", subs:[
-    { id:"azure-cosmos-db",        label:"Azure Cosmos DB",                    desc:"Globally distributed, multi-model NoSQL database offering single-digit-millisecond latency and multiple consistency levels across regions." },
-    { id:"azure-dms",              label:"Azure Database Migration Service",   desc:"Simplifies migrating on-premises databases to Azure with minimal downtime, supporting both homogeneous and heterogeneous migrations." },
-    { id:"azure-mysql-postgresql", label:"Azure Database for MySQL and PostgreSQL", desc:"Fully managed, community-compatible relational database services for MySQL and PostgreSQL with automated patching and backups." },
-    { id:"azure-sql",              label:"Azure SQL",                          desc:"Family of managed relational database services — Azure SQL Database, Managed Instance, and SQL Server on VMs — built on the SQL Server engine." },
+    { id:"azure-cosmos-db",        label:"Azure Cosmos DB",                    desc:"Globally distributed, multi-model NoSQL database offering single-digit-millisecond latency and multiple consistency levels across regions.", de:true },
+    { id:"azure-dms",              label:"Azure Database Migration Service",   desc:"Simplifies migrating on-premises databases to Azure with minimal downtime, supporting both homogeneous and heterogeneous migrations.", de:true },
+    { id:"azure-mysql-postgresql", label:"Azure Database for MySQL and PostgreSQL", desc:"Fully managed, community-compatible relational database services for MySQL and PostgreSQL with automated patching and backups.", de:true },
+    { id:"azure-sql",              label:"Azure SQL",                          desc:"Family of managed relational database services — Azure SQL Database, Managed Instance, and SQL Server on VMs — built on the SQL Server engine.", de:true },
   ]},
   { id:"networking", label:"Azure Networking & Content Delivery", desc:"Services for connecting, routing, and delivering content across virtual networks, on-premises networks, and the public internet.", subs:[
     { id:"azure-application-gateway", label:"Azure Application Gateway",       desc:"Layer 7 load balancer with URL-based routing, SSL termination, and integrated Web Application Firewall (WAF)." },
@@ -145,17 +152,17 @@ const ROADMAP = [
     { id:"azure-service-health",   label:"Azure Service Health",               desc:"Personalized dashboard tracking the health of Azure services and planned maintenance that could affect your resources." },
   ]},
   { id:"solutions", label:"Azure Solutions", desc:"Higher-level platforms and reference architectures built by combining core Azure services for common business scenarios.", subs:[
-    { id:"azure-big-data",         label:"Azure Big Data",                     desc:"Reference architectures and services (Synapse Analytics, HDInsight, Databricks) for large-scale batch and streaming data processing on Azure." },
+    { id:"azure-big-data",         label:"Azure Big Data",                     desc:"Reference architectures and services (Synapse Analytics, HDInsight, Databricks) for large-scale batch and streaming data processing on Azure.", de:true },
     { id:"azure-devops",           label:"Azure DevOps",                       desc:"Suite of development tools — Boards, Repos, Pipelines, Test Plans, Artifacts — for planning, building, and shipping software." },
     { id:"azure-iot",              label:"Azure Internet of Things (IoT)",     desc:"Platform of services (IoT Hub, IoT Central, Digital Twins) for connecting, monitoring, and managing IoT devices at scale." },
     { id:"azure-machine-learning", label:"Azure Machine Learning",             desc:"End-to-end platform for building, training, deploying, and managing machine learning models and MLOps pipelines." },
-    { id:"azure-serverless",       label:"Azure Serverless",                   desc:"Umbrella of event-driven, consumption-billed services — Azure Functions, Logic Apps, Event Grid — that eliminate server management." },
+    { id:"azure-serverless",       label:"Azure Serverless",                   desc:"Umbrella of event-driven, consumption-billed services — Azure Functions, Logic Apps, Event Grid — that eliminate server management.", de:true },
     { id:"azure-pipelines",        label:"Azure Pipelines",                    desc:"CI/CD service within Azure DevOps for building, testing, and deploying code to any platform or cloud." },
     { id:"microsoft-sharepoint",   label:"Microsoft SharePoint",               desc:"Web-based collaboration and document management platform for intranets, file storage, and team sites." },
     { id:"microsoft-exchange-online", label:"Microsoft Exchange Online",       desc:"Cloud-hosted enterprise email, calendaring, and contacts service, part of the Microsoft 365 suite." },
   ]},
   { id:"other", label:"Other Azure Services", desc:"Miscellaneous Azure services covering enterprise messaging.", subs:[
-    { id:"azure-service-bus",      label:"Azure Service Bus",                  desc:"Fully managed enterprise message broker supporting queues and publish/subscribe topics for decoupling distributed applications." },
+    { id:"azure-service-bus",      label:"Azure Service Bus",                  desc:"Fully managed enterprise message broker supporting queues and publish/subscribe topics for decoupling distributed applications.", de:true },
   ]},
   { id:"ai", label:"Azure AI Services", desc:"Managed machine learning platforms, generative AI, and pre-trained AI services for vision, language, and speech.", subs:[
     { id:"azure-ai-vision-nlp",    label:"Azure Applied AI Services: Vision & NLP", desc:"Pre-built AI services combining computer vision and natural language processing for common business scenarios like document processing and form recognition." },
@@ -175,15 +182,15 @@ const ROADMAP = [
     { id:"microsoft-365-copilot",  label:"Microsoft 365 Copilot",              desc:"Generative AI assistant embedded across Microsoft 365 apps (Word, Excel, Teams) grounded in an organization's own data via Microsoft Graph." },
   ]},
   { id:"comparisons", label:"Comparison of Azure Services", desc:"Head-to-head breakdowns of similar Azure services — the decisions that come up most often in interviews and architecture reviews.", subs:[
-    { id:"azure-blob-vs-disk-vs-file", label:"Azure Blob vs Disk vs File Storage", desc:"Blob Storage suits unstructured object data accessed over HTTP; Disk Storage attaches block storage to a single VM; File Storage offers shared SMB/NFS file shares." },
-    { id:"aci-vs-aks",             label:"Azure Container Instances (ACI) vs AKS", desc:"Container Instances runs single containers with zero orchestration overhead; AKS provides full Kubernetes orchestration for complex, multi-container workloads." },
-    { id:"azure-functions-vs-logic-apps-vs-event-grid", label:"Azure Functions vs Logic Apps vs Event Grid", desc:"Functions run custom code on triggers; Logic Apps build low-code workflows visually; Event Grid routes events between publishers and subscribers at scale." },
+    { id:"azure-blob-vs-disk-vs-file", label:"Azure Blob vs Disk vs File Storage", desc:"Blob Storage suits unstructured object data accessed over HTTP; Disk Storage attaches block storage to a single VM; File Storage offers shared SMB/NFS file shares.", de:true },
+    { id:"aci-vs-aks",             label:"Azure Container Instances (ACI) vs AKS", desc:"Container Instances runs single containers with zero orchestration overhead; AKS provides full Kubernetes orchestration for complex, multi-container workloads.", de:true },
+    { id:"azure-functions-vs-logic-apps-vs-event-grid", label:"Azure Functions vs Logic Apps vs Event Grid", desc:"Functions run custom code on triggers; Logic Apps build low-code workflows visually; Event Grid routes events between publishers and subscribers at scale.", de:true },
     { id:"azure-lb-vs-app-gateway-vs-traffic-manager", label:"Load Balancer vs App Gateway vs Traffic Manager", desc:"Load Balancer operates at Layer 4 within a region; Application Gateway adds Layer 7 routing and WAF; Traffic Manager load-balances via DNS across regions." },
     { id:"azure-policy-vs-rbac",   label:"Azure Policy vs RBAC",               desc:"Azure Policy enforces what configurations resources must have; RBAC controls who can perform which actions on those resources." },
     { id:"azure-scale-set-vs-availability-set", label:"Azure Scale Set vs Availability Set", desc:"Scale Sets automatically add or remove identical VM instances based on demand; Availability Sets distribute a fixed set of VMs across fault and update domains." },
     { id:"azure-security-center-vs-sentinel", label:"Security Center vs Sentinel", desc:"Defender for Cloud (formerly Security Center) manages cloud security posture and workload protection; Sentinel is a SIEM/SOAR layer for security analytics and response across the whole enterprise." },
     { id:"azure-vms-vs-web-app",   label:"Azure Virtual Machines vs Web App",  desc:"Virtual Machines give full OS-level control as IaaS; App Service (Web App) is a managed PaaS that abstracts away the OS and server management." },
-    { id:"lrs-vs-zrs-vs-grs",      label:"LRS vs ZRS vs GRS",                  desc:"LRS replicates within a single datacenter; ZRS spreads replicas across zones in a region; GRS additionally replicates asynchronously to a secondary, distant region." },
+    { id:"lrs-vs-zrs-vs-grs",      label:"LRS vs ZRS vs GRS",                  desc:"LRS replicates within a single datacenter; ZRS spreads replicas across zones in a region; GRS additionally replicates asynchronously to a secondary, distant region.", de:true },
     { id:"nsg-vs-asg",             label:"Network Security Group vs Application Security Group", desc:"Network Security Groups filter traffic by IP/port at the subnet or NIC level; Application Security Groups group VMs by application role so NSG rules can reference groups instead of explicit IPs." },
   ]},
   { id:"cross-cloud", label:"Cross-Cloud Comparisons", desc:"Service mappings between Azure and its major competitors, useful for translating skills or designing multi-cloud architectures.", subs:[
@@ -206,6 +213,15 @@ let state = load();
 let collapsedIds = new Set();
 function getS(id: string) { return state[id]||"pending"; }
 
+const FILTER_KEY = "azure_roadmap_filter_v1";
+let filterMode = localStorage.getItem(FILTER_KEY) || "de";
+function visibleTopics() {
+  if (filterMode === "all") return ROADMAP;
+  return ROADMAP
+    .map(t => ({ ...t, subs: t.subs.filter((s: any) => s.de) }))
+    .filter(t => t.subs.length > 0);
+}
+
 function allIds() {
   const ids: string[] = [];
   for (const t of ROADMAP) { ids.push(t.id); for (const s of t.subs) ids.push(s.id); }
@@ -226,7 +242,8 @@ function buildFlow() {
   const flow = document.getElementById("rm-flow");
   if (!flow) return;
   flow.innerHTML = "";
-  ROADMAP.forEach((topic, ti) => {
+  const topics = visibleTopics();
+  topics.forEach((topic, ti) => {
     const s = getS(topic.id);
     const isCollapsed = collapsedIds.has(topic.id);
     const topicEl = document.createElement("div");
@@ -257,13 +274,31 @@ function buildFlow() {
       }
       flow.appendChild(group);
     }
-    if (ti < ROADMAP.length-1) {
+    if (ti < topics.length-1) {
       const arrow = document.createElement("div");
       arrow.className = "rm-arrow";
       arrow.innerHTML = ICON_ARROW;
       flow.appendChild(arrow);
     }
   });
+}
+
+function updateFilterUI() {
+  document.querySelectorAll<HTMLButtonElement>(".rm-filter-btn").forEach(btn => {
+    btn.classList.toggle("is-active", btn.dataset.mode === filterMode);
+  });
+  const total = allIds().length;
+  const shown = visibleTopics().reduce((n, t) => n + 1 + t.subs.length, 0);
+  const countEl = document.getElementById("rm-filter-count");
+  if (countEl) countEl.textContent = `${shown} / ${total} shown`;
+}
+
+function setFilterMode(mode: string) {
+  if (mode === filterMode) return;
+  filterMode = mode;
+  localStorage.setItem(FILTER_KEY, mode);
+  buildFlow();
+  updateFilterUI();
 }
 
 let activeId: string|null = null, activeParent: string|null = null;
@@ -333,7 +368,10 @@ function setStatus(id: string, s: string) {
   }
 }
 
-buildFlow(); refreshProgress();
+buildFlow(); refreshProgress(); updateFilterUI();
+document.querySelectorAll<HTMLButtonElement>(".rm-filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => setFilterMode(btn.dataset.mode!));
+});
 document.body.appendChild(document.getElementById("rm-drawer")!);
 document.getElementById("rm-panel-close")?.addEventListener("click", closePanel);
 document.getElementById("rm-backdrop")?.addEventListener("click", closePanel);

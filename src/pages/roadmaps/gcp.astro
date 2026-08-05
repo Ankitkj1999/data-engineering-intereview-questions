@@ -16,6 +16,13 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
         <p class="rm-subtitle">Complete map of every Google Cloud service across all categories — track what you've learned or used in production</p>
       </div>
       <div class="rm-header-right">
+        <div class="rm-filter-row">
+          <div class="rm-filter-toggle" id="rm-filter-toggle">
+            <button type="button" class="rm-filter-btn" data-mode="de">Data Engineering</button>
+            <button type="button" class="rm-filter-btn" data-mode="all">All services</button>
+          </div>
+          <span class="rm-filter-count" id="rm-filter-count"></span>
+        </div>
         <div class="rm-legend">
           <span class="rm-legend-item" data-status="pending"><span class="rm-dot"></span>Pending</span>
           <span class="rm-legend-item" data-status="inprogress"><span class="rm-dot"></span>In Progress</span>
@@ -72,23 +79,23 @@ const ROADMAP = [
     { id:"gcp-pricing",             label:"Google Cloud Pricing",               desc:"Pay-as-you-go pricing with sustained-use and committed-use discounts, plus the Google Cloud Pricing Calculator for cost estimation." },
   ]},
   { id:"compute", label:"GCP Compute Services", desc:"Services for running application code and containers — from fully managed serverless platforms to full control over virtual machines.", subs:[
-    { id:"cloud-run",               label:"Cloud Run",                         desc:"Fully managed serverless platform for running stateless containers, automatically scaling to zero when idle." },
+    { id:"cloud-run",               label:"Cloud Run",                         desc:"Fully managed serverless platform for running stateless containers, automatically scaling to zero when idle.", de:true },
     { id:"google-app-engine",       label:"Google App Engine",                 desc:"Fully managed PaaS for building and deploying web applications and APIs without managing the underlying infrastructure." },
-    { id:"google-cloud-functions",  label:"Google Cloud Functions",            desc:"Event-driven, serverless compute for running single-purpose functions in response to cloud events." },
-    { id:"gce",                     label:"Google Compute Engine (GCE)",       desc:"Customizable, scalable IaaS virtual machines with per-second billing and custom machine types." },
-    { id:"gke",                     label:"Google Kubernetes Engine (GKE)",    desc:"Managed, production-ready Kubernetes environment with Autopilot mode for hands-off node management." },
+    { id:"google-cloud-functions",  label:"Google Cloud Functions",            desc:"Event-driven, serverless compute for running single-purpose functions in response to cloud events.", de:true },
+    { id:"gce",                     label:"Google Compute Engine (GCE)",       desc:"Customizable, scalable IaaS virtual machines with per-second billing and custom machine types.", de:true },
+    { id:"gke",                     label:"Google Kubernetes Engine (GKE)",    desc:"Managed, production-ready Kubernetes environment with Autopilot mode for hands-off node management.", de:true },
   ]},
   { id:"storage", label:"GCP Storage Services", desc:"Object, block, and file storage services covering every durability, access-pattern, and cost tier.", subs:[
-    { id:"gcp-filestore",           label:"Google Cloud Filestore",            desc:"Fully managed NFS file storage for applications that require a shared, POSIX-compliant file system." },
-    { id:"gcs",                     label:"Google Cloud Storage (GCS)",        desc:"Unified object storage with Standard, Nearline, Coldline, and Archive classes trading access frequency for cost." },
-    { id:"local-ssd",               label:"Local SSD",                         desc:"High-performance, physically attached SSD storage for VM instances, offering the lowest latency but no data persistence beyond the VM's life." },
-    { id:"persistent-disks",        label:"Persistent Disks",                  desc:"Durable, network-attached block storage for VM instances, available in Standard, Balanced, SSD, and Extreme performance tiers." },
+    { id:"gcp-filestore",           label:"Google Cloud Filestore",            desc:"Fully managed NFS file storage for applications that require a shared, POSIX-compliant file system.", de:true },
+    { id:"gcs",                     label:"Google Cloud Storage (GCS)",        desc:"Unified object storage with Standard, Nearline, Coldline, and Archive classes trading access frequency for cost.", de:true },
+    { id:"local-ssd",               label:"Local SSD",                         desc:"High-performance, physically attached SSD storage for VM instances, offering the lowest latency but no data persistence beyond the VM's life.", de:true },
+    { id:"persistent-disks",        label:"Persistent Disks",                  desc:"Durable, network-attached block storage for VM instances, available in Standard, Balanced, SSD, and Extreme performance tiers.", de:true },
   ]},
   { id:"database", label:"GCP Database Services", desc:"Purpose-built managed database engines spanning relational, wide-column, and globally distributed workloads.", subs:[
-    { id:"google-bigquery",         label:"Google BigQuery",                   desc:"Serverless, highly scalable data warehouse for running fast SQL analytics over petabyte-scale datasets." },
-    { id:"google-cloud-bigtable",   label:"Google Cloud Bigtable",             desc:"Fully managed, wide-column NoSQL database built for low-latency, high-throughput workloads like time series and IoT data." },
-    { id:"google-cloud-sql",        label:"Google Cloud SQL",                  desc:"Fully managed relational database service supporting MySQL, PostgreSQL, and SQL Server with automated backups and replication." },
-    { id:"google-cloud-spanner",    label:"Google Cloud Spanner",              desc:"Globally distributed, horizontally scalable relational database offering strong consistency and SQL with virtually unlimited scale." },
+    { id:"google-bigquery",         label:"Google BigQuery",                   desc:"Serverless, highly scalable data warehouse for running fast SQL analytics over petabyte-scale datasets.", de:true },
+    { id:"google-cloud-bigtable",   label:"Google Cloud Bigtable",             desc:"Fully managed, wide-column NoSQL database built for low-latency, high-throughput workloads like time series and IoT data.", de:true },
+    { id:"google-cloud-sql",        label:"Google Cloud SQL",                  desc:"Fully managed relational database service supporting MySQL, PostgreSQL, and SQL Server with automated backups and replication.", de:true },
+    { id:"google-cloud-spanner",    label:"Google Cloud Spanner",              desc:"Globally distributed, horizontally scalable relational database offering strong consistency and SQL with virtually unlimited scale.", de:true },
   ]},
   { id:"networking", label:"GCP Networking & Content Delivery", desc:"Services for connecting, routing, and delivering content across virtual networks, on-premises networks, and the public internet.", subs:[
     { id:"gcp-cdn",                 label:"Google Cloud CDN",                  desc:"Content delivery network that caches content at Google's globally distributed edge points of presence." },
@@ -106,10 +113,10 @@ const ROADMAP = [
     { id:"gcp-secret-manager",      label:"Google Cloud Secret Manager",       desc:"Securely stores, manages, and audits access to API keys, passwords, certificates, and other sensitive configuration data." },
   ]},
   { id:"analytics", label:"GCP Data and Analytics", desc:"Services for querying, processing, and streaming data at scale — the core of Google Cloud's data engineering toolkit.", subs:[
-    { id:"gcp-dataflow",            label:"Google Cloud Dataflow",             desc:"Fully managed service for executing Apache Beam batch and streaming data processing pipelines with autoscaling." },
-    { id:"gcp-dataprep",            label:"Google Cloud Dataprep",             desc:"Serverless, visual data preparation service (built on Trifacta) for cleaning and transforming raw data for analysis." },
-    { id:"gcp-dataproc",            label:"Google Cloud Dataproc",             desc:"Fully managed Spark and Hadoop service for running big data processing, ML, and analytics workloads with per-second billing." },
-    { id:"gcp-pubsub",              label:"Google Cloud Pub/Sub",              desc:"Globally scalable, asynchronous messaging service for building event-driven systems and streaming analytics pipelines." },
+    { id:"gcp-dataflow",            label:"Google Cloud Dataflow",             desc:"Fully managed service for executing Apache Beam batch and streaming data processing pipelines with autoscaling.", de:true },
+    { id:"gcp-dataprep",            label:"Google Cloud Dataprep",             desc:"Serverless, visual data preparation service (built on Trifacta) for cleaning and transforming raw data for analysis.", de:true },
+    { id:"gcp-dataproc",            label:"Google Cloud Dataproc",             desc:"Fully managed Spark and Hadoop service for running big data processing, ML, and analytics workloads with per-second billing.", de:true },
+    { id:"gcp-pubsub",              label:"Google Cloud Pub/Sub",              desc:"Globally scalable, asynchronous messaging service for building event-driven systems and streaming analytics pipelines.", de:true },
   ]},
   { id:"management", label:"GCP Management Tools", desc:"Tools for provisioning infrastructure as code, monitoring, billing, and operating Google Cloud environments.", subs:[
     { id:"gcp-billing",             label:"Google Cloud Billing",              desc:"Tools for tracking, budgeting, and analyzing Google Cloud spend, including budgets, alerts, and detailed cost reports." },
@@ -124,8 +131,8 @@ const ROADMAP = [
     { id:"gcp-container-registry",  label:"Google Container Registry",         desc:"Private Docker image storage (being succeeded by Artifact Registry) integrated with Cloud Build and GKE deployments." },
   ]},
   { id:"comparisons", label:"Comparison of Google Cloud Services", desc:"Head-to-head breakdowns of similar GCP services — the decisions that come up most often in interviews and architecture reviews.", subs:[
-    { id:"bigquery-vs-bigtable",    label:"Google BigQuery vs BigTable",       desc:"BigQuery is a SQL-based analytical data warehouse for OLAP queries; Bigtable is a wide-column NoSQL store for high-throughput, low-latency operational workloads." },
-    { id:"gcs-vs-persistent-disk-vs-local-ssd-vs-filestore", label:"GCS vs Persistent Disks vs Local SSD vs Filestore", desc:"GCS is global object storage; Persistent Disks are durable VM-attached block storage; Local SSD is ephemeral, ultra-fast VM storage; Filestore is a shared NFS file system." },
+    { id:"bigquery-vs-bigtable",    label:"Google BigQuery vs BigTable",       desc:"BigQuery is a SQL-based analytical data warehouse for OLAP queries; Bigtable is a wide-column NoSQL store for high-throughput, low-latency operational workloads.", de:true },
+    { id:"gcs-vs-persistent-disk-vs-local-ssd-vs-filestore", label:"GCS vs Persistent Disks vs Local SSD vs Filestore", desc:"GCS is global object storage; Persistent Disks are durable VM-attached block storage; Local SSD is ephemeral, ultra-fast VM storage; Filestore is a shared NFS file system.", de:true },
     { id:"cloud-functions-vs-app-engine-vs-cloud-run-vs-gke", label:"Cloud Functions vs App Engine vs Cloud Run vs GKE", desc:"Ordered roughly by control vs simplicity — Cloud Functions for single-purpose events, App Engine for managed apps, Cloud Run for containers with serverless scaling, GKE for full Kubernetes control." },
     { id:"gce-vs-app-engine",       label:"Google Compute Engine vs App Engine", desc:"Compute Engine gives full VM-level control over the OS and runtime; App Engine abstracts infrastructure entirely so you deploy just code." },
   ]},
@@ -144,6 +151,15 @@ function save(s: Record<string,string>) { localStorage.setItem(KEY, JSON.stringi
 let state = load();
 let collapsedIds = new Set();
 function getS(id: string) { return state[id]||"pending"; }
+
+const FILTER_KEY = "gcp_roadmap_filter_v1";
+let filterMode = localStorage.getItem(FILTER_KEY) || "de";
+function visibleTopics() {
+  if (filterMode === "all") return ROADMAP;
+  return ROADMAP
+    .map(t => ({ ...t, subs: t.subs.filter((s: any) => s.de) }))
+    .filter(t => t.subs.length > 0);
+}
 
 function allIds() {
   const ids: string[] = [];
@@ -165,7 +181,8 @@ function buildFlow() {
   const flow = document.getElementById("rm-flow");
   if (!flow) return;
   flow.innerHTML = "";
-  ROADMAP.forEach((topic, ti) => {
+  const topics = visibleTopics();
+  topics.forEach((topic, ti) => {
     const s = getS(topic.id);
     const isCollapsed = collapsedIds.has(topic.id);
     const topicEl = document.createElement("div");
@@ -196,13 +213,31 @@ function buildFlow() {
       }
       flow.appendChild(group);
     }
-    if (ti < ROADMAP.length-1) {
+    if (ti < topics.length-1) {
       const arrow = document.createElement("div");
       arrow.className = "rm-arrow";
       arrow.innerHTML = ICON_ARROW;
       flow.appendChild(arrow);
     }
   });
+}
+
+function updateFilterUI() {
+  document.querySelectorAll<HTMLButtonElement>(".rm-filter-btn").forEach(btn => {
+    btn.classList.toggle("is-active", btn.dataset.mode === filterMode);
+  });
+  const total = allIds().length;
+  const shown = visibleTopics().reduce((n, t) => n + 1 + t.subs.length, 0);
+  const countEl = document.getElementById("rm-filter-count");
+  if (countEl) countEl.textContent = `${shown} / ${total} shown`;
+}
+
+function setFilterMode(mode: string) {
+  if (mode === filterMode) return;
+  filterMode = mode;
+  localStorage.setItem(FILTER_KEY, mode);
+  buildFlow();
+  updateFilterUI();
 }
 
 let activeId: string|null = null, activeParent: string|null = null;
@@ -272,7 +307,10 @@ function setStatus(id: string, s: string) {
   }
 }
 
-buildFlow(); refreshProgress();
+buildFlow(); refreshProgress(); updateFilterUI();
+document.querySelectorAll<HTMLButtonElement>(".rm-filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => setFilterMode(btn.dataset.mode!));
+});
 document.body.appendChild(document.getElementById("rm-drawer")!);
 document.getElementById("rm-panel-close")?.addEventListener("click", closePanel);
 document.getElementById("rm-backdrop")?.addEventListener("click", closePanel);

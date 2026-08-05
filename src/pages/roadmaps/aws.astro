@@ -16,6 +16,13 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
         <p class="rm-subtitle">Complete map of every AWS service across all categories — track what you've learned or used in production</p>
       </div>
       <div class="rm-header-right">
+        <div class="rm-filter-row">
+          <div class="rm-filter-toggle" id="rm-filter-toggle">
+            <button type="button" class="rm-filter-btn" data-mode="de">Data Engineering</button>
+            <button type="button" class="rm-filter-btn" data-mode="all">All services</button>
+          </div>
+          <span class="rm-filter-count" id="rm-filter-count"></span>
+        </div>
         <div class="rm-legend">
           <span class="rm-legend-item" data-status="pending"><span class="rm-dot"></span>Pending</span>
           <span class="rm-legend-item" data-status="inprogress"><span class="rm-dot"></span>In Progress</span>
@@ -76,15 +83,15 @@ const ROADMAP = [
     { id:"well-architected-framework", label:"Six Pillars of Well-Architected Framework", desc:"Operational Excellence, Security, Reliability, Performance Efficiency, Cost Optimization, and Sustainability — the lenses AWS uses to review workload architectures." },
   ]},
   { id:"compute", label:"AWS Compute Services", desc:"Services for running application code and containers — from fully managed serverless functions to full control over virtual machines.", subs:[
-    { id:"amazon-eks",             label:"Amazon EKS",                         desc:"Managed Kubernetes control plane — runs upstream Kubernetes so you can use standard tooling without managing master nodes yourself." },
-    { id:"amazon-ec2",             label:"Amazon EC2",                         desc:"Resizable virtual servers in the cloud — the foundational compute building block, with dozens of instance families and purchasing options." },
+    { id:"amazon-eks",             label:"Amazon EKS",                         desc:"Managed Kubernetes control plane — runs upstream Kubernetes so you can use standard tooling without managing master nodes yourself.", de:true },
+    { id:"amazon-ec2",             label:"Amazon EC2",                         desc:"Resizable virtual servers in the cloud — the foundational compute building block, with dozens of instance families and purchasing options.", de:true },
     { id:"amazon-ecr",             label:"Amazon ECR",                         desc:"Fully managed Docker/OCI container registry — integrates with ECS, EKS, and Lambda for storing and deploying container images." },
-    { id:"amazon-ecs",             label:"Amazon ECS",                         desc:"AWS's native container orchestration service — runs containers on EC2 or Fargate with deep integration into the AWS ecosystem." },
+    { id:"amazon-ecs",             label:"Amazon ECS",                         desc:"AWS's native container orchestration service — runs containers on EC2 or Fargate with deep integration into the AWS ecosystem.", de:true },
     { id:"amazon-lightsail",       label:"Amazon Lightsail",                   desc:"Simplified virtual private servers with predictable pricing — bundles compute, storage, and networking for simple web apps and small projects." },
-    { id:"aws-batch",              label:"AWS Batch",                          desc:"Fully managed batch computing — dynamically provisions the optimal compute resources based on the volume and requirements of submitted jobs." },
+    { id:"aws-batch",              label:"AWS Batch",                          desc:"Fully managed batch computing — dynamically provisions the optimal compute resources based on the volume and requirements of submitted jobs.", de:true },
     { id:"aws-elastic-beanstalk",  label:"AWS Elastic Beanstalk",              desc:"PaaS that automates deployment — upload code and Beanstalk handles capacity provisioning, load balancing, scaling, and health monitoring." },
-    { id:"aws-fargate",            label:"AWS Fargate",                        desc:"Serverless compute engine for containers — run ECS or EKS tasks without provisioning or managing the underlying EC2 instances." },
-    { id:"aws-lambda",             label:"AWS Lambda",                         desc:"Event-driven, serverless compute — run code in response to triggers without provisioning servers, billed per invocation and duration." },
+    { id:"aws-fargate",            label:"AWS Fargate",                        desc:"Serverless compute engine for containers — run ECS or EKS tasks without provisioning or managing the underlying EC2 instances.", de:true },
+    { id:"aws-lambda",             label:"AWS Lambda",                         desc:"Event-driven, serverless compute — run code in response to triggers without provisioning servers, billed per invocation and duration.", de:true },
     { id:"aws-parallelcluster",    label:"AWS ParallelCluster",                desc:"Open-source cluster management tool for deploying and managing HPC clusters on AWS, built on top of AWS Batch or Slurm." },
     { id:"aws-sam",                label:"AWS Serverless Application Model (SAM)", desc:"Open-source framework with a shorthand CloudFormation syntax for defining, building, and deploying serverless applications (Lambda, API Gateway, DynamoDB)." },
     { id:"aws-serverless-app-repo",label:"AWS Serverless Application Repository", desc:"Managed repository for discovering, deploying, and publishing reusable serverless applications packaged with AWS SAM." },
@@ -92,37 +99,37 @@ const ROADMAP = [
     { id:"aws-wavelength",         label:"AWS Wavelength",                     desc:"Embeds AWS compute and storage at the edge of 5G telecom networks to deliver ultra-low-latency applications to mobile devices." },
   ]},
   { id:"storage", label:"AWS Storage Services", desc:"Object, block, file, and archival storage services covering every durability, access-pattern, and cost tier.", subs:[
-    { id:"amazon-ebs",             label:"Amazon EBS",                         desc:"Persistent block storage volumes for EC2 instances — gp3/gp2 SSD, io2/io1 provisioned IOPS, and st1/sc1 HDD volume types." },
-    { id:"amazon-efs",             label:"Amazon EFS",                         desc:"Fully managed elastic NFS file system — scales automatically and can be mounted concurrently across thousands of EC2 instances." },
-    { id:"amazon-fsx",             label:"Amazon FSx",                         desc:"Managed third-party file systems — FSx for Windows File Server, Lustre, NetApp ONTAP, and OpenZFS, each optimized for different workloads." },
-    { id:"amazon-s3-glacier",      label:"Amazon S3 Glacier",                  desc:"Low-cost archival storage class with retrieval tiers (Expedited, Standard, Bulk) ranging from minutes to hours for rarely accessed data." },
-    { id:"amazon-s3",              label:"Amazon S3",                          desc:"Object storage with virtually unlimited scale, 11 nines of durability, and storage classes spanning frequent access to deep archive." },
+    { id:"amazon-ebs",             label:"Amazon EBS",                         desc:"Persistent block storage volumes for EC2 instances — gp3/gp2 SSD, io2/io1 provisioned IOPS, and st1/sc1 HDD volume types.", de:true },
+    { id:"amazon-efs",             label:"Amazon EFS",                         desc:"Fully managed elastic NFS file system — scales automatically and can be mounted concurrently across thousands of EC2 instances.", de:true },
+    { id:"amazon-fsx",             label:"Amazon FSx",                         desc:"Managed third-party file systems — FSx for Windows File Server, Lustre, NetApp ONTAP, and OpenZFS, each optimized for different workloads.", de:true },
+    { id:"amazon-s3-glacier",      label:"Amazon S3 Glacier",                  desc:"Low-cost archival storage class with retrieval tiers (Expedited, Standard, Bulk) ranging from minutes to hours for rarely accessed data.", de:true },
+    { id:"amazon-s3",              label:"Amazon S3",                          desc:"Object storage with virtually unlimited scale, 11 nines of durability, and storage classes spanning frequent access to deep archive.", de:true },
     { id:"aws-backup",             label:"AWS Backup",                         desc:"Centralized, policy-based backup service that manages backups across EBS, RDS, DynamoDB, EFS, and other AWS services from one place." },
-    { id:"aws-snowball-edge",      label:"AWS Snowball Edge",                  desc:"Physical, ruggedized device for offline bulk data transfer and edge compute in disconnected or bandwidth-constrained environments." },
-    { id:"aws-snowmobile",         label:"AWS Snowmobile",                     desc:"Exabyte-scale data transfer service using a shipping container on a truck — for migrations too large for Snowball devices." },
-    { id:"aws-storage-gateway",    label:"AWS Storage Gateway",                desc:"Hybrid storage service connecting on-premises environments to AWS storage — File, Volume, and Tape Gateway modes." },
-    { id:"aws-transfer-family",    label:"AWS Transfer Family",                desc:"Fully managed SFTP, FTPS, and FTP file transfer directly into and out of Amazon S3 or EFS." },
+    { id:"aws-snowball-edge",      label:"AWS Snowball Edge",                  desc:"Physical, ruggedized device for offline bulk data transfer and edge compute in disconnected or bandwidth-constrained environments.", de:true },
+    { id:"aws-snowmobile",         label:"AWS Snowmobile",                     desc:"Exabyte-scale data transfer service using a shipping container on a truck — for migrations too large for Snowball devices.", de:true },
+    { id:"aws-storage-gateway",    label:"AWS Storage Gateway",                desc:"Hybrid storage service connecting on-premises environments to AWS storage — File, Volume, and Tape Gateway modes.", de:true },
+    { id:"aws-transfer-family",    label:"AWS Transfer Family",                desc:"Fully managed SFTP, FTPS, and FTP file transfer directly into and out of Amazon S3 or EFS.", de:true },
   ]},
   { id:"database", label:"AWS Database Services", desc:"Purpose-built managed database engines spanning relational, key-value, document, in-memory, graph, and ledger workloads.", subs:[
-    { id:"amazon-aurora",          label:"Amazon Aurora",                      desc:"MySQL- and PostgreSQL-compatible relational engine built for the cloud — up to 5x MySQL throughput with storage that auto-scales to 128TB." },
-    { id:"amazon-documentdb",      label:"Amazon DocumentDB",                  desc:"Managed, MongoDB-compatible document database designed for JSON workloads with the scalability and durability of AWS-managed infrastructure." },
-    { id:"amazon-dynamodb",        label:"Amazon DynamoDB",                    desc:"Fully managed, serverless key-value and document database delivering single-digit millisecond performance at any scale." },
-    { id:"amazon-elasticache",     label:"Amazon ElastiCache",                 desc:"Managed in-memory data store supporting Redis and Memcached engines for caching, session storage, and real-time analytics." },
-    { id:"amazon-memorydb-redis",  label:"Amazon MemoryDB for Redis",          desc:"Redis-compatible, durable in-memory database used as a primary database, not just a cache, with multi-AZ durability." },
-    { id:"amazon-neptune",         label:"Amazon Neptune",                     desc:"Managed graph database supporting Property Graph and RDF models, queried with Gremlin, openCypher, and SPARQL." },
-    { id:"amazon-qldb",            label:"Amazon Quantum Ledger Database (QLDB)", desc:"Fully managed ledger database providing a transparent, immutable, cryptographically verifiable transaction log; AWS has moved new customers toward Aurora PostgreSQL with QLDB extensions." },
-    { id:"amazon-rds",             label:"Amazon RDS",                         desc:"Managed relational database service supporting MySQL, PostgreSQL, MariaDB, Oracle, SQL Server, and Aurora with automated backups and patching." },
-    { id:"amazon-redshift",        label:"Amazon Redshift",                    desc:"Petabyte-scale, columnar data warehouse for OLAP workloads — uses massively parallel processing (MPP) across clustered nodes." },
-    { id:"amazon-redshift-serverless", label:"Amazon Redshift Serverless",     desc:"Runs and scales Redshift data warehouse capacity automatically based on workload demand, without managing clusters." },
+    { id:"amazon-aurora",          label:"Amazon Aurora",                      desc:"MySQL- and PostgreSQL-compatible relational engine built for the cloud — up to 5x MySQL throughput with storage that auto-scales to 128TB.", de:true },
+    { id:"amazon-documentdb",      label:"Amazon DocumentDB",                  desc:"Managed, MongoDB-compatible document database designed for JSON workloads with the scalability and durability of AWS-managed infrastructure.", de:true },
+    { id:"amazon-dynamodb",        label:"Amazon DynamoDB",                    desc:"Fully managed, serverless key-value and document database delivering single-digit millisecond performance at any scale.", de:true },
+    { id:"amazon-elasticache",     label:"Amazon ElastiCache",                 desc:"Managed in-memory data store supporting Redis and Memcached engines for caching, session storage, and real-time analytics.", de:true },
+    { id:"amazon-memorydb-redis",  label:"Amazon MemoryDB for Redis",          desc:"Redis-compatible, durable in-memory database used as a primary database, not just a cache, with multi-AZ durability.", de:true },
+    { id:"amazon-neptune",         label:"Amazon Neptune",                     desc:"Managed graph database supporting Property Graph and RDF models, queried with Gremlin, openCypher, and SPARQL.", de:true },
+    { id:"amazon-qldb",            label:"Amazon Quantum Ledger Database (QLDB)", desc:"Fully managed ledger database providing a transparent, immutable, cryptographically verifiable transaction log; AWS has moved new customers toward Aurora PostgreSQL with QLDB extensions.", de:true },
+    { id:"amazon-rds",             label:"Amazon RDS",                         desc:"Managed relational database service supporting MySQL, PostgreSQL, MariaDB, Oracle, SQL Server, and Aurora with automated backups and patching.", de:true },
+    { id:"amazon-redshift",        label:"Amazon Redshift",                    desc:"Petabyte-scale, columnar data warehouse for OLAP workloads — uses massively parallel processing (MPP) across clustered nodes.", de:true },
+    { id:"amazon-redshift-serverless", label:"Amazon Redshift Serverless",     desc:"Runs and scales Redshift data warehouse capacity automatically based on workload demand, without managing clusters.", de:true },
   ]},
   { id:"migration", label:"AWS Migration Services", desc:"Tools for moving data, servers, and entire environments from on-premises or other clouds into AWS.", subs:[
-    { id:"aws-dms",                label:"AWS Database Migration Service",     desc:"Migrates databases to AWS with minimal downtime, supporting homogeneous and heterogeneous migrations (e.g. Oracle to Aurora) plus ongoing replication." },
-    { id:"aws-datasync",           label:"AWS DataSync",                       desc:"Automates and accelerates online data transfer between on-premises storage, other clouds, and AWS storage services." },
+    { id:"aws-dms",                label:"AWS Database Migration Service",     desc:"Migrates databases to AWS with minimal downtime, supporting homogeneous and heterogeneous migrations (e.g. Oracle to Aurora) plus ongoing replication.", de:true },
+    { id:"aws-datasync",           label:"AWS DataSync",                       desc:"Automates and accelerates online data transfer between on-premises storage, other clouds, and AWS storage services.", de:true },
     { id:"aws-migration-6rs",      label:"AWS Migration Strategies — The 6 R's", desc:"Rehost, Replatform, Repurchase, Refactor, Retain, and Retire — the six strategies for deciding how to migrate each workload." },
     { id:"aws-sms",                label:"AWS Server Migration Service (SMS)", desc:"Agentless service that migrates on-premises VMware, Hyper-V, and Azure VMs to AWS as incremental, automated replications." },
-    { id:"aws-data-transfer-terminal", label:"AWS Data Transfer Terminal",     desc:"Physical, secure facilities for high-volume data transfer onto AWS Snow Family devices without shipping them offsite." },
-    { id:"aws-snowball-edge-migration", label:"AWS Snowball Edge (Migration)", desc:"Used in large-scale migrations to physically ship petabytes of data into AWS when network transfer would take too long." },
-    { id:"aws-snowmobile-migration", label:"AWS Snowmobile (Migration)",       desc:"Deployed for exabyte-scale, one-time data center migrations where even multiple Snowball devices aren't sufficient." },
+    { id:"aws-data-transfer-terminal", label:"AWS Data Transfer Terminal",     desc:"Physical, secure facilities for high-volume data transfer onto AWS Snow Family devices without shipping them offsite.", de:true },
+    { id:"aws-snowball-edge-migration", label:"AWS Snowball Edge (Migration)", desc:"Used in large-scale migrations to physically ship petabytes of data into AWS when network transfer would take too long.", de:true },
+    { id:"aws-snowmobile-migration", label:"AWS Snowmobile (Migration)",       desc:"Deployed for exabyte-scale, one-time data center migrations where even multiple Snowball devices aren't sufficient.", de:true },
     { id:"aws-migration-evaluator", label:"Migration Evaluator",               desc:"Free assessment service that analyzes on-premises environments to build a data-driven business case and right-sized AWS migration plan." },
   ]},
   { id:"networking", label:"AWS Networking & Content Delivery", desc:"Services for connecting, routing, and delivering content across VPCs, on-premises networks, and the public internet.", subs:[
@@ -181,20 +188,20 @@ const ROADMAP = [
     { id:"aws-well-architected-tool", label:"AWS Well-Architected Tool",       desc:"Reviews the state of workloads against the Well-Architected Framework's six pillars and recommends improvements." },
   ]},
   { id:"analytics", label:"AWS Analytics Services", desc:"Services for querying, processing, streaming, and visualizing data at scale — the core of AWS's data engineering toolkit.", subs:[
-    { id:"amazon-athena",          label:"Amazon Athena",                      desc:"Serverless, interactive query service that analyzes data directly in Amazon S3 using standard SQL — no infrastructure to manage." },
+    { id:"amazon-athena",          label:"Amazon Athena",                      desc:"Serverless, interactive query service that analyzes data directly in Amazon S3 using standard SQL — no infrastructure to manage.", de:true },
     { id:"amazon-cloudsearch",     label:"Amazon CloudSearch",                 desc:"Managed search service that sets up, manages, and scales a search solution for websites or applications." },
-    { id:"amazon-elasticsearch",   label:"Amazon Elasticsearch (ES)",          desc:"Managed OpenSearch/Elasticsearch clusters for log analytics, full-text search, and real-time application monitoring." },
-    { id:"amazon-emr",             label:"Amazon EMR",                         desc:"Managed cluster platform for running big data frameworks like Spark, Hadoop, Hive, and Presto at scale." },
-    { id:"amazon-kinesis",         label:"Amazon Kinesis",                     desc:"Platform for real-time streaming data — Data Streams, Firehose, and Data Analytics for collecting, processing, and analyzing streams." },
-    { id:"amazon-msk",             label:"Amazon MSK",                         desc:"Fully managed Apache Kafka service that handles broker provisioning, patching, and cluster operations." },
+    { id:"amazon-elasticsearch",   label:"Amazon Elasticsearch (ES)",          desc:"Managed OpenSearch/Elasticsearch clusters for log analytics, full-text search, and real-time application monitoring.", de:true },
+    { id:"amazon-emr",             label:"Amazon EMR",                         desc:"Managed cluster platform for running big data frameworks like Spark, Hadoop, Hive, and Presto at scale.", de:true },
+    { id:"amazon-kinesis",         label:"Amazon Kinesis",                     desc:"Platform for real-time streaming data — Data Streams, Firehose, and Data Analytics for collecting, processing, and analyzing streams.", de:true },
+    { id:"amazon-msk",             label:"Amazon MSK",                         desc:"Fully managed Apache Kafka service that handles broker provisioning, patching, and cluster operations.", de:true },
     { id:"amazon-quicksight",      label:"Amazon QuickSight",                  desc:"Serverless, cloud-native business intelligence service for building interactive dashboards and embedded analytics." },
-    { id:"amazon-redshift-analytics", label:"Amazon Redshift (Analytics)",     desc:"Serves as the analytical backbone for BI and reporting workloads, integrating with Glue, QuickSight, and the broader data lake." },
-    { id:"aws-data-exchange",      label:"AWS Data Exchange",                  desc:"Marketplace for finding, subscribing to, and using third-party data sets directly within AWS." },
-    { id:"aws-data-pipeline",      label:"AWS Data Pipeline",                  desc:"Web service for orchestrating and automating the movement and transformation of data between AWS compute and storage services." },
-    { id:"aws-glue",               label:"AWS Glue",                           desc:"Serverless data integration service for discovering, preparing, and combining data — includes crawlers, the Data Catalog, and Spark-based ETL jobs." },
-    { id:"aws-glue-databrew",      label:"AWS Glue DataBrew",                  desc:"Visual data preparation tool that lets users clean and normalize data without writing code, using 250+ pre-built transformations." },
-    { id:"aws-glue-data-quality",  label:"AWS Glue Data Quality",              desc:"Automatically measures, monitors, and manages data quality within Glue pipelines using rule-based and ML-recommended checks." },
-    { id:"aws-lake-formation",     label:"AWS Lake Formation",                 desc:"Simplifies building, securing, and managing data lakes — centralizes fine-grained access control across Athena, Redshift, EMR, and Glue." },
+    { id:"amazon-redshift-analytics", label:"Amazon Redshift (Analytics)",     desc:"Serves as the analytical backbone for BI and reporting workloads, integrating with Glue, QuickSight, and the broader data lake.", de:true },
+    { id:"aws-data-exchange",      label:"AWS Data Exchange",                  desc:"Marketplace for finding, subscribing to, and using third-party data sets directly within AWS.", de:true },
+    { id:"aws-data-pipeline",      label:"AWS Data Pipeline",                  desc:"Web service for orchestrating and automating the movement and transformation of data between AWS compute and storage services.", de:true },
+    { id:"aws-glue",               label:"AWS Glue",                           desc:"Serverless data integration service for discovering, preparing, and combining data — includes crawlers, the Data Catalog, and Spark-based ETL jobs.", de:true },
+    { id:"aws-glue-databrew",      label:"AWS Glue DataBrew",                  desc:"Visual data preparation tool that lets users clean and normalize data without writing code, using 250+ pre-built transformations.", de:true },
+    { id:"aws-glue-data-quality",  label:"AWS Glue Data Quality",              desc:"Automatically measures, monitors, and manages data quality within Glue pipelines using rule-based and ML-recommended checks.", de:true },
+    { id:"aws-lake-formation",     label:"AWS Lake Formation",                 desc:"Simplifies building, securing, and managing data lakes — centralizes fine-grained access control across Athena, Redshift, EMR, and Glue.", de:true },
   ]},
   { id:"billing", label:"AWS Billing and Cost Management", desc:"Tools for tracking, forecasting, and controlling AWS spend.", subs:[
     { id:"aws-free-tier",          label:"AWS Free Tier",                      desc:"Offers limited free usage of many AWS services for 12 months or always-free, to explore the platform at no cost." },
@@ -214,14 +221,14 @@ const ROADMAP = [
     { id:"aws-xray",               label:"AWS X-Ray",                          desc:"Distributed tracing service that helps analyze and debug production, distributed applications, including microservices architectures." },
   ]},
   { id:"application-services", label:"AWS Application Services", desc:"Messaging, orchestration, and integration services that decouple and connect application components.", subs:[
-    { id:"amazon-appflow",         label:"Amazon AppFlow",                     desc:"Fully managed integration service for securely transferring data between SaaS applications (like Salesforce) and AWS services." },
-    { id:"amazon-eventbridge",     label:"Amazon EventBridge",                 desc:"Serverless event bus that connects application data from your own apps, SaaS, and AWS services using event-driven rules." },
+    { id:"amazon-appflow",         label:"Amazon AppFlow",                     desc:"Fully managed integration service for securely transferring data between SaaS applications (like Salesforce) and AWS services.", de:true },
+    { id:"amazon-eventbridge",     label:"Amazon EventBridge",                 desc:"Serverless event bus that connects application data from your own apps, SaaS, and AWS services using event-driven rules.", de:true },
     { id:"amazon-ses",             label:"Amazon SES",                         desc:"Scalable, cost-effective email service for sending and receiving transactional, marketing, and bulk email." },
-    { id:"amazon-sns",             label:"Amazon SNS",                         desc:"Fully managed pub/sub messaging service for application-to-application and application-to-person notifications across multiple protocols." },
-    { id:"amazon-sqs",             label:"Amazon SQS",                         desc:"Fully managed message queuing service that decouples and scales microservices and distributed systems — Standard and FIFO queues." },
-    { id:"amazon-swf",             label:"Amazon SWF",                         desc:"Workflow orchestration service for coordinating tasks across distributed components — largely superseded by Step Functions." },
-    { id:"aws-step-functions",     label:"AWS Step Functions",                 desc:"Serverless orchestration service that coordinates multiple AWS services into visual, state-machine-based workflows." },
-    { id:"amazon-mwaa",            label:"Amazon Managed Workflows for Apache Airflow", desc:"Fully managed Apache Airflow service for orchestrating complex data pipeline workflows as DAGs." },
+    { id:"amazon-sns",             label:"Amazon SNS",                         desc:"Fully managed pub/sub messaging service for application-to-application and application-to-person notifications across multiple protocols.", de:true },
+    { id:"amazon-sqs",             label:"Amazon SQS",                         desc:"Fully managed message queuing service that decouples and scales microservices and distributed systems — Standard and FIFO queues.", de:true },
+    { id:"amazon-swf",             label:"Amazon SWF",                         desc:"Workflow orchestration service for coordinating tasks across distributed components — largely superseded by Step Functions.", de:true },
+    { id:"aws-step-functions",     label:"AWS Step Functions",                 desc:"Serverless orchestration service that coordinates multiple AWS services into visual, state-machine-based workflows.", de:true },
+    { id:"amazon-mwaa",            label:"Amazon Managed Workflows for Apache Airflow", desc:"Fully managed Apache Airflow service for orchestrating complex data pipeline workflows as DAGs.", de:true },
   ]},
   { id:"frontend-mobile", label:"AWS Front-end Web & Mobile Services", desc:"Services for building, hosting, and testing web and mobile front-end applications.", subs:[
     { id:"aws-amplify",            label:"AWS Amplify",                        desc:"Development platform for building full-stack web and mobile apps with built-in hosting, auth, APIs, and CI/CD." },
@@ -270,38 +277,38 @@ const ROADMAP = [
   ]},
   { id:"other", label:"Other AWS Services", desc:"Miscellaneous AWS services covering crowdsourced work, message brokering, and IoT.", subs:[
     { id:"amazon-mechanical-turk", label:"Amazon Mechanical Turk",             desc:"Crowdsourcing marketplace for outsourcing small, human-intelligence tasks like data labeling and content moderation." },
-    { id:"amazon-mq",              label:"Amazon MQ",                          desc:"Managed message broker service for Apache ActiveMQ and RabbitMQ, easing migration of existing message-broker-based applications." },
+    { id:"amazon-mq",              label:"Amazon MQ",                          desc:"Managed message broker service for Apache ActiveMQ and RabbitMQ, easing migration of existing message-broker-based applications.", de:true },
     { id:"aws-iot-core",           label:"AWS IoT Core",                       desc:"Managed cloud service that lets connected devices securely interact with cloud applications and other devices." },
   ]},
   { id:"comparisons", label:"Comparison of AWS Services", desc:"Head-to-head breakdowns of similar AWS services — the decisions that come up most often in interviews and architecture reviews.", subs:[
-    { id:"aurora-vs-rds",          label:"Amazon Aurora vs Amazon RDS",        desc:"Aurora is AWS's own cloud-native engine (MySQL/PostgreSQL-compatible) with higher throughput and auto-scaling storage; RDS supports more engines including Oracle and SQL Server." },
+    { id:"aurora-vs-rds",          label:"Amazon Aurora vs Amazon RDS",        desc:"Aurora is AWS's own cloud-native engine (MySQL/PostgreSQL-compatible) with higher throughput and auto-scaling storage; RDS supports more engines including Oracle and SQL Server.", de:true },
     { id:"cognito-user-vs-identity-pools", label:"Cognito User Pools vs Identity Pools", desc:"User Pools handle sign-up/sign-in and issue JWTs; Identity Pools exchange those (or other) identities for temporary AWS credentials." },
-    { id:"efs-vs-fsx-windows-vs-lustre", label:"EFS vs FSx for Windows vs FSx for Lustre", desc:"EFS is a Linux-native NFS file system; FSx for Windows offers SMB/AD-integrated storage; FSx for Lustre targets high-performance compute and ML workloads." },
-    { id:"eks-vs-ecs",             label:"Amazon EKS vs Amazon ECS",           desc:"EKS runs standard, portable Kubernetes; ECS is AWS's proprietary, simpler orchestrator with tighter native AWS integration." },
-    { id:"kinesis-streams-vs-firehose-vs-analytics-vs-video", label:"Kinesis Data Streams vs Firehose vs Data Analytics vs Video Streams", desc:"Data Streams gives custom real-time processing control; Firehose auto-delivers to destinations like S3/Redshift; Data Analytics runs SQL/Flink on streams; Video Streams ingests media." },
-    { id:"rds-vs-dynamodb",        label:"Amazon RDS vs DynamoDB",             desc:"RDS is relational with SQL, joins, and ACID transactions; DynamoDB is a serverless NoSQL key-value store optimized for scale and low latency." },
-    { id:"s3-vs-ebs-vs-efs",       label:"Amazon S3 vs EBS vs EFS",            desc:"S3 is object storage accessed over HTTP; EBS is block storage attached to a single EC2 instance; EFS is a shared file system mountable by many instances." },
-    { id:"s3-vs-glacier",          label:"Amazon S3 vs Glacier",               desc:"S3 storage classes suit active and infrequent access; Glacier and Glacier Deep Archive trade retrieval speed for the lowest-cost long-term archival." },
-    { id:"swf-vs-step-functions-vs-sqs", label:"SWF vs Step Functions vs SQS", desc:"SWF is legacy workflow orchestration; Step Functions is its modern, visual, serverless successor; SQS is a simple queue, not an orchestrator." },
+    { id:"efs-vs-fsx-windows-vs-lustre", label:"EFS vs FSx for Windows vs FSx for Lustre", desc:"EFS is a Linux-native NFS file system; FSx for Windows offers SMB/AD-integrated storage; FSx for Lustre targets high-performance compute and ML workloads.", de:true },
+    { id:"eks-vs-ecs",             label:"Amazon EKS vs Amazon ECS",           desc:"EKS runs standard, portable Kubernetes; ECS is AWS's proprietary, simpler orchestrator with tighter native AWS integration.", de:true },
+    { id:"kinesis-streams-vs-firehose-vs-analytics-vs-video", label:"Kinesis Data Streams vs Firehose vs Data Analytics vs Video Streams", desc:"Data Streams gives custom real-time processing control; Firehose auto-delivers to destinations like S3/Redshift; Data Analytics runs SQL/Flink on streams; Video Streams ingests media.", de:true },
+    { id:"rds-vs-dynamodb",        label:"Amazon RDS vs DynamoDB",             desc:"RDS is relational with SQL, joins, and ACID transactions; DynamoDB is a serverless NoSQL key-value store optimized for scale and low latency.", de:true },
+    { id:"s3-vs-ebs-vs-efs",       label:"Amazon S3 vs EBS vs EFS",            desc:"S3 is object storage accessed over HTTP; EBS is block storage attached to a single EC2 instance; EFS is a shared file system mountable by many instances.", de:true },
+    { id:"s3-vs-glacier",          label:"Amazon S3 vs Glacier",               desc:"S3 storage classes suit active and infrequent access; Glacier and Glacier Deep Archive trade retrieval speed for the lowest-cost long-term archival.", de:true },
+    { id:"swf-vs-step-functions-vs-sqs", label:"SWF vs Step Functions vs SQS", desc:"SWF is legacy workflow orchestration; Step Functions is its modern, visual, serverless successor; SQS is a simple queue, not an orchestrator.", de:true },
     { id:"alb-vs-nlb-vs-clb",      label:"ALB vs NLB vs CLB",                  desc:"ALB operates at Layer 7 for HTTP/gRPC routing; NLB operates at Layer 4 for extreme performance and static IPs; CLB is the legacy load balancer." },
     { id:"cloudtrail-vs-cloudwatch", label:"CloudTrail vs CloudWatch",         desc:"CloudTrail logs who did what (API activity for auditing); CloudWatch monitors what's happening (metrics, logs, and alarms for operational health)." },
-    { id:"datasync-vs-storage-gateway", label:"DataSync vs Storage Gateway",   desc:"DataSync performs fast, one-time or scheduled bulk transfers; Storage Gateway provides ongoing, low-latency hybrid access to AWS storage." },
+    { id:"datasync-vs-storage-gateway", label:"DataSync vs Storage Gateway",   desc:"DataSync performs fast, one-time or scheduled bulk transfers; Storage Gateway provides ongoing, low-latency hybrid access to AWS storage.", de:true },
     { id:"global-accelerator-vs-cloudfront", label:"Global Accelerator vs CloudFront", desc:"Global Accelerator optimizes network paths for any TCP/UDP application using anycast IPs; CloudFront is a caching CDN for HTTP(S) content." },
     { id:"secrets-manager-vs-parameter-store", label:"Secrets Manager vs Systems Manager Parameter Store", desc:"Secrets Manager adds automatic rotation and finer-grained cost per secret; Parameter Store is free (standard tier) and simpler for config values." },
     { id:"dr-strategies-comparison", label:"Backup & Restore vs Pilot Light vs Warm Standby vs Multi-Site", desc:"Four disaster recovery strategies ordered by increasing cost and decreasing RTO/RPO, from cold backups to fully active multi-region deployments." },
     { id:"cw-agent-vs-ssm-agent-vs-custom", label:"CloudWatch Agent vs SSM Agent vs Custom Daemon Scripts", desc:"CloudWatch Agent collects OS-level metrics/logs; SSM Agent enables remote management via Systems Manager; custom daemons offer full control at the cost of maintenance." },
-    { id:"ebs-ssd-vs-hdd",         label:"EBS SSD vs HDD",                     desc:"SSD volumes (gp3, io2) suit transactional, IOPS-heavy workloads; HDD volumes (st1, sc1) suit large, sequential, throughput-oriented workloads at lower cost." },
-    { id:"ecs-vs-lambda",          label:"ECS vs Lambda",                      desc:"ECS runs long-lived, containerized services with full runtime control; Lambda runs short-lived, event-driven functions with zero infrastructure management." },
+    { id:"ebs-ssd-vs-hdd",         label:"EBS SSD vs HDD",                     desc:"SSD volumes (gp3, io2) suit transactional, IOPS-heavy workloads; HDD volumes (st1, sc1) suit large, sequential, throughput-oriented workloads at lower cost.", de:true },
+    { id:"ecs-vs-lambda",          label:"ECS vs Lambda",                      desc:"ECS runs long-lived, containerized services with full runtime control; Lambda runs short-lived, event-driven functions with zero infrastructure management.", de:true },
     { id:"ec2-vs-elb-vs-asg-health-checks", label:"EC2 vs ELB vs Auto Scaling Health Checks", desc:"EC2 status checks detect instance/system failures; ELB health checks test app-level responsiveness; ASG combines both to decide when to replace instances." },
     { id:"eb-vs-cfn-vs-opsworks-vs-codedeploy", label:"Elastic Beanstalk vs CloudFormation vs OpsWorks vs CodeDeploy", desc:"Beanstalk is the simplest PaaS abstraction; CloudFormation is full declarative IaC; OpsWorks uses Chef/Puppet; CodeDeploy focuses narrowly on deployment automation." },
     { id:"elb-vs-route53-health-checks", label:"ELB Health Checks vs Route 53 Health Checks", desc:"ELB health checks manage routing within a load balancer's targets; Route 53 health checks control DNS failover across regions or endpoints." },
-    { id:"gsi-vs-lsi",             label:"Global Secondary Index vs Local Secondary Index", desc:"GSIs have a different partition key and their own throughput; LSIs share the base table's partition key and must be created at table creation." },
+    { id:"gsi-vs-lsi",             label:"Global Secondary Index vs Local Secondary Index", desc:"GSIs have a different partition key and their own throughput; LSIs share the base table's partition key and must be created at table creation.", de:true },
     { id:"interface-vs-gateway-vs-gwlb-endpoint", label:"Interface Endpoint vs Gateway Endpoint vs Gateway Load Balancer Endpoint", desc:"Interface endpoints use ENIs for most services; Gateway endpoints route via route tables (S3, DynamoDB only, free); GWLB endpoints insert third-party virtual appliances." },
     { id:"latency-vs-geoproximity-vs-geolocation-routing", label:"Latency vs Geoproximity vs Geolocation Routing", desc:"Latency routing picks the lowest-latency region; Geoproximity routes by geographic distance with bias adjustment; Geolocation routes strictly by user location or compliance needs." },
-    { id:"redis-aof-vs-replication", label:"Redis Append-Only Files vs Redis Replication", desc:"AOF persists every write operation to disk for durability; replication copies data to replica nodes for read scaling and failover." },
-    { id:"redis-cluster-vs-memcached", label:"Redis Cluster Mode vs Memcached", desc:"Redis Cluster Mode shards data for horizontal scaling with persistence and replication; Memcached is simpler, multi-threaded, but has no persistence." },
+    { id:"redis-aof-vs-replication", label:"Redis Append-Only Files vs Redis Replication", desc:"AOF persists every write operation to disk for durability; replication copies data to replica nodes for read scaling and failover.", de:true },
+    { id:"redis-cluster-vs-memcached", label:"Redis Cluster Mode vs Memcached", desc:"Redis Cluster Mode shards data for horizontal scaling with persistence and replication; Memcached is simpler, multi-threaded, but has no persistence.", de:true },
     { id:"s3-presigned-vs-cf-signed-vs-oai", label:"S3 Pre-Signed URLs vs CloudFront Signed URLs vs OAI", desc:"Pre-signed URLs grant temporary direct S3 access; CloudFront signed URLs/cookies control access through the CDN; OAI/OAC restricts S3 access to CloudFront only." },
-    { id:"s3-standard-vs-ia-vs-onezone", label:"S3 Standard vs Standard-IA vs One Zone-IA", desc:"Standard suits frequently accessed data across 3+ AZs; Standard-IA lowers storage cost for infrequent access; One Zone-IA drops multi-AZ redundancy for the lowest cost." },
+    { id:"s3-standard-vs-ia-vs-onezone", label:"S3 Standard vs Standard-IA vs One Zone-IA", desc:"Standard suits frequently accessed data across 3+ AZs; Standard-IA lowers storage cost for infrequent access; One Zone-IA drops multi-AZ redundancy for the lowest cost.", de:true },
     { id:"s3-transfer-accel-vs-dx-vs-vpn-vs-snow", label:"S3 Transfer Acceleration vs Direct Connect vs VPN vs Snowball vs Snowmobile", desc:"Ordered roughly by data volume and connectivity needs — from accelerated internet uploads to dedicated lines to physical devices for offline transfer." },
     { id:"sg-vs-nacl",             label:"Security Group vs NACL",             desc:"Security groups are stateful and operate at the instance level; NACLs are stateless and operate as a subnet-level firewall with explicit allow/deny rules." },
     { id:"scp-vs-iam-policies",    label:"Service Control Policies vs IAM Policies", desc:"SCPs set the maximum permissions boundary across an AWS Organization; IAM policies grant actual permissions to users, groups, and roles within an account." },
@@ -325,6 +332,15 @@ let state = load();
 let collapsedIds = new Set();
 function getS(id: string) { return state[id]||"pending"; }
 
+const FILTER_KEY = "aws_roadmap_filter_v1";
+let filterMode = localStorage.getItem(FILTER_KEY) || "de";
+function visibleTopics() {
+  if (filterMode === "all") return ROADMAP;
+  return ROADMAP
+    .map(t => ({ ...t, subs: t.subs.filter((s: any) => s.de) }))
+    .filter(t => t.subs.length > 0);
+}
+
 function allIds() {
   const ids: string[] = [];
   for (const t of ROADMAP) { ids.push(t.id); for (const s of t.subs) ids.push(s.id); }
@@ -345,7 +361,8 @@ function buildFlow() {
   const flow = document.getElementById("rm-flow");
   if (!flow) return;
   flow.innerHTML = "";
-  ROADMAP.forEach((topic, ti) => {
+  const topics = visibleTopics();
+  topics.forEach((topic, ti) => {
     const s = getS(topic.id);
     const isCollapsed = collapsedIds.has(topic.id);
     const topicEl = document.createElement("div");
@@ -376,13 +393,31 @@ function buildFlow() {
       }
       flow.appendChild(group);
     }
-    if (ti < ROADMAP.length-1) {
+    if (ti < topics.length-1) {
       const arrow = document.createElement("div");
       arrow.className = "rm-arrow";
       arrow.innerHTML = ICON_ARROW;
       flow.appendChild(arrow);
     }
   });
+}
+
+function updateFilterUI() {
+  document.querySelectorAll<HTMLButtonElement>(".rm-filter-btn").forEach(btn => {
+    btn.classList.toggle("is-active", btn.dataset.mode === filterMode);
+  });
+  const total = allIds().length;
+  const shown = visibleTopics().reduce((n, t) => n + 1 + t.subs.length, 0);
+  const countEl = document.getElementById("rm-filter-count");
+  if (countEl) countEl.textContent = `${shown} / ${total} shown`;
+}
+
+function setFilterMode(mode: string) {
+  if (mode === filterMode) return;
+  filterMode = mode;
+  localStorage.setItem(FILTER_KEY, mode);
+  buildFlow();
+  updateFilterUI();
 }
 
 let activeId: string|null = null, activeParent: string|null = null;
@@ -452,7 +487,10 @@ function setStatus(id: string, s: string) {
   }
 }
 
-buildFlow(); refreshProgress();
+buildFlow(); refreshProgress(); updateFilterUI();
+document.querySelectorAll<HTMLButtonElement>(".rm-filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => setFilterMode(btn.dataset.mode!));
+});
 document.body.appendChild(document.getElementById("rm-drawer")!);
 document.getElementById("rm-panel-close")?.addEventListener("click", closePanel);
 document.getElementById("rm-backdrop")?.addEventListener("click", closePanel);
