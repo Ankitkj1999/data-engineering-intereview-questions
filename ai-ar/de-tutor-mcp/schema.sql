@@ -3,9 +3,11 @@
 CREATE TABLE IF NOT EXISTS questions (
 	id TEXT PRIMARY KEY,
 	concept TEXT NOT NULL,
+	concept_order INTEGER NOT NULL DEFAULT 0,
 	prompt TEXT NOT NULL,
 	reference_answer TEXT NOT NULL,
-	kind TEXT NOT NULL CHECK (kind IN ('voice', 'code'))
+	kind TEXT NOT NULL CHECK (kind IN ('voice', 'code')),
+	difficulty TEXT NOT NULL DEFAULT 'medium' CHECK (difficulty IN ('easy', 'medium', 'hard'))
 );
 
 CREATE TABLE IF NOT EXISTS attempts (

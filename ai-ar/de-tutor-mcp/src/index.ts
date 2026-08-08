@@ -2,17 +2,44 @@ import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
 import { sm2Update, toQuality } from "./sm2";
+import { PROGRESS_VIEW_HTML } from "./ui/progressView";
 
 // Single hardcoded user for this POC — no auth.
 const USER_ID = "default";
 
+// MCP Apps (SEP-1865) resource URI for the get_progress UI widget.
+const PROGRESS_VIEW_URI = "ui://de-tutor-mcp/progress-view";
+
+const DIFFICULTY_RANK = "CASE q.difficulty WHEN 'easy' THEN 0 WHEN 'medium' THEN 1 WHEN 'hard' THEN 2 ELSE 1 END";
+
 interface QuestionRow {
 	id: string;
 	concept: string;
+	concept_order: number;
 	prompt: string;
 	reference_answer: string;
 	kind: string;
+	difficulty: string;
 }
+
+const ProgressOutputSchema = z.object({
+	summary: z.object({
+		concepts_total: z.number(),
+		concepts_started: z.number(),
+		questions_total: z.number(),
+		questions_covered: z.number(),
+	}),
+	concepts: z.array(
+		z.object({
+			concept: z.string(),
+			questions_total: z.number(),
+			questions_covered: z.number(),
+			ease: z.number().nullable(),
+			interval_days: z.number().nullable(),
+			due_ts: z.number().nullable(),
+		}),
+	),
+});
 
 interface ProgressRow {
 	user_id: string;
@@ -32,54 +59,85 @@ function createServer(env: Env) {
 		"get_next_question",
 		{
 			description:
-				"Pick the next question to ask the user: the due concept with the earliest due_ts, " +
-				"or a concept the user hasn't seen yet if nothing is due.",
+				"Pick the next question to ask the user. Depth-first by design: stays in whichever concept " +
+				"is already in progress (started but not fully covered) before introducing a new one, so the " +
+				"session builds on one topic at a time instead of jumping across the whole curriculum. Within " +
+				"a concept, unseen questions come before repeats, easy before medium before hard.",
 			inputSchema: z.object({}),
 		},
 		async () => {
 			const now = Date.now();
 
-			const due = await env.DB.prepare(
-				`SELECT * FROM progress WHERE user_id = ? AND due_ts <= ? ORDER BY due_ts ASC LIMIT 1`,
+			// 1. Continue whichever concept is already started but not finished —
+			//    the most recently touched one, so a session stays on one topic.
+			const inProgress = await env.DB.prepare(
+				`SELECT q.concept AS concept,
+					COUNT(DISTINCT q.id) AS total,
+					COUNT(DISTINCT a.question_id) AS covered,
+					MAX(a.ts) AS last_ts
+				 FROM questions q
+				 LEFT JOIN attempts a ON a.question_id = q.id AND a.user_id = ?
+				 GROUP BY q.concept
+				 HAVING covered > 0 AND covered < total
+				 ORDER BY last_ts DESC
+				 LIMIT 1`,
 			)
-				.bind(USER_ID, now)
-				.first<ProgressRow>();
+				.bind(USER_ID)
+				.first<{ concept: string }>();
 
-			let concept: string;
-			if (due) {
-				concept = due.concept;
-			} else {
+			let concept = inProgress?.concept;
+
+			// 2. Otherwise, a concept that's due for spaced-repetition review.
+			if (!concept) {
+				const due = await env.DB.prepare(
+					`SELECT concept FROM progress WHERE user_id = ? AND due_ts <= ? ORDER BY due_ts ASC LIMIT 1`,
+				)
+					.bind(USER_ID, now)
+					.first<{ concept: string }>();
+				concept = due?.concept;
+			}
+
+			// 3. Otherwise, the next untouched concept in curriculum order.
+			if (!concept) {
 				const fresh = await env.DB.prepare(
-					`SELECT DISTINCT concept FROM questions
-					 WHERE concept NOT IN (SELECT concept FROM progress WHERE user_id = ?)
+					`SELECT concept FROM questions
+					 WHERE concept NOT IN (
+						 SELECT DISTINCT q.concept FROM attempts a JOIN questions q ON q.id = a.question_id WHERE a.user_id = ?
+					 )
+					 GROUP BY concept
+					 ORDER BY MIN(concept_order) ASC
 					 LIMIT 1`,
 				)
 					.bind(USER_ID)
 					.first<{ concept: string }>();
-
-				if (fresh) {
-					concept = fresh.concept;
-				} else {
-					const earliest = await env.DB.prepare(
-						`SELECT * FROM progress WHERE user_id = ? ORDER BY due_ts ASC LIMIT 1`,
-					)
-						.bind(USER_ID)
-						.first<ProgressRow>();
-					if (!earliest) {
-						return { content: [{ type: "text" as const, text: "No questions seeded yet." }] };
-					}
-					concept = earliest.concept;
-				}
+				concept = fresh?.concept;
 			}
 
-			// Least-recently-attempted question in this concept (or never attempted).
+			// 4. Fallback: everything's been covered at least once — spaced repetition governs.
+			if (!concept) {
+				const earliest = await env.DB.prepare(
+					`SELECT concept FROM progress WHERE user_id = ? ORDER BY due_ts ASC LIMIT 1`,
+				)
+					.bind(USER_ID)
+					.first<{ concept: string }>();
+				concept = earliest?.concept;
+			}
+
+			if (!concept) {
+				return { content: [{ type: "text" as const, text: "No questions seeded yet." }] };
+			}
+
+			// Within the concept: never-attempted first, then easy -> medium -> hard, then least-recently-attempted.
 			const question = await env.DB.prepare(
 				`SELECT q.* FROM questions q
 				 LEFT JOIN (
 					 SELECT question_id, MAX(ts) AS last_ts FROM attempts WHERE user_id = ? GROUP BY question_id
 				 ) a ON a.question_id = q.id
 				 WHERE q.concept = ?
-				 ORDER BY a.last_ts ASC NULLS FIRST
+				 ORDER BY
+					 (a.last_ts IS NULL) DESC,
+					 ${DIFFICULTY_RANK} ASC,
+					 a.last_ts ASC
 				 LIMIT 1`,
 			)
 				.bind(USER_ID, concept)
@@ -97,6 +155,7 @@ function createServer(env: Env) {
 							question_id: question.id,
 							concept: question.concept,
 							kind: question.kind,
+							difficulty: question.difficulty,
 							prompt: question.prompt,
 						}),
 					},
@@ -178,13 +237,29 @@ function createServer(env: Env) {
 		},
 	);
 
+	server.registerResource(
+		"progress_view",
+		PROGRESS_VIEW_URI,
+		{
+			description: "Coverage meters + summary stats for get_progress, rendered inline via MCP Apps.",
+			mimeType: "text/html;profile=mcp-app",
+			_meta: { ui: { prefersBorder: true } },
+		},
+		async (uri) => ({
+			contents: [{ uri: uri.href, mimeType: "text/html;profile=mcp-app", text: PROGRESS_VIEW_HTML }],
+		}),
+	);
+
 	server.registerTool(
 		"get_progress",
 		{
 			description:
 				"Per-concept mastery (ease, current interval, next due date) plus how many of each " +
-				"concept's questions have been covered at least once, and an overall totals summary.",
+				"concept's questions have been covered at least once, and an overall totals summary. " +
+				"Renders as an inline visual widget on hosts that support MCP Apps.",
 			inputSchema: z.object({}),
+			outputSchema: ProgressOutputSchema,
+			_meta: { ui: { resourceUri: PROGRESS_VIEW_URI } },
 		},
 		async () => {
 			const { results } = await env.DB.prepare(
@@ -219,7 +294,11 @@ function createServer(env: Env) {
 				questions_covered: concepts.reduce((sum, c) => sum + c.questions_covered, 0),
 			};
 
-			return { content: [{ type: "text" as const, text: JSON.stringify({ summary, concepts }) }] };
+			const structuredContent = { summary, concepts };
+			return {
+				content: [{ type: "text" as const, text: JSON.stringify(structuredContent) }],
+				structuredContent,
+			};
 		},
 	);
 
