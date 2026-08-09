@@ -1,0 +1,315 @@
+---
+title: AWS Compute for Data Workloads
+description: AWS compute interview questions for data engineers covering EC2 instance families and purchasing models, Lambda, ECS, EKS, Fargate and AWS Batch — and choosing between them for ETL, streaming and orchestration workloads.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## AWS Compute: Where Your Pipeline Actually Runs
+
+**Every AWS data pipeline eventually reduces to a compute choice. A Glue job is Spark on managed compute; an Airflow task is a container somewhere; a Lambda is a 15-minute box you can't exceed. Interviewers use compute questions to test whether you understand the cost and constraint model underneath the managed services — because "why is this pipeline expensive" and "why does this job keep timing out" both have compute answers.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [EC2](#ec2)
+- [AWS Lambda](#aws-lambda)
+- [Containers: ECS, EKS & Fargate](#containers-ecs-eks--fargate)
+- [AWS Batch](#aws-batch)
+- [Choosing Compute for Data Workloads](#choosing-compute-for-data-workloads)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+AWS compute is a spectrum of **how much you manage versus how much you control**. EC2 gives you a virtual machine and every decision that comes with it. ECS and EKS abstract to containers. Fargate removes the servers underneath those containers. Lambda removes everything except a function and a 15-minute ceiling.
+
+The axis that matters for data engineering is **workload shape**. Long-running, memory-hungry, stateful work — a Spark job shuffling 2 TB — wants EC2 or containers on EC2 with instance types chosen deliberately. Short, bursty, event-driven work — a file lands, transform it — wants Lambda. Embarrassingly parallel batch work with variable duration wants Batch.
+
+The cost lever that dominates all of them is **purchasing model**. The same EC2 capacity can cost 100%, 60% or 20% of On-Demand depending on whether you use Savings Plans or Spot. For fault-tolerant, restartable data processing, Spot is the single largest cost reduction available in AWS — often 70% off, and it's the reason EMR and Spark clusters are so often Spot-backed.
+
+---
+
+## EC2
+
+<QuestionList topic="EC2" storagePrefix="aws-compute-ec2">
+
+<QuestionCard id="awscm-ec2-01" number={1} question="What are the EC2 instance families, and which matter for data workloads?" difficulty="easy" topic="EC2">
+Families are named by purpose, then generation, then size — `r6g.4xlarge` is memory-optimised, 6th generation, Graviton, 4xlarge.
+
+- **General purpose (M, T)** — balanced CPU to memory. T instances are burstable, which makes them a trap for sustained work.
+- **Compute optimised (C)** — high CPU per GB. Good for CPU-bound transforms and compression.
+- **Memory optimised (R, X, Z)** — high RAM per vCPU. **The default for Spark**, since shuffle and caching are memory-bound.
+- **Storage optimised (I, D)** — large local NVMe. Excellent for shuffle-heavy Spark and for Kafka brokers.
+- **Accelerated (P, G, Inf)** — GPUs, for ML rather than ETL.
+
+For data engineering the two to name are **R for Spark executors** and **I for shuffle-heavy or local-disk workloads**. `g` in the name means **Graviton** (ARM), typically 20–40% better price-performance if your dependencies have ARM builds.
+</QuestionCard>
+
+<QuestionCard id="awscm-ec2-02" number={2} question="Explain the EC2 purchasing options." difficulty="medium" topic="EC2">
+- **On-Demand** — pay per second, no commitment. Baseline price, maximum flexibility.
+- **Reserved Instances** — 1 or 3 year commitment to a specific instance type for up to ~72% off. Largely superseded by Savings Plans.
+- **Savings Plans** — commit to a dollar-per-hour spend for 1 or 3 years, up to ~72% off. **Compute Savings Plans** apply across instance families, regions, and even Fargate and Lambda, which makes them much more flexible than RIs.
+- **Spot** — spare capacity at up to **90% off**, reclaimed with a **2-minute warning**.
+- **Dedicated Hosts / Instances** — physical isolation, for licensing or compliance.
+
+The data engineering answer: **Savings Plans for the always-on baseline** (orchestrator, metastore, streaming consumers), **Spot for the elastic batch layer** (Spark executors, EMR task nodes), On-Demand only for what can't tolerate interruption.
+</QuestionCard>
+
+<QuestionCard id="awscm-ec2-03" number={3} question="How do you use Spot instances safely for data processing?" difficulty="hard" topic="EC2">
+Spot is reclaimed with two minutes' notice, so the work must be **restartable**.
+
+Practices that make it safe:
+- **Keep the driver/master On-Demand, executors on Spot.** Losing an executor costs a re-computed partition; losing the driver kills the job. This is exactly how EMR instance fleets are usually configured.
+- **Diversify across instance types and AZs** — a capacity-optimised allocation strategy across ten types is far less likely to be fully reclaimed than one type.
+- **Handle the interruption notice** — drain gracefully, checkpoint, deregister from the load balancer.
+- **Checkpoint long jobs** so a full restart doesn't lose hours.
+- **Never put stateful services on Spot** — a Kafka broker or a database is the wrong workload.
+
+Typical saving is 60–80%, which on a large EMR fleet is often the biggest single line item you can move.
+</QuestionCard>
+
+<QuestionCard id="awscm-ec2-04" number={4} question="What are EBS-optimised instances and instance store, and when does the difference matter?" difficulty="medium" topic="EC2">
+**Instance store** is physically attached NVMe — very fast, and **ephemeral**: the data is gone when the instance stops or fails. **EBS** is network-attached block storage that persists independently of the instance.
+
+For data workloads the distinction is sharp. **Spark shuffle and temporary spill should go to instance store** — it's dramatically faster and the data is worthless after the job. Anything that must survive (a database's data directory, a checkpoint) belongs on EBS or S3.
+
+**EBS-optimised** means dedicated bandwidth between the instance and EBS, so storage traffic doesn't contend with network traffic. It's the default on current-generation instances.
+
+The common mistake is running a shuffle-heavy job on an instance type with no local NVMe, so all shuffle spills to EBS and the job becomes I/O-bound.
+</QuestionCard>
+
+<QuestionCard id="awscm-ec2-05" number={5} question="What is an AMI, and how does it fit a data platform?" difficulty="easy" topic="EC2">
+An **Amazon Machine Image** is the template an instance boots from — OS, pre-installed software, and configuration.
+
+For data platforms it's used to bake in what would otherwise be installed at boot: JDK version, Spark and connector JARs, monitoring agents, security agents, and the CA bundle. That turns a three-minute bootstrap into a fast start, which matters when an autoscaling group adds fifty nodes.
+
+Build them with **Packer** or EC2 Image Builder, version them, and treat the build as code in CI. The alternative — a long `user_data` script running on every boot — is slower, fails intermittently on package-mirror outages, and drifts between nodes.
+
+For containerised workloads, a container image serves the same purpose and is usually preferable.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## AWS Lambda
+
+<QuestionList topic="AWS Lambda" storagePrefix="aws-compute-lambda">
+
+<QuestionCard id="awscm-lam-01" number={1} question="What are Lambda's limits, and how do they shape data pipeline design?" difficulty="medium" topic="Lambda">
+The ones that decide whether Lambda fits:
+
+- **15-minute maximum execution.** The hard ceiling — anything longer must be split or moved to Batch/ECS.
+- **10 GB memory**, with vCPU allocated proportionally, so memory is also the CPU dial.
+- **512 MB `/tmp`** by default, configurable to 10 GB — the constraint when processing files locally.
+- **6 MB synchronous payload**, 256 KB asynchronous.
+- **1,000 concurrent executions** per account by default (a soft limit).
+
+The design consequence: Lambda suits **per-event or per-small-file** work — validate and route a record, trigger a job, transform a file that fits in memory. It does not suit a full-table transform. A common pattern is Lambda as the **trigger** (S3 event fires, Lambda starts a Glue or Step Functions job) rather than the worker.
+</QuestionCard>
+
+<QuestionCard id="awscm-lam-02" number={2} question="What is a cold start, and how do you reduce it?" difficulty="medium" topic="Lambda">
+When no warm execution environment is available, Lambda must provision one, download your code, and initialise the runtime before your handler runs. That adds latency — tens of milliseconds for a small Python function, seconds for a large package or a JVM.
+
+Reductions:
+- **Shrink the deployment package** — this is the biggest lever. A function importing all of pandas pays for it on every cold start.
+- **Initialise outside the handler** — database connections and clients created at module level are reused across invocations in the same environment.
+- **Provisioned Concurrency** — keeps N environments warm. Effective and not free.
+- **Avoid VPC attachment unless needed** — much improved since Hyperplane ENIs, but still an extra consideration.
+- **Choose a lighter runtime** — Python and Node start faster than JVM.
+
+For asynchronous data pipelines, cold starts usually don't matter. They matter for user-facing APIs.
+</QuestionCard>
+
+<QuestionCard id="awscm-lam-03" number={3} question="How does Lambda integrate with data services?" difficulty="medium" topic="Lambda">
+Event source mappings and triggers do most of the work:
+
+- **S3 events** — an object lands, Lambda fires. The canonical ingestion trigger.
+- **Kinesis and DynamoDB Streams** — Lambda polls shards and invokes with batches, with configurable batch size and window.
+- **SQS** — Lambda polls the queue; failures return the message for retry, and a DLQ catches poison messages.
+- **MSK / self-managed Kafka** — consume topics directly.
+- **EventBridge** — schedule (replacing cron) or react to service events.
+- **Firehose transformation** — transform records in-flight before they land.
+
+The important operational detail for stream sources: a **failing batch blocks the shard** by default, because ordering must be preserved. Configure `BisectBatchOnFunctionError`, a maximum retry age, and an on-failure destination, or one poison record stalls the partition indefinitely.
+</QuestionCard>
+
+<QuestionCard id="awscm-lam-04" number={4} question="How is Lambda priced, and when does it become expensive?" difficulty="medium" topic="Lambda">
+You pay per **request** plus **GB-seconds** — memory allocated multiplied by duration, billed per millisecond.
+
+Because vCPU scales with memory, more memory can be *cheaper*: doubling memory that halves duration costs the same, and often less once you account for fewer retries. Tuning memory is a real optimisation, and AWS Lambda Power Tuning automates finding the sweet spot.
+
+It becomes expensive when used as sustained compute. A function running continuously at high concurrency costs far more than an equivalent EC2 or Fargate task, because you're paying a premium for elasticity you aren't using.
+
+The rule of thumb: Lambda wins for **spiky, low-duty-cycle** workloads. For steady throughput, containers are cheaper.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Containers: ECS, EKS & Fargate
+
+<QuestionList topic="Containers: ECS, EKS & Fargate" storagePrefix="aws-compute-containers">
+
+<QuestionCard id="awscm-cnt-01" number={1} question="What is the difference between ECS, EKS and Fargate?" difficulty="medium" topic="Containers">
+**ECS** is AWS's own container orchestrator — simpler, deeply integrated with IAM, ALB and CloudWatch, no control plane to manage or pay for.
+
+**EKS** is managed Kubernetes. You get the standard Kubernetes API and its entire ecosystem — Helm, operators, Spark-on-Kubernetes, Airflow's KubernetesExecutor — at the cost of a control plane fee and real operational complexity.
+
+**Fargate is not an orchestrator.** It's a *launch type* for both ECS and EKS that removes the EC2 layer: you specify CPU and memory per task and AWS runs it. No nodes to patch or scale.
+
+Choosing: **ECS** if you're all-in on AWS and want simplicity. **EKS** if you need portability, the Kubernetes ecosystem, or already run Kubernetes elsewhere. **Fargate** on either when you don't want to manage nodes and can accept the price premium.
+</QuestionCard>
+
+<QuestionCard id="awscm-cnt-02" number={2} question="When is Fargate the wrong choice?" difficulty="medium" topic="Containers">
+- **Cost at scale.** Fargate carries a meaningful premium per vCPU-hour over EC2. For a large, steadily-utilised fleet, EC2 with Savings Plans is significantly cheaper.
+- **No GPU support** — ML training needs EC2.
+- **No instance store** — everything is network-attached, so a shuffle-heavy Spark job loses local NVMe.
+- **Limited CPU/memory combinations** — you can't pick an arbitrary ratio, and there's a per-task ceiling.
+- **Slower task startup** than a warm EC2 node with the image cached.
+- **No daemonsets** on EKS Fargate, which breaks some logging and monitoring agents.
+
+The instance-store point is the data-specific one: Spark on Fargate spills shuffle to network storage and pays for it in performance.
+</QuestionCard>
+
+<QuestionCard id="awscm-cnt-03" number={3} question="How do containers on AWS get permissions to reach S3 or a database?" difficulty="medium" topic="Containers">
+Through **IAM roles**, never static keys.
+
+- **ECS** — a **task role** (permissions for your application) distinct from the **task execution role** (permissions for ECS itself to pull the image and write logs). Confusing these two is a common setup error.
+- **EKS** — **IRSA** (IAM Roles for Service Accounts) maps a Kubernetes service account to an IAM role via OIDC, so each pod gets scoped credentials. **EKS Pod Identity** is the newer, simpler alternative.
+
+Both deliver short-lived, automatically-rotated credentials through the SDK's default provider chain, so your code needs no credential handling at all.
+
+Scope tightly — one role per pipeline, with S3 policies restricted to specific prefixes. A shared role with `s3:*` is the finding that shows up in every security review.
+</QuestionCard>
+
+<QuestionCard id="awscm-cnt-04" number={4} question="How does EKS fit a data platform?" difficulty="hard" topic="Containers">
+It's increasingly the substrate for the whole platform:
+
+- **Airflow** with the KubernetesExecutor or KubernetesPodOperator — one pod per task, so each task brings its own image and resource limits, and dependencies can't collide.
+- **Spark on Kubernetes** — `spark-submit` creates driver and executor pods directly, replacing YARN. Now the direction of travel for new deployments.
+- **Flink, Trino, Dagster, dbt runners** — all have mature Kubernetes deployments.
+
+The benefits are consistent packaging, per-task isolation, and cluster autoscaling with **Karpenter** provisioning right-sized Spot nodes on demand.
+
+The honest cost is complexity: you now operate Kubernetes — upgrades, networking, IRSA, resource quotas — which is a real platform-engineering burden. For a small team, EMR Serverless or Glue delivers most of the value with none of it.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## AWS Batch
+
+<QuestionList topic="AWS Batch" storagePrefix="aws-compute-batch">
+
+<QuestionCard id="awscm-bat-01" number={1} question="What is AWS Batch and what problem does it solve?" difficulty="medium" topic="Batch">
+A managed batch scheduler. You define **compute environments** (managed capacity, EC2 or Fargate, On-Demand or Spot), **job queues** with priorities, and **job definitions** (a container image plus vCPU and memory). Batch provisions capacity to match the queue and tears it down when it drains.
+
+It fills the gap between Lambda and a permanent cluster: work that runs **longer than 15 minutes**, is **containerised**, and arrives in **bursts** — so you don't want a cluster sitting idle between runs.
+
+Typical data engineering uses: a nightly transform too long for Lambda, per-file processing over thousands of files, model scoring batches, and genomics-style parallel workloads.
+</QuestionCard>
+
+<QuestionCard id="awscm-bat-02" number={2} question="What are array jobs and job dependencies in Batch?" difficulty="medium" topic="Batch">
+An **array job** submits N copies of the same definition with an index available as `AWS_BATCH_JOB_ARRAY_INDEX`. Each child processes its own shard:
+
+```python
+index = int(os.environ["AWS_BATCH_JOB_ARRAY_INDEX"])
+process(input_files[index])
+```
+
+One submission, thousands of parallel tasks, no orchestration code.
+
+**Dependencies** let you express order — `N_TO_N` pairs array children one-to-one with a downstream array, and `SEQUENTIAL` runs children in order. A `dependsOn` on the parent job gives you a fan-out then fan-in shape.
+
+For anything more complex than a simple DAG, use **Step Functions** or Airflow to orchestrate Batch jobs rather than encoding the graph in dependencies.
+</QuestionCard>
+
+<QuestionCard id="awscm-bat-03" number={3} question="How does Batch compare with EMR and Glue?" difficulty="medium" topic="Batch">
+- **Batch** — runs *your container*, whatever it does. No opinion about the framework. Best for arbitrary code, single-node parallel work, and non-Spark tooling.
+- **EMR** — a managed Hadoop/Spark cluster. Best for genuinely distributed processing where the framework does the coordination and shuffling.
+- **Glue** — serverless Spark plus a catalog and crawlers. Best when you want Spark with no infrastructure at all and can live with its abstraction.
+
+The deciding question: **is the work distributed, or just parallel?** A thousand independent files is *parallel* — Batch handles it with an array job, cheaply, no cluster. A single 5 TB join is *distributed* — it needs Spark, so EMR or Glue.
+
+Using EMR for embarrassingly parallel single-node work is a common and expensive mismatch.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Choosing Compute for Data Workloads
+
+<QuestionList topic="Choosing Compute for Data Workloads" storagePrefix="aws-compute-choosing">
+
+<QuestionCard id="awscm-ch-01" number={1} question="How do you choose compute for a new data pipeline?" difficulty="hard" topic="Choosing">
+| Workload | Choice |
+|---|---|
+| Event-driven, seconds, small payload | **Lambda** |
+| Scheduled, minutes to hours, single node | **Batch** or **ECS/Fargate task** |
+| Distributed Spark, large data | **EMR** (Spot) or **EMR Serverless** |
+| Serverless Spark with a catalog | **Glue** |
+| Always-on streaming consumer | **ECS/EKS** on EC2 with Savings Plans |
+| Ad-hoc SQL over S3 | **Athena** — no compute to manage at all |
+| Full platform, many frameworks | **EKS** |
+
+Decide with three questions: **how long does one unit of work run** (over 15 minutes rules out Lambda), **is it distributed or merely parallel** (Spark versus containers), and **what's the duty cycle** (bursty favours serverless, steady favours reserved capacity).
+</QuestionCard>
+
+<QuestionCard id="awscm-ch-02" number={2} question="How do you right-size and control compute cost?" difficulty="medium" topic="Cost">
+In rough order of impact:
+
+1. **Spot for interruptible work** — up to 90% off, and the largest single lever for batch processing.
+2. **Savings Plans for the steady baseline** — up to 72% off what you'd run anyway.
+3. **Turn things off.** Non-production clusters running overnight and at weekends are pure waste. Auto-terminate EMR clusters on idle.
+4. **Right-size from metrics** — CloudWatch and Compute Optimizer routinely show instances at 10% CPU.
+5. **Graviton** — typically 20–40% better price-performance for an architecture change, if your dependencies support ARM.
+6. **Fix the data, not the compute** — a job scanning 10× more data than necessary because of bad partitioning is a storage-layout problem that no instance choice fixes.
+
+Tag everything by pipeline and team, so cost is attributable and someone owns it.
+</QuestionCard>
+
+<QuestionCard id="awscm-ch-03" number={3} question="A nightly Spark job on EMR takes 6 hours and costs too much. How do you approach it?" difficulty="hard" topic="Choosing">
+Diagnose before changing instance types.
+
+1. **Read the Spark UI.** Is it skew (a few tasks running far longer), shuffle-bound, or genuinely CPU-bound? Skew is the most common answer and no amount of hardware fixes it.
+2. **Check how much data is actually read.** Poor partitioning or CSV instead of Parquet often means scanning 10× what's needed. Fixing the layout is usually the biggest single win.
+3. **Then tune compute** — memory-optimised instances for shuffle-heavy work, instance-store types so spill goes to NVMe, and enough executors to use the cluster.
+4. **Move executors to Spot**, keeping the master On-Demand.
+5. **Consider EMR Serverless** if the cluster sits idle much of the night.
+6. **Question the schedule** — does it need to be a full reload, or would an incremental run on new partitions do?
+
+The strong answer leads with data layout and skew, not instance types.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Files land in S3 irregularly and need transforming. What do you build?"** — S3 event → Lambda for small files, or S3 event → Step Functions → Glue/Batch when files are large or the work exceeds 15 minutes. Mention that batching many small files first usually beats invoking per file.
+
+**"Your Lambda times out at 15 minutes."** — that's a hard limit, so the design must change: split the work and fan out, or move to Batch, Fargate or Glue. If the function is looping over records, the shard/partition boundary is the natural split.
+
+**"How would you cut EMR costs by half?"** — Spot for task and core nodes with a diversified fleet, auto-termination on idle, right-sized memory-optimised instances, and check the data layout first since scanning less data beats every other change.
+
+**"ECS or EKS?"** — ECS unless you need the Kubernetes ecosystem, portability across clouds, or already run Kubernetes. Say plainly that EKS is a platform commitment, not just a deployment target.
+
+---
+
+## Further Reading
+
+- [Amazon EC2 instance types](https://aws.amazon.com/ec2/instance-types/)
+- [EC2 Spot best practices](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-best-practices.html)
+- [AWS Lambda quotas](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html)
+- [AWS Batch user guide](https://docs.aws.amazon.com/batch/latest/userguide/)
+- [IAM roles for service accounts (IRSA)](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html)
+- [Spark on Kubernetes](https://spark.apache.org/docs/latest/running-on-kubernetes.html)
+- [AWS Lambda Power Tuning](https://github.com/alexcasalboni/aws-lambda-power-tuning)

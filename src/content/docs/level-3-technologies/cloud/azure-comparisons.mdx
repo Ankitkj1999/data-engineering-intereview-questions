@@ -1,0 +1,240 @@
+---
+title: Azure Service Comparisons
+description: Head-to-head Azure service comparisons for data engineers — Blob vs Disk vs File storage, LRS vs ZRS vs GRS redundancy, ACI vs AKS vs Container Apps, Functions vs Logic Apps vs Event Grid, and Synapse vs Databricks vs Fabric.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Azure Service Comparisons
+
+**Azure's product naming makes these comparisons harder than they should be — three services with "Data" in the name do different things, and two with similar names do the same thing at different layers. A strong answer names the axis first, places both services on it, and says when the real answer is neither.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Storage Comparisons](#storage-comparisons)
+- [Compute Comparisons](#compute-comparisons)
+- [Integration Comparisons](#integration-comparisons)
+- [Analytics Comparisons](#analytics-comparisons)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Azure comparisons cluster on four axes. **Access shape** — object, block or file; document, relational or key-value. **Managed versus controlled** — PaaS convenience against configurability. **Elastic versus provisioned** — scale-to-zero with per-use billing, or reserved capacity that's cheaper when steadily used. And **integration depth**, which on Azure often decides the answer because first-party integration with Entra ID, VNets and Power BI is a real differentiator.
+
+Two Azure-specific patterns are worth internalising because they recur across comparisons. First, several settings are **immutable after creation** — hierarchical namespace on a storage account, redundancy tier, a Cosmos DB partition key — so the comparison isn't just "which is better" but "which can I change later." Second, **pausing matters**: Synapse dedicated pools and Databricks clusters bill until stopped, so the cheaper option is frequently the one someone remembers to turn off.
+
+The third thing to hold: Microsoft's portfolio is **actively consolidating into Fabric**. Being able to say which services are strategic and which are legacy-adjacent is often the differentiating part of the answer.
+
+---
+
+## Storage Comparisons
+
+<QuestionList topic="Storage Comparisons" storagePrefix="azure-comparisons-storage">
+
+<QuestionCard id="azcmp-st-01" number={1} question="Blob vs Disk vs File Storage — how do you choose?" difficulty="medium" topic="Storage">
+| | **Blob** | **Disk** | **File** |
+|---|---|---|---|
+| Type | object | block | file (SMB/NFS) |
+| Access | HTTPS API, anywhere | one VM at a time | many clients concurrently |
+| Scale | effectively unlimited | up to 64 TiB per disk | up to ~100 TiB per share |
+| Cost per GB | lowest | middle | highest |
+| Data use | **the data lake** | VM OS and database files | shared config, lift-and-shift |
+
+**Blob (ADLS Gen2)** for anything analytical — it's what Databricks, Synapse and Fabric read. **Disk** for a VM's operating system and a database's data files. **File** only when software genuinely requires a mounted share with concurrent write access.
+
+For a data engineer the answer is Blob almost every time; putting a lake on Azure Files is expensive and cuts you off from the analytics ecosystem.
+</QuestionCard>
+
+<QuestionCard id="azcmp-st-02" number={2} question="LRS vs ZRS vs GRS vs GZRS?" difficulty="medium" topic="Storage">
+| Option | Copies | Survives |
+|---|---|---|
+| **LRS** | 3 in one datacentre | disk / rack failure |
+| **ZRS** | 3 across availability zones | datacentre failure |
+| **GRS** | 3 local + 3 in paired region | regional outage |
+| **GZRS** | 3 zonal + 3 paired region | zone **and** regional outage |
+
+Two details that decide real answers. **Geo-replication is asynchronous**, so failover has a non-zero RPO — recent writes can be lost. And the secondary is **not readable** unless you choose the **RA-** variant, which surprises people expecting a read replica.
+
+For a data lake, choose per zone by reproducibility: **ZRS or GZRS for raw** (often the only copy of what a source sent), **LRS for staging** (rebuildable), **ZRS for curated**. Redundancy is an account-level setting, which is a practical reason to use separate storage accounts per zone.
+</QuestionCard>
+
+<QuestionCard id="azcmp-st-03" number={3} question="Hot vs Cool vs Cold vs Archive tiers?" difficulty="medium" topic="Storage">
+All four store the same data; they trade **storage price against access price and latency**.
+
+- **Hot** — highest storage cost, lowest access cost. Frequently read data.
+- **Cool** — cheaper storage, higher access cost, **30-day minimum**.
+- **Cold** — cheaper again, **90-day minimum**.
+- **Archive** — cheapest by far, **180-day minimum**, and **offline**: blobs must be **rehydrated** (up to 15 hours) before they can be read at all.
+
+The two traps: **early deletion is billed for the full minimum duration**, so tiering data you'll delete soon costs more than leaving it; and **archived data can't be queried in place**, so anything Synapse or Databricks might touch must stay online.
+
+Rule of thumb for a lake: raw to Cool at 30 days and Archive at 90–180; keep curated Hot or Cool because it's actively queried.
+</QuestionCard>
+
+<QuestionCard id="azcmp-st-04" number={4} question="Blob Storage vs ADLS Gen2 — is there actually a difference?" difficulty="medium" topic="Storage">
+ADLS Gen2 **is** Blob Storage with **hierarchical namespace (HNS)** enabled — a checkbox at account creation, not a separate product.
+
+What HNS changes:
+- **Real directories**, so renaming or deleting a folder is one atomic metadata operation instead of N per-object operations.
+- **POSIX ACLs** on files and directories, alongside Azure RBAC.
+- **The `abfss://` driver** used by Spark, Databricks and Synapse.
+
+Why it matters concretely: a Spark job's commit renames a temporary output directory to its final name. Without HNS that's a copy-and-delete per file — on a job writing 50,000 files, seconds becomes many minutes.
+
+The critical practical point: **HNS cannot be enabled after account creation** without migrating. Always enable it for a lake, even if you're not sure you need it yet.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Compute Comparisons
+
+<QuestionList topic="Compute Comparisons" storagePrefix="azure-comparisons-compute">
+
+<QuestionCard id="azcmp-cp-01" number={1} question="Container Instances vs AKS vs Container Apps?" difficulty="medium" topic="Compute">
+- **Container Instances (ACI)** — one container, no orchestrator, per-second billing. For short-lived isolated tasks: a scheduled transform, a migration script, burst capacity. No autoscaling, no rolling updates, no service discovery.
+- **Container Apps** — serverless containers on managed Kubernetes with **scale-to-zero**, KEDA event-driven scaling, revisions and Dapr. The middle ground: microservices and event-driven jobs without operating a cluster.
+- **AKS** — full managed Kubernetes. Complete control, the entire ecosystem (Spark on Kubernetes, Airflow's KubernetesExecutor, Helm, operators), and real operational responsibility.
+
+Choosing: **ACI** for isolated one-off tasks, often launched by Data Factory. **Container Apps** for services and jobs where you want serverless behaviour without Kubernetes. **AKS** when you need the ecosystem, fine-grained scheduling, or already run Kubernetes.
+
+Note AKS's control plane is **free** on the standard tier, which makes running multiple clusters more affordable than on AWS.
+</QuestionCard>
+
+<QuestionCard id="azcmp-cp-02" number={2} question="Azure Functions vs Container Apps Jobs vs Azure Batch?" difficulty="medium" topic="Compute">
+All three run code without a permanent server; they differ in duration and shape.
+
+- **Functions** — event-driven, with rich bindings to Blob, Event Hubs and Service Bus. Consumption plan caps at **10 minutes**; Premium removes that but costs more. Best for triggering and small per-event work.
+- **Container Apps Jobs** — a containerised job, manually triggered, scheduled, or event-driven via KEDA. No timeout constraint, brings its own dependencies. Best for medium-length containerised tasks.
+- **Azure Batch** — large-scale **parallel** workloads across a pool of VMs, with autoscaling, task retries and Spot support. Best for thousands of independent tasks.
+
+Heuristic: **seconds and event-driven → Functions; minutes to hours in a container → Container Apps Jobs; massively parallel → Batch.** If tasks need to exchange data, none of these fit and you want Spark.
+</QuestionCard>
+
+<QuestionCard id="azcmp-cp-03" number={3} question="Reserved Instances vs Savings Plans vs Spot?" difficulty="medium" topic="Compute">
+- **Reserved Instances** — commit to a **specific VM series in a region** for 1 or 3 years, up to ~72% off. Best discount, least flexible; exchangeable with some friction.
+- **Savings Plans for compute** — commit to an **hourly spend** for 1 or 3 years, up to ~65% off, and **flexible across series, sizes and regions**. Slightly lower discount for materially more flexibility, and it applies to Container Instances and some other compute too.
+- **Spot VMs** — surplus capacity at up to **90% off**, evicted with **30 seconds' notice**.
+
+For a data platform: **Savings Plans for the always-on baseline** (orchestrator, streaming consumers, AKS system pools) because workloads shift over three years; **Reserved Instances** only where the shape is genuinely fixed; **Spot for Databricks workers and Batch pools**, which retry automatically.
+
+Azure's 30-second eviction notice is much shorter than AWS's two minutes, so draining logic must be fast.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Integration Comparisons
+
+<QuestionList topic="Integration Comparisons" storagePrefix="azure-comparisons-integration">
+
+<QuestionCard id="azcmp-int-01" number={1} question="Event Hubs vs Service Bus vs Event Grid vs Queue Storage?" difficulty="hard" topic="Integration">
+The four-way version of Azure's most-asked comparison.
+
+- **Event Hubs** — high-throughput **event streaming**, partitioned, retained and **replayable**, consumed with offsets. Telemetry, clickstream, IoT. Kafka-protocol compatible.
+- **Service Bus** — **enterprise messaging**: queues and topics, sessions for ordering, transactions, dead-lettering, duplicate detection, scheduled delivery. For business messages where each one matters.
+- **Event Grid** — **event routing**: lightweight reactive notifications pushed to subscribers with content-based filtering. For triggering, not data transport.
+- **Queue Storage** — a basic, very cheap queue. No topics, sessions, dead-lettering or transactions. Legacy-adjacent; Service Bus supersedes it for anything real.
+
+The heuristic: **many events where the stream matters → Event Hubs; individual messages that must not be lost → Service Bus; reacting to something happening → Event Grid.**
+
+A real pipeline commonly uses three of them together.
+</QuestionCard>
+
+<QuestionCard id="azcmp-int-02" number={2} question="Azure Functions vs Logic Apps?" difficulty="medium" topic="Integration">
+**Functions** — **code**. You write it, in C#, Python, JavaScript or Java, with full control over logic, libraries and testing. Priced per execution and GB-second.
+
+**Logic Apps** — **configuration**. A visual designer over 400+ connectors (Salesforce, SAP, Office 365, SFTP, Outlook), with built-in retry, approval steps and long-running stateful workflows. Priced per action executed.
+
+Choose **Logic Apps** when the work is integration between SaaS systems, needs human approval steps, or should be maintainable by someone who doesn't write code. Its connector library is the genuine advantage — building a Salesforce integration by hand is real work.
+
+Choose **Functions** when there's actual logic, when you need testing and version control of behaviour, or when per-action pricing on a high-volume workflow would be prohibitive.
+
+For data pipelines, Functions is usually the answer; Logic Apps appears at the business-process edges.
+</QuestionCard>
+
+<QuestionCard id="azcmp-int-03" number={3} question="Data Factory vs Logic Apps vs Azure Functions for moving data?" difficulty="medium" topic="Integration">
+- **Data Factory** — purpose-built for **data movement at volume**: 100+ data connectors, parallel partitioned copy, integration runtimes reaching on-premises sources, and orchestration with retries and dependencies. Priced per activity run and per data-movement unit.
+- **Logic Apps** — built for **application integration**, not bulk data. It'll move records, but it's slow and expensive at volume.
+- **Functions** — fine for **small, event-driven** movement (a file lands, transform and forward), but you're writing and maintaining the parallelism, retries and checkpointing that ADF gives you.
+
+The rule: **volume and connectors → Data Factory; business-system integration → Logic Apps; small event-driven glue → Functions.**
+
+The anti-pattern worth naming is looping a Logic App over thousands of records — it works in a demo and falls over in production on both cost and duration.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Analytics Comparisons
+
+<QuestionList topic="Analytics Comparisons" storagePrefix="azure-comparisons-analytics">
+
+<QuestionCard id="azcmp-an-01" number={1} question="Synapse dedicated pool vs serverless pool vs Databricks SQL?" difficulty="hard" topic="Analytics">
+- **Synapse dedicated SQL pool** — a provisioned MPP warehouse with data loaded into its own storage. Fast and predictable for high-concurrency BI, with distributions, indexes and workload management. **Bills continuously until paused.**
+- **Synapse serverless SQL pool** — T-SQL over lake files, billed **per TB processed**, nothing running when idle. For exploration and light transformation, not for consistent BI latency.
+- **Databricks SQL** — a Photon-accelerated warehouse over **Delta tables in the lake**, with serverless options. Combines lakehouse storage with warehouse-grade query performance.
+
+Choosing: **serverless** for ad-hoc lake queries; **dedicated** for a high-concurrency BI layer if you're already in Synapse; **Databricks SQL** if your platform is Databricks, since it avoids maintaining a second copy of the data in a separate warehouse.
+
+The direction of travel is toward querying Delta in place rather than loading into a dedicated warehouse — which is what Fabric's Direct Lake mode also does.
+</QuestionCard>
+
+<QuestionCard id="azcmp-an-02" number={2} question="Synapse vs Databricks vs Microsoft Fabric?" difficulty="hard" topic="Analytics">
+- **Synapse Analytics** — a workspace bundling SQL pools, Spark pools and pipelines. Integrated, but each component trails the best-of-breed alternative, and Microsoft is folding it into Fabric.
+- **Databricks** — the strongest Spark and lakehouse platform: Photon, Delta Live Tables, Unity Catalog, MLflow. Best for serious data engineering and ML. First-party on Azure, so integration is genuinely deep.
+- **Microsoft Fabric** — a **SaaS** bundle over **OneLake** (a single logical lake, Delta-native) covering movement, engineering, warehousing, real-time and Power BI under one capacity licence.
+
+The honest positioning for an interview: **Databricks for engineering-heavy platforms**; **Fabric for Power BI–centric organisations** wanting integration over flexibility; **standalone Synapse is increasingly a legacy choice** for new builds.
+
+Saying that last part — rather than presenting Synapse as a current equal — is what signals up-to-date knowledge.
+</QuestionCard>
+
+<QuestionCard id="azcmp-an-03" number={3} question="Stream Analytics vs Spark Structured Streaming vs Flink on Azure?" difficulty="medium" topic="Analytics">
+- **Azure Stream Analytics** — managed, **SQL-like** with built-in temporal windows, reading Event Hubs or IoT Hub and writing to Blob, SQL, Cosmos or Power BI. Minutes to set up, zero infrastructure. Limited to what its SQL dialect expresses.
+- **Spark Structured Streaming** (on Databricks or Synapse) — micro-batch (or continuous) processing in the same engine and code as your batch pipelines, writing to Delta with exactly-once via checkpointing. Best when streaming and batch share logic.
+- **Flink** (on AKS or HDInsight) — true event-at-a-time processing with sophisticated state, event-time semantics and low latency. Most powerful, most operational effort.
+
+Choosing: **Stream Analytics** for straightforward windowed aggregations to a dashboard; **Structured Streaming** when the team is already on Databricks and wants one codebase for batch and stream; **Flink** when you need genuine low-latency stateful processing and can carry the operational cost.
+</QuestionCard>
+
+<QuestionCard id="azcmp-an-04" number={4} question="Azure Data Explorer vs Synapse vs Cosmos DB for time-series?" difficulty="medium" topic="Analytics">
+- **Azure Data Explorer (Kusto)** — purpose-built for **high-volume telemetry and log analytics**, with the KQL query language, automatic time-based partitioning and text indexing. Ingests millions of events per second and returns interactive queries over billions of rows in seconds. It's what powers Log Analytics and Application Insights.
+- **Synapse / a warehouse** — better for modelled, joined business data and for BI over dimensional models. Slower on raw high-cardinality telemetry.
+- **Cosmos DB** — an operational store for point reads and writes by key. Poor for analytical scans, though **Synapse Link** exports to an analytical store without consuming operational RUs.
+
+For **time-series and log analytics specifically, ADX is the right answer** and is under-known in interviews — mentioning it for observability or IoT telemetry workloads, rather than forcing them into a warehouse, is a strong signal.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Which storage redundancy for our lake?"** — decide per zone by reproducibility, not one setting for everything. Note that geo-replication is async (non-zero RPO) and the secondary isn't readable without RA-, and that redundancy is account-level, so zone-per-account is a reasonable structure.
+
+**"Event Hubs or Service Bus for this pipeline?"** — ask whether you need replay and multiple independent consumers over a stream (Event Hubs) or per-message guarantees like ordering, dedup and dead-lettering (Service Bus). If the answer is "a file landed and something should react", it's neither — that's Event Grid.
+
+**"Should we build on Synapse or Databricks?"** — Databricks for engineering depth; Fabric if the organisation is Power BI–led. Point out Synapse's consolidation into Fabric rather than treating it as a stable long-term target.
+
+**"Our Azure Files bill is enormous."** — check whether it's being used as a data lake. Move analytical data to ADLS Gen2, and keep Files only for what genuinely needs a mounted share.
+
+---
+
+## Further Reading
+
+- [Azure Storage redundancy](https://learn.microsoft.com/azure/storage/common/storage-redundancy)
+- [Blob access tiers](https://learn.microsoft.com/azure/storage/blobs/access-tiers-overview)
+- [Choose between Azure messaging services](https://learn.microsoft.com/azure/service-bus-messaging/compare-messaging-services)
+- [Compare Container Apps with other Azure container options](https://learn.microsoft.com/azure/container-apps/compare-options)
+- [Azure Architecture Center — data architecture guide](https://learn.microsoft.com/azure/architecture/data-guide/)
+- [Choose an analytical data store](https://learn.microsoft.com/azure/architecture/data-guide/technology-choices/analytical-data-stores)
+- [Microsoft Fabric documentation](https://learn.microsoft.com/fabric/)

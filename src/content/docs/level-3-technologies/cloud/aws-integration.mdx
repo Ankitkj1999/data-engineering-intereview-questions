@@ -1,0 +1,299 @@
+---
+title: AWS Integration & Orchestration
+description: AWS integration interview questions covering SQS, SNS and EventBridge, Step Functions, Amazon MQ, AppFlow, and Managed Workflows for Apache Airflow — plus event-driven pipeline patterns.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## AWS Integration: Wiring Pipeline Components Together
+
+**Once you have more than one processing step, something has to connect them — and the choice between a queue, a topic, an event bus and a workflow engine determines how your pipeline behaves when a step fails at 3am. These questions test whether you understand delivery semantics and retry behaviour, because "the message disappeared" and "we processed it twice" are the two failures every integration design has to answer for.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [SQS](#sqs)
+- [SNS & EventBridge](#sns--eventbridge)
+- [Step Functions](#step-functions)
+- [Managed Airflow (MWAA)](#managed-airflow-mwaa)
+- [AppFlow & Amazon MQ](#appflow--amazon-mq)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The three messaging primitives differ by **fan-out and consumption model**. A **queue** (SQS) delivers each message to exactly one consumer, which then deletes it — point-to-point work distribution with buffering. A **topic** (SNS) pushes each message to every subscriber — one-to-many notification. An **event bus** (EventBridge) adds content-based **routing rules**, so subscribers declare which events they want rather than the publisher deciding.
+
+**Orchestration** is a different concern from messaging. Step Functions and Airflow don't move data — they decide *what runs next* and handle failure, retry and branching. The distinction matters because teams frequently build a fragile orchestrator out of queues and Lambdas when a workflow engine would have expressed it in a page of configuration.
+
+The property to reason about throughout is **delivery semantics**. Nearly everything in AWS is **at-least-once**, so duplicates happen: a visibility timeout expires while a task is still running, a retry fires after a partial success. The correct response is designing idempotent consumers, not trying to eliminate duplicates.
+
+---
+
+## SQS
+
+<QuestionList topic="SQS" storagePrefix="aws-integration-sqs">
+
+<QuestionCard id="awsint-sqs-01" number={1} question="What is SQS, and what is the difference between Standard and FIFO queues?" difficulty="medium" topic="SQS">
+A fully managed message queue that decouples producers from consumers and buffers work.
+
+| | **Standard** | **FIFO** |
+|---|---|---|
+| Ordering | best-effort | strict, per message group |
+| Delivery | **at-least-once** (duplicates possible) | exactly-once processing |
+| Throughput | nearly unlimited | 300 msg/s, or 3,000 batched (higher with high-throughput mode) |
+
+**Standard** is the default for data pipelines — the throughput is effectively unbounded, and you handle duplicates by making consumers idempotent.
+
+**FIFO** matters when order within a key is semantically required: applying CDC events for one customer in sequence, or financial transactions. Note that ordering is **per `MessageGroupId`**, not globally, so choosing a high-cardinality group ID preserves both ordering where it matters and parallelism across groups.
+</QuestionCard>
+
+<QuestionCard id="awsint-sqs-02" number={2} question="What is the visibility timeout, and what goes wrong with it?" difficulty="hard" topic="SQS">
+When a consumer receives a message it isn't deleted — it becomes **invisible** to other consumers for the visibility timeout (default 30 seconds). The consumer deletes it on success; if it doesn't, the message reappears for another attempt.
+
+That's how SQS survives a consumer crash, and it's also the source of the classic bug: **the timeout is shorter than the processing time**, so the message reappears and a second consumer starts the same work. The result is duplicate processing that looks random and scales with load.
+
+Fixes: set the timeout above the p99 processing time, call `ChangeMessageVisibility` to extend it for long tasks (a heartbeat), and make the consumer idempotent regardless — because a consumer can always die after doing the work but before deleting the message.
+</QuestionCard>
+
+<QuestionCard id="awsint-sqs-03" number={3} question="What is a dead-letter queue and why does every queue need one?" difficulty="medium" topic="SQS">
+A separate queue that receives messages which failed processing more than `maxReceiveCount` times.
+
+Without one, a **poison message** — malformed, or triggering a bug — retries forever. It consumes capacity, fills the logs with the same error, and in a FIFO queue **blocks everything behind it in its message group** indefinitely.
+
+With a DLQ, the message is moved aside after N attempts, the pipeline keeps flowing, and you have a queue of exactly the failures to inspect.
+
+Operational practices: **alarm on DLQ depth** (a non-empty DLQ is an incident, not a curiosity), keep retention long enough to investigate, and use **DLQ redrive** to replay messages once the bug is fixed. A DLQ nobody monitors is just a slower way to lose data.
+</QuestionCard>
+
+<QuestionCard id="awsint-sqs-04" number={4} question="What is long polling, and why use it?" difficulty="easy" topic="SQS">
+`ReceiveMessage` with `WaitTimeSeconds` up to 20 holds the connection open until a message arrives or the wait expires, instead of returning immediately.
+
+Two benefits. **Cost** — short polling returns empty responses constantly, and you pay per API request; long polling eliminates almost all of them. **Latency** — the message is delivered the moment it arrives rather than at the next poll.
+
+Short polling also has a subtle correctness quirk: it samples a subset of servers, so an empty response doesn't mean the queue is empty. Long polling queries all of them.
+
+There's essentially no reason not to enable it. Set `ReceiveMessageWaitTimeSeconds` to 20 on the queue so every consumer gets it by default.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## SNS & EventBridge
+
+<QuestionList topic="SNS & EventBridge" storagePrefix="aws-integration-sns-eventbridge">
+
+<QuestionCard id="awsint-sns-01" number={1} question="What is SNS, and what is the fan-out pattern?" difficulty="medium" topic="SNS">
+A pub/sub notification service: publishers send to a **topic**, and SNS pushes each message to every **subscriber** — SQS queues, Lambda functions, HTTP endpoints, email, or Kinesis Firehose.
+
+The **fan-out pattern** is SNS to multiple SQS queues:
+
+```
+S3 event → SNS topic ─┬→ SQS → indexing consumer
+                      ├→ SQS → analytics consumer
+                      └→ SQS → archival consumer
+```
+
+Why insert queues rather than subscribing consumers directly: each queue **buffers independently**, so a slow or broken consumer doesn't affect the others, and each gets its own retry behaviour and DLQ. Subscribing Lambdas straight to SNS loses that isolation.
+
+This is the canonical way to let several pipelines react to the same event without the publisher knowing about any of them.
+</QuestionCard>
+
+<QuestionCard id="awsint-sns-02" number={2} question="What is EventBridge, and how does it differ from SNS?" difficulty="medium" topic="EventBridge">
+A serverless **event bus** with content-based routing. Events are JSON; **rules** match on their content and route to targets.
+
+Differences from SNS:
+- **Filtering by content** — rules match on any field, so a subscriber receives only relevant events. SNS filtering exists but is attribute-based and more limited.
+- **Many more targets** — Step Functions, Glue, ECS tasks, API Gateway, and cross-account buses.
+- **AWS service events** — every service emits state changes (an EMR step finished, a Glue job failed), which you can react to without polling.
+- **Schema registry and discovery** for event shapes.
+- **SaaS partner sources** — Datadog, Shopify, Zendesk publish directly.
+- **Scheduler** — a managed cron replacement.
+- **Archive and replay** of past events.
+
+SNS is optimised for **high-throughput fan-out**; EventBridge for **routing and integration**. EventBridge has higher per-event latency, so use SNS when throughput matters most.
+</QuestionCard>
+
+<QuestionCard id="awsint-sns-03" number={3} question="How would you build an event-driven ingestion pipeline?" difficulty="hard" topic="Patterns">
+```
+S3 (file lands)
+  → EventBridge rule (matches prefix and suffix)
+    → SQS queue (buffer, DLQ attached)
+      → Lambda or ECS task (validate, register)
+        → Step Functions (orchestrate transform)
+          → Glue/EMR job
+            → EventBridge event on completion → downstream consumers
+```
+
+The design points worth defending:
+- **A queue between the event and the worker** absorbs bursts. A thousand files landing at once would otherwise hit the Lambda concurrency limit and start dropping.
+- **A DLQ on the queue**, alarmed.
+- **Idempotent processing**, keyed on the object key plus version, because at-least-once delivery guarantees eventual duplicates.
+- **Emit a completion event** rather than having downstream poll — that's what keeps the architecture decoupled.
+- **Batch small files** before processing rather than invoking per object, or per-file overhead dominates.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Step Functions
+
+<QuestionList topic="Step Functions" storagePrefix="aws-integration-step-functions">
+
+<QuestionCard id="awsint-sf-01" number={1} question="What is Step Functions and when would you use it?" difficulty="medium" topic="Step Functions">
+A serverless workflow engine. You define a **state machine** — a JSON/YAML graph of states with transitions, choices, parallelism, error handling and retries — and it executes it durably, with full visual history of every run.
+
+Use it when a pipeline has **multiple steps with dependencies, branching, or failure handling**: start a Glue job, wait for it, branch on the result, run three transformations in parallel, then notify.
+
+Its advantage over chaining Lambdas by hand is that **retry, timeout, error handling and state are declarative and visible**, rather than scattered through code. When a run fails you see exactly which state failed and with what input.
+
+It integrates directly with 200+ AWS services, so many steps need no Lambda at all — it can call Glue, EMR, ECS, DynamoDB and Athena natively.
+</QuestionCard>
+
+<QuestionCard id="awsint-sf-02" number={2} question="What is the difference between Standard and Express workflows?" difficulty="medium" topic="Step Functions">
+| | **Standard** | **Express** |
+|---|---|---|
+| Duration | up to 1 year | up to 5 minutes |
+| Execution model | exactly-once | at-least-once |
+| Pricing | per state transition | per request and duration |
+| History | full, in the console | CloudWatch Logs only |
+| Rate | 2,000 starts/s | 100,000 starts/s |
+
+**Standard** for data pipelines — long-running jobs, exactly-once semantics, and the visual execution history that makes debugging a failed nightly run tractable.
+
+**Express** for high-volume, short event processing where per-transition pricing on Standard would be prohibitive — for example, a state machine invoked per streaming record.
+
+The pricing difference is significant: a Standard workflow with many states invoked millions of times gets expensive, which is precisely what Express exists to solve.
+</QuestionCard>
+
+<QuestionCard id="awsint-sf-03" number={3} question="How do you handle errors and long-running tasks in Step Functions?" difficulty="hard" topic="Step Functions">
+**Errors** are declarative per state:
+
+```json
+"Retry": [{
+  "ErrorEquals": ["States.TaskFailed"],
+  "IntervalSeconds": 2, "MaxAttempts": 3, "BackoffRate": 2.0
+}],
+"Catch": [{ "ErrorEquals": ["States.ALL"], "Next": "NotifyFailure" }]
+```
+
+Retry gives you exponential backoff without writing any; Catch routes to a compensating or notification path.
+
+**Long-running tasks** use one of:
+- **`.sync` integrations** — `glue:startJobRun.sync` blocks the state until the job actually finishes, rather than returning immediately. This is the right way to run Glue, EMR and ECS steps.
+- **Callback pattern** (`waitForTaskToken`) — the state pauses until an external system calls `SendTaskSuccess` with the token. Used for human approval or an external system's completion.
+- **Map state** for fan-out; **Distributed Map** processes millions of S3 objects with high parallelism.
+</QuestionCard>
+
+<QuestionCard id="awsint-sf-04" number={4} question="Step Functions or Airflow — how do you choose?" difficulty="hard" topic="Orchestration">
+**Step Functions** — serverless, no infrastructure, pay per transition, deep AWS integration, excellent visual debugging. Weaker at data-aware scheduling: backfills, dataset dependencies, and complex time-based logic are awkward, and workflows are JSON rather than code.
+
+**Airflow (MWAA)** — DAGs in Python, so complex logic, dynamic generation and shared libraries are natural. Rich scheduling with catchup and backfill, a huge provider ecosystem, and a UI built for data teams. Costs a running environment even when idle, and needs real operational care.
+
+Choosing: **Step Functions** for event-driven, AWS-native, service-orchestration workflows, and for teams who don't want to run a scheduler. **Airflow** for scheduled data pipelines with many interdependent tasks, backfills, and cross-system integrations.
+
+Plenty of teams use both — Airflow for the daily DAG, Step Functions for event-triggered sub-workflows it invokes.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Managed Airflow (MWAA)
+
+<QuestionList topic="Managed Airflow (MWAA)" storagePrefix="aws-integration-mwaa">
+
+<QuestionCard id="awsint-mwaa-01" number={1} question="What is MWAA and what does AWS manage?" difficulty="medium" topic="MWAA">
+Amazon Managed Workflows for Apache Airflow — Airflow with AWS running the scheduler, web server, metadata database and workers.
+
+AWS handles provisioning, patching, autoscaling workers, and integration with CloudWatch, IAM, S3 and VPC. You supply **DAGs in an S3 bucket**, plus `requirements.txt` for Python dependencies and an optional plugins archive.
+
+What you still own: DAG code and its quality, dependency management (which is where most MWAA pain lives), sizing the environment, and the cost of it running continuously.
+
+The value is skipping the genuinely non-trivial work of operating Airflow — the metadata database, scheduler HA, worker autoscaling — while keeping the standard Airflow experience and provider ecosystem.
+</QuestionCard>
+
+<QuestionCard id="awsint-mwaa-02" number={2} question="How do you deploy DAGs to MWAA, and what should CI check?" difficulty="medium" topic="MWAA">
+DAGs sync from an S3 bucket — you upload, and MWAA picks them up within a minute or two.
+
+A sound pipeline: on merge to `main`, CI **validates** the DAGs, then syncs the folder to S3.
+
+Validation must include **importing every DAG file** and failing on any error:
+
+```python
+dagbag = DagBag(dag_folder="dags/", include_examples=False)
+assert not dagbag.import_errors, dagbag.import_errors
+```
+
+That check matters more than it sounds: a DAG with an import error **doesn't appear in the UI at all** — it silently stops running, with no failure notification, because Airflow never registered it. Teams discover it days later when someone notices missing data.
+
+Also check for cycles, duplicate DAG IDs, and that `requirements.txt` resolves — a bad dependency can break the whole environment, not just one DAG.
+</QuestionCard>
+
+<QuestionCard id="awsint-mwaa-03" number={3} question="What are the common MWAA operational problems?" difficulty="hard" topic="MWAA">
+- **Dependency conflicts.** Everything in `requirements.txt` installs into one environment shared by every DAG, so two DAGs needing incompatible library versions collide. The fix is **KubernetesPodOperator or ECSOperator**, so heavy or conflicting dependencies live in a task's own container image rather than the Airflow environment.
+- **Slow environment updates** — changing `requirements.txt` triggers an environment update taking 20–30 minutes, and a bad requirements file can fail the update.
+- **Under-sized environments** — the scheduler falls behind, tasks queue, and the symptom looks like a slow pipeline.
+- **Cost when idle** — MWAA runs continuously; a dev environment left up all month is pure waste.
+- **Version upgrades** — Airflow major versions bring breaking provider changes; test in a separate environment first.
+
+The containerised-task point is the architectural answer worth leading with: keep the Airflow environment thin and push work into images.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## AppFlow & Amazon MQ
+
+<QuestionList topic="AppFlow & Amazon MQ" storagePrefix="aws-integration-appflow-mq">
+
+<QuestionCard id="awsint-af-01" number={1} question="What is Amazon AppFlow and where does it fit?" difficulty="easy" topic="AppFlow">
+A managed integration service that moves data between **SaaS applications** — Salesforce, ServiceNow, Zendesk, Slack, Google Analytics, SAP — and AWS services like S3 and Redshift, with no code.
+
+You configure a flow: source, destination, schedule or event trigger, field mapping, filters and simple transformations.
+
+Where it fits: the **long tail of SaaS ingestion** that would otherwise be a bespoke API client per system, each with its own auth, pagination and rate limits. AppFlow handles those, and supports incremental pulls.
+
+Its limits: only supported connectors, limited transformation, and less control than a custom extractor or a tool like Fivetran or Airbyte. It's the pragmatic choice when the connector exists and the requirement is straightforward; write your own when the API is unusual or the volume is large.
+</QuestionCard>
+
+<QuestionCard id="awsint-mq-01" number={2} question="What is Amazon MQ and when would you choose it over SQS or SNS?" difficulty="medium" topic="Amazon MQ">
+Managed **ActiveMQ** or **RabbitMQ** — traditional message brokers supporting standard protocols: JMS, AMQP, MQTT, STOMP and OpenWire.
+
+You choose it for **compatibility**, not capability. If you're migrating an existing application that speaks JMS or AMQP, Amazon MQ lets it keep working unchanged; rewriting it against the SQS API would be a project.
+
+It also provides features SQS lacks: message routing with exchanges and bindings, message priorities, request/reply patterns, and transactions.
+
+The trade-off is that Amazon MQ is **broker-based** — you provision instances, and it scales vertically rather than being effectively unbounded like SQS. For new AWS-native work, **SQS and SNS are the default**; Amazon MQ is a migration and interoperability service.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Messages are being processed twice."** — visibility timeout shorter than processing time is the first suspect, followed by a consumer dying after the work but before the delete. The real answer is that at-least-once delivery makes this inevitable, so the consumer must be idempotent.
+
+**"One bad file stops the whole pipeline."** — no dead-letter queue, so the poison message retries forever. Add a DLQ with `maxReceiveCount`, alarm on its depth, and use redrive after fixing the bug.
+
+**"Design a pipeline that runs when a file arrives, transforms it, and notifies three downstream teams."** — S3 event → EventBridge → SQS → processor → Step Functions for the transform → SNS fan-out to three queues on completion. Justify the queues as isolation between consumers.
+
+**"Step Functions or Airflow for our nightly ETL?"** — Airflow if you need backfills, dataset dependencies and Python-defined DAGs; Step Functions if it's event-driven AWS service orchestration and you'd rather not run a scheduler. Note that using both is common and reasonable.
+
+---
+
+## Further Reading
+
+- [Amazon SQS developer guide](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/)
+- [Amazon SNS developer guide](https://docs.aws.amazon.com/sns/latest/dg/)
+- [Amazon EventBridge user guide](https://docs.aws.amazon.com/eventbridge/latest/userguide/)
+- [AWS Step Functions developer guide](https://docs.aws.amazon.com/step-functions/latest/dg/)
+- [Amazon MWAA user guide](https://docs.aws.amazon.com/mwaa/latest/userguide/)
+- [Amazon AppFlow user guide](https://docs.aws.amazon.com/appflow/latest/userguide/)
+- [AWS Serverless Application Lens](https://docs.aws.amazon.com/wellarchitected/latest/serverless-applications-lens/welcome.html)

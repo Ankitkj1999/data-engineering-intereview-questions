@@ -1,0 +1,293 @@
+---
+title: GCP Database Services
+description: Google Cloud database interview questions covering BigQuery architecture, partitioning, clustering and cost control, Cloud Bigtable schema design, Cloud SQL, and Cloud Spanner's globally distributed relational model.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## GCP Databases: BigQuery and the Stores Around It
+
+**BigQuery dominates this topic and deserves most of the preparation — it's the service that defines data engineering on Google Cloud, and its separation of storage from compute, on-demand pricing per byte scanned, and partitioning model generate more interview questions than everything else combined. Bigtable, Spanner and Cloud SQL matter for knowing when a workload doesn't belong in BigQuery.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [BigQuery Architecture](#bigquery-architecture)
+- [BigQuery Performance & Cost](#bigquery-performance--cost)
+- [Cloud Bigtable](#cloud-bigtable)
+- [Cloud SQL](#cloud-sql)
+- [Cloud Spanner](#cloud-spanner)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+BigQuery's defining property is that **storage and compute are completely separate**. Data sits in Colossus, Google's distributed filesystem, in a columnar format called Capacitor; query execution happens on Dremel, a multi-tenant serverless engine that borrows slots from a shared pool. You never provision a cluster, and storage costs the same whether you query it daily or never.
+
+That architecture produces the cost model everything else follows from: **on-demand queries are billed per byte scanned**. Partitioning, clustering and column selection aren't performance optimisations in the usual sense — they're direct cost reductions, and the difference between a query costing cents and one costing hundreds of dollars.
+
+The other services exist for access patterns BigQuery handles badly. **Bigtable** for very high-throughput key-based reads and writes at low latency. **Cloud SQL** for ordinary transactional relational work. **Spanner** for relational semantics with horizontal scale and global consistency. Knowing when to leave BigQuery — and being able to say *why* — is what these questions test.
+
+---
+
+## BigQuery Architecture
+
+<QuestionList topic="BigQuery Architecture" storagePrefix="gcp-databases-bq-architecture">
+
+<QuestionCard id="gcpdb-bq-01" number={1} question="How does BigQuery's architecture work?" difficulty="hard" topic="BigQuery">
+Four layers, connected by a very fast network:
+
+- **Colossus** — Google's distributed filesystem, holding data in **Capacitor**, a columnar format with per-column compression and statistics.
+- **Dremel** — the execution engine. A query becomes a tree of stages; leaf nodes read columns in parallel and results aggregate up through mixers.
+- **Jupiter** — the petabit-scale network that makes separating storage from compute viable, because moving data to compute isn't the bottleneck it would otherwise be.
+- **Borg** — the cluster manager allocating **slots**, the unit of compute.
+
+The consequences worth naming: **storage and compute scale independently**, so you pay to store cheaply and pay separately for queries; there are **no indexes** in the traditional sense, because it scans columns very fast in parallel; and since compute is a shared multi-tenant pool, a query can recruit thousands of slots momentarily without any provisioning.
+</QuestionCard>
+
+<QuestionCard id="gcpdb-bq-02" number={2} question="What are the BigQuery pricing models?" difficulty="medium" topic="BigQuery">
+**Storage** — priced per GB per month, with **active** (modified in the last 90 days) and **long-term** (untouched for 90+ days, roughly half price) tiers applied automatically per partition. There's also physical (compressed) versus logical billing, and physical is usually cheaper for well-compressed data.
+
+**Compute** — two models:
+- **On-demand** — billed **per TB scanned**, with a 10 MB minimum per query. Simple, no commitment, and the default.
+- **Capacity (Editions)** — buy **slots** (Standard, Enterprise, Enterprise Plus) with autoscaling and optional 1- or 3-year commitments. Predictable spend, and immune to a single bad query costing hundreds of dollars.
+
+The crossover: **on-demand suits variable, moderate usage; slots suit steady, heavy usage** — and slots also cap the blast radius of an accidental full-table scan, which is often the real reason teams switch.
+</QuestionCard>
+
+<QuestionCard id="gcpdb-bq-03" number={3} question="What is the difference between native tables, external tables and BigLake?" difficulty="medium" topic="BigQuery">
+- **Native tables** — data loaded into BigQuery's managed Capacitor storage. Fastest queries, full feature support (DML, streaming, time travel, clustering).
+- **External tables** — BigQuery queries files in GCS (or Sheets, Bigtable) in place. No duplication, no load step, but slower, with no clustering and limited optimisation.
+- **BigLake tables** — external tables plus **fine-grained security** (row and column level) and **metadata caching**, which brings performance much closer to native. They support open formats including **Iceberg**.
+
+The practical architecture: **load curated tables natively** for the serving layer where performance and concurrency matter, and use **BigLake** over lake data you want queryable without duplicating or losing the open format.
+
+BigLake is the GCP lakehouse answer — it's what lets you keep data in Iceberg on GCS while still getting BigQuery's governance and near-native speed.
+</QuestionCard>
+
+<QuestionCard id="gcpdb-bq-04" number={4} question="How do you load and stream data into BigQuery?" difficulty="medium" topic="BigQuery">
+**Batch loading** — from GCS via `bq load` or the API, in Parquet, Avro, ORC, JSON or CSV. **Free** when loading from GCS in the same region, which is a genuine architectural incentive to co-locate.
+
+**Streaming**:
+- **Storage Write API** — the current recommendation. Higher throughput, lower cost, exactly-once semantics with stream offsets, and immediately queryable data.
+- **Legacy `insertAll` streaming** — older, more expensive, and superseded.
+
+**Managed alternatives**:
+- **Datastream** — serverless CDC from Oracle, MySQL and PostgreSQL straight into BigQuery.
+- **BigQuery Data Transfer Service** — scheduled loads from SaaS sources and other warehouses.
+- **Dataflow** — for anything needing transformation in flight.
+
+The point to make: prefer **batch loads from GCS** where latency allows, because they're free and simpler; use the Storage Write API when you genuinely need sub-minute freshness.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## BigQuery Performance & Cost
+
+<QuestionList topic="BigQuery Performance & Cost" storagePrefix="gcp-databases-bq-performance">
+
+<QuestionCard id="gcpdb-perf-01" number={1} question="What is partitioning in BigQuery, and how do you use it?" difficulty="hard" topic="BigQuery">
+Splitting a table into segments so a query with a filter on the partition column reads only the relevant segments — directly reducing bytes scanned and therefore cost.
+
+Three types:
+- **Time-unit** — by a `DATE`, `TIMESTAMP` or `DATETIME` column, at hourly, daily, monthly or yearly granularity. The common case.
+- **Ingestion time** — by when the row arrived, exposed as the `_PARTITIONTIME` pseudo-column.
+- **Integer range** — by buckets of an integer column.
+
+```sql
+CREATE TABLE orders
+PARTITION BY DATE(order_ts)
+CLUSTER BY customer_id
+OPTIONS (require_partition_filter = TRUE)
+AS SELECT ...
+```
+
+**`require_partition_filter = TRUE` is the single most valuable setting** — it rejects any query that doesn't filter on the partition column, which prevents accidental full-table scans entirely. Set it on every large table.
+
+The limit to know: **4,000 partitions per table**, so daily partitioning covers about 11 years.
+</QuestionCard>
+
+<QuestionCard id="gcpdb-perf-02" number={2} question="What is clustering, and how does it differ from partitioning?" difficulty="hard" topic="BigQuery">
+**Clustering** sorts data within each partition by up to four columns, so BigQuery can skip blocks that can't match a filter — the same idea as zone maps.
+
+Differences from partitioning:
+- Partitioning gives **hard pruning** with a known cost before the query runs; clustering gives **best-effort block skipping**, so the byte estimate in the UI doesn't reflect it (the actual bill does).
+- Partitioning suits **low-cardinality** time columns; clustering suits **high-cardinality** columns like `customer_id` or `product_id`.
+- Clustering has **no partition-count limit**, and BigQuery re-clusters automatically in the background at no charge.
+
+Use them together: **partition by date, cluster by the high-cardinality columns you filter or join on most.** Column order in the `CLUSTER BY` matters — filters must use a prefix of the clustering columns to benefit.
+</QuestionCard>
+
+<QuestionCard id="gcpdb-perf-03" number={3} question="How do you reduce BigQuery query cost?" difficulty="hard" topic="BigQuery">
+Since on-demand billing is per byte scanned, every item reduces bytes read:
+
+1. **Never `SELECT *`.** BigQuery is columnar — selecting 3 of 100 columns reads 3% of the data. This is the biggest and easiest win.
+2. **Partition and filter on the partition column**, with `require_partition_filter` enforcing it.
+3. **Cluster** on high-cardinality filter and join columns.
+4. **`LIMIT` does not reduce cost** — the scan still happens. A very common misconception.
+5. **Materialised views** for repeated aggregations; BigQuery maintains them incrementally and rewrites queries to use them automatically.
+6. **Use the query validator** — it shows bytes to be scanned *before* you run it.
+7. **Set custom quotas** per project or user so nobody can scan 50 TB by accident.
+8. **Preview data with the table preview**, which is free, rather than `SELECT * LIMIT 10`.
+9. **Consider capacity pricing** if usage is steady — it also caps runaway cost.
+</QuestionCard>
+
+<QuestionCard id="gcpdb-perf-04" number={4} question="How do you diagnose a slow BigQuery query?" difficulty="hard" topic="BigQuery">
+Start with the **execution details** in the console, which shows per-stage timing, rows in and out, and slot time.
+
+What to look for:
+- **Data skew** — one stage where the max worker time far exceeds the average. Usually a join key with a dominant value or many nulls. Filter nulls before joining, or salt the key.
+- **Excessive shuffle** — large "bytes shuffled" between stages, typically from joining on a non-clustered high-cardinality column.
+- **Repeated `SELECT *` in CTEs**, pulling columns nothing needs.
+- **Cross joins or unintended fan-out**, visible as an output row count far exceeding input.
+- **Slot contention** — on capacity pricing, the query is queueing rather than running slowly.
+- **`JOIN` ordering** — put the largest table first; BigQuery generally handles this, but it matters in complex queries.
+
+The `INFORMATION_SCHEMA.JOBS` views let you find the most expensive and slowest queries across a project, which is where a cost investigation should start.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Cloud Bigtable
+
+<QuestionList topic="Cloud Bigtable" storagePrefix="gcp-databases-bigtable">
+
+<QuestionCard id="gcpdb-bt-01" number={1} question="What is Cloud Bigtable and when should you use it?" difficulty="medium" topic="Bigtable">
+A managed **wide-column NoSQL** database — the same system behind Search, Maps and Gmail, and the design HBase was modelled on.
+
+It delivers **single-digit millisecond latency** at very high throughput, scaling linearly by adding nodes, with no downtime for resizing.
+
+Use it for:
+- **Time-series and IoT** telemetry at massive write rates.
+- **User or device profiles** looked up by key.
+- **Real-time serving** of features for ML.
+- **Very high write throughput** — millions of operations per second.
+
+Don't use it for ad-hoc queries, joins or aggregations — it has **no SQL, no joins, no secondary indexes**, and only one index: the row key. If your access pattern isn't "look up by key or scan a key range", it's the wrong store, and BigQuery is usually the right one.
+</QuestionCard>
+
+<QuestionCard id="gcpdb-bt-02" number={2} question="How does row key design work in Bigtable?" difficulty="hard" topic="Bigtable">
+The row key is the **only** index, and rows are stored **lexicographically sorted** by it. That single fact determines everything.
+
+Good keys:
+- **Enable your read pattern as a range scan** — `deviceId#reversedTimestamp` lets you fetch a device's most recent readings contiguously.
+- **Distribute writes evenly** across the key space.
+
+The classic failure is a **hotspot**: keys prefixed with a timestamp mean every write at a given moment targets the same tablet, so one node saturates while the rest idle. Sequential IDs do the same.
+
+Mitigations: **field promotion** (put a high-cardinality attribute first), **salting** (prefix with a hash bucket), and **reversed timestamps** so recent data sorts first without concentrating writes.
+
+Two hard constraints: the key **cannot be changed** without rewriting the table, and there are no secondary indexes — a second access pattern means a second table with a different key.
+</QuestionCard>
+
+<QuestionCard id="gcpdb-bt-03" number={3} question="How does Bigtable fit into a data pipeline?" difficulty="medium" topic="Bigtable">
+Usually as the **real-time serving layer**, with BigQuery as the analytical layer.
+
+A common architecture: streaming data arrives via Pub/Sub, **Dataflow** writes it to **Bigtable** for low-latency serving and to **BigQuery** (or GCS) for analytics. The application reads features or current state from Bigtable in milliseconds; analysts and models query BigQuery.
+
+The complementary detail worth knowing: **BigQuery can query Bigtable as an external table**, so you can join operational state into an analytical query without building an export — useful, though slower than native storage and best kept to small lookups.
+
+For a feature store, this pairing is the standard shape: Bigtable for online serving, BigQuery for offline training data, with Dataflow keeping them consistent.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Cloud SQL
+
+<QuestionList topic="Cloud SQL" storagePrefix="gcp-databases-cloudsql">
+
+<QuestionCard id="gcpdb-sql-01" number={1} question="What is Cloud SQL and what does it manage?" difficulty="easy" topic="Cloud SQL">
+Managed **MySQL, PostgreSQL and SQL Server** — provisioning, patching, automated backups, point-in-time recovery, replication and failover handled by Google.
+
+You keep schema design, query performance, indexing and instance sizing.
+
+**High availability** uses a regional configuration with a synchronous standby in another zone and automatic failover. **Read replicas** (in-region or cross-region) scale reads and can be promoted.
+
+**Cloud SQL Enterprise Plus** adds better performance, near-zero-downtime maintenance and a longer data cache.
+
+For a data engineer, Cloud SQL is typically the **source system** rather than the platform — the application database you extract from, which makes "how do you read from it without hurting production" the question that actually matters.
+</QuestionCard>
+
+<QuestionCard id="gcpdb-sql-02" number={2} question="How do you get data from Cloud SQL into BigQuery?" difficulty="hard" topic="Cloud SQL">
+Options, roughly in increasing sophistication:
+
+1. **Read replica + scheduled export** — export to GCS, load into BigQuery. Simple, batch, and keeps load off the primary.
+2. **Datastream** — Google's serverless **CDC** service, reading the binlog or WAL and streaming changes into BigQuery with a managed merge. **The recommended answer** for near-real-time, low-impact replication.
+3. **Federated queries** — BigQuery's `EXTERNAL_QUERY` runs SQL directly against Cloud SQL. Convenient for small lookups; dangerous for large scans since it hits the live database.
+4. **Dataflow** with a JDBC source, when transformation is needed in flight.
+5. **Datastream to GCS** then Dataflow or Spark, when you want the raw change log in the lake.
+
+The bad answer is a scheduled full-table `SELECT *` against the primary. Naming **Datastream** shows current GCP knowledge — it's the managed CDC path most teams should use.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Cloud Spanner
+
+<QuestionList topic="Cloud Spanner" storagePrefix="gcp-databases-spanner">
+
+<QuestionCard id="gcpdb-sp-01" number={1} question="What is Cloud Spanner, and what makes it unusual?" difficulty="hard" topic="Spanner">
+A horizontally scalable, **strongly consistent, globally distributed relational database** — combining properties usually treated as mutually exclusive: SQL and ACID transactions **and** horizontal scale **and** external consistency across regions.
+
+The mechanism is **TrueTime**, an API backed by GPS receivers and atomic clocks in Google's datacentres, giving bounded-uncertainty timestamps. Spanner uses it to order transactions globally without a coordination round trip on every read, which is what makes global strong consistency practical rather than merely possible.
+
+It offers up to **99.999% availability** in multi-region configurations, with automatic sharding and rebalancing.
+
+The trade is cost — it's substantially more expensive than Cloud SQL — and the need to design schemas for its distribution model. It's justified when you genuinely need global scale with relational semantics, not as a default relational database.
+</QuestionCard>
+
+<QuestionCard id="gcpdb-sp-02" number={2} question="How do you design schemas and keys in Spanner?" difficulty="hard" topic="Spanner">
+Spanner shards by **primary key range**, so key choice determines distribution — the same hotspot logic as Bigtable.
+
+Avoid monotonically increasing keys (auto-increment IDs, timestamps); they concentrate all writes on the last split. Prefer **UUIDs**, or hash a sequential value into the key prefix.
+
+**Interleaved tables** are Spanner's distinctive feature: declaring a child table interleaved in its parent physically co-locates child rows with their parent row, so a parent-with-children read is a single local operation rather than a distributed join. Modelling orders interleaved in customers is the canonical example.
+
+Also mind the **transaction footprint** — a transaction spanning many splits requires two-phase commit and is much slower. Design so common transactions touch one split, which interleaving helps with directly.
+</QuestionCard>
+
+<QuestionCard id="gcpdb-sp-03" number={3} question="When would you choose Spanner over Cloud SQL or BigQuery?" difficulty="medium" topic="Spanner">
+- **Cloud SQL** — the default relational choice. Cheaper, familiar, and sufficient until you outgrow a single primary's write capacity or need multi-region strong consistency. Most workloads never outgrow it.
+- **Spanner** — when you need **horizontal write scale with relational semantics**, multi-region strong consistency, or availability guarantees a single-primary database can't offer. Global financial systems, large multi-tenant SaaS, high-volume inventory.
+- **BigQuery** — analytics. It is not a transactional store: no low-latency point writes, and DML is comparatively expensive.
+
+The honest framing: **Spanner is justified by a specific scale or consistency requirement, not chosen by default.** Reaching for it when Cloud SQL would do is an expensive mistake, and saying so is a stronger answer than enthusing about TrueTime.
+
+For analytics on Spanner data, use its **change streams** or the BigQuery federated connection rather than querying it directly at scale.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"An analyst ran a query that cost $400."** — an unpartitioned or unfiltered `SELECT *` over a large table. Fix with partitioning plus `require_partition_filter`, clustering, custom quotas per user, and consider capacity pricing to cap exposure. Note that `LIMIT` wouldn't have helped.
+
+**"Design real-time serving plus analytics for IoT telemetry."** — Pub/Sub for ingestion, Dataflow fanning out to Bigtable (low-latency serving, row key `deviceId#reversedTimestamp`) and BigQuery (analytics, partitioned by date, clustered by device). Address Bigtable hotspotting explicitly.
+
+**"Why is this BigQuery query slow when it only returns 100 rows?"** — output size is unrelated to work done. Look at bytes scanned, skew in a join stage, and shuffle volume in the execution details.
+
+**"Cloud SQL or Spanner for a new application?"** — Cloud SQL unless there's a concrete requirement for horizontal write scale or multi-region strong consistency. Spanner's cost and schema constraints need justifying.
+
+---
+
+## Further Reading
+
+- [BigQuery documentation](https://cloud.google.com/bigquery/docs)
+- [BigQuery best practices for controlling costs](https://cloud.google.com/bigquery/docs/best-practices-costs)
+- [Partitioned tables](https://cloud.google.com/bigquery/docs/partitioned-tables) and [clustered tables](https://cloud.google.com/bigquery/docs/clustered-tables)
+- [BigQuery under the hood](https://cloud.google.com/blog/products/bigquery/bigquery-under-the-hood) — the Dremel/Colossus/Jupiter explanation
+- [Bigtable schema design](https://cloud.google.com/bigtable/docs/schema-design)
+- [Cloud Spanner documentation](https://cloud.google.com/spanner/docs)
+- [Datastream documentation](https://cloud.google.com/datastream/docs)

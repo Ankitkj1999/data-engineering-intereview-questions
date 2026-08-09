@@ -1,0 +1,267 @@
+---
+title: Azure Compute for Data Workloads
+description: Azure compute interview questions covering Virtual Machines and series selection, Azure Kubernetes Service, Container Instances, Azure Batch, and Azure Functions — and choosing compute for Databricks, Synapse and Data Factory workloads.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Azure Compute: What Runs Your Pipelines
+
+**On Azure, most data engineering compute is consumed indirectly — through Databricks clusters, Synapse Spark pools, or Data Factory integration runtimes. But those all resolve to VM series, Spot capacity and reservations underneath, which is why compute questions still land in data interviews: understanding the layer beneath the managed service is what lets you explain a cost spike or a job that won't fit in memory.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Virtual Machines](#virtual-machines)
+- [Azure Kubernetes Service](#azure-kubernetes-service)
+- [Container Instances & Functions](#container-instances--functions)
+- [Azure Batch](#azure-batch)
+- [Choosing Compute on Azure](#choosing-compute-on-azure)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Azure organises everything into a **subscription → resource group → resource** hierarchy, with resource groups as the unit of lifecycle and access control. That matters for data platforms because it's how you separate environments and attribute cost, and it's the boundary most governance policies attach to.
+
+Compute itself spans the same spectrum as any cloud: **VMs** for full control, **AKS** for containers, **Container Instances** for a single container with no orchestrator, **Functions** for event-driven code, and **Batch** for large parallel workloads. The Azure-specific wrinkle is that the data services you'll actually use — Databricks, Synapse, HDInsight, Data Factory — each provision compute on your behalf, so your lever is usually choosing the VM series and purchasing model rather than managing instances directly.
+
+The cost levers are the familiar three: **Reservations and Savings Plans** for steady baseline capacity, **Spot VMs** for interruptible batch work, and **turning things off** — which on Azure means auto-termination on Databricks clusters and pausing Synapse dedicated pools, both of which are missed constantly.
+
+---
+
+## Virtual Machines
+
+<QuestionList topic="Virtual Machines" storagePrefix="azure-compute-vms">
+
+<QuestionCard id="azcm-vm-01" number={1} question="What are the Azure VM series, and which suit data workloads?" difficulty="easy" topic="Virtual Machines">
+Series are lettered by purpose:
+
+- **B** — burstable, credit-based. Cheap, and a trap for sustained work because credits exhaust.
+- **D** — general purpose, balanced CPU to memory. The common default.
+- **E** — **memory optimised**, high RAM per vCPU. **The default for Spark and Databricks**, since shuffle and caching are memory-bound.
+- **F** — compute optimised, high CPU per GB. Good for CPU-bound transforms.
+- **L** — **storage optimised** with large local NVMe. Excellent for shuffle-heavy Spark and for Kafka.
+- **M** — very large memory, up to several TB. For SAP HANA and huge in-memory workloads.
+- **N** — GPU, for ML rather than ETL.
+
+For data engineering the two to name are **E-series for Spark executors** and **L-series when local disk throughput matters**. Suffixes matter too: `s` means premium storage capable, `d` means a local temp disk, `a` means AMD.
+</QuestionCard>
+
+<QuestionCard id="azcm-vm-02" number={2} question="What are the Azure VM purchasing options?" difficulty="medium" topic="Virtual Machines">
+- **Pay-as-you-go** — per-second billing, no commitment. Baseline price.
+- **Reserved Instances** — 1 or 3 year commitment to a VM series in a region, up to ~72% off. Can be exchanged or cancelled with a fee.
+- **Savings Plans for compute** — commit to an hourly spend for 1 or 3 years, up to ~65% off, and **flexible across series and regions**, which makes it easier to commit to than an RI.
+- **Spot VMs** — surplus capacity at up to **90% off**, evicted with **30 seconds' notice** when Azure needs it back. You set a maximum price or accept the current one.
+- **Azure Hybrid Benefit** — reuse on-premises Windows Server and SQL Server licences, often a large saving.
+
+For data platforms: **Reservations or Savings Plans for the always-on layer**, **Spot for Databricks worker nodes and Batch pools**. Note Spot's 30-second eviction notice is much shorter than AWS's two minutes, so draining must be quick.
+</QuestionCard>
+
+<QuestionCard id="azcm-vm-03" number={3} question="What are managed disks and the disk tiers?" difficulty="medium" topic="Virtual Machines">
+Managed disks are Azure-managed block storage attached to a VM, with the storage account abstracted away.
+
+Tiers, cheapest to fastest:
+- **Standard HDD** — dev/test and infrequent access.
+- **Standard SSD** — light production, better consistency than HDD.
+- **Premium SSD** — production workloads; performance scales with disk size.
+- **Premium SSD v2** — IOPS and throughput provisioned **independently of size**, which is both cheaper and more flexible. The sensible default now.
+- **Ultra Disk** — sub-millisecond latency, up to 160,000 IOPS. For demanding transactional databases only.
+
+Separately, many VM series include a **temporary local disk** (the `d` suffix) which is **ephemeral** — wiped on deallocation. That's where Spark shuffle and scratch data should go, exactly as with AWS instance store.
+</QuestionCard>
+
+<QuestionCard id="azcm-vm-04" number={4} question="How do availability sets, availability zones and scale sets differ?" difficulty="medium" topic="Virtual Machines">
+- **Availability Set** — spreads VMs across fault and update domains **within one datacentre**, protecting against rack failure and host maintenance, not a datacentre outage.
+- **Availability Zones** — physically separate datacentres within a region. Spreading across zones protects against a datacentre failure and gives a higher SLA. **The stronger option**, and the default choice where zones are available.
+- **Virtual Machine Scale Sets (VMSS)** — a managed group of identical VMs that autoscales on metrics or schedule, and can be zone-redundant. The building block behind AKS node pools and Batch pools.
+
+For data workloads, the nuance worth adding: **cross-zone traffic is billed**, so a Spark cluster spread across three zones pays for all its shuffle traffic. Single-zone placement for a transient cluster is a legitimate cost-for-resilience trade.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Azure Kubernetes Service
+
+<QuestionList topic="Azure Kubernetes Service" storagePrefix="azure-compute-aks">
+
+<QuestionCard id="azcm-aks-01" number={1} question="What is AKS and what does Azure manage?" difficulty="medium" topic="AKS">
+Managed Kubernetes. Azure runs the **control plane free of charge** (you pay only for node VMs, unless you buy the uptime SLA tier), handles upgrades and patching of the control plane, and integrates with Entra ID, Azure Monitor and Azure networking.
+
+You still own node pools, workload configuration, networking choices, and the upgrade cadence for nodes.
+
+For data platforms AKS hosts the same things it does elsewhere: **Airflow** with the KubernetesExecutor, **Spark on Kubernetes**, Flink, Trino, and dbt runners. It's also the substrate for Azure's own container-based services.
+
+The free control plane is a genuine differentiator versus AWS EKS, which charges per cluster — it makes running several clusters (per environment, per team) noticeably cheaper.
+</QuestionCard>
+
+<QuestionCard id="azcm-aks-02" number={2} question="What are node pools, and how should you configure them for data workloads?" difficulty="medium" topic="AKS">
+A node pool is a group of identical VMs in the cluster. A cluster has a **system** pool (running cluster services) plus any number of **user** pools.
+
+For a data platform:
+- **System pool** — small, on-demand, never Spot. Cluster components must not be evicted.
+- **User pools by workload shape** — an E-series pool for Spark executors, a smaller D-series pool for orchestration tasks, an L-series pool if shuffle needs local NVMe.
+- **Spot node pools** for interruptible batch, with taints so only tolerant workloads land there.
+- **Cluster autoscaler** per pool, with sensible min and max.
+
+Use **taints and tolerations plus node selectors** so workloads land on the right pool. Without them, a Spark executor can be scheduled onto the system pool and destabilise the cluster.
+</QuestionCard>
+
+<QuestionCard id="azcm-aks-03" number={3} question="How do pods on AKS authenticate to Azure Storage or a database?" difficulty="medium" topic="AKS">
+**Workload Identity** — the current recommended approach. A Kubernetes service account is federated to an Entra ID **managed identity** via OIDC, so pods receive short-lived tokens automatically with no secrets stored anywhere.
+
+It replaces the older **AAD Pod Identity**, which is deprecated.
+
+The alternatives, in descending order of preference: a **managed identity assigned to the node pool** (simpler, but every pod on the node shares it, so it's coarse), and **service principal credentials in a Kubernetes Secret** — which means a secret to rotate and leak, and should be avoided.
+
+Then grant that identity **Azure RBAC roles** scoped narrowly: `Storage Blob Data Reader` on a specific container, not `Contributor` on the storage account. Over-broad role assignments are the most common finding in an Azure data platform review.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Container Instances & Functions
+
+<QuestionList topic="Container Instances & Functions" storagePrefix="azure-compute-aci-functions">
+
+<QuestionCard id="azcm-aci-01" number={1} question="What is Azure Container Instances and when is it the right tool?" difficulty="easy" topic="Container Instances">
+The simplest way to run a container on Azure: specify an image, CPU and memory, and it runs — no cluster, no orchestrator, billed per second.
+
+It fits **short-lived, single-container tasks** with no need for scaling, service discovery or rolling deploys: a scheduled data transformation, a one-off migration script, a build agent, or burst capacity.
+
+For data engineering the common pattern is **Data Factory or Airflow launching an ACI container** per task, so each task carries its own dependencies without a Kubernetes cluster to operate.
+
+Its limits are the flip side of its simplicity: no autoscaling, no built-in load balancing, no rolling updates, and limited networking. Anything needing orchestration belongs on AKS or Container Apps.
+</QuestionCard>
+
+<QuestionCard id="azcm-aci-02" number={2} question="What are Azure Functions, and what are the hosting plans?" difficulty="medium" topic="Functions">
+Azure's serverless compute — event-driven code with bindings to Blob Storage, Event Hubs, Service Bus, Cosmos DB and HTTP.
+
+Hosting plans, which is where the interesting differences are:
+- **Consumption** — true serverless, scales to zero, pay per execution. **5-minute default timeout, 10 maximum.** Cold starts.
+- **Premium** — pre-warmed instances (no cold start), VNet integration, **unlimited timeout in practice**, higher cost.
+- **Dedicated (App Service)** — runs on your App Service plan; useful if you already have one underused.
+- **Flex Consumption** — newer, combining scale-to-zero with VNet support and faster scaling.
+
+The data engineering consequence mirrors Lambda: Functions suit **triggering and small per-event work**, not full transformations. The Consumption timeout is the constraint that pushes work to Batch, ACI or Data Factory.
+</QuestionCard>
+
+<QuestionCard id="azcm-aci-03" number={3} question="How do Functions integrate with data services?" difficulty="medium" topic="Functions">
+Through **triggers and bindings**, which remove most of the client code:
+
+- **Blob trigger** — fires when a file lands. Note it polls by default and can be slow at scale; **Event Grid–based blob triggers** are the reliable, low-latency option for high volume.
+- **Event Hubs trigger** — consumes partitions with checkpointing, the standard streaming entry point.
+- **Service Bus trigger** — queue or topic consumption with dead-lettering.
+- **Cosmos DB change feed trigger** — reacts to document changes.
+- **Timer trigger** — cron scheduling.
+- **Output bindings** — write to Blob, Cosmos, Service Bus without writing SDK code.
+
+The pattern worth naming: for high-volume blob events, use **Event Grid** rather than the polling blob trigger — teams routinely hit unexplained latency because they didn't know the difference.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Azure Batch
+
+<QuestionList topic="Azure Batch" storagePrefix="azure-compute-batch">
+
+<QuestionCard id="azcm-bat-01" number={1} question="What is Azure Batch and what problem does it solve?" difficulty="medium" topic="Batch">
+A managed service for large-scale **parallel and HPC** workloads. You define a **pool** of VMs (fixed or autoscaling, dedicated or Spot), a **job**, and **tasks** within it. Batch schedules tasks onto nodes, retries failures and scales the pool.
+
+It fills the gap between Functions and a permanent cluster: work that runs **longer than a Function's timeout**, is **embarrassingly parallel**, and arrives in bursts.
+
+Typical data uses: processing thousands of files independently, media transcoding, Monte Carlo simulation, and model scoring batches.
+
+The distinction from Spark-based services matters: Batch runs **your executable or container per task** with no distributed framework. If tasks are independent, that's simpler and cheaper than a Spark cluster. If they need to shuffle data between each other, you want Databricks or Synapse Spark.
+</QuestionCard>
+
+<QuestionCard id="azcm-bat-02" number={2} question="How does Azure Batch handle scaling and cost?" difficulty="medium" topic="Batch">
+Pools autoscale on a **formula** you write, evaluated periodically against metrics like pending tasks:
+
+```
+$sample = $PendingTasks.GetSample(TimeInterval_Minute * 5);
+$targetDedicated = min(100, max(0, avg($sample)));
+```
+
+Cost control comes from three places: **Spot (low-priority) nodes**, which can be 60–90% cheaper and are ideal because Batch retries evicted tasks automatically; **scaling to zero** between jobs so an idle pool costs nothing; and **right-sizing the VM series** to the task.
+
+The common mistake is a pool with a non-zero minimum left running permanently — it looks like a small line item and accumulates. Set the minimum to zero unless startup latency genuinely matters.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Choosing Compute on Azure
+
+<QuestionList topic="Choosing Compute on Azure" storagePrefix="azure-compute-choosing">
+
+<QuestionCard id="azcm-ch-01" number={1} question="How do you choose compute for an Azure data pipeline?" difficulty="hard" topic="Choosing">
+| Workload | Choice |
+|---|---|
+| Event-driven, seconds | **Azure Functions** |
+| Scheduled container task, minutes | **Container Instances** or **Container Apps Jobs** |
+| Embarrassingly parallel, many files | **Azure Batch** |
+| Distributed Spark | **Databricks** or **Synapse Spark pools** |
+| SQL-based transformation at scale | **Synapse dedicated pool** or **Fabric Warehouse** |
+| Data movement and orchestration | **Data Factory / Synapse Pipelines** |
+| Always-on streaming consumer | **AKS** or **Container Apps** with reservations |
+| Full platform, many frameworks | **AKS** |
+
+Decide with the same three questions as any cloud: **how long does one unit of work run**, **is it distributed or merely parallel**, and **what's the duty cycle**. Bursty favours serverless; steady favours reserved capacity.
+</QuestionCard>
+
+<QuestionCard id="azcm-ch-02" number={2} question="Where does Azure Databricks fit, and what compute does it use?" difficulty="medium" topic="Choosing">
+Databricks on Azure is a **first-party service** — deeper integration than on other clouds, with Entra ID authentication, VNet injection, and billing through the Azure subscription.
+
+Underneath, it provisions **VMs in your subscription** for driver and worker nodes, so your levers are the familiar ones: VM series (E-series for most Spark work, L-series for shuffle-heavy jobs), **Spot instances for workers**, and cluster autoscaling.
+
+You pay for both the VMs **and** DBUs (Databricks units) — which is the point people miss when comparing it to raw Spark on AKS.
+
+The single biggest cost control is **auto-termination**. A cluster left running overnight because someone forgot is the most common Databricks cost incident, and setting an aggressive idle timeout eliminates it.
+</QuestionCard>
+
+<QuestionCard id="azcm-ch-03" number={3} question="How do you reduce Azure compute cost for a data platform?" difficulty="medium" topic="Cost">
+1. **Spot / low-priority VMs** for Databricks workers and Batch pools — the largest single lever for batch.
+2. **Reservations or Savings Plans** for the always-on baseline.
+3. **Auto-terminate and auto-pause** — Databricks cluster idle timeouts, and **pausing Synapse dedicated SQL pools**, which otherwise bill continuously whether queried or not.
+4. **Right-size from metrics** — Azure Advisor routinely finds VMs at single-digit CPU.
+5. **Azure Hybrid Benefit** if you hold Windows Server or SQL Server licences.
+6. **Single-zone placement** for transient clusters, to avoid cross-zone data charges on shuffle.
+7. **Fix the data layout** — a job scanning far more than it needs is a storage problem no VM choice fixes.
+
+Tag by pipeline and team, and use **budgets with alerts** at the resource-group level so overspend surfaces in days rather than at month end.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"A Databricks job that took 40 minutes now takes 4 hours."** — check data volume and skew first in the Spark UI, then whether autoscaling is being throttled by Spot evictions, then whether the cluster is under-provisioned on memory. Instance type changes come last.
+
+**"Files land in Blob Storage and need processing within a minute."** — Event Grid blob event → Function or Container Apps job, rather than the polling blob trigger. For large files or long transforms, have the Function trigger a Data Factory pipeline or Batch job instead of doing the work itself.
+
+**"Your Azure bill jumped and nobody changed anything."** — look for a Databricks cluster without auto-termination, a Synapse dedicated pool left un-paused, a Batch pool with a non-zero minimum, and cross-zone egress from a multi-zone cluster.
+
+**"AKS or Container Instances for our task workloads?"** — ACI if tasks are independent, short and infrequent, since there's no cluster to run. AKS once you need scheduling, autoscaling, shared node capacity or the Kubernetes ecosystem — and note the free control plane makes AKS cheaper to justify than EKS.
+
+---
+
+## Further Reading
+
+- [Azure VM sizes](https://learn.microsoft.com/azure/virtual-machines/sizes)
+- [Azure Spot Virtual Machines](https://learn.microsoft.com/azure/virtual-machines/spot-vms)
+- [Azure Kubernetes Service documentation](https://learn.microsoft.com/azure/aks/)
+- [AKS Workload Identity](https://learn.microsoft.com/azure/aks/workload-identity-overview)
+- [Azure Functions hosting options](https://learn.microsoft.com/azure/azure-functions/functions-scale)
+- [Azure Batch documentation](https://learn.microsoft.com/azure/batch/)
+- [Azure Databricks best practices for cluster configuration](https://learn.microsoft.com/azure/databricks/clusters/cluster-config-best-practices)

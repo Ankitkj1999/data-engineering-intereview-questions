@@ -1,0 +1,303 @@
+---
+title: GCP Storage for Data Platforms
+description: Google Cloud storage interview questions covering Cloud Storage classes and lifecycle, consistency and performance, persistent disks, local SSD and Filestore, plus designing a data lake on GCS.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## GCP Storage: Cloud Storage and the Lake
+
+**Cloud Storage is where a GCP data lake lives, and it has two genuinely distinctive properties worth knowing: it has been strongly consistent since launch — no eventual-consistency workarounds ever needed — and its dual-region and multi-region buckets give geo-redundancy while still presenting a single bucket. Most GCS interview questions come down to storage class economics, the small-files problem, and how BigQuery relates to the files underneath.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Cloud Storage](#cloud-storage)
+- [Storage Classes & Lifecycle](#storage-classes--lifecycle)
+- [Security & Access Control](#security--access-control)
+- [Block & File Storage](#block--file-storage)
+- [Designing a Lake on GCS](#designing-a-lake-on-gcs)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Cloud Storage is **object storage** with a flat key namespace — the "folders" in the console are prefixes, and there are no real directories. That has the same consequences as on S3: no atomic rename, no append, and a directory listing is a prefix scan. It's why Spark commit protocols and table formats like Iceberg and Delta matter here too.
+
+Two things differentiate GCS from its peers. It has offered **strong global consistency** for reads, writes, listings and deletes since the beginning, so the consistency workarounds that used to litter S3 architectures never applied. And **location type is chosen at bucket creation** — regional, dual-region or multi-region — which bundles geo-redundancy into the bucket rather than requiring separate replication configuration.
+
+The cost model has the familiar three dials: **storage class** (Standard through Archive, trading storage price for retrieval fees and minimum durations), **operations** (you pay per request, which is why millions of tiny files cost more than a few large ones), and **network egress** — with the important GCP-specific note that **BigQuery reading from GCS in the same region is free**, so co-location is a design requirement, not an optimisation.
+
+---
+
+## Cloud Storage
+
+<QuestionList topic="Cloud Storage" storagePrefix="gcp-storage-gcs">
+
+<QuestionCard id="gcpst-gcs-01" number={1} question="What is Cloud Storage and what are its key properties?" difficulty="easy" topic="Cloud Storage">
+Object storage: **objects** (data plus metadata) under keys in **buckets**, accessed over HTTPS.
+
+Properties that matter:
+- **Strong consistency** globally, for reads, writes, listings and deletes — from day one, unlike S3's history.
+- **11 nines durability**, with redundancy determined by the bucket's location type.
+- **Unlimited capacity**, no provisioning.
+- **Flat namespace** — `orders/dt=2026-01-15/part-0.parquet` is one key, not a path.
+- **Immutable objects** — no in-place edit or append; you replace the object.
+- **A single global namespace for bucket names**, so names must be globally unique.
+
+The architectural payoff is the same as any object store: **storage is decoupled from compute**, so BigQuery, Dataproc, Dataflow and Vertex AI all read the same objects, and compute can scale or vanish without touching data.
+</QuestionCard>
+
+<QuestionCard id="gcpst-gcs-02" number={2} question="What are the bucket location types?" difficulty="medium" topic="Cloud Storage">
+Chosen at creation and **immutable**:
+
+- **Regional** — data in one region. Lowest cost and lowest latency to compute in that region. The default for a data lake.
+- **Dual-region** — a specific pair of regions, with **geo-redundancy and strong consistency across both**, plus optional turbo replication for a 15-minute RPO. You get resilience without a separate replication setup.
+- **Multi-region** — spread across a broad area (US, EU, ASIA). Highest availability SLA and good for globally-read content, at higher storage cost and with less predictable locality.
+
+The data engineering rule: **put the bucket in the same region as your compute.** BigQuery cannot query a bucket in a different region for load jobs, Dataproc pays egress and latency, and cross-region reads add cost to every job.
+
+Dual-region is the pragmatic choice when you need DR without giving up co-location.
+</QuestionCard>
+
+<QuestionCard id="gcpst-gcs-03" number={3} question="Why does the small-files problem matter on GCS?" difficulty="hard" topic="Performance">
+The same reasons as any object store, and they compound:
+
+- **Per-operation cost and latency** — every file needs at least one read request with tens of milliseconds of latency. A million tiny files means a million requests.
+- **Listing is a paginated prefix scan** — enumerating a prefix with millions of objects takes many sequential calls before processing begins.
+- **Task overhead** — Spark launches a task per file, so scheduling dominates the actual work.
+- **Ineffective compression and statistics** — Parquet footers and column statistics are re-read per file, and tiny files defeat both compression and predicate pushdown.
+
+Fixes: **compact on a schedule**, target **128 MB–1 GB** output files, tune writer partition counts, and use a table format (Iceberg, Delta, or BigLake tables) so file discovery comes from metadata rather than listing.
+
+One GCS-specific mitigation: **Autoclass** manages storage classes automatically, but it doesn't solve small files — that remains a layout problem.
+</QuestionCard>
+
+<QuestionCard id="gcpst-gcs-04" number={4} question="How do you optimise Cloud Storage performance?" difficulty="medium" topic="Performance">
+- **Co-locate** bucket and compute in the same region. This is the biggest single factor.
+- **Larger files** — fewer operations, better throughput per request.
+- **Parallel and composite uploads** for large objects, and ranged reads for partial fetches.
+- **Columnar formats with pushdown**, so engines read only the byte ranges they need.
+- **Avoid sequential-only naming for extremely high write rates** — GCS auto-scales prefixes, but a sudden burst against a single hot prefix can throttle briefly.
+- **Cloud CDN** in front of the bucket for read-heavy public content (not relevant to lakes).
+- **`gcloud storage`** rather than the older `gsutil` for bulk transfers; it's significantly faster.
+
+The historical note: unlike early S3, GCS never required randomised key prefixes for scale, so **date-ordered prefixes are fine** — and preferable, since they enable partition pruning.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Storage Classes & Lifecycle
+
+<QuestionList topic="Storage Classes & Lifecycle" storagePrefix="gcp-storage-classes">
+
+<QuestionCard id="gcpst-cls-01" number={1} question="What are the Cloud Storage classes?" difficulty="medium" topic="Storage Classes">
+| Class | Min duration | Retrieval | Use |
+|---|---|---|---|
+| **Standard** | none | free | frequently accessed, active lake data |
+| **Nearline** | 30 days | fee per GB | accessed less than monthly |
+| **Coldline** | 90 days | higher fee | accessed less than quarterly |
+| **Archive** | 365 days | highest fee | long-term retention, rarely read |
+
+The property that distinguishes GCS from S3 Glacier: **every class has millisecond access**. Archive data is retrieved immediately, not after a rehydration wait of hours. That's a genuine operational advantage — an archived partition is still queryable, just expensively.
+
+The traps are the familiar ones: **early deletion is billed for the full minimum duration**, and **retrieval fees** mean a Nearline object read weekly costs more than leaving it in Standard. Calculate the crossover rather than assuming colder is cheaper.
+</QuestionCard>
+
+<QuestionCard id="gcpst-cls-02" number={2} question="How do lifecycle policies and Autoclass work?" difficulty="medium" topic="Lifecycle">
+**Lifecycle rules** are JSON conditions on a bucket that change storage class or delete objects:
+
+```json
+{"rule": [
+  {"action": {"type": "SetStorageClass", "storageClass": "NEARLINE"},
+   "condition": {"age": 30, "matchesPrefix": ["raw/"]}},
+  {"action": {"type": "SetStorageClass", "storageClass": "ARCHIVE"},
+   "condition": {"age": 365}},
+  {"action": {"type": "Delete"}, "condition": {"age": 2555}},
+  {"action": {"type": "Delete"},
+   "condition": {"daysSinceNoncurrentTime": 30, "isLive": false}}
+]}
+```
+
+**Autoclass** is the alternative: enable it on the bucket and GCS moves each object between classes based on its **actual access pattern**, with **no retrieval fees and no early-deletion charges**. It costs a small per-object management fee.
+
+Choose **Autoclass** when access patterns are unknown or variable and objects are reasonably large. Choose **explicit lifecycle rules** when you know the pattern, since they're cheaper — and note that Autoclass's per-object fee makes it a poor fit for buckets full of tiny files.
+</QuestionCard>
+
+<QuestionCard id="gcpst-cls-03" number={3} question="What is object versioning, and what should you watch?" difficulty="medium" topic="Lifecycle">
+With versioning enabled, overwrites and deletes retain the previous object as a **noncurrent version**, recoverable later. A delete makes the live version noncurrent rather than removing data.
+
+It protects against accidental deletion and against a buggy pipeline overwriting good data — genuinely worth having on a curated zone.
+
+The cost point people miss: **you pay for every version**. A job that rewrites the same partition daily silently multiplies storage, and "deleted" objects keep costing money.
+
+Always pair versioning with a lifecycle rule expiring noncurrent versions (`daysSinceNoncurrentTime`), and consider `numNewerVersions` to keep only the last few.
+
+For a large immutable raw zone, versioning often isn't worth it — the data doesn't change. **Soft delete** (a bucket-level retention window for deleted objects) is a lighter alternative.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Security & Access Control
+
+<QuestionList topic="Security & Access Control" storagePrefix="gcp-storage-security">
+
+<QuestionCard id="gcpst-sec-01" number={1} question="How do you control access to Cloud Storage?" difficulty="medium" topic="Security">
+- **IAM** — the primary mechanism, granting roles at organisation, folder, project or **bucket** level. Roles like `roles/storage.objectViewer` and `roles/storage.objectAdmin`.
+- **Uniform bucket-level access** — disables per-object ACLs so IAM is the single source of truth. **Enable it**; mixed ACLs and IAM is a recurring source of confusion and accidental exposure.
+- **ACLs** — legacy per-object permissions. Avoid.
+- **Signed URLs** — time-limited access to one object without a Google account, for sharing with external parties.
+- **IAM Conditions** — restrict a grant by resource path or time, which is how you scope access to a prefix.
+- **VPC Service Controls** — a perimeter preventing data exfiltration to projects outside it. The strongest control for sensitive data.
+
+For a lake, the working pattern is **uniform bucket-level access, IAM roles granted to Google Groups rather than individuals, and one bucket per zone** so permissions align with bucket boundaries.
+</QuestionCard>
+
+<QuestionCard id="gcpst-sec-02" number={2} question="What are the encryption options?" difficulty="medium" topic="Security">
+**At rest**, encryption is always on and cannot be disabled. The choice is key management:
+
+- **Google-managed** (default) — zero configuration, no cost.
+- **CMEK (customer-managed)** — keys in **Cloud KMS**, so you control rotation and can **revoke access by disabling the key**, with an audit trail in Cloud Logging. The usual requirement for regulated data.
+- **CSEK (customer-supplied)** — you provide the key with every request. Rare, and you're responsible for key loss.
+
+**In transit** — TLS always.
+
+For a data platform, CMEK is the common answer where compliance requires demonstrable key control. Two operational notes: every service reading the bucket needs the **Cloud KMS CryptoKey Encrypter/Decrypter** role, which is easy to forget and produces confusing permission errors; and the key must be in a **compatible location** with the bucket.
+</QuestionCard>
+
+<QuestionCard id="gcpst-sec-03" number={3} question="How do you prevent data from leaving your environment?" difficulty="hard" topic="Security">
+**VPC Service Controls** is the distinctive GCP answer. It defines a **service perimeter** around projects, so even a principal with valid IAM permissions cannot copy data to a bucket or BigQuery dataset outside the perimeter.
+
+That's a genuinely different control from IAM: IAM answers "may this identity read the data", VPC-SC answers "may this data leave". It blocks the exfiltration path that a compromised credential or a mistaken `gsutil cp` would otherwise open.
+
+Supporting controls:
+- **Organisation policy constraints** — for example, `storage.publicAccessPrevention` to make public buckets impossible, and `iam.disableServiceAccountKeyCreation` to eliminate long-lived keys.
+- **Private Google Access / Private Service Connect** so traffic never traverses the public internet.
+- **Retention policies and bucket lock** for immutable, compliance-grade retention.
+
+Naming VPC Service Controls specifically is a strong signal in a GCP security question — it's the control most people miss.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Block & File Storage
+
+<QuestionList topic="Block & File Storage" storagePrefix="gcp-storage-block-file">
+
+<QuestionCard id="gcpst-pd-01" number={1} question="What are Persistent Disks and Hyperdisk?" difficulty="medium" topic="Persistent Disk">
+Network-attached block storage that persists independently of an instance.
+
+- **pd-standard** — HDD, cheap sequential throughput.
+- **pd-balanced** — SSD, the sensible general default.
+- **pd-ssd** — higher IOPS for demanding databases.
+- **pd-extreme** — provisioned IOPS.
+- **Hyperdisk** — the newer generation, where **IOPS and throughput are provisioned independently of capacity**. The current recommendation for high-performance needs.
+
+The important behaviour on classic PD types is that **performance scales with disk size** — a small pd-balanced volume is also a slow one. Teams routinely over-provision capacity purely to buy IOPS, which is exactly what Hyperdisk fixes.
+
+Persistent disks can also be attached read-only to multiple instances, and snapshots are incremental and global, so they can be restored into another region.
+</QuestionCard>
+
+<QuestionCard id="gcpst-pd-02" number={2} question="What is Local SSD and when should you use it?" difficulty="medium" topic="Local SSD">
+Physically attached NVMe on the host: very high IOPS and very low latency, attached in fixed 375 GB units.
+
+It is **ephemeral** — data is lost when the instance stops, is migrated, or fails. That single property determines its use.
+
+The data engineering application is **Spark shuffle and spill**. Shuffle data is large, write-heavy, latency-sensitive and completely disposable after the job — exactly matching Local SSD's profile. Dataproc lets you attach local SSDs to workers, and doing so on shuffle-heavy jobs is a standard tuning step that can transform runtime.
+
+What must **not** go on it: anything that needs to survive — a database's data files, checkpoints you'd need after a restart, or job output. Those belong on Persistent Disk or, better, in Cloud Storage.
+</QuestionCard>
+
+<QuestionCard id="gcpst-fs-01" number={3} question="What is Filestore, and when would you use it over Cloud Storage?" difficulty="medium" topic="Filestore">
+Managed **NFS** file shares, mountable by Compute Engine VMs and GKE pods concurrently, in Basic, Zonal, Regional and Enterprise tiers.
+
+Use it when software genuinely requires a **POSIX filesystem with shared write access**: a legacy application that can't speak object storage, an ML training job needing fast random access to many small files, or a shared home directory for a research cluster.
+
+For a data lake it's the wrong choice — it costs far more per GB than Cloud Storage, has fixed capacity you must provision, and the GCP analytics ecosystem (BigQuery, Dataproc, Dataflow) is built around GCS.
+
+The realistic data engineering use is **ML training data** where the framework wants a filesystem and random small-file reads would be slow against object storage. Otherwise, default to Cloud Storage.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Designing a Lake on GCS
+
+<QuestionList topic="Designing a Lake on GCS" storagePrefix="gcp-storage-lake-design">
+
+<QuestionCard id="gcpst-lake-01" number={1} question="How would you structure a data lake on Cloud Storage?" difficulty="hard" topic="Data Lake">
+Buckets per zone, in the same region as compute:
+
+```
+gs://org-lake-raw/       source/entity/dt=2026-01-15/
+gs://org-lake-staging/   entity/dt=2026-01-15/
+gs://org-lake-curated/   domain/table/dt=2026-01-15/
+```
+
+Decisions worth defending:
+- **Separate buckets per zone**, so IAM, lifecycle rules, versioning and location type apply cleanly per zone rather than per prefix.
+- **Hive-style date partitioning** so BigQuery and Spark can prune.
+- **Parquet, or an open table format** (Iceberg via BigLake, or Delta) for ACID and upserts.
+- **128 MB–1 GB files**, with scheduled compaction.
+- **Uniform bucket-level access**, IAM to groups, and VPC Service Controls around the perimeter.
+- **Lifecycle per zone** — raw tiers down and is retained; staging is reproducible so it expires quickly; curated stays Standard.
+- **Regional or dual-region**, matching where BigQuery and Dataproc run.
+
+Separate **projects per environment** gives hard isolation and clean cost attribution.
+</QuestionCard>
+
+<QuestionCard id="gcpst-lake-02" number={2} question="How does BigQuery relate to data in Cloud Storage?" difficulty="hard" topic="Data Lake">
+Three distinct relationships, and knowing which is which is the point of the question:
+
+1. **Load** — copy GCS data into BigQuery's own managed columnar storage. Fastest queries, and you pay BigQuery storage. The default for curated tables.
+2. **External tables** — BigQuery queries the GCS files in place. No copy, no duplicate storage, but slower and without BigQuery's full optimisation or partition metadata.
+3. **BigLake tables** — external tables with **fine-grained security** (row and column level) and metadata caching, so they perform much closer to native tables while data stays in open formats. This is the lakehouse story on GCP, and it supports **Iceberg**.
+
+The practical architecture: land raw data in GCS, query it via BigLake or external tables for exploration, and **load or materialise curated tables into BigQuery** for the serving layer where query performance and concurrency matter.
+
+Loading from GCS in the **same region is free**, which is a real reason to co-locate.
+</QuestionCard>
+
+<QuestionCard id="gcpst-lake-03" number={3} question="How do you move large volumes of data into Cloud Storage?" difficulty="medium" topic="Data Transfer">
+- **`gcloud storage cp`** — the modern CLI, significantly faster than `gsutil` for bulk work, with parallel composite uploads.
+- **Storage Transfer Service** — managed, scheduled transfers from S3, Azure Blob, another GCS bucket, or an on-premises POSIX filesystem, with incremental sync and verification. The right tool for recurring or large migrations.
+- **Transfer Appliance** — a physical device shipped to you, for hundreds of terabytes to petabytes where the network would take months.
+- **BigQuery Data Transfer Service** — scheduled loads from SaaS sources and other warehouses directly into BigQuery.
+
+The decision is the same arithmetic as anywhere: at roughly 10 TB/day over a saturated 1 Gbps link, past ~100 TB the appliance usually wins. Below that, Storage Transfer Service handles it with verification and scheduling you'd otherwise have to build.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"A Dataproc job reading GCS is slow."** — check bucket and cluster are in the same region first, then file sizes (the small-files problem), then whether the format allows pushdown. Adding local SSDs helps shuffle, not read throughput.
+
+**"Design a lake on GCP."** — regional buckets per zone co-located with BigQuery, Hive-style partitioning, Parquet or Iceberg via BigLake, lifecycle rules per zone, uniform bucket-level access with IAM to groups, CMEK if regulated, and VPC Service Controls as the exfiltration boundary.
+
+**"How do you archive data but keep it queryable?"** — GCS Archive class has **millisecond access**, unlike S3 Glacier, so archived objects remain readable — you just pay a retrieval fee. That means an external or BigLake table over archived partitions still works, which is a genuine GCP advantage.
+
+**"Your storage costs are climbing."** — check noncurrent versions with no expiry rule, whether Autoclass would beat your manual tiering, small-file operation costs, and cross-region reads from compute in a different region.
+
+---
+
+## Further Reading
+
+- [Cloud Storage documentation](https://cloud.google.com/storage/docs)
+- [Storage classes](https://cloud.google.com/storage/docs/storage-classes)
+- [Object lifecycle management](https://cloud.google.com/storage/docs/lifecycle)
+- [Autoclass](https://cloud.google.com/storage/docs/autoclass)
+- [Request rate and access distribution guidelines](https://cloud.google.com/storage/docs/request-rate)
+- [BigLake documentation](https://cloud.google.com/biglake/docs)
+- [VPC Service Controls](https://cloud.google.com/vpc-service-controls/docs)

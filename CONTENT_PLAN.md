@@ -11,10 +11,10 @@ are the way they are, so settled questions don't get re-opened as if they were b
 
 ## You are here
 
-> **Current phase: Phase 3 (Cloud depth) — not started.** Phases 1, 1b and 2 ✅ done 2026-08-09.
+> **Current phase: Phase 4 (Remaining breadth) — not started.** Phases 1, 1b, 2 and 3 ✅ done 2026-08-09.
 > Last updated: 2026-08-09
 
-Site total: **3,549 questions** across 47 topic pages + 57 subtopic pages, and 46 roadmaps.
+Site total: **3,830 questions** across 47 topic pages + 74 subtopic pages, and 46 roadmaps.
 
 ---
 
@@ -67,7 +67,7 @@ passing `npx astro build`, and logged below.
 | 1 | **Engineering Foundations** | Git/GitHub, Linux, Docker, CI/CD, IaC, Networking | 6 | ✅ Done (2026-08-09) — 203 questions |
 | 1b | **Roadmap coverage** | A roadmap for every topic page with 12+ questions | 39 roadmaps | ✅ Done (2026-08-09) — 46 total, 2,005 nodes |
 | 2 | **Python depth** | 19 roadmap categories → subtopic pages, mirroring SQL | 14 | ✅ Done (2026-08-09) — 280 questions |
-| 3 | **Cloud depth** | AWS (8) → Azure (6) → GCP (5), DE-scoped services only | ~19 | ⬜ Not started |
+| 3 | **Cloud depth** | AWS (7) → Azure (5) → GCP (5), DE-scoped services only | 17 | ✅ Done (2026-08-09) — 281 questions |
 | 4 | **Remaining breadth** | Monitoring, Data Lifecycle, Ingestion Types, Reverse ETL, MLOps | ~5 | ⬜ Not started |
 | 5 | **Wire the master roadmap** | Add `link:` to the 86 unlinked DE roadmap nodes | 0 new | ⬜ Not started |
 
@@ -183,32 +183,36 @@ Per [D1](#d1-sidebar-and-progress-track-interview-topics-only--not-subtopic-page
 Verified: clean `npx astro build`, all 77 roadmap targets resolve against the built HTML, zero new
 duplicate question ids.
 
-### Phase 3 — Cloud depth
+### Phase 3 — Cloud depth ✅ Done 2026-08-09
 
-DE-tagged services only (the `de: true` subset shown by default on each roadmap) — see
-[D2](#d2-cloud-roadmaps-default-to-a-data-engineering-filtered-view). One page per category.
-Existing `cloud/{aws,azure,gcp}.mdx` become overview pages; their questions stay put, since
-moving them would break saved progress.
+17 subtopic pages, **281 questions**, at `src/content/docs/level-3-technologies/cloud/`.
+All **105 DE-tagged services** across the three cloud roadmaps are now linked (was zero).
+The existing `aws.mdx` / `azure.mdx` / `gcp.mdx` remain as overview pages, questions untouched.
 
-**3a — AWS** (`src/pages/roadmaps/aws.astro`, 65 DE services)
+| Provider | Pages | Q | DE services linked |
+|---|---|:-:|:-:|
+| **AWS** | compute, storage, databases, analytics, migration, integration, comparisons | 130 | 65/65 |
+| **Azure** | compute, storage, databases, data-solutions, comparisons | 76 | 22/22 |
+| **GCP** | compute, storage, databases, analytics, comparisons | 75 | 18/18 |
 
-| Category | DE services |
-|---|---|
-| Compute | EKS, EC2, ECS, Batch, Fargate, Lambda (6) |
-| Storage | EBS, EFS, FSx, S3, S3 Glacier, Snowball Edge, Snowmobile, Storage Gateway, Transfer Family (9) |
-| Database | Aurora, DocumentDB, DynamoDB, ElastiCache, MemoryDB, Neptune, QLDB, RDS, Redshift, Redshift Serverless (10) |
-| Analytics | Athena, Elasticsearch, EMR, Kinesis, MSK, Redshift, Data Exchange, Data Pipeline, Glue, Glue DataBrew, Glue Data Quality, Lake Formation (12) |
-| Migration | DMS, DataSync, Data Transfer Terminal, Snowball Edge, Snowmobile (5) |
-| Application | AppFlow, EventBridge, SNS, SQS, SWF, Step Functions, MWAA (7) |
-| Comparisons | 15 "X vs Y" entries — these make excellent interview questions |
-| Other | Amazon MQ (1) |
+Built to the DE-tagged subset only, per
+[D2](#d2-cloud-roadmaps-default-to-a-data-engineering-filtered-view) — full service catalogues
+were not covered.
 
-**3b — Azure** (22 DE services): Compute (4) · Storage (7) · Database (4) · Solutions (2) ·
-Comparisons (4) · Other (1: Service Bus).
+**Scope adjustments** from the original estimate: AWS's "Other" category (Amazon MQ alone) was
+folded into `aws-integration` rather than getting a one-item page, and Azure's thin Solutions
+(2 services) plus Service Bus became one `azure-data-solutions` page. That's 17 pages rather
+than the estimated 19, applying [D5](#d5-cut-low-value-scope-rather-than-filling-it).
 
-**3c — GCP** (18 DE services): Compute (4: Cloud Run, Functions, GCE, GKE) · Storage (4:
-Filestore, GCS, Local SSD, Persistent Disks) · Database (4: BigQuery, Bigtable, Cloud SQL,
-Spanner) · Data & Analytics (4: Dataflow, Dataprep, Dataproc, Pub/Sub) · Comparisons (2).
+Each provider's **comparisons page** covers the roadmap's "X vs Y" nodes, and each of those nodes
+links to the matching section — these make unusually good interview material, which is why they
+got a page each rather than being scattered.
+
+Per [D1](#d1-sidebar-and-progress-track-interview-topics-only--not-subtopic-pages) these are
+**subtopic** pages: roadmap links yes, sidebar no, progress dashboard no.
+
+Verified: clean `npx astro build`, **123 linked roadmap nodes checked against the built HTML**
+with zero broken page or anchor targets, and no new duplicate question ids.
 
 ### Phase 4 — Remaining breadth
 
@@ -426,6 +430,7 @@ Newest first. One line per working session: what was done, and what's next.
 
 | Date | What happened | Next up |
 |---|---|---|
+| 2026-08-09 | **Phase 3 done — Cloud depth.** 17 subtopic pages, **281 questions** (AWS 130, Azure 76, GCP 75). All **105 DE-tagged services** across the three cloud roadmaps now linked, up from zero; 123 roadmap nodes verified against built HTML. Trimmed 19 estimated pages to 17 by folding one-item categories in. Two MDX gotchas hit: a bare `<object at 0x…>` in prose, and nested `**bold**` inside a bold paragraph. | Phase 4 — Remaining breadth |
 | 2026-08-09 | **Phase 2 done — Python depth.** 14 subtopic pages, **280 questions**, taking Python from 67 questions on 2 flat pages to 347 across 16. All **77 of 77** `python.astro` roadmap nodes now linked (was zero). Applied both planned trims: 9 framework nodes → one page, 9 sub-less nodes folded into thematic pages. Per D1, these are subtopic pages — roadmap only, no sidebar or progress. Hit one MDX gotcha: an unbackticked `<object at 0x…>` in prose parses as a JSX tag and fails the build. | Phase 3 — Cloud depth |
 | 2026-08-09 | **Roadmap coverage complete — 46 roadmaps.** Generated 33 more from the content pages (categories from section headings, sub-nodes from `topic` attributes, descriptions extracted from answers). Site went 7 → 46 roadmaps, 2,005 nodes, in one day. Sidebar rebuilt as a flat 46-entry list in learning order. Caught and fixed a slug bug — Starlight renders "A & B" as `a--b`, so anchors are now read from the built HTML rather than re-derived. All 500 link targets verified. | Phase 2 — Python depth |
 | 2026-08-09 | **Phase 1 follow-up: 6 new roadmaps.** User flagged that leaving Git/Linux/Docker/CI-CD/IaC/Networking as single nodes on the master roadmap was inconsistent with Python/SQL/Spark and gave no single-view picture. Generated all 6 `/roadmaps/*.astro` from the `sql.astro` template — **239 nodes**, 36 categories, unique storage keys, every node anchored to its content-page section. Added to the sidebar; DE roadmap nodes repointed to the roadmaps. All 36 distinct link targets verified to resolve; clean build. | Phase 2 — Python depth |

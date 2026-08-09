@@ -1,0 +1,344 @@
+---
+title: AWS Database Services
+description: AWS database interview questions covering RDS and Aurora, DynamoDB data modelling and capacity, ElastiCache and MemoryDB, DocumentDB, Neptune and QLDB, plus Redshift and Redshift Serverless for warehousing.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## AWS Databases: Picking the Right Store for the Access Pattern
+
+**AWS has more database services than most people can name, and interviewers rarely want a feature list. What they want is whether you can match a workload to a store and defend the choice: why DynamoDB rather than RDS for a high-write event log, why Redshift rather than Aurora for analytics, and what happens to your pipeline when you read from a production database at full speed during business hours.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [RDS & Aurora](#rds--aurora)
+- [DynamoDB](#dynamodb)
+- [Caching: ElastiCache & MemoryDB](#caching-elasticache--memorydb)
+- [Purpose-Built Databases](#purpose-built-databases)
+- [Redshift](#redshift)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The organising distinction is **OLTP versus OLAP**. Transactional stores — RDS, Aurora, DynamoDB — are optimised for many small, fast reads and writes against individual rows, usually row-oriented and heavily indexed. Analytical stores — Redshift, and Athena over S3 — are columnar, optimised for scanning and aggregating billions of rows. Running analytics on a transactional database is the most common architectural mistake in this space, and it degrades the application that database exists to serve.
+
+The second is **relational versus purpose-built**. AWS's stated philosophy is a database per workload: key-value (DynamoDB), document (DocumentDB), in-memory (ElastiCache), graph (Neptune), ledger (QLDB), relational (RDS/Aurora), warehouse (Redshift). In practice most teams need two or three, and the interview value is knowing which access pattern justifies leaving relational.
+
+For a data engineer, the third idea is **how you get data out**. Reading from a production OLTP database with a full-table `SELECT` is disruptive. The mature answers are a **read replica**, a **snapshot export to S3**, or **CDC via DMS** — and knowing which to use when is a recurring interview question.
+
+---
+
+## RDS & Aurora
+
+<QuestionList topic="RDS & Aurora" storagePrefix="aws-databases-rds">
+
+<QuestionCard id="awsdb-rds-01" number={1} question="What is RDS and what does it manage for you?" difficulty="easy" topic="RDS">
+Managed relational databases — PostgreSQL, MySQL, MariaDB, Oracle, SQL Server and Aurora.
+
+AWS handles provisioning, patching, automated backups, point-in-time recovery, Multi-AZ failover, monitoring and read replicas. You keep responsibility for schema design, query performance, indexing and capacity choices.
+
+What you give up versus self-managing on EC2: **no OS access**, so no custom agents or filesystem tuning, and only the extensions and parameters AWS exposes. For most teams that's a good trade — the operational burden RDS removes is substantial, and the restrictions rarely bind.
+
+For a data engineer, RDS is usually the **source** system, not the platform: it's where the application's data lives, and your job is extracting from it without hurting it.
+</QuestionCard>
+
+<QuestionCard id="awsdb-rds-02" number={2} question="What is Aurora, and how does it differ from standard RDS?" difficulty="medium" topic="Aurora">
+A cloud-native reimplementation of MySQL and PostgreSQL that keeps the wire protocol but replaces the storage engine entirely.
+
+The key architectural difference: Aurora separates compute from a **distributed storage layer** that replicates six ways across three AZs and handles replication at the storage level. Consequences:
+
+- **Faster** — commonly cited at 3–5× MySQL, 2–3× PostgreSQL.
+- **Storage auto-scales** to 128 TB with no provisioning.
+- **Up to 15 read replicas** sharing the same storage, so replica lag is typically milliseconds rather than seconds.
+- **Fast crash recovery**, since redo is applied at the storage layer.
+- **Backtrack** (MySQL) — rewind the cluster in place, without a restore.
+- **Aurora Serverless v2** — scales capacity in fine-grained increments.
+
+It costs more per hour than equivalent RDS, so the justification is performance, replica lag, or the operational features.
+</QuestionCard>
+
+<QuestionCard id="awsdb-rds-03" number={3} question="What is the difference between Multi-AZ and read replicas?" difficulty="medium" topic="RDS">
+They solve different problems and are frequently confused.
+
+**Multi-AZ** is for **availability**. A standby in another AZ receives synchronous replication and is **not readable**. On failure, AWS fails over automatically and the DNS endpoint points at the new primary. You're paying for resilience, not capacity.
+
+**Read replicas** are for **read scaling**. They're asynchronous, readable, can be in other regions, and can be promoted manually. Because replication is async, they can **lag** — so a pipeline reading a replica may see stale data, which matters if you're joining against something written seconds ago.
+
+For data engineering, **read replicas are the standard extraction target**: run your heavy analytical reads there, so a long scan doesn't compete with production traffic. Just account for lag in any freshness guarantee you make.
+</QuestionCard>
+
+<QuestionCard id="awsdb-rds-04" number={4} question="How do you extract data from RDS without impacting production?" difficulty="hard" topic="RDS">
+Options, roughly in increasing order of sophistication:
+
+1. **Query a read replica** — simplest, and sufficient for scheduled batch extraction. Watch replica lag.
+2. **Export a snapshot to S3** — RDS can export an automated or manual snapshot directly to S3 as Parquet, with **zero load on the live database**. Excellent for full-table refreshes.
+3. **DMS with CDC** — reads the transaction log (WAL/binlog) and streams changes with minimal overhead. The right answer for near-real-time replication.
+4. **Aurora zero-ETL to Redshift** — a managed integration that continuously replicates into Redshift without you building a pipeline.
+5. **Federated query** — Redshift or Athena querying RDS live. Convenient for small lookups, dangerous for large scans.
+
+The bad answer is a nightly `SELECT *` against the primary during business hours. Snapshot export and CDC exist specifically to avoid it.
+</QuestionCard>
+
+<QuestionCard id="awsdb-rds-05" number={5} question="How do backups and point-in-time recovery work in RDS?" difficulty="medium" topic="RDS">
+**Automated backups** take a daily snapshot plus continuous transaction log capture, retained 1–35 days, enabling **point-in-time recovery** to any second in that window. They're deleted when the instance is deleted (unless you take a final snapshot).
+
+**Manual snapshots** persist until you delete them and can be shared or copied across accounts and regions.
+
+Two details that matter operationally: a restore creates a **new instance** with a new endpoint — you can't restore in place, so cutover requires a DNS or config change. And Aurora's **Backtrack** is the exception, rewinding in place in minutes, which is genuinely useful after a bad migration.
+
+For a data platform, snapshot copies to a separate account are the standard protection against a compromised or mistakenly-deleted production account.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## DynamoDB
+
+<QuestionList topic="DynamoDB" storagePrefix="aws-databases-dynamodb">
+
+<QuestionCard id="awsdb-ddb-01" number={1} question="What is DynamoDB and when should you choose it?" difficulty="medium" topic="DynamoDB">
+A fully managed, serverless key-value and document database with single-digit millisecond latency at effectively any scale, and no servers or capacity planning in the traditional sense.
+
+Choose it when:
+- Access patterns are **known and simple** — lookups by key, not ad-hoc queries.
+- You need **predictable low latency** at high request rates.
+- Write volume is very high — event ingestion, session state, IoT telemetry.
+- You want **serverless operations** with automatic scaling.
+
+Don't choose it when you need ad-hoc queries, complex joins, aggregations, or analytical scans. Those are exactly what it's bad at, and a `Scan` over a large table is slow, expensive, and consumes the capacity your application needs.
+
+The mental model: DynamoDB is a **fast, infinitely scalable index** you design *around your queries*, not a general-purpose database you query however you like later.
+</QuestionCard>
+
+<QuestionCard id="awsdb-ddb-02" number={2} question="How do partition keys and sort keys work, and what is a hot partition?" difficulty="hard" topic="DynamoDB">
+The **partition key** is hashed to choose a physical partition; the optional **sort key** orders items within it. Together they form the primary key, and a `Query` can efficiently fetch a range within one partition key.
+
+A **hot partition** happens when traffic concentrates on one key value — partitioning events by `date` puts an entire day on one partition, which throttles regardless of how much capacity the table has, because per-partition throughput is bounded.
+
+Fixes:
+- **Choose a high-cardinality partition key** — `customer_id` rather than `status`.
+- **Write sharding** — append a suffix (`2026-01-15#7`) to spread a hot key across N partitions, then query all N and merge.
+- **Adaptive capacity** helps automatically but doesn't rescue a genuinely single-key hotspot.
+
+This is the most common DynamoDB design failure and a very common interview question.
+</QuestionCard>
+
+<QuestionCard id="awsdb-ddb-03" number={3} question="What is the difference between a GSI and an LSI?" difficulty="medium" topic="DynamoDB">
+| | **GSI** (Global Secondary Index) | **LSI** (Local Secondary Index) |
+|---|---|---|
+| Partition key | **different** from the base table | **same** as the base table |
+| When created | any time | **only at table creation** |
+| Consistency | eventually consistent only | strongly consistent available |
+| Capacity | its own | shares the table's |
+| Size limit | none | 10 GB per partition key |
+
+**GSIs are what you actually use**: they enable a completely different access pattern, can be added later, and scale independently. The eventual consistency is rarely a problem for read paths.
+
+**LSIs** are constrained by the create-time-only rule and the 10 GB limit, so most teams avoid them.
+
+Note GSIs cost extra writes — every base-table write that changes indexed attributes also writes to each GSI, so ten indexes means roughly ten times the write cost.
+</QuestionCard>
+
+<QuestionCard id="awsdb-ddb-04" number={4} question="Explain DynamoDB capacity modes." difficulty="medium" topic="DynamoDB">
+**Provisioned** — you specify read and write capacity units, optionally with auto-scaling. Cheapest for steady, predictable traffic, and eligible for reserved capacity discounts. Exceeding capacity causes throttling.
+
+**On-Demand** — pay per request, scales instantly, no planning. Roughly 5–7× the per-request cost of well-utilised provisioned capacity, but far cheaper than provisioned capacity sitting idle.
+
+The decision: **On-Demand for unpredictable, spiky, or new workloads** (you don't yet know the pattern) and for anything with a low duty cycle. **Provisioned with auto-scaling for steady, high-volume** production traffic where the savings are real.
+
+You can switch modes, though only once every 24 hours. Many teams start On-Demand, observe the pattern for a month, then move to provisioned.
+</QuestionCard>
+
+<QuestionCard id="awsdb-ddb-05" number={5} question="How do you get data out of DynamoDB for analytics?" difficulty="hard" topic="DynamoDB">
+Not with `Scan` — it's slow, consumes table capacity, and competes with production.
+
+Better options:
+1. **Export to S3** — a point-in-time export straight to S3 (DynamoDB JSON or Ion) with **zero consumed capacity**. The standard answer for full-table analytics.
+2. **DynamoDB Streams + Lambda/Kinesis** — a change stream of item-level modifications, for incremental replication into the lake.
+3. **Kinesis Data Streams for DynamoDB** — the same change data into Kinesis, then Firehose to S3.
+4. **Glue connector** — reads with a configurable capacity percentage so you can bound the impact.
+5. **Zero-ETL to Redshift** — a managed continuous integration.
+
+The design principle worth stating: DynamoDB is an **operational** store. Analytics belongs in S3 or Redshift, fed by exports or streams — not by scanning the serving table.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Caching: ElastiCache & MemoryDB
+
+<QuestionList topic="Caching: ElastiCache & MemoryDB" storagePrefix="aws-databases-caching">
+
+<QuestionCard id="awsdb-cache-01" number={1} question="What is ElastiCache, and how do Redis and Memcached differ?" difficulty="medium" topic="ElastiCache">
+Managed in-memory caching, in two engines.
+
+**Memcached** — a simple multi-threaded key-value cache. No persistence, no replication, no rich data types. Scales by adding nodes and sharding client-side. Good when you want a plain, fast cache.
+
+**Redis** — richer: lists, sets, sorted sets, hashes, streams, pub/sub, Lua scripting; supports replication, automatic failover, snapshots and cluster mode.
+
+**Redis is the usual choice** because the extra capability costs nothing meaningful and the replication and persistence options matter as soon as a cache becomes load-bearing.
+
+For data engineering, Redis appears as a **lookup cache** in enrichment pipelines (avoiding a database round trip per record), a **dedup set** for exactly-once-ish processing, and occasionally a **rate limiter** in front of an API.
+</QuestionCard>
+
+<QuestionCard id="awsdb-cache-02" number={2} question="What is MemoryDB, and how is it different from ElastiCache for Redis?" difficulty="medium" topic="MemoryDB">
+MemoryDB is a **Redis-compatible durable database**, not a cache. It writes to a multi-AZ transaction log, giving **durability and strong consistency on primary reads**, with microsecond reads and single-digit millisecond writes.
+
+ElastiCache for Redis is a **cache**: data loss on failure is acceptable because the source of truth is elsewhere. Its persistence options are backups, not a durability guarantee.
+
+So the choice is about whether Redis is your **system of record**. If losing the data means losing information — a session store you can't rebuild, a real-time leaderboard that is the truth — MemoryDB. If it's a cache in front of a database, ElastiCache, which is cheaper.
+
+Most data pipelines want ElastiCache; MemoryDB shows up when someone needs Redis semantics with durability.
+</QuestionCard>
+
+<QuestionCard id="awsdb-cache-03" number={3} question="What caching strategies should you know?" difficulty="medium" topic="Caching">
+- **Cache-aside (lazy loading)** — the application checks the cache, and on a miss reads the database and populates it. Only requested data is cached, but every miss pays the full latency, and stale data persists until evicted.
+- **Write-through** — write to cache and database together. The cache is always fresh; writes are slower, and you cache data that may never be read.
+- **Write-behind** — write to the cache and flush to the database asynchronously. Fast writes, risk of loss.
+- **Read-through** — the cache itself loads on a miss, hiding the pattern from the application.
+
+Combine cache-aside with a **TTL** as the default: it bounds staleness without needing explicit invalidation, which is the hard part.
+
+The classic failure is a **cache stampede** — a popular key expires and a thousand requests hit the database simultaneously. Mitigate with jittered TTLs, a lock so one request repopulates, or refreshing slightly before expiry.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Purpose-Built Databases
+
+<QuestionList topic="Purpose-Built Databases" storagePrefix="aws-databases-purpose-built">
+
+<QuestionCard id="awsdb-pb-01" number={1} question="What is DocumentDB and when would you use it?" difficulty="easy" topic="DocumentDB">
+A managed document database with **MongoDB API compatibility**, storing JSON-like documents with flexible schemas. It separates compute from a distributed storage layer, like Aurora, and scales to 15 read replicas.
+
+Use it when you have an existing MongoDB workload you want managed, or genuinely document-shaped data with variable structure and query patterns that suit document indexes.
+
+The caveat to name: **it is not MongoDB** — it implements a subset of the API, and version and feature gaps have historically caught teams out. Check the specific operators and features your application needs before committing.
+
+For new work on AWS, DynamoDB is often the better fit unless you specifically want document queries or MongoDB compatibility.
+</QuestionCard>
+
+<QuestionCard id="awsdb-pb-02" number={2} question="What is Neptune, and what problems suit a graph database?" difficulty="medium" topic="Neptune">
+A managed graph database supporting **property graphs** (Gremlin, openCypher) and **RDF** (SPARQL).
+
+Graph databases win when the **relationships are the query**: fraud rings, "customers who bought this also bought", entity resolution across sources, network and dependency topology, recommendation traversal, and knowledge graphs.
+
+The technical reason: a multi-hop traversal in SQL becomes a chain of self-joins whose cost explodes with depth. A graph engine stores adjacency directly, so traversal cost scales with the results, not the table size.
+
+For data engineering specifically, the realistic uses are **data lineage** and **entity resolution** — both naturally graph-shaped. It's a specialised tool, so justify it with a traversal-heavy access pattern rather than because the data "has relationships."
+</QuestionCard>
+
+<QuestionCard id="awsdb-pb-03" number={3} question="What is QLDB and when is it appropriate?" difficulty="medium" topic="QLDB">
+A ledger database with an **immutable, append-only journal** that is cryptographically verifiable — you can prove a record's history hasn't been altered.
+
+Fits where an audit trail must be provable rather than merely present: financial transaction records, regulatory compliance, supply chain provenance, and systems of record where "who changed what, when, and has it been tampered with" is a formal requirement.
+
+The distinction from just adding an audit table: an audit table can be modified by anyone with write access. QLDB's journal is append-only and hash-chained, so tampering is detectable.
+
+Worth knowing that **AWS has announced QLDB's deprecation**, recommending Aurora PostgreSQL with a verifiable ledger approach instead — so mention it as a concept rather than proposing it for a new build.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Redshift
+
+<QuestionList topic="Redshift" storagePrefix="aws-databases-redshift">
+
+<QuestionCard id="awsdb-rs-01" number={1} question="What is Redshift and how is its architecture different from RDS?" difficulty="medium" topic="Redshift">
+A petabyte-scale **columnar MPP data warehouse**. A leader node parses and plans; compute nodes hold slices of the data and execute in parallel.
+
+Differences from a row-store like RDS:
+- **Columnar storage** — a query touching 3 of 200 columns reads only those, and per-column compression is far more effective.
+- **MPP** — work is distributed across node slices and executed in parallel.
+- **No indexes** — distribution and sort keys replace them.
+- **Optimised for scans and aggregations**, not point lookups or high-concurrency single-row writes.
+
+**RA3 nodes** separate compute from **managed storage in S3**, so you scale them independently and pay for what you use — a significant change from the older DC2 model where storage was tied to node count.
+</QuestionCard>
+
+<QuestionCard id="awsdb-rs-02" number={2} question="What are distribution and sort keys, and how do you choose them?" difficulty="hard" topic="Redshift">
+**Distribution style** decides which node slice each row lands on:
+- **KEY** — rows with the same value co-locate. Set it on the **join column of large fact-to-dimension joins** so the join happens locally rather than redistributing data across the network.
+- **ALL** — a full copy on every node. Right for **small dimension tables**, since it makes every join to them local.
+- **EVEN** — round-robin. The fallback when there's no dominant join key.
+- **AUTO** — Redshift chooses and can change it as the table grows. A reasonable default now.
+
+**Sort keys** determine physical row order, letting Redshift skip blocks using zone-map min/max values. Choose the column you **filter on most**, usually a date.
+
+The failure mode to name is **distribution skew**: a KEY distribution on a low-cardinality or skewed column puts most rows on one slice, so one node does all the work.
+</QuestionCard>
+
+<QuestionCard id="awsdb-rs-03" number={3} question="How do you load data into Redshift efficiently?" difficulty="medium" topic="Redshift">
+**`COPY` from S3** is the answer — it loads in parallel across all slices, which single-row `INSERT`s cannot.
+
+```sql
+COPY orders FROM 's3://lake/curated/orders/'
+IAM_ROLE 'arn:aws:iam::123456789012:role/redshift-load'
+FORMAT AS PARQUET;
+```
+
+Practices that matter:
+- **Split input into multiple files**, ideally a multiple of the slice count, so every slice works.
+- **Prefer Parquet or gzipped files**; avoid a single huge uncompressed file, which serialises the load.
+- **Never load row by row** — `INSERT` per record is orders of magnitude slower.
+- **`ANALYZE`** after significant loads so the planner has current statistics.
+- **Use staging tables** and swap, so consumers never see a partial load.
+
+`UNLOAD` is the reverse, writing query results to S3 in parallel — the standard way to push data back into the lake.
+</QuestionCard>
+
+<QuestionCard id="awsdb-rs-04" number={4} question="What is Redshift Spectrum?" difficulty="medium" topic="Redshift">
+It lets Redshift query data **in S3** directly, without loading it, using external tables defined in the Glue Data Catalog. A single query can join a Spectrum external table to a native Redshift table.
+
+Why it matters architecturally: you keep hot, frequently-joined data in Redshift for speed and leave cold historical data in S3, querying across both. That avoids loading years of history you rarely touch.
+
+Pricing is **per terabyte scanned**, like Athena — so the same optimisations apply: partition the data, use Parquet, and select only needed columns. An unpartitioned Spectrum table scanned repeatedly gets expensive quickly.
+
+It's slower than native Redshift storage, so it complements the warehouse rather than replacing it.
+</QuestionCard>
+
+<QuestionCard id="awsdb-rs-05" number={5} question="What is Redshift Serverless and when would you choose it?" difficulty="medium" topic="Redshift">
+Redshift without provisioned clusters: you set a base capacity in **RPUs** and a maximum, and it scales automatically, charging per second of use with no cost when idle.
+
+Choose it for **intermittent or unpredictable** workloads — a warehouse used heavily during business hours and idle overnight, development environments, or a new project where you can't yet size a cluster.
+
+Choose **provisioned** for steady, high-utilisation workloads, where reserved-instance pricing is substantially cheaper than serverless RPU-seconds, and where you want fine control over node type and WLM.
+
+The practical caution: serverless can be more expensive than expected if a badly-tuned query pattern keeps scaling capacity up. Set the maximum RPU limit deliberately, and monitor usage rather than assuming it's automatically cheaper.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Your nightly extract from the production database is slowing the application."** — move to a read replica, or better, snapshot export to S3 for full loads and DMS CDC for incremental. Explain that the primary should never serve analytical scans.
+
+**"Design storage for an event ingestion system at 50,000 writes per second."** — DynamoDB with a high-cardinality partition key, On-Demand capacity initially, DynamoDB Streams or Kinesis feeding S3 for analytics. Address hot partitions explicitly, since that's the failure the question is probing.
+
+**"Queries against your Redshift cluster got slow after a data growth spurt."** — check distribution skew and whether the sort key still matches the filter pattern, look for unsorted regions needing `VACUUM`, confirm statistics are current, and check whether concurrency is queueing in WLM.
+
+**"Why not just use RDS for everything?"** — it works until the access pattern diverges: analytical scans need columnar and MPP, extreme write throughput needs a distributed key-value store, and sub-millisecond lookups need memory. Say plainly that a single Postgres is the right answer more often than AWS's marketing suggests, and the burden of proof is on leaving it.
+
+---
+
+## Further Reading
+
+- [Amazon RDS user guide](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/)
+- [Amazon Aurora user guide](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/)
+- [DynamoDB developer guide](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/) — the "best practices" section on partition key design especially
+- [The DynamoDB Book](https://www.dynamodbbook.com/) — the standard reference on single-table design
+- [Amazon Redshift database developer guide](https://docs.aws.amazon.com/redshift/latest/dg/)
+- [Redshift best practices for designing tables](https://docs.aws.amazon.com/redshift/latest/dg/c_designing-tables-best-practices.html)
+- [ElastiCache user guide](https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/)

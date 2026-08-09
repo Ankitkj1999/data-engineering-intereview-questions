@@ -1,0 +1,362 @@
+---
+title: AWS Analytics Services
+description: AWS analytics interview questions covering Athena, EMR, Glue and the Data Catalog, Lake Formation, Kinesis and MSK for streaming, OpenSearch, and building a lakehouse on S3.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## AWS Analytics: Building the Lake and Querying It
+
+**This is the heart of AWS for a data engineer. Glue catalogues and transforms, Athena queries S3 without infrastructure, EMR runs Spark at scale, Kinesis and MSK move streams, and Lake Formation governs the lot. The interview questions that separate candidates aren't "what is Glue" — they're "why is this Athena query scanning 4 TB", "when would you use EMR over Glue", and "how do you get exactly-once from Kinesis".**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Amazon Athena](#amazon-athena)
+- [AWS Glue](#aws-glue)
+- [Amazon EMR](#amazon-emr)
+- [Streaming: Kinesis & MSK](#streaming-kinesis--msk)
+- [Governance & Search](#governance--search)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The AWS analytics stack is built on **separating storage from compute**. Data lives in S3 as open-format files — Parquet, and increasingly Iceberg or Delta tables. The **Glue Data Catalog** provides the shared schema layer, so the same table definition is visible to Athena, EMR, Redshift Spectrum, Glue jobs and Lake Formation. Compute engines come and go without touching the data.
+
+That means the **table metadata is the integration point**, and getting it right — partitions registered, schema accurate, statistics current — determines whether queries are fast and cheap or slow and expensive.
+
+The cost model follows directly. Athena and Redshift Spectrum bill **per terabyte scanned**, so partitioning, columnar formats and predicate pushdown aren't optimisations — they're the difference between a query costing cents and costing hundreds of dollars. Almost every AWS analytics performance question ultimately reduces to "how do you scan less data."
+
+---
+
+## Amazon Athena
+
+<QuestionList topic="Amazon Athena" storagePrefix="aws-analytics-athena">
+
+<QuestionCard id="awsan-ath-01" number={1} question="What is Athena and how is it priced?" difficulty="easy" topic="Athena">
+Serverless interactive SQL over data in S3, built on Trino (formerly Presto). No infrastructure to provision — you point it at a table in the Glue Data Catalog and query.
+
+Pricing is **per terabyte of data scanned**, with a 10 MB minimum per query. Nothing is charged when idle, which makes it ideal for ad-hoc and intermittent analysis.
+
+That pricing model drives every optimisation: since you pay for bytes read, the entire game is reading fewer bytes. `SELECT *` on an unpartitioned CSV table is the worst case in both cost and latency.
+
+**Athena for Apache Spark** also exists for notebook-style Spark without a cluster, and there's a provisioned-capacity option that bills per hour instead if you want predictable cost.
+</QuestionCard>
+
+<QuestionCard id="awsan-ath-02" number={2} question="How do you reduce Athena cost and improve performance?" difficulty="hard" topic="Athena">
+All of these reduce bytes scanned:
+
+1. **Partition** on the columns you filter on — usually date. A query hitting one day of a year's data scans 1/365th.
+2. **Columnar format** — Parquet or ORC. A query touching 3 of 100 columns reads only those.
+3. **Compress** — Snappy or ZSTD; less data on disk means fewer bytes scanned.
+4. **Select only the columns you need** — never `SELECT *` in production.
+5. **Right-size files** — 128 MB to 1 GB. Small files add per-file overhead; huge ones limit parallelism.
+6. **Partition projection** — for tables with many partitions, this avoids the metadata lookup entirely and is dramatically faster than repeated `MSCK REPAIR`.
+7. **Bucketing / sorting** on high-cardinality filter columns for further pruning.
+8. **`LIMIT` doesn't help** — Athena still scans the data; only predicates on partition columns prune.
+
+That last point is the one people get wrong: adding `LIMIT 10` to a query over an unpartitioned table costs exactly the same.
+</QuestionCard>
+
+<QuestionCard id="awsan-ath-03" number={3} question="What is partition projection?" difficulty="hard" topic="Athena">
+Instead of reading partition metadata from the Glue Catalog, Athena **calculates** the partition values from a configured pattern in the table properties.
+
+```sql
+'projection.enabled'='true',
+'projection.dt.type'='date',
+'projection.dt.range'='2020-01-01,NOW',
+'projection.dt.format'='yyyy-MM-dd',
+'storage.location.template'='s3://lake/orders/dt=${dt}/'
+```
+
+Why it matters: a table with hundreds of thousands of partitions spends significant query time just retrieving partition metadata, and `MSCK REPAIR TABLE` on such a table becomes painfully slow. Projection eliminates both — there's nothing to register, so **new partitions are queryable immediately** without any catalog update.
+
+The trade: the layout must be predictable and regular. It suits time-partitioned data perfectly, and doesn't suit arbitrary partition values.
+</QuestionCard>
+
+<QuestionCard id="awsan-ath-04" number={4} question="What are Athena workgroups?" difficulty="medium" topic="Athena">
+Logical groupings that separate query execution by team or workload, providing:
+
+- **Cost controls** — per-query and per-workgroup **data scanned limits**, which can cancel a runaway query before it scans 50 TB.
+- **Separate result locations** in S3.
+- **Cost attribution** via tags, so you can see which team is spending.
+- **Enforced settings**, such as requiring encryption of results.
+- **Separate CloudWatch metrics**.
+
+The per-query data scan limit is the feature worth naming in an interview — it's the practical guard against a single bad `SELECT *` on a petabyte table, which is otherwise a very expensive accident with no natural ceiling.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## AWS Glue
+
+<QuestionList topic="AWS Glue" storagePrefix="aws-analytics-glue">
+
+<QuestionCard id="awsan-glue-01" number={1} question="What are the components of AWS Glue?" difficulty="medium" topic="Glue">
+- **Data Catalog** — a central metastore (Hive-compatible) of databases, tables, schemas and partitions, shared by Athena, EMR, Redshift Spectrum, Lake Formation and Glue jobs.
+- **Crawlers** — scan S3 (or JDBC sources), infer schema and partitions, and populate the catalog.
+- **ETL jobs** — serverless Spark (or Python shell for small tasks), billed per DPU-hour.
+- **Glue Studio** — a visual job authoring interface.
+- **Workflows and triggers** — basic orchestration of crawlers and jobs.
+- **Glue DataBrew** — visual data preparation for analysts, no code.
+- **Glue Data Quality** — rule-based quality checks, with rules expressible in DQDL and the ability to suggest rules from data.
+- **Schema Registry** — schema management and evolution for streaming.
+
+The **Data Catalog** is the piece that matters most architecturally — it's the shared schema layer the whole AWS analytics stack reads from.
+</QuestionCard>
+
+<QuestionCard id="awsan-glue-02" number={2} question="What is a Glue crawler, and when should you avoid using one?" difficulty="medium" topic="Glue">
+A crawler samples files in a path, infers a schema and partition structure, and creates or updates catalog tables.
+
+It's convenient for discovery and for genuinely unknown data. But for production tables, many teams **avoid crawlers** because:
+
+- **Inference is unreliable** — sampling can misread a column as `bigint` that later contains a value requiring `string`, and schema changes can silently alter the table.
+- **They cost money and time** on large buckets.
+- **They can be destructive** — a bad run can change column types under live queries.
+- **They're unnecessary** when you already know the schema.
+
+The mature pattern is to **define tables explicitly** in code (Terraform, or DDL in your pipeline) so the schema is version-controlled and reviewed, and use **partition projection** or explicit `ALTER TABLE ADD PARTITION` instead of repeated crawling.
+</QuestionCard>
+
+<QuestionCard id="awsan-glue-03" number={3} question="What are DynamicFrames and how do they differ from Spark DataFrames?" difficulty="medium" topic="Glue">
+A Glue-specific abstraction over Spark DataFrames designed for messy, schema-inconsistent data.
+
+The differences:
+- **Self-describing** — no schema required up front, inferred per record.
+- **Choice types** — when a field is sometimes an `int` and sometimes a `string`, a DynamicFrame records both rather than failing or coercing. `ResolveChoice` then lets you decide what to do.
+- **Built-in transforms** — `Relationalize` flattens nested structures into related tables, `ApplyMapping` renames and casts.
+
+`toDF()` and `fromDF()` convert between the two.
+
+Practical guidance: use DynamicFrames at the **ingestion edge** where data is unpredictable, then convert to a DataFrame for the actual transformation work — the DataFrame API is richer, better documented, and better optimised. Many teams use plain Spark throughout and only use DynamicFrames for the connectors.
+</QuestionCard>
+
+<QuestionCard id="awsan-glue-04" number={4} question="What are Glue job bookmarks?" difficulty="medium" topic="Glue">
+State that tracks what a job has already processed, so subsequent runs handle only new data — the mechanism for incremental ETL.
+
+For S3 sources it tracks object keys and timestamps; for JDBC it tracks a bounded key column.
+
+The caveats that catch people:
+- **They only work with supported sources and formats**, and require the job to use Glue's own read methods.
+- **A bookmark can be stale or wrong** after a failed run, so you may need to reset or pause it — `job.commit()` must be called for the bookmark to advance.
+- **Modified files aren't reprocessed** — bookmarks track new objects, so an overwritten file is skipped.
+- **They complicate backfills**, since you must reset the bookmark for the range you're re-running.
+
+Many teams prefer explicit watermarking — storing the last processed partition themselves — because it's visible, debuggable, and works the same across engines.
+</QuestionCard>
+
+<QuestionCard id="awsan-glue-05" number={5} question="When would you use Glue versus EMR?" difficulty="hard" topic="Glue">
+**Glue** — serverless Spark. No cluster to manage, per-second billing with a 1-minute minimum, integrated catalog and bookmarks. Best for **scheduled, moderate ETL** where you don't want infrastructure and can live with Glue's Spark version and configuration limits.
+
+**EMR** — a real Hadoop/Spark cluster you configure. Best when you need **control**: a specific Spark version, custom JARs and tuning, other frameworks (Flink, Trino, HBase), long-running clusters, notebooks, or genuinely large jobs where Spot pricing on a managed cluster is far cheaper.
+
+Cost crossover: Glue's per-DPU-hour rate is high relative to Spot EC2, so **at sustained scale EMR is significantly cheaper**; at low duty cycle Glue wins because idle costs nothing.
+
+**EMR Serverless** sits between them — Spark and Hive without cluster management, more configurable than Glue, and often the best default for new workloads today.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Amazon EMR
+
+<QuestionList topic="Amazon EMR" storagePrefix="aws-analytics-emr">
+
+<QuestionCard id="awsan-emr-01" number={1} question="What is EMR and what node types does a cluster have?" difficulty="medium" topic="EMR">
+A managed cluster platform for open-source big data frameworks — Spark, Hive, Trino, HBase, Flink, Presto — on EC2, EKS, or serverless.
+
+Node types:
+- **Primary (master)** — runs the resource manager and coordinates. A single point of failure unless you use multi-master.
+- **Core** — run tasks **and** store HDFS data. Losing one risks data loss, so they're normally On-Demand.
+- **Task** — compute only, no HDFS. **Ideal for Spot**, because losing one only costs re-computation.
+
+The standard cost-optimised shape is **primary and core On-Demand, task nodes on Spot with a diversified instance fleet.** With EMRFS reading from S3 rather than HDFS, core node storage matters less, which pushes even more capacity onto cheap task nodes.
+</QuestionCard>
+
+<QuestionCard id="awsan-emr-02" number={2} question="What are transient versus long-running clusters?" difficulty="medium" topic="EMR">
+**Transient** — created for a job, terminated when it completes (`--auto-terminate`). You pay only for the run, and every job gets a clean, correctly-sized cluster. The default for scheduled batch work.
+
+**Long-running** — persists, serving many jobs and interactive users. Justified by notebook and ad-hoc query workloads, HBase, or when startup latency (5–10 minutes) is unacceptable.
+
+The cost failure mode is the classic one: a long-running cluster provisioned for peak, idle most of the night and all weekend. Auto-termination on idle and managed scaling address it.
+
+**EMR Serverless** removes the choice — you submit a job and pay for the resources it uses — which is why it's increasingly the default for batch.
+</QuestionCard>
+
+<QuestionCard id="awsan-emr-03" number={3} question="What is EMRFS, and why not use HDFS?" difficulty="medium" topic="EMR">
+**EMRFS** is EMR's implementation of the Hadoop filesystem API backed by **S3**, so `s3://` paths work as a filesystem to Spark and Hive.
+
+Using S3 rather than cluster HDFS is the standard architecture because it **decouples storage from compute**: clusters become disposable, multiple clusters read the same data, and you don't pay to keep a cluster alive just to hold data. It's also cheaper and more durable than HDFS on EBS.
+
+HDFS on the cluster is still used for **intermediate data** — shuffle spill and temporary output — where the local NVMe of storage-optimised instances is much faster than S3.
+
+Historical note worth knowing: EMRFS consistent view existed to work around S3's eventual consistency for listings. Since S3 became strongly consistent in 2020, it's unnecessary.
+</QuestionCard>
+
+<QuestionCard id="awsan-emr-04" number={4} question="How do you tune a Spark job on EMR?" difficulty="hard" topic="EMR">
+Diagnose first, in the Spark UI. The usual findings, in order of frequency:
+
+1. **Data skew** — a handful of tasks running far longer than the rest. Fix with salting, broadcast joins for small sides, or Adaptive Query Execution's skew join handling.
+2. **Too much data scanned** — bad partitioning, CSV instead of Parquet, no predicate pushdown. Usually the biggest single win, and it's a storage-layout fix.
+3. **Small files** — thousands of tasks doing almost nothing. Compact the input, tune the output partition count.
+4. **Executor sizing** — a few large executors generally beat many tiny ones; leave headroom for off-heap and overhead or YARN kills the container.
+5. **Shuffle spilling to EBS** — use an instance type with local NVMe.
+6. **Unnecessary shuffles** — repartitioning where a coalesce would do, or a join that could be broadcast.
+
+Enable **AQE** and **dynamic allocation**; they handle several of these automatically on modern Spark.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Streaming: Kinesis & MSK
+
+<QuestionList topic="Streaming: Kinesis & MSK" storagePrefix="aws-analytics-streaming">
+
+<QuestionCard id="awsan-kin-01" number={1} question="What are the Kinesis services and how do they differ?" difficulty="medium" topic="Kinesis">
+- **Kinesis Data Streams** — a durable, ordered, replayable stream of records in **shards**. You control consumers and offsets; retention is 24 hours up to 365 days. Use it when you need **replay**, multiple independent consumers, or ordering.
+- **Kinesis Data Firehose** — a fully managed **delivery** stream to S3, Redshift, OpenSearch or a third party, with buffering, format conversion to Parquet, compression and optional Lambda transformation. **No replay, no consumer offsets** — it's a pipe, not a log.
+- **Managed Service for Apache Flink** (formerly Kinesis Data Analytics) — stateful stream processing with SQL or the Flink API.
+- **Kinesis Video Streams** — media; irrelevant to most data engineering.
+
+The distinction interviewers probe: **Streams when you need to consume and replay; Firehose when you just need it landed in S3.** Firehose is dramatically less work if delivery is all you need.
+</QuestionCard>
+
+<QuestionCard id="awsan-kin-02" number={2} question="How do shards work, and what limits should you know?" difficulty="hard" topic="Kinesis">
+A shard is the unit of capacity and ordering. Per shard:
+
+- **1 MB/s or 1,000 records/s** ingress
+- **2 MB/s** egress shared across standard consumers, or 2 MB/s **per consumer** with enhanced fan-out
+- **Ordering is guaranteed within a shard**, not across the stream
+
+Records are assigned to shards by **partition key** hash — so a poorly chosen key creates a **hot shard** that throttles while others idle, exactly like DynamoDB.
+
+Scaling means **resharding** (splitting or merging), which changes shard IDs and forces consumers to handle the transition. **On-demand mode** removes this by scaling automatically, at higher per-GB cost — usually the right choice unless volume is steady and well understood.
+
+With more than a few consumers, use **enhanced fan-out** so they don't compete for the shared 2 MB/s.
+</QuestionCard>
+
+<QuestionCard id="awsan-kin-03" number={3} question="What is MSK, and when would you choose it over Kinesis?" difficulty="medium" topic="MSK">
+**Managed Streaming for Apache Kafka** — real Kafka, with AWS handling provisioning, patching, and broker replacement. MSK Serverless removes capacity planning too.
+
+Choose **MSK** when:
+- You need the **Kafka ecosystem** — Kafka Connect, Kafka Streams, ksqlDB, Schema Registry, Debezium for CDC.
+- You want **portability** — the same code runs on-premises or on another cloud.
+- You have existing Kafka expertise or applications.
+- You need finer control over retention, compaction, and partitioning.
+
+Choose **Kinesis** when you want the least operational surface, tight AWS integration (Firehose to S3 in a few clicks, native Lambda triggers), and don't need Kafka specifics.
+
+The honest summary: Kinesis is simpler and more integrated; MSK is more capable and portable. Log compaction and Connect are the features that most often force MSK.
+</QuestionCard>
+
+<QuestionCard id="awsan-kin-04" number={4} question="How do you get exactly-once semantics in a streaming pipeline?" difficulty="hard" topic="Streaming">
+Strictly, exactly-once *delivery* is impossible across a network; what you achieve is **effectively-once processing** through idempotency.
+
+The mechanisms:
+- **Idempotent writes** — key the output by a deterministic ID (`stream+shard+sequence_number`) so a reprocessed record overwrites rather than duplicates. An upsert on a primary key, or `MERGE` into a Delta/Iceberg table.
+- **Deduplication** — track processed record IDs in DynamoDB or a Redis set within a time window.
+- **Transactional checkpointing** — commit the offset and the output atomically. Flink's checkpoint barriers and Spark Structured Streaming's checkpoint plus idempotent sink do this.
+- **Kafka transactions** — for Kafka-to-Kafka, producers and consumers can participate in a transaction giving exactly-once within Kafka.
+
+The point to make: **design the sink to be idempotent** rather than trying to guarantee the stream delivers once. That's the only approach that survives retries, restarts and replays.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Governance & Search
+
+<QuestionList topic="Governance & Search" storagePrefix="aws-analytics-governance">
+
+<QuestionCard id="awsan-lf-01" number={1} question="What is Lake Formation and what does it add over IAM?" difficulty="medium" topic="Lake Formation">
+A governance layer over the lake providing **fine-grained permissions on catalog objects** — database, table, **column**, row and cell level — enforced across Athena, Redshift Spectrum, EMR, Glue and QuickSight.
+
+IAM alone controls access to **S3 prefixes**, which is coarse: you can grant a bucket path, but you can't say "this analyst may query the orders table but not the `email` or `ssn` columns," or "this team sees only EU rows."
+
+Lake Formation adds that, plus **tag-based access control** (LF-Tags) so permissions are granted to tags rather than enumerated objects, which scales far better across thousands of tables.
+
+It also handles cross-account sharing of catalog resources cleanly, which is the foundation for a data mesh arrangement where domains publish tables to each other.
+</QuestionCard>
+
+<QuestionCard id="awsan-lf-02" number={2} question="What is AWS Glue Data Quality, and how does data quality fit a pipeline?" difficulty="medium" topic="Data Quality">
+Glue Data Quality evaluates rules written in **DQDL** against a dataset, and can suggest rules by profiling existing data.
+
+```
+Rules = [
+    RowCount > 1000,
+    IsComplete "order_id",
+    IsUnique "order_id",
+    ColumnValues "amount" >= 0,
+    Completeness "customer_id" > 0.99
+]
+```
+
+Results can fail the job, publish metrics to CloudWatch, and write observations to S3.
+
+Architecturally the important part is **where** it runs: as a gate **before publishing** to the curated zone, so bad data never reaches consumers, plus a monitoring check on the way in so upstream drift is visible. Failing loudly at the boundary is far cheaper than discovering wrong numbers on a dashboard a week later.
+
+Alternatives worth naming: Deequ (which Glue DQ builds on), Great Expectations, and dbt tests.
+</QuestionCard>
+
+<QuestionCard id="awsan-os-01" number={3} question="What is Amazon OpenSearch Service used for in a data platform?" difficulty="medium" topic="OpenSearch">
+Managed OpenSearch (the fork of Elasticsearch) — a distributed search and analytics engine over an inverted index.
+
+In a data platform it appears for:
+- **Log analytics and observability** — pipeline logs shipped via Firehose, searchable with dashboards.
+- **Full-text search** over documents and product catalogues.
+- **Near-real-time operational dashboards**, where a warehouse's latency is too high.
+
+Where it does *not* belong: as a data warehouse. It's expensive per GB, has no joins, and its aggregations are approximate at scale. Teams that used it as a general analytics store usually regret it.
+
+The typical pattern is **Firehose → OpenSearch for the hot, searchable window** (say 30 days) with the full history in S3 for analytical queries via Athena.
+</QuestionCard>
+
+<QuestionCard id="awsan-lake-01" number={4} question="How would you design a lakehouse on AWS?" difficulty="hard" topic="Architecture">
+Layered, with open formats throughout:
+
+- **Ingestion** — Kinesis/MSK for streams, DMS for database CDC, Transfer Family or AppFlow for partner and SaaS data.
+- **Storage** — S3 with zones: `raw` (immutable, as-received), `staging` (cleaned, reproducible), `curated` (modelled, consumed).
+- **Table format** — **Iceberg** (or Delta) for ACID transactions, schema evolution, time travel and efficient upserts. This is what makes it a *lakehouse* rather than a lake.
+- **Catalog** — Glue Data Catalog as the single schema layer.
+- **Processing** — Glue or EMR Serverless for Spark; dbt on Athena for SQL transformation.
+- **Query** — Athena for ad-hoc, Redshift for high-concurrency BI, Spectrum to join across both.
+- **Governance** — Lake Formation for column and row-level access, plus Glue Data Quality gates.
+- **Orchestration** — MWAA or Step Functions.
+
+The two decisions worth defending: **open table format** (avoiding lock-in and enabling upserts and time travel) and **partitioning strategy**, which determines whether every downstream query is cheap or expensive.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"An Athena query scans 4 TB and costs $20 every time an analyst runs it."** — check partitioning first (almost always the cause), then format and column selection. Add partition projection if the table has many partitions, and set a workgroup data-scan limit so it can't recur.
+
+**"Choose between Glue, EMR and EMR Serverless for a nightly 2-hour Spark job."** — EMR Serverless is usually the answer now: no cluster management, more configurable than Glue, cheaper than Glue at that duration. EMR on EC2 with Spot if the job is large enough that the savings justify the operations.
+
+**"Design ingestion for clickstream events at 100k/second."** — Kinesis Data Streams (on-demand, or sized shards with a high-cardinality partition key) for replay and multiple consumers, Firehose to land Parquet in S3, and a Flink or Spark Streaming consumer for real-time aggregates. Address hot shards explicitly.
+
+**"How do you stop analysts seeing PII columns in the lake?"** — Lake Formation column-level permissions on the catalog table, enforced across Athena, EMR and Redshift Spectrum, since IAM on S3 prefixes can't express it. Add tag-based access control if the table count is large.
+
+---
+
+## Further Reading
+
+- [Amazon Athena user guide](https://docs.aws.amazon.com/athena/latest/ug/) — the performance tuning page especially
+- [AWS Glue developer guide](https://docs.aws.amazon.com/glue/latest/dg/)
+- [Amazon EMR management guide](https://docs.aws.amazon.com/emr/latest/ManagementGuide/)
+- [Amazon Kinesis Data Streams developer guide](https://docs.aws.amazon.com/streams/latest/dev/)
+- [Amazon MSK developer guide](https://docs.aws.amazon.com/msk/latest/developerguide/)
+- [AWS Lake Formation developer guide](https://docs.aws.amazon.com/lake-formation/latest/dg/)
+- [Apache Iceberg on AWS](https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/introduction.html)

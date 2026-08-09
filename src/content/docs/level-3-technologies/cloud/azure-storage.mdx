@@ -1,0 +1,294 @@
+---
+title: Azure Storage for Data Platforms
+description: Azure storage interview questions covering Blob Storage and ADLS Gen2, access tiers and lifecycle management, redundancy options, Disk, File, Queue and Table storage, and designing a data lake on Azure.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Azure Storage: ADLS Gen2 and the Data Lake
+
+**The single most important thing to know about Azure storage for data engineering is that ADLS Gen2 is Blob Storage with hierarchical namespace turned on — one checkbox that adds real directories, atomic renames and POSIX ACLs. Get that wrong and every Spark job pays for it in slow directory operations. Most Azure lake questions come back to that setting, the access tier you chose, and the redundancy you're paying for.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Blob Storage & ADLS Gen2](#blob-storage--adls-gen2)
+- [Access Tiers & Lifecycle](#access-tiers--lifecycle)
+- [Redundancy & Availability](#redundancy--availability)
+- [Security & Access Control](#security--access-control)
+- [Disk, File, Queue & Table Storage](#disk-file-queue--table-storage)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+An Azure **storage account** is the top-level container, and its settings — performance tier, redundancy, hierarchical namespace — are chosen at creation and mostly can't be changed later. Inside it live the four services: **Blob** (objects), **File** (SMB/NFS shares), **Queue** (simple messaging) and **Table** (key-value). For data engineering, Blob is the one that matters.
+
+**ADLS Gen2** is not a separate product. It's a Blob Storage account with **hierarchical namespace (HNS)** enabled, which converts the flat key namespace into real directories. That single change gives atomic directory rename, efficient directory listing and delete, and POSIX-style ACLs — all of which analytics engines depend on, because a Spark job's commit protocol renames a temp directory to the final one.
+
+The cost model rests on three dials: **access tier** (hot, cool, cold, archive — cheaper storage in exchange for higher read cost and latency), **redundancy** (LRS through GZRS, roughly doubling in price as you add zones and regions), and **transactions**, which is why millions of tiny files cost more than a few large ones.
+
+---
+
+## Blob Storage & ADLS Gen2
+
+<QuestionList topic="Blob Storage & ADLS Gen2" storagePrefix="azure-storage-blob">
+
+<QuestionCard id="azst-blob-01" number={1} question="What is the difference between Blob Storage and ADLS Gen2?" difficulty="medium" topic="ADLS Gen2">
+ADLS Gen2 **is** Blob Storage with **hierarchical namespace** enabled at account creation.
+
+What HNS adds:
+- **Real directories** — so renaming or deleting a folder is a single atomic metadata operation rather than N per-object operations.
+- **POSIX-style ACLs** on files and directories, on top of Azure RBAC.
+- **Better performance for analytics**, because engines list and manipulate directories constantly.
+- **The `abfss://` driver**, which Spark, Databricks and Synapse use.
+
+Without HNS, "folders" are just key prefixes, and a Spark job's commit — which renames a temporary output directory to its final name — becomes a copy-and-delete per file. On a job producing 50,000 files, that's the difference between seconds and many minutes.
+
+**Always enable HNS for a data lake.** It can't be turned on after creation without migrating the account, which is the mistake to avoid.
+</QuestionCard>
+
+<QuestionCard id="azst-blob-02" number={2} question="What are the blob types, and which do you use?" difficulty="easy" topic="Blob Storage">
+- **Block blobs** — the default and the one you use. Composed of blocks, optimised for upload and streaming, up to ~190 TB. All lake data is block blobs.
+- **Append blobs** — optimised for appends, used for logging scenarios where writers add to the end.
+- **Page blobs** — random read/write, up to 8 TB; the backing store for unmanaged VM disks. Effectively invisible now that managed disks are standard.
+
+For data engineering, block blobs are the whole answer. The only time the distinction surfaces is diagnosing a tool that chose an append blob, or reading old documentation about page blobs and VHDs.
+
+Large uploads use **blocks staged then committed**, which is Azure's equivalent of multipart upload — and, like S3, **uncommitted blocks are billed**, so failed uploads can accumulate hidden cost.
+</QuestionCard>
+
+<QuestionCard id="azst-blob-03" number={3} question="How should you organise a data lake on ADLS Gen2?" difficulty="medium" topic="Data Lake">
+A common, defensible layout:
+
+```
+container: raw/        landing zone, immutable, as-received
+container: enriched/   cleaned, conformed, reproducible
+container: curated/    modelled, consumed by BI and ML
+```
+
+with paths inside each like `source/entity/year=2026/month=01/day=15/`.
+
+Decisions worth defending:
+- **Separate containers per zone**, so RBAC and lifecycle policies apply cleanly per zone rather than per path.
+- **Date partitioning** in Hive style (`year=/month=/day=`) so engines can prune partitions.
+- **Parquet or Delta**, never CSV, for anything queried.
+- **File sizes of 128 MB–1 GB** — the small-files problem is as real here as on S3.
+- **A separate storage account per environment**, since many settings are account-level and blast radius should be bounded.
+
+Some teams use separate accounts per zone to get independent throughput limits, which matters at very high scale.
+</QuestionCard>
+
+<QuestionCard id="azst-blob-04" number={4} question="What performance limits should you know about a storage account?" difficulty="hard" topic="Performance">
+A standard general-purpose v2 account has account-level ceilings — on the order of **20,000 requests per second** and tens of Gbps of egress, varying by region and configuration.
+
+That matters because a large Spark cluster can saturate an account, and the symptom is **HTTP 503 throttling** appearing as intermittent task failures rather than an obvious quota error.
+
+Mitigations:
+- **Spread across multiple storage accounts** — by zone, by source system, or by environment.
+- **Fewer, larger files** — the same request budget goes much further.
+- **Premium block blob accounts** for latency-sensitive or very high transaction rate workloads (SSD-backed, higher cost per GB but far cheaper per transaction).
+- **Retry with exponential backoff**, which the Azure SDKs do by default.
+
+The general shape: throughput problems on ADLS are usually **transaction-count** problems, and the fix is file layout before it is infrastructure.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Access Tiers & Lifecycle
+
+<QuestionList topic="Access Tiers & Lifecycle" storagePrefix="azure-storage-tiers">
+
+<QuestionCard id="azst-tier-01" number={1} question="What are the Azure blob access tiers?" difficulty="medium" topic="Access Tiers">
+| Tier | Storage cost | Access cost | Min duration | Retrieval |
+|---|---|---|---|---|
+| **Hot** | highest | lowest | none | immediate |
+| **Cool** | lower | higher | 30 days | immediate |
+| **Cold** | lower still | higher still | 90 days | immediate |
+| **Archive** | lowest | highest | 180 days | **hours** (rehydration) |
+
+Hot, Cool and Cold are all **online** — accessible immediately. **Archive is offline**: a blob must be **rehydrated** to Hot or Cool before it can be read, taking up to 15 hours at standard priority or under an hour at high priority (for a fee).
+
+The two traps: **early deletion is billed for the full minimum duration**, so moving data to Archive and deleting it a month later costs more than leaving it; and archived data **cannot be queried in place**, so anything Synapse or Databricks might need must stay online.
+</QuestionCard>
+
+<QuestionCard id="azst-tier-02" number={2} question="How do lifecycle management policies work?" difficulty="medium" topic="Lifecycle">
+JSON rules on the storage account that move or delete blobs based on age, prefix and index tags.
+
+```json
+{
+  "enabled": true,
+  "definition": {
+    "filters": { "blobTypes": ["blockBlob"], "prefixMatch": ["raw/"] },
+    "actions": { "baseBlob": {
+      "tierToCool":    { "daysAfterModificationGreaterThan": 30 },
+      "tierToArchive": { "daysAfterModificationGreaterThan": 90 },
+      "delete":        { "daysAfterModificationGreaterThan": 2555 }
+    }}
+  }
+}
+```
+
+A sensible lake policy: **raw** tiers down aggressively and is retained for compliance; **enriched** is reproducible so it can simply be deleted after a short window; **curated** stays Hot or Cool because it's queried.
+
+Rules run once daily and can take up to 24 hours to take effect, so don't expect immediate results when testing. Also add a rule to delete **old snapshots and versions**, which otherwise accumulate silently.
+</QuestionCard>
+
+<QuestionCard id="azst-tier-03" number={3} question="What is the difference between soft delete, snapshots and versioning?" difficulty="medium" topic="Data Protection">
+- **Soft delete** — deleted blobs (or containers) are retained and recoverable for a configured window. Protection against accidental deletion, and it should be on by default for any lake.
+- **Snapshots** — manual, read-only point-in-time copies of a blob. You create them explicitly; you're billed for the differences.
+- **Versioning** — automatic: every overwrite creates a new version, with the previous one retained. No action needed by the writer.
+
+The cost warning is the same one as S3: **versioning plus a pipeline that rewrites the same partition daily silently multiplies storage**. Always pair it with a lifecycle rule expiring old versions.
+
+For a curated zone, versioning plus soft delete is a reasonable default. For a large raw zone, versioning can be expensive and the data is usually immutable anyway, so soft delete alone is often the better trade.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Redundancy & Availability
+
+<QuestionList topic="Redundancy & Availability" storagePrefix="azure-storage-redundancy">
+
+<QuestionCard id="azst-red-01" number={1} question="Explain LRS, ZRS, GRS and GZRS." difficulty="medium" topic="Redundancy">
+| Option | Copies | Protects against |
+|---|---|---|
+| **LRS** | 3, one datacentre | disk and rack failure |
+| **ZRS** | 3, across availability zones | datacentre failure |
+| **GRS** | 3 local + 3 in a paired region | regional outage |
+| **GZRS** | 3 zonal + 3 in paired region | zone and regional outage |
+| **RA-GRS / RA-GZRS** | as above, **secondary readable** | adds read access during an outage |
+
+Cost roughly doubles from LRS to ZRS to geo-redundant options.
+
+Two important details. **Geo-replication is asynchronous**, so a regional failover can lose recent writes — the RPO is typically minutes, not zero. And without the **RA-** prefix, the secondary copy is **not readable**; it only exists for failover, which surprises people who assume GRS gives them a read replica.
+
+For a data lake, **ZRS is a common sweet spot**: zone resilience without paying for cross-region replication of data you can usually re-ingest.
+</QuestionCard>
+
+<QuestionCard id="azst-red-02" number={2} question="How do you choose redundancy for a data lake?" difficulty="medium" topic="Redundancy">
+Choose per zone, based on **whether the data is reproducible**.
+
+- **Raw** — this is often the only copy of what a source system sent, so losing it is unrecoverable. **ZRS or GZRS** is justified.
+- **Enriched / staging** — derived and rebuildable from raw. **LRS** is fine, and the saving is real at scale.
+- **Curated** — expensive to rebuild and directly consumed. **ZRS**, or GZRS if a regional outage would breach an SLA.
+
+The question that decides it: *if this region disappeared for a day, what would it cost us?* If the answer is "we'd re-ingest from source when it comes back", geo-redundancy is insurance you don't need.
+
+Note that redundancy is an **account-level** setting, which is a practical argument for separate storage accounts per zone.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Security & Access Control
+
+<QuestionList topic="Security & Access Control" storagePrefix="azure-storage-security">
+
+<QuestionCard id="azst-sec-01" number={1} question="How do you control access to ADLS Gen2?" difficulty="hard" topic="Security">
+Three mechanisms, and understanding how they combine is the interview point.
+
+- **Azure RBAC** — role assignments at subscription, resource group, storage account or **container** scope. Roles like `Storage Blob Data Reader` and `Storage Blob Data Contributor`. Coarse-grained but simple, and the primary mechanism.
+- **POSIX ACLs** — available only with hierarchical namespace, set per directory and file, with read/write/execute for owner, group and other, plus named principals. Fine-grained.
+- **SAS tokens** — time-limited signed URLs for delegated access, especially to external parties.
+
+They combine: **RBAC is evaluated first, and if it grants access, ACLs aren't checked.** So a broad `Storage Blob Data Contributor` at account scope silently overrides every carefully-set ACL underneath — a very common misconfiguration.
+
+The workable pattern: RBAC at **container** level for broad roles, ACLs for fine-grained directory permissions, and **Entra ID groups** rather than individual principals so ACLs stay manageable.
+</QuestionCard>
+
+<QuestionCard id="azst-sec-02" number={2} question="What are SAS tokens, and what are the types?" difficulty="medium" topic="Security">
+A **Shared Access Signature** is a signed URL granting time-limited, scoped access without sharing account keys.
+
+- **User delegation SAS** — signed with **Entra ID credentials**. The recommended type: it's tied to an identity, auditable, and revocable by removing the identity's permissions.
+- **Service SAS** — signed with the account key, scoped to one service.
+- **Account SAS** — signed with the account key, broader scope.
+
+The problem with key-signed SAS tokens is that revoking one means **rotating the account key**, which breaks everything else using it. That's why user delegation SAS is preferred.
+
+Best practice: short expiry, minimum permissions, restrict to an IP range where possible, require HTTPS, and **disable account key access entirely** (`allowSharedKeyAccess: false`) so only Entra ID authentication is possible.
+</QuestionCard>
+
+<QuestionCard id="azst-sec-03" number={3} question="How do you secure network access to storage?" difficulty="medium" topic="Security">
+Storage accounts are internet-reachable by default, which is rarely what you want for a lake.
+
+- **Private Endpoint** — a private IP for the storage account inside your VNet, so traffic never traverses the internet. The strongest option, and the standard for production data platforms.
+- **Service Endpoint** — restricts the account to specific VNet subnets over the Azure backbone. Simpler than Private Endpoint, but the account still has a public IP.
+- **Firewall rules** — allow specific IP ranges, plus "allow trusted Azure services" for platform integrations.
+- **Disable public network access** entirely once private connectivity is in place.
+
+The operational gotcha: locking down networking frequently breaks things you forgot depended on public access — Data Factory integration runtimes, Synapse managed VNet, Logic Apps. Plan the exceptions before flipping the switch, and roll it out in a non-production environment first.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Disk, File, Queue & Table Storage
+
+<QuestionList topic="Disk, File, Queue & Table Storage" storagePrefix="azure-storage-other">
+
+<QuestionCard id="azst-oth-01" number={1} question="What is Azure Files, and when would you use it over Blob?" difficulty="medium" topic="Azure Files">
+Managed file shares accessible over **SMB** and **NFS**, mountable by VMs, AKS pods and on-premises machines simultaneously.
+
+Use it when software genuinely requires a filesystem with shared write access: a lift-and-shift application expecting a network share, a shared configuration directory, or a tool that can't speak object storage.
+
+Tiers run from transaction-optimised through hot and cool (standard, HDD-backed) to **premium** (SSD-backed, provisioned IOPS).
+
+For data engineering it's rarely the right answer — it costs substantially more per GB than Blob and the analytics ecosystem is built around ADLS. **Azure File Sync** is the one genuinely interesting feature, caching a share on-premises while the authoritative copy lives in Azure, which suits hybrid file-server consolidation.
+</QuestionCard>
+
+<QuestionCard id="azst-oth-02" number={2} question="What are Azure Queue Storage and Table Storage, and are they still relevant?" difficulty="medium" topic="Queue & Table">
+**Queue Storage** — a simple, cheap message queue with at-least-once delivery, a visibility timeout, and up to 64 KB messages. It lacks topics, sessions, dead-lettering, ordering and transactions. **Service Bus** is the richer alternative, and the right choice for anything beyond basic decoupling.
+
+**Table Storage** — a cheap NoSQL key-value store keyed by partition key and row key. Very low cost, very limited: no secondary indexes, no complex queries, limited transactions.
+
+Relevance today: both are **legacy-adjacent**. Table Storage's API lives on as the **Cosmos DB Table API**, which gives the same programming model with global distribution and better performance — and Cosmos DB is where new work should go.
+
+Know them for existing systems and cost-sensitive simple cases; don't propose them for a new data platform.
+</QuestionCard>
+
+<QuestionCard id="azst-oth-03" number={3} question="What are the Azure disk types and where does the temp disk fit?" difficulty="medium" topic="Disk Storage">
+**Managed disks** attach to a VM and persist independently of it:
+- **Standard HDD / Standard SSD** — dev, test, light production.
+- **Premium SSD** — production; performance tied to disk size.
+- **Premium SSD v2** — IOPS and throughput provisioned **independently of capacity**. The current default.
+- **Ultra Disk** — sub-millisecond latency, very high IOPS, for demanding databases.
+
+Separately, many VM sizes include a **temporary disk** (the `d` in the size name) which is local, fast and **ephemeral** — wiped on deallocation or host migration.
+
+The data engineering point: **Spark shuffle and scratch belong on the temp disk**, not on premium managed disks. Choosing a VM series without a local temp disk for a shuffle-heavy job pushes that traffic onto network storage and turns a CPU-bound job into an I/O-bound one.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Spark jobs writing to ADLS are slow at the commit stage."** — most likely hierarchical namespace is off, so the commit's directory rename is a per-file copy-and-delete. Confirm HNS, and check output file counts, since committing 100,000 tiny files is slow regardless.
+
+**"Design storage for a new Azure data lake."** — ADLS Gen2 with HNS enabled, separate containers for raw/enriched/curated, Hive-style date partitioning, Delta or Parquet, lifecycle policies per zone, ZRS for raw and curated with LRS for reproducible intermediates, Private Endpoint, and Entra ID groups over RBAC at container scope with ACLs beneath.
+
+**"You're getting intermittent 503s from storage under load."** — account-level throttling. Reduce transaction count with larger files, spread across multiple storage accounts, consider a premium block blob account, and confirm the SDK's retry policy is active.
+
+**"Someone set an ACL but the user can still read everything."** — RBAC is evaluated first and short-circuits ACL evaluation. A broad data-plane role at account or container scope overrides the ACLs entirely.
+
+---
+
+## Further Reading
+
+- [Azure Blob Storage documentation](https://learn.microsoft.com/azure/storage/blobs/)
+- [Azure Data Lake Storage Gen2 introduction](https://learn.microsoft.com/azure/storage/blobs/data-lake-storage-introduction)
+- [ADLS Gen2 best practices](https://learn.microsoft.com/azure/storage/blobs/data-lake-storage-best-practices)
+- [Access control model in ADLS Gen2](https://learn.microsoft.com/azure/storage/blobs/data-lake-storage-access-control-model)
+- [Blob access tiers](https://learn.microsoft.com/azure/storage/blobs/access-tiers-overview)
+- [Azure Storage redundancy](https://learn.microsoft.com/azure/storage/common/storage-redundancy)
+- [Storage account scalability targets](https://learn.microsoft.com/azure/storage/common/scalability-targets-standard-account)

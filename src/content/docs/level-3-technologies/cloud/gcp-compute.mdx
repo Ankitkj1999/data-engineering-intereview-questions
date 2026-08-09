@@ -1,0 +1,248 @@
+---
+title: GCP Compute for Data Workloads
+description: Google Cloud compute interview questions covering Compute Engine machine families and pricing, Google Kubernetes Engine, Cloud Run and Cloud Functions — and choosing compute for Dataproc, Dataflow and BigQuery workloads.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## GCP Compute: Under the Managed Data Services
+
+**On Google Cloud, most data engineering compute is consumed through Dataflow, Dataproc and BigQuery — all of which provision Compute Engine underneath. The compute questions in a data interview are therefore really about the economics: Spot VMs on Dataproc workers, sustained-use discounts you get automatically, and why a Cloud Function's timeout keeps failing your ingestion job.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Compute Engine](#compute-engine)
+- [Google Kubernetes Engine](#google-kubernetes-engine)
+- [Cloud Run & Cloud Functions](#cloud-run--cloud-functions)
+- [Choosing Compute on GCP](#choosing-compute-on-gcp)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+GCP's resource hierarchy is **organisation → folder → project → resource**, and the **project** is the key unit: it scopes billing, quotas, IAM and networking. Data platforms typically use a project per environment, which is how you get hard isolation between dev and production and clean cost attribution.
+
+Compute spans the usual spectrum — **Compute Engine** VMs, **GKE** for containers, **Cloud Run** for serverless containers, **Cloud Functions** for event-driven code — but two GCP-specific pricing behaviours change the calculus. **Sustained use discounts** apply automatically when a VM runs a large share of the month, with no commitment required. And **custom machine types** let you specify exact vCPU and memory rather than picking from fixed shapes, which avoids paying for memory you don't need.
+
+The lever that matters most for batch data work is **Spot VMs** (formerly preemptible). At 60–91% off, with a 30-second termination notice, they're the standard configuration for Dataproc secondary workers and any restartable processing — and using them is often the single largest cost reduction available.
+
+---
+
+## Compute Engine
+
+<QuestionList topic="Compute Engine" storagePrefix="gcp-compute-gce">
+
+<QuestionCard id="gcpcm-gce-01" number={1} question="What are the Compute Engine machine families?" difficulty="easy" topic="Compute Engine">
+Families are named by purpose and generation — `n2-standard-8`, `c3-highmem-16`:
+
+- **E2** — cost-optimised, general purpose. Cheapest, with no sustained-use discount.
+- **N2 / N2D / N4** — balanced general purpose. The common default.
+- **C3 / C4** — compute optimised, highest per-core performance. For CPU-bound transforms.
+- **M1 / M2 / M3** — memory optimised, up to several TB. For very large in-memory workloads.
+- **A2 / A3 / G2** — GPU, for ML.
+- **T2D / C4A** — Arm-based (Tau, Axion), strong price-performance if your dependencies build for Arm.
+
+Within a family, **standard**, **highmem** and **highcpu** vary the memory-to-vCPU ratio. For Spark, **highmem** shapes are the usual choice since shuffle and caching are memory-bound.
+
+**Custom machine types** let you specify exact vCPU and memory, which is genuinely useful for right-sizing a Dataproc worker rather than rounding up to the next predefined shape.
+</QuestionCard>
+
+<QuestionCard id="gcpcm-gce-02" number={2} question="What are the GCP pricing models for compute?" difficulty="medium" topic="Compute Engine">
+- **On-demand** — per-second billing after a one-minute minimum.
+- **Sustained use discounts** — **automatic**, up to 30% off, applied when an instance runs a significant portion of the month. No commitment, no action required. This is distinctive to GCP.
+- **Committed use discounts (CUDs)** — commit to 1 or 3 years for up to 57% (resource-based) or 70% (spend-based, flexible across machine types).
+- **Spot VMs** — 60–91% off surplus capacity, terminated with **30 seconds' notice** and always within 24 hours. Formerly "preemptible", which had a hard 24-hour cap; Spot removes that but can still be reclaimed.
+
+For a data platform: **CUDs for the steady baseline**, **Spot for Dataproc secondary workers and any restartable batch**, and sustained-use discounts arriving automatically on whatever else runs continuously.
+</QuestionCard>
+
+<QuestionCard id="gcpcm-gce-03" number={3} question="How do you use Spot VMs safely for data processing?" difficulty="hard" topic="Compute Engine">
+The work must be **restartable**, because reclamation is guaranteed eventually.
+
+Practices:
+- **Keep the master and primary workers standard, secondary workers on Spot.** On Dataproc this is a first-class configuration — secondary workers are compute-only, so losing one costs a recomputed partition rather than the job.
+- **Handle the shutdown signal** — GCP sends an ACPI G2 soft-off; a handler has ~30 seconds to drain and checkpoint. That's much tighter than AWS's two minutes.
+- **Diversify machine types** where the service allows, reducing the chance of simultaneous reclamation.
+- **Checkpoint long jobs** so a restart doesn't lose hours.
+- **Never run stateful services on Spot** — a database, a Kafka broker or an HDFS NameNode is the wrong workload.
+
+For Dataflow, the equivalent is **FlexRS**, which uses a mix of Spot and standard VMs for batch jobs at a discount, with delayed scheduling.
+</QuestionCard>
+
+<QuestionCard id="gcpcm-gce-04" number={4} question="What are the persistent disk and local SSD options?" difficulty="medium" topic="Compute Engine">
+**Persistent Disk** is network-attached and survives instance deletion:
+- **pd-standard** — HDD, cheap sequential throughput.
+- **pd-balanced** — SSD, the sensible default.
+- **pd-ssd** — higher IOPS for demanding databases.
+- **pd-extreme / Hyperdisk** — provisioned IOPS independent of size; Hyperdisk is the newer generation and the current recommendation for high-performance needs.
+
+Note that PD performance **scales with size** on most types, so a small disk is also a slow disk — a common cause of unexpectedly poor I/O.
+
+**Local SSD** is physically attached NVMe: very fast, and **ephemeral** — lost when the instance stops. That makes it exactly right for **Spark shuffle and spill**, and wrong for anything that must survive.
+
+Dataproc worker configuration exposes both, and adding local SSDs to shuffle-heavy clusters is a standard tuning step.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Google Kubernetes Engine
+
+<QuestionList topic="Google Kubernetes Engine" storagePrefix="gcp-compute-gke">
+
+<QuestionCard id="gcpcm-gke-01" number={1} question="What is GKE, and what is the difference between Standard and Autopilot?" difficulty="medium" topic="GKE">
+Managed Kubernetes from the company that created Kubernetes, generally the most mature managed offering.
+
+- **Standard** — you manage node pools: machine types, sizes, autoscaling, Spot. Full control, and you pay for nodes whether pods use them or not.
+- **Autopilot** — Google manages nodes entirely. You deploy pods and **pay per pod's requested CPU, memory and storage**. No node sizing, no bin-packing to worry about, stronger security defaults.
+
+Autopilot is the better default for most workloads because it removes an entire operational domain and eliminates paying for unused node capacity. Standard wins when you need specific machine types, GPUs with particular configurations, privileged workloads, or DaemonSets that Autopilot restricts.
+
+For data platforms, GKE hosts Spark on Kubernetes, Airflow (Cloud Composer itself runs on GKE), Flink and Trino.
+</QuestionCard>
+
+<QuestionCard id="gcpcm-gke-02" number={2} question="How do pods on GKE authenticate to BigQuery or Cloud Storage?" difficulty="medium" topic="GKE">
+**Workload Identity Federation** — the recommended approach. A Kubernetes service account is bound to a Google service account, and pods receive short-lived credentials automatically through the metadata server. No keys stored anywhere.
+
+```bash
+gcloud iam service-accounts add-iam-policy-binding \
+  pipeline-sa@project.iam.gserviceaccount.com \
+  --role roles/iam.workloadIdentityUser \
+  --member "serviceAccount:project.svc.id.goog[data/pipeline-ksa]"
+```
+
+The alternatives are worse: the **node's default service account** applies to every pod on the node (too coarse, and the default often has broad scopes), and a **service account key file in a Secret** is a long-lived credential to rotate and leak — Google actively discourages it and many organisations disable key creation entirely.
+
+Then grant narrow IAM roles: `roles/bigquery.dataViewer` on a specific dataset, not `roles/bigquery.admin` on the project.
+</QuestionCard>
+
+<QuestionCard id="gcpcm-gke-03" number={3} question="How do you configure GKE node pools for data workloads?" difficulty="medium" topic="GKE">
+Separate pools by workload shape, with scheduling constraints to keep them apart:
+
+- **System pool** — small, standard (never Spot), for cluster components.
+- **Spark executor pool** — highmem machine types, **Spot**, with local SSDs if shuffle-heavy, tainted so only tolerant workloads land there.
+- **General workload pool** — standard machines for orchestration and services.
+
+Use **taints and tolerations** plus **node selectors** so a Spark executor can't be scheduled onto the system pool and destabilise it.
+
+Enable the **cluster autoscaler** per pool with sensible minimums and maximums, and consider **node auto-provisioning**, which creates right-sized pools on demand rather than requiring you to predefine every shape.
+
+For bursty batch, Autopilot with Spot pods removes most of this configuration entirely, which is often the better trade.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Cloud Run & Cloud Functions
+
+<QuestionList topic="Cloud Run & Cloud Functions" storagePrefix="gcp-compute-serverless">
+
+<QuestionCard id="gcpcm-run-01" number={1} question="What is Cloud Run and how does it differ from Cloud Functions?" difficulty="medium" topic="Cloud Run">
+**Cloud Run** runs **containers** serverlessly — any language, any dependency, scaling from zero to thousands of instances, billed per request and per resource-second. It comes in two forms: **services** (request-driven, HTTP or event) and **jobs** (run to completion, for batch tasks).
+
+**Cloud Functions** runs a **single function** with a managed runtime and event bindings. Its 2nd generation is in fact built on Cloud Run underneath.
+
+Differences that matter: Cloud Run takes **any container**, so heavy dependencies (pandas, PyArrow, a JDBC driver) are straightforward; it supports **concurrency**, with one instance handling multiple simultaneous requests, which is dramatically cheaper for I/O-bound work; and **Cloud Run jobs have no request timeout**, running for hours.
+
+The practical guidance: **Cloud Run is the better default now**, with Cloud Functions reserved for genuinely tiny event handlers where its bindings save real work.
+</QuestionCard>
+
+<QuestionCard id="gcpcm-run-02" number={2} question="What limits should you know for Cloud Functions and Cloud Run?" difficulty="medium" topic="Serverless">
+**Cloud Functions (2nd gen)** — up to 60 minutes for event-driven functions, 60 minutes for HTTP, up to 32 GB memory. 1st gen was capped at 9 minutes, which is what older documentation and many people's memory reflect.
+
+**Cloud Run services** — request timeout up to 60 minutes, up to 32 GB memory and 8 vCPU, and **concurrency up to 1,000 requests per instance**.
+
+**Cloud Run jobs** — no request-timeout constraint; a task can run up to 24 hours, with array-style parallel tasks.
+
+The concurrency setting is the one that's most under-appreciated: for a function waiting on a database or an API, setting concurrency to 80 rather than 1 means one instance serves 80 requests, cutting cost by a large factor. It's the single biggest Cloud Run cost lever, and defaults are conservative.
+</QuestionCard>
+
+<QuestionCard id="gcpcm-run-03" number={3} question="How do serverless services integrate with GCP data services?" difficulty="medium" topic="Serverless">
+Mostly through **Eventarc** and **Pub/Sub**:
+
+- **Cloud Storage events** — an object lands, Eventarc triggers Cloud Run or a Function. The canonical ingestion trigger.
+- **Pub/Sub push or pull** — Cloud Run can receive push subscriptions; a job can pull.
+- **BigQuery** — a Function or Cloud Run service triggered on completion of a load job, or invoked as a **remote function** inside a query.
+- **Cloud Scheduler** — cron triggering a Cloud Run job or Function.
+- **Workflows** — orchestrating several services with retries and error handling.
+- **Firestore and Cloud SQL triggers** via Eventarc.
+
+The pattern worth naming for data engineering: use serverless as the **trigger and glue** — receive the event, validate, then start a Dataflow or Dataproc job — rather than doing heavy transformation in the function itself.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Choosing Compute on GCP
+
+<QuestionList topic="Choosing Compute on GCP" storagePrefix="gcp-compute-choosing">
+
+<QuestionCard id="gcpcm-ch-01" number={1} question="How do you choose compute for a GCP data pipeline?" difficulty="hard" topic="Choosing">
+| Workload | Choice |
+|---|---|
+| SQL analytics at any scale | **BigQuery** — no compute to manage at all |
+| Streaming or batch pipelines (Beam) | **Dataflow** |
+| Spark / Hadoop | **Dataproc** (or Dataproc Serverless) |
+| Event-driven, short | **Cloud Run** or Cloud Functions |
+| Containerised batch task | **Cloud Run jobs** or **Batch** |
+| Orchestration | **Cloud Composer** (Airflow) or **Workflows** |
+| Full platform, many frameworks | **GKE** |
+
+The GCP-specific point worth leading with: **BigQuery removes the compute question entirely** for a very wide range of analytical work. Before choosing a processing engine, ask whether the transformation can just be SQL in BigQuery — it frequently can, and that's cheaper and simpler than any cluster.
+
+Otherwise the usual three questions apply: how long does one unit of work run, is it distributed or merely parallel, and what's the duty cycle.
+</QuestionCard>
+
+<QuestionCard id="gcpcm-ch-02" number={2} question="What is Dataproc Serverless and when would you use it?" difficulty="medium" topic="Choosing">
+Spark without a cluster: you submit a batch workload, Google provisions ephemeral compute, runs it and tears it down, billing for what the job used.
+
+Compared with **Dataproc on clusters**, you lose control over the exact machine shapes and long-running services (no HBase, no persistent notebooks), and you can't keep a warm cluster for interactive work. You gain no cluster management, no idle cost, and no capacity planning.
+
+Choose **Dataproc Serverless** for scheduled batch Spark jobs — which is most data engineering Spark. Choose **Dataproc clusters** when you need a persistent cluster for interactive notebooks, other Hadoop ecosystem components, very large jobs where Spot pricing on a managed cluster is decisive, or specific version and configuration control.
+
+It's the closest GCP equivalent to EMR Serverless, and the same reasoning applies.
+</QuestionCard>
+
+<QuestionCard id="gcpcm-ch-03" number={3} question="How do you control compute cost on GCP?" difficulty="medium" topic="Cost">
+1. **Spot VMs** for Dataproc secondary workers and restartable batch — the largest single lever.
+2. **Committed use discounts** for the steady baseline; sustained-use discounts apply automatically on top of on-demand.
+3. **Turn things off** — auto-delete idle Dataproc clusters (`--max-idle`), scale Composer environments down in non-production, and use Cloud Run's scale-to-zero rather than a permanently-running service.
+4. **Right-size with custom machine types**, avoiding paying for memory you don't use.
+5. **Raise Cloud Run concurrency** — often a large saving on I/O-bound services.
+6. **For BigQuery, control bytes scanned** — partitioning, clustering and avoiding `SELECT *` matter far more than any VM decision, since that's where the money usually goes.
+7. **Budgets and alerts** per project, and labels for attribution.
+
+Point 6 is the GCP-specific one: on most GCP data platforms, BigQuery query cost dwarfs compute cost, so that's where optimisation effort belongs.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"A Dataproc job costs too much."** — move secondary workers to Spot, set `--max-idle` so clusters auto-delete, check whether the job should be Dataproc Serverless instead of a persistent cluster, and look at whether the input layout is forcing it to read far more than necessary.
+
+**"Files land in Cloud Storage and need processing within seconds."** — Eventarc on the object-finalise event → Cloud Run service or job. For heavy transforms, have it trigger Dataflow or Dataproc rather than doing the work inline.
+
+**"Your Cloud Run bill is higher than expected for an API that mostly waits on BigQuery."** — concurrency is probably set to 1, so each request gets its own instance. Raising it means one instance serves many concurrent waits, often cutting cost by an order of magnitude.
+
+**"Cloud Functions or Cloud Run?"** — Cloud Run for almost everything now: any container, any dependency, concurrency, and jobs with no request timeout. Cloud Functions only for tiny event handlers where the bindings genuinely save work.
+
+---
+
+## Further Reading
+
+- [Compute Engine machine families](https://cloud.google.com/compute/docs/machine-resource)
+- [Spot VMs](https://cloud.google.com/compute/docs/instances/spot)
+- [Compute Engine pricing and discounts](https://cloud.google.com/compute/docs/sustained-use-discounts)
+- [GKE Autopilot overview](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview)
+- [Workload Identity Federation for GKE](https://cloud.google.com/kubernetes-engine/docs/concepts/workload-identity)
+- [Cloud Run documentation](https://cloud.google.com/run/docs)
+- [Dataproc Serverless for Spark](https://cloud.google.com/dataproc-serverless/docs)

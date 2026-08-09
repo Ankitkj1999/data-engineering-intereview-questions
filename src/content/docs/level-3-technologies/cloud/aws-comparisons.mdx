@@ -1,0 +1,332 @@
+---
+title: AWS Service Comparisons
+description: Head-to-head AWS service comparisons that come up constantly in data engineering interviews — S3 vs EBS vs EFS, RDS vs DynamoDB, Aurora vs RDS, Kinesis stream types, SQS vs SNS vs Step Functions, ECS vs EKS vs Lambda, and storage class trade-offs.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## AWS Service Comparisons
+
+**"X versus Y" is the most reliable interview format in cloud, because it can't be answered by memorising a product page. A good answer names the axis the two services actually differ on, gives a concrete example of when each wins, and — the part that separates candidates — says when the comparison is a false choice because the real answer is a third service entirely.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Storage Comparisons](#storage-comparisons)
+- [Database Comparisons](#database-comparisons)
+- [Compute Comparisons](#compute-comparisons)
+- [Streaming & Messaging Comparisons](#streaming--messaging-comparisons)
+- [Analytics Comparisons](#analytics-comparisons)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Most AWS comparisons reduce to one of four axes. **Access shape** — object, block or file; key-value or relational; scan or point lookup. **Managed versus controlled** — how much AWS operates, and what you give up in exchange. **Elasticity versus committed capacity** — serverless costs nothing at idle and more per unit of work, provisioned is the reverse. And **coupling** — how tightly the choice ties you to AWS.
+
+The strongest interview technique is to **name the axis first**, then place both services on it. "S3 versus EBS" is really "object storage accessed over HTTP by many clients versus block storage attached to one instance" — and once that's said, every difference in durability, sharing, pricing and performance follows.
+
+The second technique is knowing when to **reject the premise**. A question like "Redshift or Athena?" often has the answer "both, for different query patterns," and "RDS or DynamoDB?" is frequently "RDS, because the access pattern isn't actually key-value." Volunteering that is a stronger answer than picking a side.
+
+---
+
+## Storage Comparisons
+
+<QuestionList topic="Storage Comparisons" storagePrefix="aws-comparisons-storage">
+
+<QuestionCard id="awscmp-st-01" number={1} question="S3 vs EBS vs EFS — how do you choose?" difficulty="medium" topic="Storage">
+| | **S3** | **EBS** | **EFS** |
+|---|---|---|---|
+| Type | object | block | file (NFS) |
+| Access | HTTP API, from anywhere | one instance at a time | many instances concurrently |
+| Scale | unlimited | up to 64 TiB per volume | petabytes, elastic |
+| Durability | 11 nines, multi-AZ | single AZ (snapshots to S3) | multi-AZ |
+| Cost | cheapest | middle | most expensive per GB |
+| Latency | tens of ms | sub-ms | low ms |
+
+**S3** for the data lake, backups, static content — anything analytical. **EBS** for a database's data directory or an instance's boot volume. **EFS** when multiple instances genuinely need shared POSIX access, such as a shared Airflow DAGs folder.
+
+For a data engineer the default is overwhelmingly **S3**; the analytics ecosystem is built on it, and putting a lake on EFS is an expensive anti-pattern.
+</QuestionCard>
+
+<QuestionCard id="awscmp-st-02" number={2} question="S3 vs S3 Glacier — and which Glacier tier?" difficulty="medium" topic="Storage">
+The trade is **storage cost against retrieval cost and latency**.
+
+- **S3 Standard** — immediate access, highest storage price, no retrieval fee.
+- **Glacier Instant Retrieval** — much cheaper storage, **milliseconds** access, retrieval fee. Best for archives you occasionally need immediately.
+- **Glacier Flexible Retrieval** — cheaper again; minutes (expedited) to hours (bulk).
+- **Glacier Deep Archive** — cheapest, up to 12 hours. For compliance retention you hope never to read.
+
+The traps: **minimum storage durations** (90 days for Flexible, 180 for Deep Archive) mean early deletion is billed for the full period, and a **128 KB minimum billable object size** makes archiving millions of small files cost *more* than leaving them in Standard.
+
+Rule of thumb for a lake: raw data to IA at 30 days and Flexible at 90; keep curated data queryable in Standard or IA.
+</QuestionCard>
+
+<QuestionCard id="awscmp-st-03" number={3} question="S3 Standard vs Standard-IA vs One Zone-IA?" difficulty="medium" topic="Storage">
+All three give **immediate access**; they differ in storage price, retrieval fee, and resilience.
+
+- **Standard** — no retrieval fee, multi-AZ. For frequently-read data.
+- **Standard-IA** — roughly 45% cheaper storage, **plus a per-GB retrieval fee**, multi-AZ. Break-even is roughly one read per month; read more often and it costs *more* than Standard.
+- **One Zone-IA** — about 20% cheaper than Standard-IA, but stored in a **single AZ**. If that AZ is lost, the data is lost.
+
+One Zone-IA is only appropriate for **reproducible** data — a derived table you can rebuild, a secondary copy, staging output. Never for raw ingested data you can't recreate.
+
+If access patterns are unknown, **Intelligent-Tiering** avoids the retrieval-fee gamble entirely for a small monitoring charge — though it's a poor fit for buckets of tiny objects.
+</QuestionCard>
+
+<QuestionCard id="awscmp-st-04" number={4} question="EBS SSD vs HDD — gp3, io2, st1 and sc1?" difficulty="medium" topic="Storage">
+**SSD** types optimise for **IOPS** (many small random operations); **HDD** types optimise for **throughput** (large sequential reads).
+
+- **gp3** — general purpose SSD, 3,000 baseline IOPS and 125 MB/s, with IOPS and throughput provisioned **independently of size**. The default, and cheaper than gp2.
+- **io2 / io2 Block Express** — provisioned IOPS up to 256,000, higher durability. For latency-sensitive databases only; it's expensive.
+- **st1** — throughput-optimised HDD. Cheap sequential throughput, poor random access. Good for log processing and big scans.
+- **sc1** — cold HDD, cheapest, infrequent access.
+
+The rule: **random small I/O needs SSD; large sequential reads can use HDD.** Booting from st1 or running a transactional database on it will be miserable, and neither can be a boot volume.
+</QuestionCard>
+
+<QuestionCard id="awscmp-st-05" number={5} question="EFS vs FSx for Windows vs FSx for Lustre?" difficulty="medium" topic="Storage">
+All three are managed shared filesystems, differing by protocol and purpose.
+
+- **EFS** — NFS, Linux, elastic, multi-AZ, no capacity planning. The general-purpose choice for Linux workloads needing shared POSIX access.
+- **FSx for Windows File Server** — SMB, with Active Directory integration, Windows ACLs and DFS. For Windows applications; EFS can't serve them properly.
+- **FSx for Lustre** — a high-performance parallel filesystem delivering hundreds of GB/s, and — the feature that matters for data engineering — it can be **linked to an S3 bucket**, presenting objects as files and writing results back.
+
+The Lustre-plus-S3 pattern is the one to name: keep data in S3 as the durable, cheap source of truth, and mount it through Lustre for the duration of an HPC or ML training job that needs POSIX speed.
+</QuestionCard>
+
+<QuestionCard id="awscmp-st-06" number={6} question="DataSync vs Storage Gateway vs Transfer Family?" difficulty="medium" topic="Storage">
+Three different jobs that are easily confused.
+
+- **DataSync** — **moves** data. An agent transfers between on-premises NFS/SMB/HDFS and AWS storage, with verification, incremental sync and scheduling. Use it for migrations and recurring replication.
+- **Storage Gateway** — **hybrid access**. Leaves systems in place and presents cloud storage locally: File Gateway (NFS/SMB over S3), Volume Gateway (iSCSI), Tape Gateway (virtual tape library over Glacier). Use it when on-premises applications must keep using local protocols.
+- **Transfer Family** — **inbound managed endpoints**. SFTP/FTPS/AS2 backed by S3, so external partners can push files with standard clients.
+
+The one-line distinction: DataSync **relocates**, Storage Gateway **bridges**, Transfer Family **receives**.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Database Comparisons
+
+<QuestionList topic="Database Comparisons" storagePrefix="aws-comparisons-databases">
+
+<QuestionCard id="awscmp-db-01" number={1} question="RDS vs DynamoDB — how do you decide?" difficulty="hard" topic="Databases">
+The axis is **whether your access patterns are known and key-based**.
+
+**RDS** — relational, SQL, joins, transactions, ad-hoc queries, strong consistency, flexible schema evolution. Scales vertically, plus read replicas. Choose it when queries are varied or unknown, when relationships matter, or when the team needs SQL.
+
+**DynamoDB** — key-value and document, single-digit millisecond latency, effectively unlimited horizontal scale, serverless. Choose it for very high write throughput, predictable key-based access, and when you want zero operational overhead.
+
+The mistake to name: teams pick DynamoDB for scale, then discover they need ad-hoc queries and joins, and end up doing expensive `Scan`s or exporting to S3 anyway. **If you can't enumerate your access patterns up front, that's evidence for RDS.**
+
+Most applications are better served by Postgres than they think, and the burden of proof is on leaving it.
+</QuestionCard>
+
+<QuestionCard id="awscmp-db-02" number={2} question="Aurora vs RDS — when is the premium worth it?" difficulty="medium" topic="Databases">
+Aurora is MySQL/PostgreSQL-compatible with a rewritten distributed storage layer. It costs more per hour, so the question is what you get.
+
+Worth it when you need:
+- **Read scale** — up to 15 replicas sharing storage, with **millisecond replica lag** versus RDS's seconds. Important if pipelines read replicas and care about freshness.
+- **Throughput** — commonly 3–5× MySQL, 2–3× PostgreSQL.
+- **Storage that auto-scales** to 128 TB with no provisioning.
+- **Fast failover and crash recovery**.
+- **Backtrack** — rewind the cluster in place, without a restore.
+- **Serverless v2** — fine-grained autoscaling for variable load.
+- **Zero-ETL to Redshift** — a managed continuous replication into the warehouse.
+
+Not worth it for a small, steady database where standard RDS already performs fine. Also note Aurora isn't available for every engine — Oracle and SQL Server are RDS-only.
+</QuestionCard>
+
+<QuestionCard id="awscmp-db-03" number={3} question="Global Secondary Index vs Local Secondary Index in DynamoDB?" difficulty="medium" topic="Databases">
+| | **GSI** | **LSI** |
+|---|---|---|
+| Partition key | **different** from base table | **same** as base table |
+| Creation | any time | **table creation only** |
+| Consistency | eventual only | strong available |
+| Capacity | its own | shares the table's |
+| Limit | 20 per table (soft) | 5, and 10 GB per partition key |
+
+**GSIs are what you use in practice.** They enable genuinely different access patterns, can be added as requirements evolve, and scale independently.
+
+**LSIs** are constrained by two hard rules — create-time only, and the 10 GB per-partition-key ceiling — that make them risky. Getting the design wrong means recreating the table.
+
+The cost point worth adding: each GSI multiplies write cost, since every base-table write that touches indexed attributes also writes to the index. Five GSIs means roughly six writes per logical write.
+</QuestionCard>
+
+<QuestionCard id="awscmp-db-04" number={4} question="ElastiCache Redis vs Memcached, and Redis cluster mode?" difficulty="medium" topic="Databases">
+**Memcached** — multi-threaded, simple key-value, no persistence, no replication. Scales by adding nodes with client-side sharding. Choose it only for a plain, high-throughput cache with large values where multi-threading helps.
+
+**Redis** — richer data types (sorted sets, hashes, streams), replication, automatic failover, snapshots, pub/sub, Lua. Single-threaded per shard but very fast. **The default choice**, because the capability is free and matters as soon as the cache becomes load-bearing.
+
+**Cluster mode disabled** — one shard, one primary plus up to five replicas. Scale reads by adding replicas, scale writes only vertically. Simpler.
+
+**Cluster mode enabled** — data sharded across up to 500 shards, each with replicas. Scales writes and storage horizontally, but multi-key operations must stay within a hash slot, and clients must be cluster-aware.
+
+Start with cluster mode disabled; enable it when you outgrow one node's memory or write capacity.
+</QuestionCard>
+
+<QuestionCard id="awscmp-db-05" number={5} question="Redis persistence: AOF vs snapshots vs replication?" difficulty="hard" topic="Databases">
+Three different guarantees, often conflated.
+
+- **RDB snapshots** — a point-in-time dump on a schedule. Fast restart, compact, but you lose everything written since the last snapshot.
+- **AOF (append-only file)** — logs every write, replayed on restart. Much less data loss (down to one second with `everysec`), at the cost of larger files, slower restarts, and a write-throughput penalty.
+- **Replication** — a replica in another AZ, promoted on failure. Protects against **node failure**, not against a logical error, because a bad `FLUSHALL` replicates instantly.
+
+The important distinction: **replication is availability, persistence is durability.** They protect against different things, and a design needs to say which it requires.
+
+For a cache, none of it matters much — rebuild from source. For anything where Redis is the source of truth, **MemoryDB** is the better answer than tuning AOF on ElastiCache.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Compute Comparisons
+
+<QuestionList topic="Compute Comparisons" storagePrefix="aws-comparisons-compute">
+
+<QuestionCard id="awscmp-cp-01" number={1} question="ECS vs EKS — which container orchestrator?" difficulty="medium" topic="Compute">
+**ECS** — AWS's own orchestrator. No control plane fee, simpler concepts (task definitions and services rather than pods, deployments and ingresses), and deep native integration with IAM, ALB, CloudWatch and Fargate. Faster to adopt, less to operate.
+
+**EKS** — managed Kubernetes. You get the standard API and the entire ecosystem: Helm charts, operators, Spark on Kubernetes, Airflow's KubernetesExecutor, Karpenter, service meshes. Costs a control plane fee per cluster and real operational effort — upgrades, networking, IRSA, resource quotas.
+
+Choose **ECS** if you're committed to AWS and value simplicity. Choose **EKS** if you need the Kubernetes ecosystem, want portability across clouds or on-premises, or already run Kubernetes and want one operational model.
+
+For data platforms specifically, EKS wins more often than it otherwise would, because Spark and Airflow have first-class Kubernetes support.
+</QuestionCard>
+
+<QuestionCard id="awscmp-cp-02" number={2} question="ECS vs Lambda — when does a container beat a function?" difficulty="medium" topic="Compute">
+**Lambda** wins for short, event-driven, spiky work: under 15 minutes, no server management, scales to zero, pay per millisecond. Ideal for reacting to an S3 event, transforming a small record, or triggering a job.
+
+**ECS/Fargate** wins for:
+- **Anything over 15 minutes** — a hard Lambda limit.
+- **Sustained load** — at high duty cycle, containers are substantially cheaper per unit of compute.
+- **Large dependencies** — a container image handles a heavy ML or Spark stack better than a Lambda package.
+- **Long-lived processes** — a streaming consumer that should stay connected.
+- **More resources** — beyond Lambda's 10 GB memory.
+- **Custom runtimes and system libraries**.
+
+The heuristic: **spiky and short → Lambda; steady or long → containers.** The crossover is usually somewhere around a few hours of daily execution.
+</QuestionCard>
+
+<QuestionCard id="awscmp-cp-03" number={3} question="EC2 vs Fargate for data workloads?" difficulty="medium" topic="Compute">
+**Fargate** removes node management entirely — no patching, no capacity planning, per-task billing. Excellent for bursty batch tasks and small services.
+
+**EC2** wins for data workloads more often than for general applications, because:
+- **Cost at scale** — Fargate carries a per-vCPU premium; EC2 with Savings Plans or Spot is much cheaper for a steadily-used fleet.
+- **Instance store** — Fargate has no local NVMe, so Spark shuffle spills to network storage and performance suffers.
+- **GPUs** — unavailable on Fargate.
+- **Instance type control** — memory-optimised or storage-optimised families matter for Spark.
+- **Spot** — deep discounts on interruptible batch work.
+
+So: **Fargate for orchestration tasks, small jobs and anything bursty; EC2 for Spark, streaming consumers and large steady fleets.**
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Streaming & Messaging Comparisons
+
+<QuestionList topic="Streaming & Messaging Comparisons" storagePrefix="aws-comparisons-streaming">
+
+<QuestionCard id="awscmp-str-01" number={1} question="Kinesis Data Streams vs Firehose vs Managed Flink?" difficulty="hard" topic="Streaming">
+They're different layers, not alternatives, which is the point of the question.
+
+- **Data Streams** — a durable, ordered, **replayable** log in shards. You manage consumers and their position. Choose it when you need replay, multiple independent consumers, ordering, or sub-second latency.
+- **Firehose** — a managed **delivery** pipe to S3, Redshift, OpenSearch or a partner, with buffering, Parquet conversion, compression and optional Lambda transformation. **No replay, no consumer offsets.** Choose it when you just need the data landed.
+- **Managed Service for Apache Flink** — stateful **processing**: windowing, aggregations, joins over streams, with SQL or the Flink API.
+
+A common architecture uses all three: producers write to Data Streams, Firehose subscribes and lands raw data in S3, and Flink computes real-time aggregates from the same stream.
+
+If you only need "get these events into S3", Firehose alone is dramatically less work.
+</QuestionCard>
+
+<QuestionCard id="awscmp-str-02" number={2} question="SQS vs SNS vs EventBridge?" difficulty="medium" topic="Messaging">
+| | **SQS** | **SNS** | **EventBridge** |
+|---|---|---|---|
+| Model | queue (pull) | topic (push) | event bus (push) |
+| Consumers | one per message | all subscribers | rules choose targets |
+| Filtering | none | attribute-based | **content-based** |
+| Buffering | yes, durable | no | no |
+| Throughput | very high | very high | lower |
+
+**SQS** for work distribution and buffering — a consumer pulls when ready, and a backlog is fine. **SNS** for high-throughput fan-out to several consumers. **EventBridge** for routing by event content, integrating AWS service events and SaaS partners, and scheduling.
+
+The canonical combined pattern is **SNS → several SQS queues**: fan-out with per-consumer buffering, retry and DLQ isolation, so one broken consumer can't affect the others.
+</QuestionCard>
+
+<QuestionCard id="awscmp-str-03" number={3} question="SQS vs Step Functions vs SWF for coordinating work?" difficulty="medium" topic="Messaging">
+- **SQS** is **messaging**, not orchestration — it distributes work but knows nothing about order, dependencies or overall progress. Building a multi-step workflow from queues means writing the state machine yourself.
+- **Step Functions** is a **managed workflow engine** — declarative states, branching, parallelism, retries, and a visual execution history. The right tool for multi-step pipelines, and it integrates directly with 200+ AWS services.
+- **SWF** is the **legacy** predecessor, requiring you to run decider and worker processes. AWS recommends Step Functions for all new work; only mention SWF for existing systems or when external signals and long-running human tasks need its specific model.
+
+The practical guidance: reach for **Step Functions** when you find yourself encoding "what runs next" in application code around queues.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Analytics Comparisons
+
+<QuestionList topic="Analytics Comparisons" storagePrefix="aws-comparisons-analytics">
+
+<QuestionCard id="awscmp-an-01" number={1} question="Athena vs Redshift vs Redshift Spectrum?" difficulty="hard" topic="Analytics">
+- **Athena** — serverless SQL over S3, billed **per TB scanned**. No infrastructure, nothing running when idle. Best for ad-hoc exploration, infrequent queries and querying the lake directly. Concurrency and latency are less predictable.
+- **Redshift** — a provisioned (or serverless) MPP warehouse with data loaded into managed storage. Faster and far better at **high-concurrency BI**, with materialised views, workload management and sort/distribution tuning.
+- **Redshift Spectrum** — Redshift querying S3 directly, so one query can join warehouse tables to lake data.
+
+Choosing: **Athena** when queries are sporadic and you don't want a cluster. **Redshift** when many analysts and dashboards need consistent, fast response. **Spectrum** to keep hot data in Redshift and cold history in S3 without loading years of data you rarely touch.
+
+The honest answer to "which one" is often "both, for different audiences."
+</QuestionCard>
+
+<QuestionCard id="awscmp-an-02" number={2} question="Glue vs EMR vs EMR Serverless?" difficulty="hard" topic="Analytics">
+All three run Spark; they differ in **control versus operational burden**.
+
+- **Glue** — serverless Spark with the Data Catalog, crawlers, bookmarks and DynamicFrames. Least setup, per-DPU-hour billing. Constrained Spark version and configuration. Best for straightforward scheduled ETL.
+- **EMR on EC2** — a real cluster you configure: any Spark version, custom JARs, other frameworks (Flink, Trino, HBase), and **Spot pricing**, which makes it much cheaper at sustained scale. Most control, most operations.
+- **EMR Serverless** — Spark and Hive without cluster management, more configurable than Glue, pay for what a job uses.
+
+For a new workload today, **EMR Serverless is often the best default**: it removes cluster management like Glue while keeping most of EMR's flexibility. Choose Glue if you want the catalog integration and bookmarks; choose EMR on EC2 when scale makes Spot savings decisive or you need frameworks beyond Spark.
+</QuestionCard>
+
+<QuestionCard id="awscmp-an-03" number={3} question="Data Pipeline vs Glue Workflows vs Step Functions vs MWAA?" difficulty="medium" topic="Analytics">
+- **AWS Data Pipeline** — the original orchestrator, now **legacy**. AWS steers new users elsewhere; mention it only for existing workloads.
+- **Glue Workflows** — chains Glue crawlers and jobs with triggers. Adequate for a pure-Glue pipeline, but limited: weak branching, no cross-service orchestration, basic observability.
+- **Step Functions** — serverless workflow engine with branching, parallelism, retries and 200+ service integrations. Excellent visual debugging. Weaker at data-aware scheduling, backfills and dataset dependencies.
+- **MWAA (Airflow)** — DAGs in Python, rich scheduling with catchup and backfill, a huge provider ecosystem, a UI built for data teams. Costs a continuously-running environment and real operational care.
+
+The practical split: **Step Functions for event-driven AWS service orchestration; Airflow for scheduled data pipelines with backfills and many interdependent tasks.** Plenty of teams run both.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"We need to store 500 TB of logs, query them occasionally, and keep them for seven years."** — S3 with lifecycle rules: Standard briefly, then Standard-IA, then Glacier Flexible or Deep Archive. Query with Athena over partitioned Parquet. Name the minimum-duration and minimum-object-size caveats.
+
+**"Should we use DynamoDB for this?"** — ask what the access patterns are. If they can be enumerated and are key-based, yes. If the answer involves "analysts will want to query it various ways", that's an argument for RDS or a warehouse, with DynamoDB exporting to S3 for analytics.
+
+**"Athena queries are too slow for our dashboard."** — Athena isn't built for high-concurrency BI. Either pre-aggregate into Redshift or a serving store, or accept the latency for ad-hoc use. Check partitioning and file format first, since that's often the real problem.
+
+**"Justify why we should pay for Aurora over RDS."** — read replica lag, replica count, storage autoscaling, faster failover, Backtrack, and zero-ETL to Redshift. If none of those matter for the workload, say plainly that RDS is the right call.
+
+---
+
+## Further Reading
+
+- [AWS Well-Architected Framework](https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html)
+- [AWS Data Analytics Lens](https://docs.aws.amazon.com/wellarchitected/latest/analytics-lens/analytics-lens.html)
+- [Choosing an AWS database service](https://docs.aws.amazon.com/decision-guides/latest/databases-on-aws-how-to-choose/databases-on-aws-how-to-choose.html)
+- [Choosing an AWS analytics service](https://docs.aws.amazon.com/decision-guides/latest/analytics-on-aws-how-to-choose/choosing-aws-analytics-service.html)
+- [Choosing an AWS container service](https://docs.aws.amazon.com/decision-guides/latest/containers-on-aws-how-to-choose/containers-on-aws-how-to-choose.html)
+- [S3 storage classes](https://aws.amazon.com/s3/storage-classes/)

@@ -1,0 +1,256 @@
+---
+title: AWS Migration & Data Transfer
+description: AWS migration interview questions covering Database Migration Service and CDC, DataSync, the Snow family, Data Transfer Terminal, and planning a database or data lake migration with minimal downtime.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## AWS Migration: Moving Data Without Breaking Anything
+
+**Migration questions test planning more than tooling. Anyone can name DMS. The signal is whether you can size a transfer against available bandwidth, explain how to cut over a live database with seconds of downtime rather than a weekend, and say what you'd validate before declaring the migration done — because the failure mode isn't a failed transfer, it's a successful transfer of subtly wrong data.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Database Migration Service](#database-migration-service)
+- [Change Data Capture](#change-data-capture)
+- [Bulk & File Transfer](#bulk--file-transfer)
+- [Planning a Migration](#planning-a-migration)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Every data migration decomposes into three phases: a **full load** of existing data, **change capture** for everything written while the load runs, and a **cutover** where writes switch to the new system. Skipping the middle phase is what forces a weekend outage — with CDC running, the target stays continuously in sync and cutover becomes a matter of seconds.
+
+The transfer method is a **bandwidth arithmetic problem**, not a preference. A 1 Gbps link moves roughly 10 TB per day at realistic utilisation, so 500 TB is two months of saturated network — during which the business also needs that link. Past roughly 100 TB, physically shipping devices usually wins.
+
+The phase people under-plan is **validation**. A migration that completes is not a migration that succeeded: row counts, checksums, and business-metric reconciliation between source and target are what let you actually cut over, and they need to be built before the migration, not after.
+
+---
+
+## Database Migration Service
+
+<QuestionList topic="Database Migration Service" storagePrefix="aws-migration-dms">
+
+<QuestionCard id="awsmg-dms-01" number={1} question="What is AWS DMS and what can it move?" difficulty="easy" topic="DMS">
+A managed service that migrates and replicates databases. You define a **source endpoint**, a **target endpoint**, and a **replication task** that runs on a replication instance (or serverless capacity).
+
+It handles **homogeneous** migrations (Oracle to Oracle, PostgreSQL to PostgreSQL) and **heterogeneous** ones (Oracle to Aurora PostgreSQL, SQL Server to Redshift), where it converts data types on the fly.
+
+Sources include most relational databases, MongoDB, DocumentDB and S3. Targets add Redshift, S3, DynamoDB, OpenSearch, Kinesis and MSK — which is what makes DMS a **data engineering** tool and not only a migration one: streaming database changes into S3 or Kinesis is a first-class use.
+
+The source stays online throughout; DMS reads the transaction log rather than locking tables.
+</QuestionCard>
+
+<QuestionCard id="awsmg-dms-02" number={2} question="What are the three DMS task types?" difficulty="medium" topic="DMS">
+- **Full load** — copy existing data once, then stop. Fine for a static source or a one-off snapshot.
+- **Full load + CDC** — copy existing data, then continuously apply changes that occurred during and after the load. **This is the one that enables near-zero-downtime cutover.**
+- **CDC only** — apply changes from a specified log position, assuming the target is already populated (perhaps by a snapshot restore, which is much faster than a DMS full load for large databases).
+
+The common pattern for a big migration is **snapshot restore + CDC only**: restoring a native backup is far faster than DMS reading and rewriting every row, and CDC then catches up the delta.
+</QuestionCard>
+
+<QuestionCard id="awsmg-dms-03" number={3} question="What does DMS not migrate, and what is SCT?" difficulty="medium" topic="DMS">
+DMS moves **data**, plus a minimal schema. It does **not** move secondary indexes, stored procedures, functions, triggers, sequences, views, or user permissions.
+
+That surprises people mid-migration. The order of operations that works: create the schema on the target first (with **no** secondary indexes and triggers disabled, so the load is fast and triggers don't fire on migrated rows), run the load, then add indexes and re-enable triggers.
+
+**AWS Schema Conversion Tool (SCT)** handles the schema side for heterogeneous migrations, converting DDL and procedural code between engines and producing an assessment report of what it couldn't convert automatically. That report is the real value — it tells you upfront how much manual work an Oracle-to-PostgreSQL move actually involves.
+</QuestionCard>
+
+<QuestionCard id="awsmg-dms-04" number={4} question="How do you troubleshoot a slow or failing DMS task?" difficulty="hard" topic="DMS">
+Common causes, roughly in order:
+
+- **Undersized replication instance** — CPU or memory bound, or the swap file growing. Check CloudWatch metrics on the instance, not just the task.
+- **Target indexes present during full load** — every insert maintains them. Drop and rebuild after.
+- **LOB handling** — large objects are slow. Use limited LOB mode with a sensible size, or exclude and handle them separately.
+- **No primary key on a table** — CDC needs one to apply updates; without it, updates become inefficient or fail.
+- **Source log retention too short** — if CDC falls behind and the logs it needs are gone, the task fails and must restart from a full load. Increase retention before starting.
+- **Network throughput** between source and replication instance.
+- **Latency metrics**: `CDCLatencySource` (reading) versus `CDCLatencyTarget` (applying) tells you which side is the bottleneck.
+
+Enable **CloudWatch task logs** at a detailed level; the default logging hides most of what you need.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Change Data Capture
+
+<QuestionList topic="Change Data Capture" storagePrefix="aws-migration-cdc">
+
+<QuestionCard id="awsmg-cdc-01" number={1} question="What is CDC and why is it better than batch extraction?" difficulty="medium" topic="CDC">
+Change Data Capture reads the database's **transaction log** — the WAL in PostgreSQL, binlog in MySQL, redo in Oracle — to capture every insert, update and delete as it happens.
+
+Advantages over a periodic `SELECT`:
+- **Low source impact** — reading the log doesn't compete with queries or take locks.
+- **Captures deletes**, which a timestamp-based incremental query silently misses.
+- **Captures every intermediate change**, not just the final state at extraction time.
+- **Near real time** rather than hourly or daily.
+- **No need for a reliable `updated_at` column**, which many legacy schemas lack or fail to maintain.
+
+The cost: it requires log access and configuration (`wal_level=logical`, binlog format `ROW`), it's more moving parts than a query, and you must handle schema changes explicitly.
+</QuestionCard>
+
+<QuestionCard id="awsmg-cdc-02" number={2} question="How do you land CDC changes in a data lake?" difficulty="hard" topic="CDC">
+Two distinct patterns:
+
+**Append-only change log** — write every change event as a row with its operation type and timestamp into a `raw` table. Nothing is ever updated, so it's cheap, auditable, and lets you reconstruct state at any point in time. This is the right shape for the landing zone.
+
+**Merged current state** — periodically apply the change log into a table reflecting current values, using `MERGE` on the primary key with an **Iceberg, Delta or Hudi** table so upserts and deletes are possible on S3.
+
+Doing both is standard: raw append-only for history and reprocessing, curated merged for consumption.
+
+The details that matter: handle **deletes** (soft-delete flag or actual removal), **order by the log sequence number** rather than arrival time, and make the merge **idempotent** so a replay doesn't corrupt state.
+</QuestionCard>
+
+<QuestionCard id="awsmg-cdc-03" number={3} question="What are the alternatives to DMS for CDC?" difficulty="medium" topic="CDC">
+- **Debezium** — the open-source standard, running on Kafka Connect against MSK. More control, richer transformation, portable off AWS, and a large community. The usual choice when you already run Kafka.
+- **Database-native logical replication** — PostgreSQL publications and subscriptions, for Postgres-to-Postgres.
+- **Aurora zero-ETL to Redshift** — a fully managed continuous replication with no pipeline to build. Least effort where it applies.
+- **Vendor tools** — Fivetran, Airbyte, Qlik Replicate. Fast to adopt, priced per row or per connector.
+- **Trigger-based capture** — writes changes to an audit table. Portable but adds write latency to every transaction, so it's a last resort.
+
+The decision usually comes down to whether you want a managed service with limited flexibility (DMS, zero-ETL) or the Kafka ecosystem with more control (Debezium).
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Bulk & File Transfer
+
+<QuestionList topic="Bulk & File Transfer" storagePrefix="aws-migration-bulk">
+
+<QuestionCard id="awsmg-bulk-01" number={1} question="How do you decide between network transfer and physical shipping?" difficulty="medium" topic="Transfer">
+Arithmetic, then constraints.
+
+Transfer time in days ≈ **size in TB ÷ (usable Mbps × 0.0108)**. A 1 Gbps link at 80% utilisation moves roughly 8–10 TB per day.
+
+| Data size | Typical answer |
+|---|---|
+| < 10 TB | network (DataSync or S3 CLI) |
+| 10–100 TB | calculate — depends on bandwidth and deadline |
+| > 100 TB | Snowball Edge, in parallel |
+| > 10 PB | Snowmobile |
+
+The constraints that override the maths: **is the link shared with production traffic** (saturating it for a month is not acceptable), **is bandwidth metered** (egress charges can exceed device cost), and **is there a deadline** tied to a data centre exit.
+
+Also plan for the **delta**: whatever ships physically will be stale on arrival, so DataSync or CDC handles changes since the snapshot.
+</QuestionCard>
+
+<QuestionCard id="awsmg-bulk-02" number={2} question="What does DataSync do that a script with the AWS CLI doesn't?" difficulty="medium" topic="DataSync">
+DataSync is a purpose-built transfer service with an agent deployed near the source (or agentless between AWS services).
+
+What it adds over `aws s3 sync`:
+- **Parallelism and pipelining** tuned for throughput, typically much faster than a naive sync.
+- **Incremental transfer** by comparing metadata, not re-copying unchanged files.
+- **Integrity verification** — checksums on every file transferred.
+- **Metadata preservation** — POSIX permissions, timestamps, ownership.
+- **Bandwidth throttling**, so it doesn't saturate a shared link.
+- **Scheduling, monitoring and CloudWatch metrics** rather than a cron job nobody watches.
+- **Protocol support** for NFS, SMB, HDFS and object stores, including other clouds.
+
+For a one-off copy of a few gigabytes, the CLI is fine. For terabytes, recurring syncs, or anything needing verification, DataSync earns its place.
+</QuestionCard>
+
+<QuestionCard id="awsmg-bulk-03" number={3} question="How does a Snowball Edge migration actually work?" difficulty="medium" topic="Snow Family">
+1. **Order** through the console, specifying the destination bucket.
+2. **Receive and connect** the device to your local network.
+3. **Unlock** it with a manifest and unlock code obtained separately — the device is useless without both, which is the security model.
+4. **Copy data** using the Snowball client, the S3-compatible endpoint, or by mounting it via NFS.
+5. **Ship it back** with the E-Ink label AWS pre-configures.
+6. **AWS imports** into S3; you verify with a job report.
+
+Details worth knowing: data is **encrypted with KMS** and the device is wiped after import. **Snowball Edge Compute Optimized** can run EC2 instances and Lambda locally, so you can pre-process or filter *before* transfer — useful when only a subset is worth moving.
+
+For very large migrations, order **multiple devices in parallel**; a single device's local copy speed becomes the bottleneck.
+</QuestionCard>
+
+<QuestionCard id="awsmg-bulk-04" number={4} question="What is AWS Data Transfer Terminal?" difficulty="easy" topic="Transfer">
+A physical AWS facility where you bring storage devices and upload directly over a high-speed connection into AWS, then take your hardware away.
+
+It sits between shipping a Snowball and using your own network: you get very high throughput without waiting for device shipping round trips, and without consuming your own bandwidth. Useful when data is extremely large, time-sensitive, or when regulatory constraints make shipping storage devices unattractive.
+
+It's a niche service and unlikely to be central to an interview — knowing it exists and roughly what problem it solves is sufficient. The main alternatives remain Snowball for bulk and Direct Connect for sustained high-bandwidth transfer.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Planning a Migration
+
+<QuestionList topic="Planning a Migration" storagePrefix="aws-migration-planning">
+
+<QuestionCard id="awsmg-plan-01" number={1} question="Walk through migrating a 5 TB production database to Aurora with minimal downtime." difficulty="hard" topic="Planning">
+1. **Assess** — run SCT for schema conversion and a compatibility report. Identify stored procedures, triggers and extensions that need manual work.
+2. **Provision** the target and create the schema **without secondary indexes**, with triggers disabled.
+3. **Enable logical replication** on the source (`wal_level`, binlog format `ROW`) and **increase log retention** so CDC can't fall behind and lose its position.
+4. **Full load + CDC** with DMS, sized generously. Consider a native snapshot restore plus CDC-only if the full load is too slow.
+5. **Add indexes and constraints** once the load completes; re-enable triggers.
+6. **Let CDC catch up** and monitor `CDCLatencyTarget` until it's near zero.
+7. **Validate** — row counts per table, checksums on key columns, and reconciliation of a few business metrics.
+8. **Cut over** in a short maintenance window: stop writes, wait for latency to reach zero, repoint the application (DNS or config), start writes.
+9. **Keep the source available** and, ideally, reverse replication running, so rollback is possible.
+10. **Monitor** the new database closely — plans and performance will differ.
+
+Downtime is minutes, not a weekend, because CDC did the heavy lifting beforehand.
+</QuestionCard>
+
+<QuestionCard id="awsmg-plan-02" number={2} question="How do you validate that a migration succeeded?" difficulty="hard" topic="Planning">
+Layered checks, cheapest first:
+
+- **Row counts** per table — necessary, nowhere near sufficient.
+- **Checksums or aggregates** on key columns — `SUM`, `MIN`, `MAX`, `COUNT DISTINCT` — compared between source and target.
+- **DMS data validation**, which compares source and target rows continuously and reports mismatches.
+- **Business metric reconciliation** — total revenue for last month, active customer count. This catches subtle problems the technical checks miss.
+- **Type and precision checks** — the classic failures are numeric precision loss, timezone shifts on timestamps, character set and collation differences changing sort order and comparisons, and `NULL` versus empty string.
+- **Application-level testing** against the target before cutover.
+
+Collation and timezone are the two that most often produce a technically-complete migration with wrong behaviour, so call them out specifically.
+</QuestionCard>
+
+<QuestionCard id="awsmg-plan-03" number={3} question="What is the 7 Rs migration framework?" difficulty="medium" topic="Planning">
+AWS's taxonomy of migration strategies:
+
+- **Rehost** — "lift and shift" onto EC2. Fast, no benefit from cloud-native features.
+- **Replatform** — "lift and reshape", e.g. self-managed PostgreSQL onto RDS. Modest effort, real operational gain. **The most common choice for databases.**
+- **Repurchase** — move to a SaaS product instead.
+- **Refactor** — re-architect for the cloud. Most effort, most benefit.
+- **Relocate** — move at the hypervisor level, e.g. VMware Cloud on AWS.
+- **Retain** — leave it where it is, for now.
+- **Retire** — turn it off. Assessments routinely find systems nobody uses.
+
+For data platforms, the honest advice is **replatform first, refactor second**: get onto RDS or Redshift with minimal change, prove it works, then re-architect toward a lake or lakehouse incrementally. Attempting both at once is how migrations run over.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Migrate an on-premises Hadoop cluster with 800 TB of HDFS data to S3."** — at that size, Snowball devices in parallel for the bulk, DataSync for the ongoing delta and final catch-up. Convert to Parquet during or after transfer, register tables in the Glue Catalog, and plan the compute migration (EMR or Glue) separately from the data move.
+
+**"How do you migrate a live database with no maintenance window?"** — full load plus CDC, catch up, validate, then a seconds-long cutover with writes paused. Emphasise increasing source log retention beforehand and keeping reverse replication for rollback.
+
+**"Your DMS task keeps falling behind."** — check whether the bottleneck is source read or target apply via the two latency metrics, then look at replication instance sizing, indexes on the target during load, LOB settings, and missing primary keys.
+
+**"What would make you refuse to cut over?"** — validation failures that aren't explained: a row count gap, a reconciliation mismatch on a business metric, or unresolved collation and timezone differences. Being willing to delay is the right answer.
+
+---
+
+## Further Reading
+
+- [AWS DMS user guide](https://docs.aws.amazon.com/dms/latest/userguide/)
+- [DMS best practices](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_BestPractices.html)
+- [AWS Schema Conversion Tool](https://docs.aws.amazon.com/SchemaConversionTool/latest/userguide/)
+- [AWS DataSync user guide](https://docs.aws.amazon.com/datasync/latest/userguide/)
+- [AWS Snow Family](https://docs.aws.amazon.com/snowball/)
+- [Migration strategies — the 7 Rs](https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html)
+- [Debezium documentation](https://debezium.io/documentation/) — the main open-source CDC alternative

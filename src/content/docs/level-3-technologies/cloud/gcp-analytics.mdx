@@ -1,0 +1,327 @@
+---
+title: GCP Analytics & Data Processing
+description: Google Cloud analytics interview questions covering Dataflow and Apache Beam, Dataproc, Pub/Sub, Dataprep, Cloud Composer, Dataplex and building streaming and batch pipelines on GCP.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## GCP Analytics: Dataflow, Dataproc and the Streaming Stack
+
+**GCP's distinctive contribution to data engineering is Dataflow — a managed runner for Apache Beam, where the same code handles batch and streaming with genuine event-time semantics. Interviewers use it to test whether you understand windowing, watermarks and late data, which are the concepts that separate someone who has built a streaming pipeline from someone who has read about one.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Pub/Sub](#pubsub)
+- [Dataflow & Apache Beam](#dataflow--apache-beam)
+- [Streaming Semantics](#streaming-semantics)
+- [Dataproc](#dataproc)
+- [Orchestration & Governance](#orchestration--governance)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The GCP streaming stack is **Pub/Sub → Dataflow → BigQuery/GCS**, and each piece has a clear role. Pub/Sub is a globally available, auto-scaling message bus with no partitions to size. Dataflow runs Apache Beam pipelines with autoscaling and dynamic work rebalancing. BigQuery serves the results.
+
+**Apache Beam** is the model worth understanding properly. Its central idea is that batch is a special case of streaming — a bounded `PCollection` rather than an unbounded one — so the same transforms apply to both. That's why Beam separates four questions explicitly: *what* is computed (transforms), *where in event time* (windowing), *when* results are emitted (triggers), and *how* refinements relate to earlier output (accumulation mode).
+
+The concept that generates the hardest questions is **event time versus processing time**. Events arrive late and out of order; a **watermark** is the system's estimate of how far event time has progressed, and it decides when a window can be closed. Getting this right is the difference between correct aggregates and quietly dropped data.
+
+---
+
+## Pub/Sub
+
+<QuestionList topic="Pub/Sub" storagePrefix="gcp-analytics-pubsub">
+
+<QuestionCard id="gcpan-ps-01" number={1} question="What is Pub/Sub and how does it differ from Kafka or Kinesis?" difficulty="medium" topic="Pub/Sub">
+A globally distributed messaging service: publishers send to a **topic**, and each **subscription** delivers an independent copy of the stream to its consumers.
+
+What's distinctive compared with Kafka and Kinesis:
+- **No partitions or shards to provision.** It scales automatically, so there's no resharding operation and no hot-shard problem from a bad partition key. That's a genuine operational simplification.
+- **Global by default** — a topic isn't bound to a region.
+- **Push or pull** delivery; push means Pub/Sub calls your endpoint.
+- **At-least-once** delivery by default, with **exactly-once** available within a region.
+
+The trade-off: because there are no partitions, **ordering is not guaranteed by default**. You opt in with an **ordering key**, which gives ordering per key at some throughput cost.
+
+**Pub/Sub Lite** exists as a cheaper, zonal, partitioned alternative — closer to Kafka's model — for very high, predictable volume.
+</QuestionCard>
+
+<QuestionCard id="gcpan-ps-02" number={2} question="How do subscriptions, acknowledgement and retention work?" difficulty="medium" topic="Pub/Sub">
+Each **subscription** tracks its own position, so multiple consumers get the full stream independently.
+
+A message is delivered, and the subscriber must **acknowledge** it within the **ack deadline** (default 10 seconds, extendable to 10 minutes, and clients extend it automatically while processing). Unacknowledged messages are redelivered — which is why **at-least-once means duplicates happen** and consumers must be idempotent.
+
+**Retention** is 7 days by default (up to 31), and **seek** lets you replay from a timestamp or a snapshot — the recovery mechanism after a consumer bug.
+
+**Dead-letter topics** move messages aside after N delivery attempts, so a poison message can't retry forever. As with SQS, alarm on the dead-letter topic; one nobody watches is just a slower way to lose data.
+</QuestionCard>
+
+<QuestionCard id="gcpan-ps-03" number={3} question="What are Pub/Sub subscription types, and what is a BigQuery subscription?" difficulty="medium" topic="Pub/Sub">
+- **Pull** — the subscriber requests messages. Best for high throughput and back-pressure control.
+- **Push** — Pub/Sub POSTs to an HTTPS endpoint (typically Cloud Run or a Function). Simpler, with less control over rate.
+- **BigQuery subscription** — writes messages **directly into a BigQuery table**, no Dataflow job at all.
+- **Cloud Storage subscription** — writes batched messages straight to GCS files.
+
+The last two are worth naming because they eliminate a whole pipeline. If all you need is "land these events in BigQuery", a BigQuery subscription does it with no code, no Dataflow cost and no job to operate.
+
+Use Dataflow when you need **transformation, enrichment, windowed aggregation or joins** in flight. Use a direct subscription when you just need the raw events landed — which is more often than people assume.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Dataflow & Apache Beam
+
+<QuestionList topic="Dataflow & Apache Beam" storagePrefix="gcp-analytics-dataflow">
+
+<QuestionCard id="gcpan-df-01" number={1} question="What is Apache Beam, and what is the Dataflow runner?" difficulty="medium" topic="Dataflow">
+**Beam** is a unified programming model for batch and streaming. You write a pipeline once, in Java, Python or Go, and run it on any **runner** — Dataflow, Flink, Spark or the local direct runner.
+
+Core abstractions:
+- **Pipeline** — the whole graph.
+- **PCollection** — a distributed dataset, **bounded** (batch) or **unbounded** (stream).
+- **PTransform** — an operation: `ParDo` (per element), `GroupByKey`, `Combine`, `Window`.
+- **I/O connectors** — sources and sinks.
+
+**Dataflow** is Google's fully managed runner. It provisions workers, autoscales them, and — distinctively — performs **dynamic work rebalancing**, redistributing work from straggler workers at runtime rather than waiting for them. That directly addresses skew, which on Spark you usually handle manually.
+
+The portability claim is real but caveated: connector support and performance vary between runners, so a Dataflow pipeline isn't always a drop-in Flink pipeline.
+</QuestionCard>
+
+<QuestionCard id="gcpan-df-02" number={2} question="What makes Dataflow different from Spark?" difficulty="hard" topic="Dataflow">
+- **Genuinely unified batch and streaming.** Beam's model treats batch as bounded streaming, so the same code runs both. Spark's Structured Streaming is micro-batch and the APIs diverge more than the marketing suggests.
+- **Event-time semantics are first class** — windows, watermarks, triggers and allowed lateness are core model concepts rather than bolt-ons.
+- **Dynamic work rebalancing** — Dataflow reassigns work from slow workers mid-job, mitigating skew automatically.
+- **Autoscaling** including **Streaming Engine**, which moves shuffle and state off worker VMs into a managed service, so workers scale without rebalancing state.
+- **No cluster** — you submit a job, not a cluster configuration.
+
+Where Spark wins: a far larger ecosystem, SQL and DataFrame APIs many teams already know, better interactive and notebook workflows, and deep integration with Delta and Iceberg.
+
+The practical guidance: **Dataflow for streaming with real event-time requirements; Dataproc/Spark when the team knows Spark or you're porting existing jobs.**
+</QuestionCard>
+
+<QuestionCard id="gcpan-df-03" number={3} question="What are Dataflow templates and Flex Templates?" difficulty="medium" topic="Dataflow">
+A **template** packages a pipeline so it can be launched without the development environment — from the console, `gcloud`, a REST call, Cloud Scheduler or Composer, with runtime parameters.
+
+- **Classic templates** — the pipeline graph is staged at build time, so parameters are limited to what was declared.
+- **Flex Templates** — the pipeline is packaged as a **container image** and constructed at launch, so parameters can change the graph itself. More flexible, and the current recommendation.
+
+**Google-provided templates** cover many common jobs outright — Pub/Sub to BigQuery, GCS to BigQuery, JDBC to BigQuery, Pub/Sub to GCS. For a standard ingestion path, you may not need to write a pipeline at all.
+
+The operational value is separating **who builds** the pipeline from **who runs** it: analysts or an orchestrator can launch parameterised jobs without touching code or a build toolchain.
+</QuestionCard>
+
+<QuestionCard id="gcpan-df-04" number={4} question="How do you optimise a Dataflow job?" difficulty="hard" topic="Dataflow">
+- **Enable Streaming Engine** (streaming) or **Dataflow Shuffle** (batch) so shuffle and state move off worker VMs. This usually improves autoscaling and reduces cost, and should be the default.
+- **Use `Combine` rather than `GroupByKey`** where possible — combiners aggregate partially before shuffling, cutting data movement dramatically.
+- **Watch for hot keys** — Dataflow logs them. Fix with a two-stage combine or key salting.
+- **Right-size workers** — machine type and `maxNumWorkers`; too few caps throughput, too many wastes money.
+- **Use FlexRS** for non-urgent batch, mixing Spot and standard VMs at a discount with delayed scheduling.
+- **Avoid per-element external calls** — batch them in `startBundle`/`finishBundle`, or use side inputs for lookups.
+- **Fuse-break deliberately** when fusion creates an unbalanced stage; a reshuffle can help.
+
+The distinctive one is **hot key detection** — Dataflow tells you, which is more than most engines do.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Streaming Semantics
+
+<QuestionList topic="Streaming Semantics" storagePrefix="gcp-analytics-streaming-semantics">
+
+<QuestionCard id="gcpan-sem-01" number={1} question="What is the difference between event time and processing time?" difficulty="hard" topic="Streaming">
+**Event time** is when the event actually happened, carried in the record. **Processing time** is when your pipeline saw it.
+
+They diverge constantly — network delays, mobile devices offline for hours, upstream retries, a consumer catching up after an outage. A phone that was in flight mode uploads events with yesterday's event timestamps today.
+
+Why it matters: aggregating by processing time gives **wrong answers that look plausible**. Yesterday's late-arriving events land in today's bucket, so both days are wrong, and nothing errors.
+
+Correct streaming aggregates almost always use **event time**, which requires the system to decide when a time window is "complete" despite not knowing what might still arrive. That's what watermarks exist for, and it's the reason event-time processing is harder than it first appears.
+</QuestionCard>
+
+<QuestionCard id="gcpan-sem-02" number={2} question="What are windows, watermarks and triggers?" difficulty="hard" topic="Streaming">
+- **Windows** divide an unbounded stream into finite chunks by event time:
+  - **Fixed (tumbling)** — non-overlapping, e.g. every 5 minutes.
+  - **Sliding (hopping)** — overlapping, e.g. a 1-hour window every 5 minutes.
+  - **Session** — grouped by activity with a gap duration, for user sessions.
+  - **Global** — one window, used with custom triggers.
+- **Watermark** — the system's estimate that all events up to time T have arrived. When it passes a window's end, the window is considered complete and results are emitted.
+- **Trigger** — when to actually emit. Beyond the default (fire at the watermark), you can fire **early** for speculative partial results and **late** when stragglers arrive.
+- **Accumulation mode** — whether a late firing **replaces** the previous result (accumulating) or is a **delta** (discarding).
+
+Together these answer *what*, *where*, *when* and *how* — the four questions Beam's model is built around, and naming them that way is the strong answer.
+</QuestionCard>
+
+<QuestionCard id="gcpan-sem-03" number={3} question="How do you handle late-arriving data?" difficulty="hard" topic="Streaming">
+Explicitly, because the default is to **drop it silently**.
+
+```python
+beam.WindowInto(
+    beam.window.FixedWindows(60),
+    trigger=AfterWatermark(late=AfterCount(1)),
+    allowed_lateness=Duration(seconds=3600),
+    accumulation_mode=AccumulationMode.ACCUMULATING,
+)
+```
+
+The choices:
+- **`allowed_lateness`** — how long after the watermark passes to keep the window's state open. Longer means more correctness and more state to hold.
+- **Late triggers** — emit an updated result when a straggler arrives.
+- **Accumulation mode** — accumulating gives a corrected total the sink can overwrite; discarding gives a delta the sink must add.
+- **A side output for dropped data**, so events beyond allowed lateness are captured rather than lost — worth doing for auditability.
+
+The design tension worth articulating: **latency, correctness and cost**. Emitting early gives low latency but provisional numbers; long allowed lateness gives correctness at the cost of state and memory. There's no universally right answer, only one you've chosen deliberately.
+</QuestionCard>
+
+<QuestionCard id="gcpan-sem-04" number={4} question="How do you achieve exactly-once processing in Dataflow?" difficulty="hard" topic="Streaming">
+Dataflow provides **exactly-once semantics within the pipeline**: it deduplicates on record IDs from Pub/Sub, checkpoints state, and makes shuffle deterministic, so a retried bundle doesn't double-count.
+
+The hard part is the **sink**, and that's what the question is really about:
+- **BigQuery via the Storage Write API** supports exactly-once with stream offsets.
+- **Files in GCS** are written to temp locations and renamed atomically on commit.
+- **An arbitrary external system** — a REST API, a non-transactional database — cannot be made exactly-once by Dataflow. You need an **idempotent write**: a deterministic key with an upsert, or a dedup table.
+
+The point to make: **end-to-end exactly-once requires source, processing and sink to cooperate.** Dataflow handles the middle; you must design the sink. And a non-deterministic `DoFn` (using random values or wall-clock time) breaks the guarantee, because retried work produces different output.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Dataproc
+
+<QuestionList topic="Dataproc" storagePrefix="gcp-analytics-dataproc">
+
+<QuestionCard id="gcpan-dp-01" number={1} question="What is Dataproc and when would you choose it over Dataflow?" difficulty="medium" topic="Dataproc">
+Managed **Spark and Hadoop** — clusters that start in about 90 seconds, with Spark, Hive, Presto/Trino, Flink, HBase and Jupyter available.
+
+Choose **Dataproc** when:
+- You have **existing Spark or Hadoop code** to migrate. Lift-and-shift is straightforward.
+- The team **knows Spark** and would be learning Beam from scratch.
+- You need ecosystem components — Hive metastore, HBase, Trino.
+- You want **notebooks and interactive** development.
+- Deep **Delta or Iceberg** integration matters.
+
+Choose **Dataflow** when the workload is streaming with real event-time requirements, or when you want no cluster at all.
+
+The pragmatic reality: many GCP teams use **Dataproc for batch Spark** (because that's what they already have) and **Dataflow for streaming** (because Beam's model is genuinely better for it).
+</QuestionCard>
+
+<QuestionCard id="gcpan-dp-02" number={2} question="How do you configure Dataproc cost-effectively?" difficulty="medium" topic="Dataproc">
+- **Ephemeral clusters** — create per job, delete on completion. `--max-idle` auto-deletes idle clusters, which prevents the classic "cluster left running all weekend" bill.
+- **Spot secondary workers** — secondary workers are compute-only (no HDFS), so losing one costs a recomputed partition. 60–91% off.
+- **Dataproc Serverless** — no cluster at all for batch Spark; often the best default now.
+- **Store data in GCS, not HDFS** — decouples storage from compute so clusters can be disposable, and it's cheaper and more durable.
+- **Local SSDs** for shuffle on shuffle-heavy jobs.
+- **Right-size machine types** — highmem for Spark, custom shapes to avoid paying for unused memory.
+- **Autoscaling policies** for variable workloads.
+
+The single most impactful pair is **ephemeral clusters with auto-delete** plus **Spot secondary workers** — together they typically cut Dataproc cost by more than half.
+</QuestionCard>
+
+<QuestionCard id="gcpan-dp-03" number={3} question="What is Dataproc Metastore and why does it matter?" difficulty="medium" topic="Dataproc">
+A managed **Hive Metastore** service, decoupled from any individual cluster.
+
+Why it matters: with an ephemeral-cluster architecture, table definitions must survive cluster deletion. A metastore living on the cluster disappears with it, so every job would have to re-register its tables.
+
+Dataproc Metastore gives a **persistent, shared catalog** that multiple clusters, Dataproc Serverless jobs and BigQuery (via BigLake) can all use — the same architectural role AWS's Glue Data Catalog plays.
+
+It also integrates with **Dataplex** for broader governance and discovery.
+
+The design point: an ephemeral-compute architecture needs a **persistent metadata layer**, otherwise the disposability you wanted becomes an operational problem. That's the reasoning worth stating rather than just naming the service.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Orchestration & Governance
+
+<QuestionList topic="Orchestration & Governance" storagePrefix="gcp-analytics-orchestration">
+
+<QuestionCard id="gcpan-orch-01" number={1} question="What is Cloud Composer, and how does it compare to Workflows?" difficulty="medium" topic="Orchestration">
+**Cloud Composer** is managed **Apache Airflow**, running on GKE. You get standard Airflow — Python DAGs, the provider ecosystem, backfills, the familiar UI — with Google managing the infrastructure.
+
+**Workflows** is a lightweight serverless orchestrator defined in YAML, chaining API calls and Google Cloud services with retries and error handling. It costs per step, scales to zero, and has no environment to run.
+
+Choose **Composer** for data pipelines: many interdependent tasks, backfills, catchup, dataset dependencies, and Python-defined logic. Choose **Workflows** for simple service orchestration — call an API, wait, call another — where a whole Airflow environment is disproportionate.
+
+The honest caveat: **Composer runs continuously and isn't cheap**, so a dev environment left running is real money. Workflows' scale-to-zero is its main advantage for lightweight cases.
+</QuestionCard>
+
+<QuestionCard id="gcpan-orch-02" number={2} question="What is Dataplex and what problem does it solve?" difficulty="medium" topic="Governance">
+A **data governance and management** layer over data spread across GCS buckets and BigQuery datasets. You define **lakes** and **zones** (raw and curated), attach assets, and Dataplex handles discovery, cataloguing, quality and access.
+
+What it gives:
+- **Automatic discovery** — scans assets, infers schemas and registers tables so they're queryable from BigQuery without manual definition.
+- **A unified catalog** with metadata search and business annotations.
+- **Data quality** — rule-based checks (AutoDQ) with scheduled scans and results as metrics.
+- **Data profiling** — automatic column statistics.
+- **Governance** — consistent policies across storage and warehouse, with lineage.
+
+The problem it addresses is a lake sprawling across many buckets, projects and datasets where nobody knows what exists, whether it's trustworthy, or who owns it. It's GCP's answer to Lake Formation plus a catalog, and it now underpins the unified Dataplex Universal Catalog.
+</QuestionCard>
+
+<QuestionCard id="gcpan-orch-03" number={3} question="What is Dataprep, and where does it fit?" difficulty="easy" topic="Dataprep">
+A **visual data preparation** tool (built by Trifacta, now Alteryx) for exploring, cleaning and transforming data without code. You see a sample, get profiling and suggested transformations, build a "recipe" interactively, and it compiles to a **Dataflow** job for execution at scale.
+
+Its audience is **analysts and data scientists** rather than engineers — people who need to clean a dataset but won't write Beam or Spark.
+
+Where it fits: exploratory cleaning, one-off preparation, and letting domain experts do their own wrangling instead of queueing for engineering time.
+
+Where it doesn't: production pipelines that need version control, code review, testing and CI. A visual recipe is hard to diff and review, so the mature pattern is to **prototype in Dataprep and reimplement in code** once the logic stabilises. Being clear about that boundary is the answer an interviewer wants.
+</QuestionCard>
+
+<QuestionCard id="gcpan-orch-04" number={4} question="How would you design a streaming pipeline on GCP end to end?" difficulty="hard" topic="Architecture">
+```
+Producers → Pub/Sub topic
+              ├→ BigQuery subscription  → raw events table (no code)
+              └→ Dataflow (Beam)
+                    ├→ BigQuery (windowed aggregates, Storage Write API)
+                    ├→ Bigtable (low-latency serving state)
+                    └→ GCS (raw archive, Parquet)
+```
+
+Design points worth defending:
+- **A raw landing path independent of processing** — a BigQuery or GCS subscription means the raw stream is preserved even if the Dataflow job has a bug, so you can reprocess. This is the most valuable single decision.
+- **Event-time windowing with explicit allowed lateness**, plus a side output for events beyond it.
+- **Dead-letter topic** on the subscription, alarmed.
+- **Idempotent sinks** — deterministic keys so replays don't duplicate.
+- **Streaming Engine** enabled for better autoscaling.
+- **Orchestration** with Composer for the batch reconciliation job that corrects the streaming aggregates.
+
+That last point — a batch job reconciling streaming output — is the practical acknowledgement that streaming aggregates drift, and it's what a production design usually includes.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Your streaming aggregates don't match the batch numbers."** — almost always late data dropped beyond allowed lateness, or processing-time windows used where event-time was needed. Check the dropped-data side output, and reconcile with a scheduled batch job.
+
+**"Design ingestion for 100k events/second on GCP."** — Pub/Sub (no shard sizing needed, which is the advantage to name), Dataflow with Streaming Engine for processing, BigQuery for analytics, Bigtable if there's a low-latency serving requirement, plus a raw archive subscription for reprocessing.
+
+**"Dataflow or Dataproc for this batch job?"** — Dataproc if it's existing Spark or the team knows Spark; Dataflow if it shares logic with a streaming pipeline or needs Beam's model. For pure batch Spark, Dataproc Serverless is usually the cheapest and simplest.
+
+**"How do you avoid reprocessing everything after a bug in your streaming job?"** — that's why the raw landing path exists. Keep the unprocessed stream in GCS or a raw BigQuery table, then replay from Pub/Sub seek or from the archive rather than needing the original events again.
+
+---
+
+## Further Reading
+
+- [Dataflow documentation](https://cloud.google.com/dataflow/docs)
+- [Apache Beam programming guide](https://beam.apache.org/documentation/programming-guide/)
+- [Streaming 101 and 102](https://www.oreilly.com/radar/the-world-beyond-batch-streaming-101/) — Tyler Akidau's articles; the canonical explanation of event time, watermarks and triggers
+- [Pub/Sub documentation](https://cloud.google.com/pubsub/docs)
+- [Dataproc documentation](https://cloud.google.com/dataproc/docs)
+- [Cloud Composer documentation](https://cloud.google.com/composer/docs)
+- [Dataplex documentation](https://cloud.google.com/dataplex/docs)

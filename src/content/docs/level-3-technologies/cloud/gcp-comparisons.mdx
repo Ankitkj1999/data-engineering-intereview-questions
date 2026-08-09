@@ -1,0 +1,218 @@
+---
+title: GCP Service Comparisons
+description: Head-to-head Google Cloud service comparisons for data engineers — BigQuery vs Bigtable, GCS vs Persistent Disk vs Local SSD vs Filestore, Dataflow vs Dataproc, Pub/Sub vs Kafka, and Cloud SQL vs Spanner vs Firestore.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## GCP Service Comparisons
+
+**Google's portfolio is smaller and more opinionated than AWS's, which makes these comparisons cleaner — there's usually one obviously right answer per access pattern. The interview value is in explaining the *why*: what property of the workload makes BigQuery wrong and Bigtable right, and what it would cost you to choose otherwise.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Storage Comparisons](#storage-comparisons)
+- [Database Comparisons](#database-comparisons)
+- [Processing Comparisons](#processing-comparisons)
+- [Messaging & Orchestration Comparisons](#messaging--orchestration-comparisons)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+GCP comparisons resolve on three axes more often than not. **Access shape** — scan-and-aggregate versus point lookup versus range scan by key; object versus block versus file. **Latency requirement** — milliseconds for serving, seconds for interactive analytics, minutes for batch. And **who operates it** — fully serverless, managed cluster, or your own on GKE.
+
+Two GCP-specific facts short-circuit many comparisons. **BigQuery removes the compute question entirely** for analytical SQL, so the first question to ask about any transformation is whether it can just be SQL in BigQuery — it frequently can, and that beats every cluster option on cost and simplicity. And **co-location is a hard requirement**: BigQuery can't load from a bucket in another region, and cross-region reads cost money everywhere, so region choice constrains architecture rather than merely influencing it.
+
+The third thing to hold: several choices are **immutable after creation** — a bucket's location type, a Bigtable row key, a Spanner primary key. So the honest comparison isn't only "which is better" but "which mistake can I recover from."
+
+---
+
+## Storage Comparisons
+
+<QuestionList topic="Storage Comparisons" storagePrefix="gcp-comparisons-storage">
+
+<QuestionCard id="gcpcmp-st-01" number={1} question="Cloud Storage vs Persistent Disk vs Local SSD vs Filestore?" difficulty="medium" topic="Storage">
+| | **Cloud Storage** | **Persistent Disk** | **Local SSD** | **Filestore** |
+|---|---|---|---|---|
+| Type | object | block | block (local NVMe) | file (NFS) |
+| Access | HTTPS, anywhere | one VM (or read-only many) | one VM | many clients |
+| Persistence | durable | durable | **ephemeral** | durable |
+| Latency | tens of ms | sub-ms | microseconds | low ms |
+| Cost/GB | lowest | middle | high | highest |
+
+**Cloud Storage** for the data lake and anything analytical — it's what BigQuery, Dataproc and Dataflow read. **Persistent Disk** for VM boot volumes and database files. **Local SSD** for Spark shuffle and scratch, because it's fast and the data is disposable. **Filestore** only when software genuinely needs a POSIX share.
+
+The data engineering shorthand: **GCS for data, Local SSD for shuffle, PD for the OS, Filestore rarely.**
+</QuestionCard>
+
+<QuestionCard id="gcpcmp-st-02" number={2} question="Regional vs dual-region vs multi-region buckets?" difficulty="medium" topic="Storage">
+- **Regional** — one region. Lowest cost, lowest latency to co-located compute. **The default for a data lake.**
+- **Dual-region** — a chosen pair of regions with geo-redundancy and **strong consistency across both**, plus optional turbo replication for a 15-minute RPO. Resilience without a separate replication setup.
+- **Multi-region** — spread across a continent (US, EU, ASIA). Highest availability SLA, higher storage cost, less predictable locality.
+
+The constraint that usually decides it: **BigQuery load jobs require the bucket and dataset to be in compatible locations**, and Dataproc pays egress and latency reading across regions. So co-location with compute is a requirement, not a preference.
+
+**Location type is immutable** — changing it means creating a new bucket and copying, which at petabyte scale is a project. Choose deliberately.
+</QuestionCard>
+
+<QuestionCard id="gcpcmp-st-03" number={3} question="How do GCS storage classes compare to S3's, and does it matter?" difficulty="medium" topic="Storage">
+The tiers map roughly — Standard, Nearline (30-day minimum), Coldline (90-day), Archive (365-day) — with the same trade of cheaper storage for retrieval fees and minimum durations.
+
+The genuine difference worth knowing: **every GCS class has millisecond access, including Archive.** S3 Glacier Flexible Retrieval and Deep Archive require **rehydration** taking minutes to hours before data can be read at all.
+
+That has a real architectural consequence: on GCS you can keep an external or BigLake table over archived partitions and still query them — expensively, but immediately. On S3 Glacier you cannot; the query fails until the objects are restored.
+
+The other GCS-specific option is **Autoclass**, which moves objects between classes based on actual access with **no retrieval fees or early-deletion charges**, for a small per-object fee. It's the safer default when access patterns are unknown, provided objects aren't tiny.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Database Comparisons
+
+<QuestionList topic="Database Comparisons" storagePrefix="gcp-comparisons-databases">
+
+<QuestionCard id="gcpcmp-db-01" number={1} question="BigQuery vs Bigtable — how do you choose?" difficulty="hard" topic="Databases">
+Despite the similar names, they solve opposite problems.
+
+| | **BigQuery** | **Bigtable** |
+|---|---|---|
+| Purpose | analytics (OLAP) | operational key-value (NoSQL) |
+| Query | SQL, joins, aggregations | key lookup and range scan only |
+| Latency | seconds | **single-digit milliseconds** |
+| Writes | batch or streaming append | very high-throughput random writes |
+| Indexes | none needed (columnar scan) | **row key only** |
+| Scaling | serverless | add nodes |
+
+**BigQuery** when you're scanning and aggregating large volumes with SQL — dashboards, reporting, ad-hoc analysis. **Bigtable** when you need millisecond lookups by key at high throughput — serving user profiles, IoT time-series, ML feature serving.
+
+They're complementary rather than alternatives: a common architecture writes the same stream to both, Bigtable for serving and BigQuery for analysis. The mistake is using Bigtable for analytics (no joins, no aggregation) or BigQuery for point lookups (seconds, not milliseconds).
+</QuestionCard>
+
+<QuestionCard id="gcpcmp-db-02" number={2} question="Cloud SQL vs Spanner vs Firestore vs Bigtable?" difficulty="hard" topic="Databases">
+- **Cloud SQL** — managed MySQL/PostgreSQL/SQL Server. Relational, ACID, familiar, cheap. **The default** for transactional workloads, and sufficient far longer than people expect.
+- **Spanner** — relational **and** horizontally scalable **and** globally strongly consistent. Justified by a specific need for write scale beyond one primary, or multi-region consistency. Substantially more expensive.
+- **Firestore** — a serverless document database with real-time listeners and offline sync. Its niche is **mobile and web application backends**, not data engineering.
+- **Bigtable** — wide-column, key-based, extreme throughput, millisecond latency. For serving and time-series.
+
+The decision path: **start at Cloud SQL.** Move to Spanner only when a concrete scale or consistency requirement forces it. Choose Bigtable when the access pattern is genuinely key-based at high volume. Choose Firestore when building an app with real-time client sync.
+
+Reaching for Spanner by default because it's impressive is an expensive and common mistake.
+</QuestionCard>
+
+<QuestionCard id="gcpcmp-db-03" number={3} question="BigQuery native tables vs external tables vs BigLake?" difficulty="medium" topic="Databases">
+- **Native** — data loaded into BigQuery's managed columnar storage. Fastest, full feature support (clustering, DML, time travel, streaming). You pay BigQuery storage, and the data is in a proprietary format.
+- **External** — BigQuery queries files in GCS in place. No duplication and no load step, but slower, no clustering, and limited optimisation.
+- **BigLake** — external tables plus **fine-grained security** (row and column level) and **metadata caching**, bringing performance close to native while data stays in **open formats including Iceberg**.
+
+The architecture this supports: keep the lake in open formats on GCS, expose it through **BigLake** so governance and performance are good, and **materialise the hot serving tables natively** where concurrency and latency matter most.
+
+BigLake is the answer to "how do I get a lakehouse on GCP without locking data into BigQuery storage" — worth naming explicitly, since it's the piece people miss.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Processing Comparisons
+
+<QuestionList topic="Processing Comparisons" storagePrefix="gcp-comparisons-processing">
+
+<QuestionCard id="gcpcmp-pr-01" number={1} question="Dataflow vs Dataproc vs BigQuery for transformation?" difficulty="hard" topic="Processing">
+- **BigQuery** — if the transformation is expressible in SQL, do it here. No cluster, no code deployment, and it's usually cheapest. With scheduled queries, materialised views and dbt, a great deal of ELT never needs a processing engine at all. **Ask this first.**
+- **Dataflow** — Beam pipelines, unified batch and streaming, genuine event-time semantics, autoscaling with dynamic work rebalancing. The right choice for streaming and for complex per-element logic.
+- **Dataproc** — managed Spark and Hadoop. Right for existing Spark code, teams who know Spark, notebooks, and ecosystem components like Hive or Trino. **Dataproc Serverless** removes cluster management for batch.
+
+The GCP-specific insight worth leading with: the strongest default is **ELT into BigQuery** rather than ETL through a processing engine. Load raw data, transform with SQL, and reserve Dataflow and Dataproc for what SQL genuinely can't express — streaming with event-time windows, complex enrichment, or ML preprocessing.
+</QuestionCard>
+
+<QuestionCard id="gcpcmp-pr-02" number={2} question="Dataflow vs Spark Structured Streaming for streaming?" difficulty="hard" topic="Processing">
+**Dataflow (Beam)** — event time, windows, watermarks, triggers and allowed lateness are core model concepts. Autoscaling with dynamic work rebalancing handles skew at runtime. Streaming Engine moves state off workers. Truly unified with batch, so the same code runs both.
+
+**Spark Structured Streaming** — micro-batch (with a continuous mode), so latency floors are higher, though it's improved substantially. Its advantage is ecosystem: the same DataFrame API as batch Spark, deep Delta and Iceberg integration, a huge community, and skills teams already have.
+
+Choose **Dataflow** when correctness under late and out-of-order data matters, when latency requirements are tight, or when you want one codebase for batch and stream with genuine semantics.
+
+Choose **Structured Streaming** when the team is on Spark, when you're writing to Delta, or when the streaming requirement is simple enough that micro-batch latency is fine.
+
+Honest note: Beam has a steeper learning curve, and that's a real cost for a team that already knows Spark.
+</QuestionCard>
+
+<QuestionCard id="gcpcmp-pr-03" number={3} question="Dataproc clusters vs Dataproc Serverless?" difficulty="medium" topic="Processing">
+**Dataproc Serverless** — submit a Spark batch workload, Google provisions ephemeral compute, runs it, tears it down. No cluster sizing, no idle cost, no capacity planning.
+
+**Dataproc clusters** — you configure machine types, autoscaling, Spot secondary workers, initialisation actions and installed components.
+
+Choose **Serverless** for scheduled batch Spark, which is most data engineering Spark. It's simpler and there's nothing to leave running by accident.
+
+Choose **clusters** when you need a persistent cluster for interactive notebooks, other Hadoop ecosystem components (HBase, Trino, a long-lived Hive server), very large jobs where Spot on a managed cluster is decisively cheaper, or fine control over Spark version and configuration.
+
+The parallel to draw is EMR Serverless versus EMR on EC2 — the same reasoning applies, and Serverless is increasingly the sensible default for batch.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Messaging & Orchestration Comparisons
+
+<QuestionList topic="Messaging & Orchestration Comparisons" storagePrefix="gcp-comparisons-messaging">
+
+<QuestionCard id="gcpcmp-msg-01" number={1} question="Pub/Sub vs Pub/Sub Lite vs Kafka on GCP?" difficulty="medium" topic="Messaging">
+- **Pub/Sub** — global, serverless, **no partitions to provision**, automatic scaling, at-least-once (exactly-once available regionally). Ordering only with an ordering key. The default, and the operational simplicity is genuine — there's no resharding and no hot-shard problem.
+- **Pub/Sub Lite** — zonal, **partitioned**, capacity you provision. Substantially cheaper for very high, predictable volume, at the cost of managing partitions and losing the global availability model.
+- **Kafka** — self-managed on GKE, or **Managed Service for Apache Kafka**. Choose it for the Kafka ecosystem (Connect, Streams, Debezium, Schema Registry), portability off GCP, or existing Kafka applications.
+
+The decision: **Pub/Sub unless you need Kafka specifically.** The lack of partition management is a real advantage over both Kafka and Kinesis, and the usual reasons to override it are Kafka Connect, log compaction, or a multi-cloud requirement.
+</QuestionCard>
+
+<QuestionCard id="gcpcmp-msg-02" number={2} question="Pub/Sub with Dataflow vs a direct BigQuery subscription?" difficulty="medium" topic="Messaging">
+A **BigQuery subscription** writes messages straight into a table — no Dataflow job, no code, no pipeline to operate or pay for. Likewise a **Cloud Storage subscription** batches messages into GCS files.
+
+Use a direct subscription when you need **raw events landed** and any transformation can happen later in SQL. That covers a surprising share of ingestion, and it eliminates an entire component.
+
+Use **Dataflow** when you need work done **in flight**: windowed aggregation, joins against reference data or another stream, enrichment via external lookups, complex validation and routing, or writing to multiple heterogeneous sinks.
+
+The design worth advocating: **do both**. A BigQuery or GCS subscription preserves the raw stream regardless of what your processing job does, so a bug in Dataflow doesn't cost you the data — you reprocess from raw. That safety net is cheap and frequently omitted.
+</QuestionCard>
+
+<QuestionCard id="gcpcmp-msg-03" number={3} question="Cloud Composer vs Workflows vs Cloud Scheduler?" difficulty="medium" topic="Orchestration">
+- **Cloud Scheduler** — managed cron. Triggers an HTTP endpoint, Pub/Sub message or Cloud Run job on a schedule. No dependencies, no retries beyond basic, no state. Use it for a single periodic trigger.
+- **Workflows** — serverless orchestration in YAML: chain API calls and services with conditionals, retries and error handling. Per-step pricing, scales to zero. Good for service orchestration where an Airflow environment is disproportionate.
+- **Cloud Composer** — managed Airflow. Python DAGs, the provider ecosystem, backfills and catchup, dataset-aware scheduling, and a UI built for data teams. **Runs continuously**, so it costs money whether or not anything is scheduled.
+
+Choose **Composer** for data pipelines with many interdependent tasks and backfill requirements; **Workflows** for lightweight service chaining; **Scheduler** when you literally just need cron.
+
+The cost caveat is the practical one: Composer environments in dev and staging left running are a recurring bill nobody notices.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Should this go in BigQuery or Bigtable?"** — ask about latency and access shape. Millisecond lookups by key at high write throughput → Bigtable. SQL aggregation over large volumes → BigQuery. If the answer is "both", write to both from the same Dataflow pipeline, which is a normal architecture rather than a compromise.
+
+**"How would you transform this data on GCP?"** — start by asking whether it can be SQL in BigQuery, because that removes the compute question entirely. Only reach for Dataflow or Dataproc when SQL genuinely can't express it.
+
+**"Pub/Sub or Kafka?"** — Pub/Sub for the operational simplicity of no partition management, unless you need Kafka Connect, log compaction, or portability. Note Pub/Sub's default lack of ordering and the ordering-key opt-in.
+
+**"Your GCS costs are rising and nothing changed."** — noncurrent versions with no expiry rule, small-file operation costs, cross-region reads from compute in another region, and whether Autoclass would beat the manual tiering in place.
+
+---
+
+## Further Reading
+
+- [Google Cloud databases decision guide](https://cloud.google.com/products/databases)
+- [BigQuery vs Bigtable comparison](https://cloud.google.com/bigtable/docs/overview)
+- [Cloud Storage classes](https://cloud.google.com/storage/docs/storage-classes)
+- [Dataflow vs Dataproc guidance](https://cloud.google.com/architecture/hadoop/hadoop-gcp-migration-jobs)
+- [Google Cloud Architecture Framework](https://cloud.google.com/architecture/framework)
+- [Choosing a messaging service](https://cloud.google.com/pubsub/docs/choosing-pubsub-or-pubsublite)
+- [BigLake documentation](https://cloud.google.com/biglake/docs)

@@ -1,0 +1,335 @@
+---
+title: AWS Storage for Data Platforms
+description: AWS storage interview questions covering S3 storage classes, lifecycle policies, performance and consistency, EBS volume types, EFS and FSx, plus Storage Gateway, Transfer Family and the Snow family for data migration.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## AWS Storage: The Foundation of the Data Lake
+
+**S3 is the single most important AWS service for a data engineer — it's where the lake lives, and almost every other service reads from and writes to it. Interview questions here go well beyond "what is a bucket": storage class economics, why a `LIST` on a million-object prefix is slow, how consistency changed in 2020, and why your lifecycle policy is costing more than it saves. The block and file services matter less, but knowing when *not* to use them is part of the answer.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Amazon S3](#amazon-s3)
+- [S3 Storage Classes & Lifecycle](#s3-storage-classes--lifecycle)
+- [S3 Performance & Security](#s3-performance--security)
+- [Block & File Storage](#block--file-storage)
+- [Data Transfer & Hybrid Storage](#data-transfer--hybrid-storage)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+S3 is **object storage**, not a filesystem — and most S3 surprises trace back to people forgetting that. There are no real directories; the "folder" in the console is a prefix in a flat key namespace. There is no rename; a rename is a copy plus a delete. There is no append; you replace the whole object. Understanding this explains why Spark writes to a temp location and copies, why "small files" hurt so much, and why table formats like Iceberg and Delta exist.
+
+The three levers that decide cost and performance are **storage class** (how much you pay to keep bytes and how much to read them back), **request volume** (you pay per `GET`, `PUT` and `LIST`, which is why millions of tiny files cost more than a few large ones), and **data transfer** (egress out of the region is the expensive direction).
+
+For block and file storage, the rule is simple: **EBS for a single instance's disk, EFS for shared POSIX access, FSx for specialised filesystems, S3 for everything analytical.** A data lake on EFS is an anti-pattern; the analytics ecosystem is built around S3.
+
+---
+
+## Amazon S3
+
+<QuestionList topic="Amazon S3" storagePrefix="aws-storage-s3">
+
+<QuestionCard id="awsst-s3-01" number={1} question="What is S3, and what are its key characteristics?" difficulty="easy" topic="S3">
+Object storage: you store **objects** (data plus metadata, up to 5 TB each) under **keys** in **buckets**, accessed over HTTP APIs rather than a filesystem.
+
+The properties that matter:
+- **11 nines of durability** — data is replicated across at least three Availability Zones in a standard class.
+- **Effectively unlimited capacity**, with no provisioning.
+- **Flat namespace** — keys like `orders/dt=2026-01-15/part-0.parquet` only look hierarchical.
+- **Immutable objects** — no in-place modification or append.
+- **Regional** — a bucket lives in one region; cross-region access costs latency and transfer.
+
+For data engineering, the crucial consequence is that S3 decouples **storage from compute**: EMR, Athena, Redshift Spectrum and Glue all read the same objects, and you can scale or destroy compute without touching data.
+</QuestionCard>
+
+<QuestionCard id="awsst-s3-02" number={2} question="What is S3's consistency model?" difficulty="medium" topic="S3">
+Since December 2020, S3 provides **strong read-after-write consistency** for all operations — `PUT`, overwrite `PUT`, `DELETE` and `LIST` — at no extra cost or performance penalty.
+
+Before that, new objects were read-after-write consistent but **overwrites and deletes were eventually consistent**, and crucially `LIST` was too. That caused real correctness bugs: a Spark job would write output files and then list the directory to commit, missing files that hadn't appeared yet. Tools like S3Guard and EMRFS consistent view existed purely to work around it.
+
+Why this matters in an interview: it dates a candidate's knowledge, and it explains why older architectures carry consistency-layer complexity that's now unnecessary. Note that **strong consistency doesn't give you atomicity across multiple objects** — that still requires a table format like Iceberg or Delta.
+</QuestionCard>
+
+<QuestionCard id="awsst-s3-03" number={3} question="Why is the 'small files problem' worse on S3 than on HDFS?" difficulty="hard" topic="S3">
+Several costs compound:
+
+- **Per-request pricing and latency.** Each file needs at least one `GET`, with tens of milliseconds of latency. A million 10 KB files means a million requests; the same data in a thousand 10 MB files means a thousand.
+- **`LIST` is slow and paginated** at 1,000 keys per call. Listing a prefix with a million objects takes a thousand sequential calls before processing even starts.
+- **No block locality.** Every read is a network call, so there's no equivalent of reading a local HDFS block.
+- **Metadata overhead per file** in Parquet — footers and statistics are re-read per file, and tiny files make compression and column statistics ineffective.
+- **Task overhead** — Spark launches a task per file, so scheduling dominates actual work.
+
+Fixes: **compact** on a schedule, size output files at **128 MB–1 GB**, tune writer partition counts, and use a table format that tracks files in metadata so listing is avoided entirely.
+</QuestionCard>
+
+<QuestionCard id="awsst-s3-04" number={4} question="What is multipart upload and when is it required?" difficulty="medium" topic="S3">
+It splits an object into parts uploaded independently (and in parallel), then assembled by S3.
+
+- **Required above 5 GB** — that's the single-`PUT` ceiling.
+- **Recommended above ~100 MB** for throughput, since parts upload in parallel.
+- **Resumable** — a failed part is retried alone rather than restarting the whole upload.
+
+The operational trap: **incomplete multipart uploads are billed** and are invisible in the normal object listing. A pipeline that fails partway repeatedly can accumulate significant hidden cost. Always add a lifecycle rule:
+
+```
+AbortIncompleteMultipartUpload: DaysAfterInitiation: 7
+```
+
+That one rule is a standard recommendation in every S3 cost review.
+</QuestionCard>
+
+<QuestionCard id="awsst-s3-05" number={5} question="What is S3 versioning, and what should you watch out for?" difficulty="medium" topic="S3">
+Versioning keeps every version of an object, so an overwrite or delete is recoverable. A `DELETE` inserts a **delete marker** rather than removing data.
+
+Benefits: protection from accidental deletion and from a buggy pipeline overwriting good data — genuinely valuable on a curated zone.
+
+The costs people miss: **you pay for every version**, so a job that rewrites the same partition daily silently multiplies storage. And a "deleted" object still costs money until the noncurrent versions expire.
+
+Always pair versioning with a lifecycle rule expiring noncurrent versions after N days, and expiring delete markers. **MFA Delete** adds protection against malicious deletion for critical buckets, at the cost of some operational friction.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## S3 Storage Classes & Lifecycle
+
+<QuestionList topic="S3 Storage Classes & Lifecycle" storagePrefix="aws-storage-classes">
+
+<QuestionCard id="awsst-cls-01" number={1} question="What are the S3 storage classes?" difficulty="medium" topic="Storage Classes">
+| Class | Use | Retrieval |
+|---|---|---|
+| **Standard** | frequently accessed | immediate |
+| **Intelligent-Tiering** | unknown/changing patterns | immediate, auto-tiered |
+| **Standard-IA** | infrequent, needs fast access | immediate, retrieval fee |
+| **One Zone-IA** | infrequent, reproducible | immediate, single AZ |
+| **Glacier Instant Retrieval** | archive, occasional immediate access | milliseconds |
+| **Glacier Flexible Retrieval** | archive | minutes to hours |
+| **Glacier Deep Archive** | long-term compliance | up to 12 hours |
+
+Cost falls roughly an order of magnitude from Standard to Deep Archive, while **retrieval cost and latency rise**.
+
+The two catches to name: IA and Glacier classes have **minimum storage durations** (30, 90, 180 days) and are billed for the full period even if deleted early, and they have **minimum billable object sizes** (128 KB), so transitioning millions of tiny files can cost *more* than leaving them.
+</QuestionCard>
+
+<QuestionCard id="awsst-cls-02" number={2} question="How do lifecycle policies work, and how do you design one for a data lake?" difficulty="medium" topic="Lifecycle">
+Rules on a bucket or prefix that transition or expire objects by age.
+
+A typical lake policy:
+
+```
+raw/      → Standard-IA at 30d  → Glacier Flexible at 90d → expire at 7y
+staging/  → expire at 14d                    (reproducible intermediate data)
+curated/  → Standard-IA at 90d               (queried, keep fast)
+logs/     → Glacier Deep Archive at 30d → expire at 7y
++ AbortIncompleteMultipartUpload at 7d
++ expire noncurrent versions at 30d
+```
+
+The reasoning worth explaining: **raw data is rarely re-read but must be retained** for reprocessing and audit, so it's the ideal archive candidate. **Staging is reproducible**, so it should simply be deleted. **Curated is queried**, so archiving it trades a large query slowdown for a small saving.
+
+Check object sizes before transitioning — the 128 KB minimum billable size makes small-file tiering counterproductive.
+</QuestionCard>
+
+<QuestionCard id="awsst-cls-03" number={3} question="When is Intelligent-Tiering the right choice?" difficulty="medium" topic="Storage Classes">
+When access patterns are **unknown or variable**, and objects are reasonably large.
+
+It monitors each object and moves it between frequent, infrequent and (optionally) archive tiers automatically, with **no retrieval fees** — which is its real advantage over manually managing IA, where an unexpected read pattern generates surprising retrieval charges.
+
+The cost is a small **per-object monitoring fee**. That fee is trivial for a 100 MB Parquet file and ruinous across 500 million tiny objects, so it's a poor fit for buckets full of small files.
+
+Rule of thumb: use Intelligent-Tiering as a safe default for a lake zone whose access pattern you genuinely don't know; use explicit lifecycle rules where you do know, since they're cheaper.
+</QuestionCard>
+
+<QuestionCard id="awsst-cls-04" number={4} question="How do you find and reduce unexpected S3 cost?" difficulty="hard" topic="Cost">
+Start with **S3 Storage Lens** (free tier gives account-wide metrics) and **Storage Class Analysis** to see what's actually accessed.
+
+Common findings, in rough order of frequency:
+1. **Incomplete multipart uploads** — invisible, billed, often gigabytes.
+2. **Noncurrent versions** accumulating on a versioned bucket with no expiry rule.
+3. **Old raw data** in Standard that hasn't been read in years.
+4. **Request costs from small files** — sometimes exceeding storage cost entirely.
+5. **NAT gateway charges** on S3 traffic that should use a **gateway VPC endpoint** — free, and a one-line fix.
+6. **Cross-region reads** where compute and bucket ended up in different regions.
+7. **Log buckets** with no expiry, growing forever.
+
+Number 5 is the highest-value quick win and is missed constantly.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## S3 Performance & Security
+
+<QuestionList topic="S3 Performance & Security" storagePrefix="aws-storage-perf-security">
+
+<QuestionCard id="awsst-perf-01" number={1} question="What are S3's performance characteristics and how do you optimise for them?" difficulty="hard" topic="Performance">
+S3 scales to at least **3,500 `PUT`/`COPY`/`POST`/`DELETE` and 5,500 `GET`/`HEAD` requests per second per prefix**, and prefixes scale horizontally without limit.
+
+Optimisations:
+- **Spread across prefixes** for very high request rates — partitioning by date already does this naturally.
+- **Parallelise** — multipart upload and byte-range `GET`s use many connections.
+- **Larger files** — fewer requests, better throughput.
+- **Columnar formats with pushdown**, so you fetch only the byte ranges you need.
+- **Same region as compute**, and a **VPC gateway endpoint** to bypass NAT.
+- **S3 Transfer Acceleration** for long-distance uploads over the CloudFront edge network.
+
+The historical note worth knowing: randomising key prefixes used to be necessary for partition scaling. Since 2018 it isn't, so **date-ordered prefixes are fine** — and better, because they enable partition pruning.
+</QuestionCard>
+
+<QuestionCard id="awsst-sec-01" number={2} question="How do you control access to S3?" difficulty="medium" topic="Security">
+Layered, and evaluated together:
+
+- **IAM policies** — what a principal can do. The primary mechanism.
+- **Bucket policies** — resource-based; used for cross-account access, enforcing TLS, or restricting to a VPC endpoint.
+- **Block Public Access** — an account and bucket-level override that beats any policy granting public access. Leave it on.
+- **ACLs** — legacy; AWS now recommends disabling them via Object Ownership.
+- **VPC endpoint policies** — restrict which buckets are reachable from your VPC.
+- **Access Points** — named endpoints with their own policies, useful for granting per-team access to slices of a shared lake.
+- **Lake Formation** — table- and column-level permissions layered on top for catalogued data.
+
+Least privilege in practice means **prefix-scoped** policies: `arn:aws:s3:::lake/raw/orders/*`, not `arn:aws:s3:::lake/*`.
+</QuestionCard>
+
+<QuestionCard id="awsst-sec-02" number={3} question="What are the S3 encryption options?" difficulty="medium" topic="Security">
+**At rest** — server-side encryption is now on by default (SSE-S3):
+
+- **SSE-S3** — AWS-managed keys, free, zero configuration.
+- **SSE-KMS** — KMS keys, giving you an audit trail via CloudTrail and the ability to revoke access by disabling the key. **Watch the KMS request cost and throttling limits** on high-volume workloads; enable **S3 Bucket Keys** to cut KMS calls dramatically.
+- **SSE-C** — you supply the key on every request. Rare.
+- **Client-side** — encrypted before upload; AWS never sees plaintext.
+
+**In transit** — TLS. Enforce it with a bucket policy denying requests where `aws:SecureTransport` is false.
+
+For a lake handling sensitive data, SSE-KMS with a customer-managed key plus Bucket Keys is the usual answer: auditable, revocable, and affordable.
+</QuestionCard>
+
+<QuestionCard id="awsst-sec-03" number={4} question="How do you share data from S3 with an external party?" difficulty="medium" topic="Security">
+Options, from least to most involved:
+
+- **Pre-signed URLs** — time-limited access to one object, no AWS account required. Ideal for a one-off export.
+- **Bucket policy granting a specific external account** — good for ongoing programmatic access; they pay their own egress if you use **Requester Pays**.
+- **Cross-account IAM role** they assume — more auditable and revocable than a bucket policy.
+- **S3 Access Points** — separate policies per consumer on a shared bucket.
+- **AWS Data Exchange** — a managed marketplace for productised data sharing.
+
+Never make a bucket public. The recurring incident is a "temporary" public bucket that's still public two years later — which is precisely why Block Public Access exists as an override.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Block & File Storage
+
+<QuestionList topic="Block & File Storage" storagePrefix="aws-storage-block-file">
+
+<QuestionCard id="awsst-ebs-01" number={1} question="What is EBS, and what are the volume types?" difficulty="medium" topic="EBS">
+Network-attached block storage for a single EC2 instance, persisting independently of the instance lifecycle.
+
+- **gp3** — general purpose SSD; baseline 3,000 IOPS and 125 MB/s, with **IOPS and throughput provisioned independently of size**. The sensible default, and cheaper than gp2.
+- **gp2** — older; performance scales with volume size, so people over-provision capacity to buy IOPS. Migrate to gp3.
+- **io1/io2** — provisioned IOPS SSD for latency-sensitive databases; io2 Block Express reaches 256,000 IOPS.
+- **st1** — throughput-optimised HDD; cheap sequential throughput. Good for logs and big sequential scans.
+- **sc1** — cold HDD; cheapest, for rarely-accessed data.
+
+For data workloads: **gp3** for most things, **st1** for large sequential reads on a budget, **io2** only for a genuinely IOPS-bound database.
+</QuestionCard>
+
+<QuestionCard id="awsst-ebs-02" number={2} question="What is the difference between EBS and instance store?" difficulty="medium" topic="EBS">
+| | EBS | Instance store |
+|---|---|---|
+| Attachment | network | physically attached NVMe |
+| Persistence | survives stop/terminate | **lost on stop or failure** |
+| Performance | good, network-bound | very high, local |
+| Snapshots | yes, to S3 | no |
+| Resizable | yes | fixed with instance type |
+
+The data engineering application: **Spark shuffle and spill belong on instance store** — it's much faster and the data is disposable. Anything needing to survive belongs on EBS or, better, S3.
+
+Choosing an instance family with no local NVMe for a shuffle-heavy job silently pushes all that traffic onto EBS and turns a CPU-bound job into an I/O-bound one.
+</QuestionCard>
+
+<QuestionCard id="awsst-efs-01" number={3} question="When would you use EFS or FSx instead of S3?" difficulty="medium" topic="EFS & FSx">
+**EFS** is managed NFS — a POSIX filesystem shared by many instances concurrently, elastic, multi-AZ. Use it when software genuinely requires a filesystem and shared write access: an Airflow DAGs directory shared across schedulers and workers, or a legacy tool that can't speak S3.
+
+**FSx** is a family of managed filesystems:
+- **FSx for Lustre** — high-performance parallel filesystem that can be **linked to an S3 bucket**, presenting objects as files with sub-millisecond latency. The genuine data engineering use: HPC and ML training that needs POSIX speed over lake data.
+- **FSx for Windows File Server** — SMB shares.
+- **FSx for NetApp ONTAP / OpenZFS** — enterprise filesystem features.
+
+The default remains **S3**. EFS and FSx cost substantially more per GB, and the analytics ecosystem — Athena, Glue, Redshift Spectrum, EMR — is built around object storage.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Data Transfer & Hybrid Storage
+
+<QuestionList topic="Data Transfer & Hybrid Storage" storagePrefix="aws-storage-transfer">
+
+<QuestionCard id="awsst-snow-01" number={1} question="What is the Snow family, and when is physically shipping data the right answer?" difficulty="medium" topic="Snow Family">
+Physical devices AWS ships to you; you load data and ship them back.
+
+- **Snowball Edge** — 80 TB usable, with optional on-board compute for pre-processing.
+- **Snowmobile** — a shipping container on a truck, up to 100 PB. Genuinely exists, rarely used.
+- **Snowcone** — small and rugged, 8–14 TB, for edge locations.
+
+The decision is arithmetic. Over a 1 Gbps link at realistic utilisation you move roughly 10 TB per day. So 500 TB is about **two months** of saturated transfer — during which you're also consuming the bandwidth your business needs.
+
+Rule of thumb: **beyond ~100 TB, or where bandwidth is limited or expensive, physical shipping wins.** Below ~10 TB, use the network. Between, calculate both.
+</QuestionCard>
+
+<QuestionCard id="awsst-dsync-01" number={2} question="What is DataSync and how does it differ from Storage Gateway?" difficulty="medium" topic="Data Transfer">
+**DataSync** is a **migration and replication** service: an agent moves data between on-premises NFS/SMB/HDFS and S3, EFS or FSx, with parallelism, integrity checks, incremental sync and scheduling. It's for **moving data**, one-time or recurring.
+
+**Storage Gateway** is a **hybrid access** service: it presents cloud storage to on-premises systems through familiar protocols, caching hot data locally.
+- **File Gateway** — NFS/SMB in front of S3, so files written locally become S3 objects.
+- **Volume Gateway** — iSCSI block volumes backed by S3.
+- **Tape Gateway** — a virtual tape library backed by Glacier, so backup software keeps working while tapes disappear.
+
+The distinction: DataSync **relocates** data; Storage Gateway leaves systems in place and gives them cloud storage behind a local protocol.
+</QuestionCard>
+
+<QuestionCard id="awsst-tf-01" number={3} question="What is AWS Transfer Family, and when is it still relevant?" difficulty="easy" topic="Data Transfer">
+Fully managed **SFTP, FTPS and AS2** endpoints backed by S3 or EFS. Partners connect with a standard SFTP client; the files land as S3 objects and trigger your pipeline.
+
+It's relevant because **SFTP remains ubiquitous in B2B data exchange** — banks, insurers, healthcare and retail partners frequently cannot or will not use an API or an S3 bucket policy. Transfer Family lets you support them without operating an SFTP server, managing keys on a box, or patching it.
+
+The typical pattern: partner uploads via SFTP → object lands in S3 → S3 event triggers validation → the pipeline runs. **AS2** support matters specifically for EDI workflows in supply chain and healthcare.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Your S3 bill doubled with no new data."** — check incomplete multipart uploads, noncurrent versions on a versioned bucket, request costs from a small-files explosion, and NAT gateway charges on S3 traffic that should use a gateway endpoint. Storage Lens shows all four quickly.
+
+**"A Spark job over a million small files takes hours."** — the cost is per-request latency, `LIST` pagination and per-task overhead, not raw bytes. Compact to 128 MB–1 GB files, and adopt a table format so file discovery comes from metadata rather than listing.
+
+**"Design the storage layout for a lake."** — zones (raw, staging, curated) as prefixes or separate buckets, partitioned by ingestion date, Parquet with sensible file sizes, lifecycle rules per zone, versioning plus noncurrent expiry on curated, SSE-KMS with Bucket Keys, and gateway endpoints so compute never traverses NAT.
+
+**"Migrate 300 TB from on-premises."** — calculate transfer time against available bandwidth first. At that size, Snowball Edge devices in parallel usually beat the network; DataSync then handles the incremental delta and the final cutover.
+
+---
+
+## Further Reading
+
+- [Amazon S3 user guide](https://docs.aws.amazon.com/AmazonS3/latest/userguide/)
+- [S3 best practices design patterns for performance](https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html)
+- [S3 storage classes](https://aws.amazon.com/s3/storage-classes/)
+- [S3 Storage Lens](https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage_lens.html)
+- [Amazon EBS volume types](https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volume-types.html)
+- [AWS DataSync](https://docs.aws.amazon.com/datasync/latest/userguide/)
+- [AWS Snow Family](https://aws.amazon.com/snow/)

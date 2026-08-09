@@ -1,0 +1,321 @@
+---
+title: Azure Data & Serverless Solutions
+description: Azure data platform interview questions covering Synapse Analytics, Databricks, Data Factory, Event Hubs and Stream Analytics, Microsoft Fabric, Service Bus, and serverless patterns for data pipelines.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Azure Data Solutions: Synapse, Databricks, Fabric and the Pipeline Layer
+
+**Azure's data stack has changed shape more than any other cloud's — HDInsight gave way to Databricks and Synapse, and Synapse is now being absorbed into Microsoft Fabric. Interviewers use this area to test whether you can reason about the current landscape rather than recite a service you used three years ago, and whether you understand what actually differentiates a lakehouse from a dedicated SQL pool.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Azure Synapse Analytics](#azure-synapse-analytics)
+- [Databricks & the Lakehouse](#databricks--the-lakehouse)
+- [Data Factory & Orchestration](#data-factory--orchestration)
+- [Streaming: Event Hubs & Stream Analytics](#streaming-event-hubs--stream-analytics)
+- [Service Bus & Serverless Patterns](#service-bus--serverless-patterns)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Azure's analytics story rests on **ADLS Gen2 as the storage layer** with multiple compute engines over it. Synapse brought SQL pools, Spark pools and pipelines into one workspace; Databricks provides the Spark and lakehouse platform; Data Factory moves and orchestrates. **Microsoft Fabric** is the current direction — a SaaS bundle unifying these behind **OneLake**, a single logical lake with Delta as the native format.
+
+The distinction that matters most in interviews is **dedicated versus serverless SQL**. A Synapse **dedicated** pool is a provisioned MPP warehouse with data loaded into its own storage — fast, expensive, and billed whether you query it or not unless you pause it. **Serverless** SQL queries files in the lake directly, billed per terabyte processed, with nothing running when idle. They solve different problems and the wrong choice shows up immediately in the bill.
+
+The second is that **Delta Lake is now the common denominator**. Databricks, Synapse Spark and Fabric all read and write Delta, so the open table format — not the engine — is what gives you ACID transactions, time travel and upserts on the lake. Designing around Delta rather than around a specific product is the answer that ages well.
+
+---
+
+## Azure Synapse Analytics
+
+<QuestionList topic="Azure Synapse Analytics" storagePrefix="azure-solutions-synapse">
+
+<QuestionCard id="azsol-syn-01" number={1} question="What are the components of Azure Synapse Analytics?" difficulty="medium" topic="Synapse">
+A workspace bundling several engines over ADLS Gen2:
+
+- **Dedicated SQL pool** — the MPP data warehouse, formerly SQL Data Warehouse. Provisioned in DWUs, data loaded into its own columnar storage.
+- **Serverless SQL pool** — query Parquet, CSV and Delta **in the lake** with T-SQL, no infrastructure, billed per TB processed.
+- **Apache Spark pools** — managed Spark for data engineering and ML, with autoscale and auto-pause.
+- **Pipelines** — essentially Azure Data Factory embedded in the workspace, for orchestration and copy activities.
+- **Synapse Link** — near-real-time replication from Cosmos DB, Dataverse and SQL into analytics with no pipeline.
+- **Synapse Studio** — the unified web UI.
+
+The pitch was one workspace for warehouse, lake and orchestration. In practice many teams pair **Databricks for engineering** with **Synapse serverless or dedicated for serving**, and Microsoft's own direction has since moved to Fabric.
+</QuestionCard>
+
+<QuestionCard id="azsol-syn-02" number={2} question="What is the difference between dedicated and serverless SQL pools?" difficulty="hard" topic="Synapse">
+| | **Dedicated** | **Serverless** |
+|---|---|---|
+| Data location | loaded into pool storage | queried in place in ADLS |
+| Billing | per DWU-hour, **whether used or not** | per TB processed |
+| Pause | must be paused manually | nothing to pause |
+| Performance | fast, predictable, tunable | variable, no indexes |
+| Features | distributions, indexes, materialised views, workload management | read-mostly, `CETAS` for output |
+
+**Dedicated** suits a high-concurrency BI serving layer where consistent sub-second response matters and the cost is justified by usage.
+
+**Serverless** suits exploration, ad-hoc analysis, and lightweight transformation over lake files — you point it at Parquet and query.
+
+The cost trap worth naming: a dedicated pool left **un-paused** overnight and at weekends bills continuously. Pausing it is the single most common Synapse cost saving, and it's routinely forgotten.
+</QuestionCard>
+
+<QuestionCard id="azsol-syn-03" number={3} question="How do you design tables in a dedicated SQL pool?" difficulty="hard" topic="Synapse">
+Two choices dominate performance, and they mirror Redshift.
+
+**Distribution** — how rows spread across the 60 underlying distributions:
+- **HASH** on the join key for large fact tables, so joins happen locally rather than shuffling.
+- **REPLICATE** for small dimension tables (under ~2 GB), giving every node a full copy.
+- **ROUND_ROBIN** as the fallback for staging tables with no obvious key.
+
+**Indexing**:
+- **Clustered columnstore** — the default and right answer for large fact tables.
+- **Heap** or clustered index for small tables and staging.
+
+```sql
+CREATE TABLE fact_orders WITH (
+  DISTRIBUTION = HASH(customer_id),
+  CLUSTERED COLUMNSTORE INDEX
+) AS SELECT ...
+```
+
+The failure to name is **data skew**: hashing on a low-cardinality or unevenly distributed column puts most rows on a few distributions, so one node does all the work. Check with `DBCC PDW_SHOWSPACEUSED`.
+</QuestionCard>
+
+<QuestionCard id="azsol-syn-04" number={4} question="What is PolyBase and COPY INTO?" difficulty="medium" topic="Synapse">
+Both load external data into a dedicated SQL pool in parallel across distributions.
+
+**PolyBase** uses external tables — you define an external data source, file format and table, then `INSERT ... SELECT` from it. Powerful, and more setup.
+
+**`COPY INTO`** is the newer, simpler statement and the recommended default:
+
+```sql
+COPY INTO fact_orders
+FROM 'https://acct.dfs.core.windows.net/curated/orders/'
+WITH (FILE_TYPE = 'PARQUET', CREDENTIAL = (IDENTITY = 'Managed Identity'));
+```
+
+Both are dramatically faster than row-by-row `INSERT`, because they parallelise across all distributions.
+
+Loading practices that matter: **split input into multiple files** so every distribution works, prefer **Parquet**, load into a **staging table** then swap so consumers never see partial data, and run `CREATE STATISTICS` afterwards so the optimiser has current information.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Databricks & the Lakehouse
+
+<QuestionList topic="Databricks & the Lakehouse" storagePrefix="azure-solutions-databricks">
+
+<QuestionCard id="azsol-dbx-01" number={1} question="What is the medallion architecture?" difficulty="medium" topic="Lakehouse">
+Databricks' name for a layered lake design:
+
+- **Bronze** — raw, as-ingested, append-only. Preserves history and allows reprocessing. Minimal transformation, maybe just added ingestion metadata.
+- **Silver** — cleaned, deduplicated, conformed, joined into meaningful entities. Quality rules applied here.
+- **Gold** — business-level aggregates and dimensional models, shaped for consumption by BI and ML.
+
+Why it's a useful convention rather than just naming: it makes **reprocessing** tractable (you can always rebuild silver and gold from bronze), it puts data quality gates at a defined boundary, and it gives consumers a clear contract about which layer is safe to depend on.
+
+It maps directly onto raw / enriched / curated in other vocabularies — the concept matters more than the names, and being able to say that is the better answer.
+</QuestionCard>
+
+<QuestionCard id="azsol-dbx-02" number={2} question="What does Delta Lake add over plain Parquet?" difficulty="hard" topic="Lakehouse">
+Delta is Parquet files plus a **transaction log** (`_delta_log`), and the log is what makes the difference:
+
+- **ACID transactions** — a writer commits atomically, so readers never see a partial write. This is the fix for the "downstream job read a half-written directory" failure.
+- **Upserts and deletes** — `MERGE INTO`, which plain Parquet can't do without rewriting everything. Essential for CDC and for GDPR erasure.
+- **Time travel** — query the table as of a version or timestamp, and restore after a bad write.
+- **Schema enforcement and evolution** — rejects mismatched writes rather than silently corrupting the table.
+- **Efficient metadata** — file listing comes from the log rather than an expensive directory scan, which fixes the small-files listing problem.
+- **`OPTIMIZE` and Z-ordering** — compaction and data skipping.
+
+The one-line version: **Delta turns a directory of files into a table**. Iceberg and Hudi solve the same problem; the concept is what matters.
+</QuestionCard>
+
+<QuestionCard id="azsol-dbx-03" number={3} question="What is Unity Catalog and what problem does it solve?" difficulty="medium" topic="Databricks">
+A unified governance layer across Databricks workspaces: a three-level namespace (`catalog.schema.table`), centralised access control, automated **lineage**, auditing, and a searchable data catalog.
+
+The problem it solves is that before it, permissions lived in **workspace-local** table ACLs and in storage-level credentials, so governance was fragmented — different workspaces had different views of the same data, and lineage had to be reconstructed by hand.
+
+For interviews the points worth making: it enables **fine-grained access control** (row filters and column masks) enforced consistently across SQL and Spark, it supports **Delta Sharing** for governed sharing outside the organisation, and it makes **lineage** automatic, which is what you need when someone asks "what breaks if I change this column."
+</QuestionCard>
+
+<QuestionCard id="azsol-dbx-04" number={4} question="Databricks or Synapse Spark — how do you choose?" difficulty="hard" topic="Databricks">
+**Databricks** — a more mature Spark platform: Photon for vectorised execution, Delta Live Tables for declarative pipelines, Unity Catalog, MLflow, notebooks and collaboration, and faster adoption of new Spark versions. Costs DBUs on top of VM cost.
+
+**Synapse Spark** — integrated into the Synapse workspace alongside SQL pools and pipelines, single billing, and simpler if you're already committed to Synapse. Generally trails Databricks on Spark features and performance.
+
+**Microsoft Fabric** is now Microsoft's strategic direction, absorbing much of Synapse into a SaaS model over OneLake.
+
+The honest answer for a new platform today: **Databricks for serious data engineering**, especially if the team lives in Spark. **Fabric** if the organisation is Power BI–centric and wants an integrated SaaS experience. Synapse standalone is increasingly a legacy choice, and saying so demonstrates current awareness.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Data Factory & Orchestration
+
+<QuestionList topic="Data Factory & Orchestration" storagePrefix="azure-solutions-adf">
+
+<QuestionCard id="azsol-adf-01" number={1} question="What is Azure Data Factory and what are its core concepts?" difficulty="medium" topic="Data Factory">
+A managed data integration and orchestration service — Azure's ETL/ELT workhorse.
+
+- **Pipeline** — a logical grouping of activities.
+- **Activity** — a step: Copy, Data Flow, notebook execution, stored procedure, or control flow (ForEach, If, Until).
+- **Dataset** — a named view of data in a store.
+- **Linked service** — the connection definition and credentials.
+- **Integration runtime** — the compute that actually does the work.
+- **Trigger** — schedule, tumbling window, or event-based.
+
+Its strength is the **Copy activity** with 100+ connectors, which handles the tedious part of moving data between systems with parallelism and fault tolerance.
+
+Its weakness is expressing complex logic — the visual, JSON-defined model gets unwieldy compared with code-based orchestration, which is why many teams use ADF for movement and Databricks or Airflow for transformation logic.
+</QuestionCard>
+
+<QuestionCard id="azsol-adf-02" number={2} question="What are the integration runtime types?" difficulty="medium" topic="Data Factory">
+- **Azure IR** — fully managed, serverless compute in a region. Used for cloud-to-cloud copy and Data Flows. The default.
+- **Self-hosted IR** — an agent you install on-premises or in a VNet. Required to reach **private data sources** — an on-premises SQL Server, or a database behind a firewall. It makes **outbound** connections only, which is what gets it through security review.
+- **Azure-SSIS IR** — a managed cluster for lifting existing SSIS packages into Azure without rewriting them.
+
+The one that matters most in practice is **self-hosted**: almost every real migration involves on-premises sources, and understanding that it's an outbound-only agent (no inbound firewall rule needed) is the detail that shows you've deployed one.
+
+For high availability, install it on multiple nodes — a single-node self-hosted IR is a single point of failure for every on-premises pipeline.
+</QuestionCard>
+
+<QuestionCard id="azsol-adf-03" number={3} question="What is the difference between Copy activity and Mapping Data Flows?" difficulty="medium" topic="Data Factory">
+**Copy activity** moves data from source to sink with minimal transformation — format conversion, column mapping, and simple filtering. It runs on the integration runtime and is highly optimised, with parallel partitioned reads. Cheap and fast.
+
+**Mapping Data Flow** is a visual transformation designer — joins, aggregates, derived columns, pivots, slowly changing dimension patterns — that **compiles to Spark** and runs on a managed Databricks cluster behind the scenes.
+
+The trade-off: Data Flows let non-coders build transformations, but they're **much more expensive** (you're paying for Spark clusters with startup time per run) and harder to test, version and debug than code.
+
+The common mature pattern: **Copy activity to land data, then Databricks notebooks or dbt for transformation**, using ADF purely for movement and orchestration. Data Flows make sense when the team genuinely can't write Spark.
+</QuestionCard>
+
+<QuestionCard id="azsol-adf-04" number={4} question="How do you handle incremental loads in Data Factory?" difficulty="hard" topic="Data Factory">
+Three patterns, in increasing order of fidelity:
+
+1. **Watermark** — store the last processed high-water mark (a timestamp or ID) in a control table, query rows above it, then update the watermark after success. Simple and portable; **misses deletes**, and depends on a reliable `updated_at`.
+2. **Tumbling window trigger** — ADF passes window start and end to the pipeline, so each run handles a fixed time slice. Supports **dependency chaining and automatic backfill** by re-running windows, which is its real advantage.
+3. **Native CDC** — ADF's change data capture connectors, or Debezium reading the log. Captures deletes and every intermediate change, with the least source impact.
+
+Whichever you choose, make the load **idempotent** — write into a partition you overwrite, or `MERGE` into a Delta table on the key — so a retried run can't duplicate rows. That's the part that separates a design that survives retries from one that quietly corrupts the target.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Streaming: Event Hubs & Stream Analytics
+
+<QuestionList topic="Streaming: Event Hubs & Stream Analytics" storagePrefix="azure-solutions-streaming">
+
+<QuestionCard id="azsol-eh-01" number={1} question="What is Azure Event Hubs?" difficulty="medium" topic="Event Hubs">
+A managed, high-throughput event ingestion service — Azure's equivalent of Kinesis Data Streams, and **Kafka protocol compatible**, so Kafka clients and tooling work against it unchanged.
+
+Core concepts: an **event hub** (a topic) has **partitions** for parallelism and ordering; **consumer groups** give each downstream application its own independent view and offsets; **throughput units** (or processing units in Premium) provision capacity.
+
+**Event Hubs Capture** is the feature to name for data engineering: it automatically writes the stream to ADLS or Blob in Avro at a configurable time or size interval, **with no consumer code at all**. That gives you a durable raw landing zone for free.
+
+Ordering is guaranteed **within a partition**, not across the hub — the same constraint as Kafka and Kinesis, and the same consequence for partition key choice.
+</QuestionCard>
+
+<QuestionCard id="azsol-eh-02" number={2} question="How do Event Hubs, Service Bus and Event Grid differ?" difficulty="hard" topic="Messaging">
+This is Azure's most-asked "which one" question.
+
+- **Event Hubs** — **high-throughput event streaming**. Millions of events per second, retained and **replayable**, consumed by partition with offsets. For telemetry, clickstream and IoT.
+- **Service Bus** — **enterprise messaging**. Queues and topics with ordering (sessions), transactions, dead-lettering, scheduled delivery and duplicate detection. For business messages where each one matters and must not be lost.
+- **Event Grid** — **event routing**. Lightweight reactive notifications ("a blob was created") pushed to subscribers with content-based filtering. For triggering, not for data transport.
+
+The heuristic: **Event Hubs for many events where you care about the stream; Service Bus for individual messages where you care about each one; Event Grid for reacting to something happening.**
+
+A typical pipeline uses all three: Event Grid fires on a blob landing, Service Bus carries the work item, Event Hubs carries the telemetry.
+</QuestionCard>
+
+<QuestionCard id="azsol-eh-03" number={3} question="What is Azure Stream Analytics, and when would you use it over Spark Structured Streaming?" difficulty="medium" topic="Stream Analytics">
+A fully managed real-time processing service using a **SQL-like language** with built-in temporal operators — tumbling, hopping, sliding and session windows — reading from Event Hubs or IoT Hub and writing to Blob, SQL, Cosmos, Power BI and more.
+
+Choose **Stream Analytics** when the logic is expressible in SQL, you want zero infrastructure, and latency requirements are seconds. Setting up a windowed aggregate to Power BI is genuinely a few minutes' work.
+
+Choose **Spark Structured Streaming** or **Flink** when you need arbitrary code, complex stateful logic, machine learning inference in the stream, exactly-once semantics with custom sinks, or portability off Azure.
+
+The honest limitation: Stream Analytics is excellent within its box and awkward the moment you step outside it — custom deserialisation, complex joins and non-SQL logic all push you toward Spark or Flink.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Service Bus & Serverless Patterns
+
+<QuestionList topic="Service Bus & Serverless Patterns" storagePrefix="azure-solutions-servicebus">
+
+<QuestionCard id="azsol-sb-01" number={1} question="What features does Service Bus offer beyond a simple queue?" difficulty="medium" topic="Service Bus">
+- **Topics and subscriptions** — pub/sub with SQL-like filter rules per subscriber, so each gets only relevant messages.
+- **Sessions** — FIFO ordering within a session ID, which is how you preserve per-entity ordering while still processing many entities in parallel.
+- **Dead-letter queues** — built in, automatic on repeated failure or expiry.
+- **Duplicate detection** — Service Bus discards a message with a repeated `MessageId` within a window, giving effective exactly-once ingestion.
+- **Scheduled delivery** and message deferral.
+- **Transactions** across multiple send and complete operations.
+- **Peek-lock** — the consumer locks a message, processes it, then completes or abandons it.
+
+For data pipelines, **sessions** and **duplicate detection** are the two that justify Service Bus over the simpler Queue Storage: ordered per-key processing and dedup are otherwise real work to build.
+</QuestionCard>
+
+<QuestionCard id="azsol-sb-02" number={2} question="What does 'Azure Serverless' mean for a data pipeline?" difficulty="medium" topic="Serverless">
+A set of services that scale to zero and bill per use, composed into pipelines with no infrastructure to manage:
+
+- **Azure Functions** — event-driven compute with bindings to Blob, Event Hubs, Service Bus and Cosmos.
+- **Logic Apps** — visual, connector-driven workflows for integration and approvals.
+- **Event Grid** — event routing.
+- **Serverless SQL pool** and **Cosmos DB serverless** — query and store without provisioning.
+- **Container Apps Jobs** — containerised tasks that scale to zero.
+- **Data Factory** — orchestration billed per activity run.
+
+The benefits are no idle cost and no capacity planning; the costs are per-execution limits (Function timeouts), cold starts, and cost that becomes unattractive at sustained high volume.
+
+The mature pattern is **serverless at the edges** — triggering, routing, light transformation — with **provisioned compute for the heavy processing** in the middle.
+</QuestionCard>
+
+<QuestionCard id="azsol-sb-03" number={3} question="What is Microsoft Fabric and how does it change the picture?" difficulty="hard" topic="Fabric">
+A **SaaS analytics platform** unifying Microsoft's data products under one capacity-based licence: Data Factory for movement, Synapse Data Engineering (Spark), Data Warehouse, Real-Time Intelligence, Data Science, and Power BI.
+
+The architectural centrepiece is **OneLake** — a single logical data lake per tenant, with **Delta Parquet as the native format** for everything. Engines read the same tables without copying, and **Shortcuts** reference data in ADLS, S3 or elsewhere without moving it.
+
+What changes: the emphasis shifts from assembling PaaS services to consuming an integrated SaaS product, with tight Power BI integration (**Direct Lake** mode reads Delta directly, avoiding both import refresh and DirectQuery latency).
+
+The balanced view for an interview: Fabric is compelling for Power BI–centric organisations wanting less integration work; it's newer, less flexible than Databricks for complex engineering, and the capacity licensing model needs careful sizing. Knowing it's Microsoft's strategic direction — and that Synapse is being folded into it — is the point.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Your Synapse bill is much higher than expected."** — a dedicated SQL pool left un-paused is the first thing to check, then serverless queries scanning unpartitioned data, then Data Flow clusters spinning up per pipeline run when a Copy activity would have done.
+
+**"Design an Azure data platform from scratch."** — ADLS Gen2 with HNS as storage, medallion layers in Delta, Databricks or Fabric for engineering, Data Factory for movement and orchestration, Event Hubs with Capture for streaming ingestion, Unity Catalog or Purview for governance, and Power BI for serving. Justify Delta as the format decision that keeps engines interchangeable.
+
+**"Event Hubs, Service Bus or Event Grid for this?"** — many events where the stream matters and replay is needed → Event Hubs. Individual business messages needing ordering, dedup and dead-lettering → Service Bus. Reacting to a resource change → Event Grid.
+
+**"Should we move to Fabric?"** — depends on how Power BI–centric the organisation is and how complex the engineering. Strong fit for integrated BI-led analytics; Databricks remains stronger for heavy custom engineering. Note Synapse's direction of travel rather than treating it as a long-term standalone bet.
+
+---
+
+## Further Reading
+
+- [Azure Synapse Analytics documentation](https://learn.microsoft.com/azure/synapse-analytics/)
+- [Azure Databricks documentation](https://learn.microsoft.com/azure/databricks/)
+- [Delta Lake documentation](https://docs.delta.io/)
+- [Azure Data Factory documentation](https://learn.microsoft.com/azure/data-factory/)
+- [Azure Event Hubs documentation](https://learn.microsoft.com/azure/event-hubs/)
+- [Choose between Azure messaging services](https://learn.microsoft.com/azure/service-bus-messaging/compare-messaging-services)
+- [Microsoft Fabric documentation](https://learn.microsoft.com/fabric/)

@@ -1,0 +1,245 @@
+---
+title: Azure Database Services
+description: Azure database interview questions covering Azure SQL Database and Managed Instance, Cosmos DB APIs and consistency levels, Azure Database for MySQL and PostgreSQL, Database Migration Service, and extracting data for analytics.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Azure Databases: Sources, Sinks and Serving Layers
+
+**For a data engineer these are usually the systems you read *from* rather than run — so the questions that matter are about extraction without hurting production, change capture, and knowing when a workload has outgrown a transactional store. Cosmos DB is the exception worth real depth, because its partitioning and consistency model come up constantly and people get both wrong.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Azure SQL](#azure-sql)
+- [Cosmos DB](#cosmos-db)
+- [MySQL & PostgreSQL](#mysql--postgresql)
+- [Database Migration Service](#database-migration-service)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Azure's relational offerings come in **deployment models** that trade compatibility against management. Azure SQL Database is a single logical database with the most managed features and the least surface area; SQL Managed Instance gives near-full SQL Server compatibility for lift-and-shift; SQL Server on a VM gives complete control and complete responsibility. The same pattern repeats for MySQL and PostgreSQL as Flexible Server.
+
+**Cosmos DB** is the purpose-built NoSQL store, and its defining characteristics are **global distribution**, **five consistency levels** rather than the usual two, and a **request unit (RU)** currency that abstracts CPU, memory and IOPS into one number you provision or consume.
+
+The data engineering thread running through all of them is **how you get data out**. A full-table `SELECT` against production is the wrong answer everywhere. The right answers are a read replica, a snapshot or export, or **change feed / CDC** — and Azure's managed options (Cosmos change feed, SQL CDC, Synapse Link) are designed precisely so analytics doesn't touch the serving path.
+
+---
+
+## Azure SQL
+
+<QuestionList topic="Azure SQL" storagePrefix="azure-databases-sql">
+
+<QuestionCard id="azdb-sql-01" number={1} question="What are the Azure SQL deployment options?" difficulty="medium" topic="Azure SQL">
+- **Azure SQL Database** — a single logical database, fully managed. Automatic patching, backups, point-in-time restore, built-in HA. Most managed, least compatible: no SQL Agent, no cross-database queries, no CLR.
+- **Elastic Pool** — many databases sharing a pool of resources, so their peaks don't coincide. Much cheaper for SaaS-style multi-tenant estates than provisioning each database separately.
+- **SQL Managed Instance** — near-complete SQL Server compatibility including SQL Agent, cross-database queries, linked servers and CLR, deployed into your VNet. The **lift-and-shift target**.
+- **SQL Server on Azure VM** — full control, full responsibility. Only when you need OS access or an unsupported feature.
+
+The decision: **Managed Instance** if you're migrating an existing SQL Server estate with dependencies on Agent jobs or cross-database queries; **SQL Database** for new applications.
+</QuestionCard>
+
+<QuestionCard id="azdb-sql-02" number={2} question="What is the difference between DTU and vCore purchasing models?" difficulty="medium" topic="Azure SQL">
+**DTU (Database Transaction Unit)** bundles CPU, memory and I/O into one opaque number, with tiers Basic, Standard and Premium. Simple, but you can't tune the mix, and you can't map it to on-premises hardware.
+
+**vCore** exposes cores, memory and storage separately, in **General Purpose**, **Business Critical** (local SSD, in-memory OLTP, a readable replica) and **Hyperscale** (storage to 100 TB, near-instant backups, fast scale-out of read replicas) tiers.
+
+**vCore is the recommended model** — it's transparent, lets you size dimensions independently, and is the only way to use **Azure Hybrid Benefit** to reuse existing SQL Server licences, which is often a large saving.
+
+**Serverless** compute on vCore auto-pauses after inactivity, making it well suited to dev and intermittent workloads.
+
+**Hyperscale** is the one worth naming for data work — its architecture separates compute from a distributed storage layer, so it handles very large databases and near-instantaneous restores.
+</QuestionCard>
+
+<QuestionCard id="azdb-sql-03" number={3} question="How do you extract data from Azure SQL for analytics without hurting production?" difficulty="hard" topic="Azure SQL">
+1. **Read a secondary replica.** Business Critical and Hyperscale offer readable secondaries — connect with `ApplicationIntent=ReadOnly` and heavy reads land there instead of the primary.
+2. **Change tracking or CDC.** SQL Server change data capture reads the log and exposes changes, so incremental extraction doesn't scan the table.
+3. **Azure Synapse Link for SQL** — managed near-real-time replication into a Synapse dedicated pool with no pipeline to build. Least effort where it fits.
+4. **Data Factory copy with partitioned reads** — parallel range-partitioned queries, run in a maintenance window.
+5. **Export a `.bacpac` or restore a copy** for a full snapshot with zero load on the live database.
+
+The bad answer is a nightly unpartitioned `SELECT *` against the primary during business hours. Naming the readable-secondary option is usually the quickest way to show you've done this for real.
+</QuestionCard>
+
+<QuestionCard id="azdb-sql-04" number={4} question="How do backups and high availability work in Azure SQL?" difficulty="medium" topic="Azure SQL">
+**Backups** are automatic: full, differential and log backups giving **point-in-time restore** within a retention window of 1–35 days, extendable to 10 years with long-term retention. Restores create a **new database**, so cutover requires a connection-string change.
+
+**High availability** is built in and differs by tier. General Purpose separates compute from remote storage and fails over by attaching new compute. Business Critical maintains an **Always On availability group** with local SSD replicas, giving faster failover and a readable secondary. Hyperscale uses page servers with a separate compute layer.
+
+**Active geo-replication** and **failover groups** add cross-region readable secondaries with automatic failover — the latter also moves the listener endpoint, so applications reconnect without configuration changes.
+
+For a data platform, the readable secondary is the feature that matters most day to day.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Cosmos DB
+
+<QuestionList topic="Cosmos DB" storagePrefix="azure-databases-cosmos">
+
+<QuestionCard id="azdb-cos-01" number={1} question="What is Cosmos DB and what APIs does it offer?" difficulty="medium" topic="Cosmos DB">
+A globally distributed, multi-model NoSQL database with single-digit millisecond latency, elastic scale, and SLA-backed availability, throughput, latency and consistency.
+
+APIs:
+- **NoSQL (Core)** — the native SQL-like query API over JSON documents. **Use this for new work**; it gets features first and has the best tooling.
+- **MongoDB** — wire-protocol compatible, for migrating Mongo workloads.
+- **Cassandra** — CQL compatible.
+- **Gremlin** — graph.
+- **Table** — the successor to Azure Table Storage.
+
+The APIs are compatibility layers over one engine, so they share partitioning, RUs and consistency. Feature support varies, and the non-native APIs lag — which is the caveat to give when someone proposes Cosmos as a drop-in Mongo replacement.
+</QuestionCard>
+
+<QuestionCard id="azdb-cos-02" number={2} question="Explain the five consistency levels." difficulty="hard" topic="Cosmos DB">
+From strongest to weakest, trading latency and availability for guarantees:
+
+1. **Strong** — linearizable; reads always see the latest committed write. Cannot span regions with multi-region writes, and costs the most in latency and RUs.
+2. **Bounded Staleness** — lags by at most K versions or T seconds, and preserves order. The practical choice when you need near-strong guarantees globally.
+3. **Session** — **the default**. Guarantees read-your-own-writes, monotonic reads and consistent prefix *within a client session*. Covers most application needs at low cost.
+4. **Consistent Prefix** — you never see writes out of order, but may see them late.
+5. **Eventual** — no ordering guarantee, lowest latency and RU cost.
+
+The point that shows understanding: **reads at weaker consistency cost fewer RUs**, so consistency is a direct cost lever, not only a correctness one. Session is the right default; move to Strong only where a specific read genuinely requires it.
+</QuestionCard>
+
+<QuestionCard id="azdb-cos-03" number={3} question="How does partitioning work, and what makes a good partition key?" difficulty="hard" topic="Cosmos DB">
+Data is distributed by hashing the **partition key** into logical partitions, which map onto physical partitions. Each logical partition is capped at **20 GB** and shares its physical partition's throughput.
+
+A good partition key has:
+- **High cardinality** — so data and requests spread evenly.
+- **Even request distribution** — avoiding a "hot partition" where one value takes most of the traffic.
+- **Alignment with your most common query filter**, so queries stay within a single partition rather than fanning out.
+
+Classic bad choices: a `date` (all of today's writes hit one partition), a low-cardinality `status`, or a `tenant_id` where one tenant dwarfs the rest.
+
+Two hard consequences: **the partition key cannot be changed** without migrating the container, and **cross-partition queries cost far more RUs** and scale poorly. Synthetic keys (`tenantId_yyyyMM`) are the standard mitigation for skew.
+</QuestionCard>
+
+<QuestionCard id="azdb-cos-04" number={4} question="What are Request Units, and how do you control cost?" difficulty="medium" topic="Cosmos DB">
+A **Request Unit** is the normalised currency of throughput, bundling CPU, memory and IOPS. A 1 KB point read costs about 1 RU; writes cost more; queries cost according to how much they scan.
+
+Provisioning models:
+- **Provisioned throughput** — a fixed RU/s, optionally **autoscale** between 10% and 100% of a maximum. Cheapest for steady load.
+- **Serverless** — pay per RU consumed, no floor. Right for dev, spiky and low-volume workloads.
+
+Cost control:
+- **Design for point reads** — they're the cheapest operation by a wide margin.
+- **Avoid cross-partition queries**, which multiply RU cost.
+- **Tune the indexing policy** — Cosmos indexes every property by default, and excluding unused paths cuts write RUs significantly. This is a big and frequently-missed win.
+- **Weaker consistency** where acceptable, since reads cost fewer RUs.
+- **TTL** to expire old documents automatically instead of storing them forever.
+</QuestionCard>
+
+<QuestionCard id="azdb-cos-05" number={5} question="What is the change feed, and how do you use it for analytics?" difficulty="hard" topic="Cosmos DB">
+A persistent, ordered log of **creates and updates** per partition, readable from any point — Cosmos's equivalent of a CDC stream.
+
+Consume it with the **change feed processor** library, an **Azure Function trigger**, or Spark. Typical uses: materialising a denormalised view, pushing changes into a search index, triggering downstream work, and replicating into the lake.
+
+Two limitations to state: it does **not** capture deletes (the workaround is a soft-delete flag plus TTL), and by default you see the **latest version** of a document rather than every intermediate change.
+
+For analytics, the better answer is usually **Azure Synapse Link** — it maintains an automatically-synced **analytical store** in columnar format with a separate cost model, so Spark and SQL can query Cosmos data **without consuming operational RUs at all**. That's the clean separation of operational and analytical workloads, with no pipeline to build.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## MySQL & PostgreSQL
+
+<QuestionList topic="MySQL & PostgreSQL" storagePrefix="azure-databases-oss">
+
+<QuestionCard id="azdb-oss-01" number={1} question="What is Azure Database for PostgreSQL Flexible Server?" difficulty="medium" topic="PostgreSQL">
+The current deployment model for managed PostgreSQL on Azure, replacing the older Single Server.
+
+What it gives over Single Server: **zone-redundant HA** with a standby in another availability zone, **stop/start** to save cost on non-production, **custom maintenance windows**, better performance and cost control, **VNet integration** by default, and support for more extensions.
+
+For data engineering it also supports **logical replication**, which is what makes **CDC via Debezium or Data Factory** possible — the key capability if you need near-real-time replication into the lake.
+
+**Azure Database for MySQL Flexible Server** is the equivalent for MySQL with the same shape of features.
+
+Interview-relevant point: if someone describes Single Server, that's the legacy model — Microsoft has been retiring it, and Flexible Server is the answer for anything new.
+</QuestionCard>
+
+<QuestionCard id="azdb-oss-02" number={2} question="How do you set up CDC from Azure PostgreSQL into a data lake?" difficulty="hard" topic="PostgreSQL">
+1. **Enable logical replication** — set `wal_level = logical` on the server parameters and restart. Create a replication slot and publication for the tables you need.
+2. **Choose a reader**:
+   - **Debezium** on Kafka Connect (with Event Hubs or a Kafka cluster) — the most control and the standard open-source path.
+   - **Azure Data Factory / Synapse Pipelines** CDC connectors — managed, less flexible.
+   - **Fivetran, Airbyte** or similar — fastest to stand up.
+3. **Land changes append-only** in ADLS as a raw change log, ordered by log sequence number.
+4. **Merge into a Delta table** on a schedule, using `MERGE` on the primary key to apply inserts, updates and deletes.
+
+The operational care point: **replication slots retain WAL until consumed**, so a stalled or forgotten consumer will fill the server's disk and take the database down. Monitor slot lag and alarm on it — this is the failure that turns a nice CDC design into an outage.
+</QuestionCard>
+
+<QuestionCard id="azdb-oss-03" number={3} question="When would you choose Azure Database for PostgreSQL over Azure SQL or Cosmos DB?" difficulty="medium" topic="PostgreSQL">
+- **PostgreSQL** — when the team knows Postgres, when you want portability off Azure, or when you need its ecosystem: PostGIS for geospatial, `pgvector` for embeddings, TimescaleDB-style time-series patterns, and rich JSON support. Open source, no licence cost.
+- **Azure SQL** — when you have existing SQL Server skills or code, need T-SQL features, or are migrating an existing estate. Azure Hybrid Benefit makes it cheaper if you already hold licences.
+- **Cosmos DB** — when you need global distribution with local write latency, effectively unlimited horizontal scale, or a schema-flexible document model with known key-based access patterns.
+
+The honest framing: for most new workloads a managed **PostgreSQL is the strongest default** — capable, portable, familiar and cheap. Cosmos should be justified by a specific need for global writes or extreme scale, not chosen by default because it's Azure-native.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Database Migration Service
+
+<QuestionList topic="Database Migration Service" storagePrefix="azure-databases-dms">
+
+<QuestionCard id="azdb-dms-01" number={1} question="What is Azure Database Migration Service?" difficulty="medium" topic="DMS">
+A managed service for migrating databases to Azure, supporting **offline** (one-time, with downtime) and **online** (continuous sync, minimal downtime) migrations.
+
+Common paths: SQL Server to Azure SQL Database or Managed Instance, Oracle to Azure SQL or PostgreSQL, MySQL and PostgreSQL to their Flexible Server equivalents, and MongoDB to Cosmos DB.
+
+It pairs with the **Azure Migrate** family and, for heterogeneous work, schema conversion tooling that translates DDL and procedural code between engines and reports what it couldn't convert.
+
+Like AWS DMS, it moves **data** — you handle indexes, procedures, triggers, sequences and permissions separately, and the standard sequence is create schema without secondary indexes, load, then add indexes and re-enable triggers.
+</QuestionCard>
+
+<QuestionCard id="azdb-dms-02" number={2} question="How would you migrate a large SQL Server database to Azure with minimal downtime?" difficulty="hard" topic="DMS">
+1. **Assess** with Data Migration Assistant — compatibility issues, deprecated features, and a sizing recommendation. Choose Managed Instance if there are Agent jobs or cross-database dependencies.
+2. **Provision** the target and create the schema, without secondary indexes, triggers disabled.
+3. **Start an online migration** — full load followed by continuous sync of changes.
+4. **Add indexes and constraints** once the initial load completes.
+5. **Monitor sync lag** until it's near zero.
+6. **Validate** — row counts, aggregate checksums on key columns, and reconciliation of a few business metrics. Check collation and datetime precision explicitly.
+7. **Cut over** in a short window: quiesce writes, let sync drain, repoint connection strings, resume.
+8. **Keep the source available** for rollback.
+
+The value of the online model is that downtime becomes minutes rather than a weekend, because the bulk copy happened while the source stayed live.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Cosmos DB costs are far higher than expected."** — check for cross-partition queries, the default indexing policy indexing every property (a big write-RU cost), consistency stronger than needed, provisioned throughput sized for peak rather than autoscaled, and missing TTL on data that should expire.
+
+**"Your nightly extract from Azure SQL is timing out and slowing the app."** — move reads to a readable secondary with `ApplicationIntent=ReadOnly`, switch to CDC or change tracking for incremental loads, and partition the copy activity. Consider Synapse Link to remove the pipeline entirely.
+
+**"Design a store for a global application with sub-10ms reads in every region."** — Cosmos DB with multi-region writes, session consistency, and a partition key aligned to the dominant query filter. Address hot partitions and the fact that the key can't be changed later.
+
+**"Why not just use Cosmos DB for everything?"** — RU cost for scan-heavy or ad-hoc query workloads, no joins, and a partition key you must get right up front. For relational access patterns, managed PostgreSQL or Azure SQL is cheaper and more flexible.
+
+---
+
+## Further Reading
+
+- [Azure SQL Database documentation](https://learn.microsoft.com/azure/azure-sql/database/)
+- [Azure SQL purchasing models](https://learn.microsoft.com/azure/azure-sql/database/purchasing-models)
+- [Azure Cosmos DB documentation](https://learn.microsoft.com/azure/cosmos-db/)
+- [Cosmos DB partitioning and horizontal scaling](https://learn.microsoft.com/azure/cosmos-db/partitioning-overview)
+- [Cosmos DB consistency levels](https://learn.microsoft.com/azure/cosmos-db/consistency-levels)
+- [Azure Synapse Link for Cosmos DB](https://learn.microsoft.com/azure/cosmos-db/synapse-link)
+- [Azure Database for PostgreSQL Flexible Server](https://learn.microsoft.com/azure/postgresql/flexible-server/)
