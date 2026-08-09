@@ -1,0 +1,255 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "Data Quality Roadmap",
+    description: "",
+  
+  }}
+>
+  <div id="rm-root">
+    <div class="rm-header">
+      <div class="rm-header-left">
+        <span class="rm-badge">Roadmap</span>
+        <h1 class="rm-title">Data Quality</h1>
+        <p class="rm-subtitle">Step-by-step guide to validating and monitoring data</p>
+      </div>
+      <div class="rm-header-right">
+        <div class="rm-legend">
+          <span class="rm-legend-item" data-status="pending"><span class="rm-dot"></span>Pending</span>
+          <span class="rm-legend-item" data-status="inprogress"><span class="rm-dot"></span>In Progress</span>
+          <span class="rm-legend-item" data-status="done"><span class="rm-dot"></span>Done</span>
+        </div>
+        <div class="rm-progress-summary">
+          <span class="rm-prog-label">Progress</span>
+          <div class="rm-prog-bar-wrap"><div class="rm-prog-bar" id="rm-prog-bar"></div></div>
+          <span class="rm-prog-pct" id="rm-prog-pct">0%</span>
+        </div>
+      </div>
+    </div>
+    <div class="rm-flow" id="rm-flow"></div>
+    <div class="rm-drawer" id="rm-drawer">
+      <div class="rm-backdrop" id="rm-backdrop"></div>
+      <div class="rm-panel">
+        <div class="rm-panel-header">
+          <div>
+            <span id="rm-panel-badge" class="rm-panel-badge"></span>
+            <h2 id="rm-panel-title" class="rm-panel-title"></h2>
+          </div>
+          <button id="rm-panel-close" class="rm-panel-close" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+            </svg>
+          </button>
+        </div>
+        <div class="rm-panel-status-row">
+          <span class="rm-panel-status-label">Status</span>
+          <div class="rm-status-select-wrap">
+            <span class="rm-status-dot" id="rm-status-dot"></span>
+            <select class="rm-status-select" id="rm-status-select" aria-label="Set status">
+              <option value="pending">⬜ Pending</option>
+              <option value="inprogress">🟡 In Progress</option>
+              <option value="done">✅ Done</option>
+            </select>
+          </div>
+        </div>
+        <div class="rm-panel-body" id="rm-panel-body"></div>
+      </div>
+    </div>
+  </div>
+</StarlightPage>
+
+<style is:global>
+  @import "/src/styles/roadmap.css";
+</style>
+
+<script>
+const ROADMAP = [
+  { id:"core-concepts", label:"Core Concepts", desc:"15 interview questions covering Fundamentals, Freshness, Validation, Checks and more.", link:"/level-2-core-concepts/data-quality/#interview-questions", subs:[
+    { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"Data quality means the data is fit for its intended use.", link:"/level-2-core-concepts/data-quality/#interview-questions" },
+    { id:"core-concepts-freshness", label:"Freshness", desc:"Freshness is how recently data was updated relative to expected cadence.", link:"/level-2-core-concepts/data-quality/#interview-questions" },
+    { id:"core-concepts-validation", label:"Validation", desc:"Validation checks whether a dataset satisfies rules (types, constraints, ranges).", link:"/level-2-core-concepts/data-quality/#interview-questions" },
+    { id:"core-concepts-checks", label:"Checks", desc:"Row-level checks validate each record (for example not_null, regex, range constraints).", link:"/level-2-core-concepts/data-quality/#interview-questions" },
+    { id:"core-concepts-pipelines", label:"Pipelines", desc:"Checks should be scoped to the incremental window and also protect the full table invariants.", link:"/level-2-core-concepts/data-quality/#interview-questions" },
+    { id:"core-concepts-schema", label:"Schema", desc:"You compare incoming schemas to an expected contract (column names, types, nullability) and alert on changes.", link:"/level-2-core-concepts/data-quality/#interview-questions" },
+    { id:"core-concepts-contracts", label:"Contracts", desc:"Data contracts are explicit agreements between producers and consumers about schema, semantics, SLAs, and ownership.", link:"/level-2-core-concepts/data-quality/#interview-questions" },
+    { id:"core-concepts-alerting", label:"Alerting", desc:"Use dynamic thresholds, seasonality-aware baselines, and multi-signal alerts (freshness + volume + error rate).", link:"/level-2-core-concepts/data-quality/#interview-questions" },
+    { id:"core-concepts-monitoring", label:"Monitoring", desc:"Anomaly detection flags unusual changes in metrics (spikes/drops) that may indicate pipeline issues or business events.", link:"/level-2-core-concepts/data-quality/#interview-questions" },
+    { id:"core-concepts-testing", label:"Testing", desc:"You can test transformations by: - unit-like tests on small fixtures (golden datasets) - property tests (invariants like non-negative totals) - reconciliation…", link:"/level-2-core-concepts/data-quality/#interview-questions" },
+    { id:"core-concepts-failure-modes", label:"Failure Modes", desc:"Common failures include: - missing partitions or partial loads - duplicates due to retries/reprocessing - schema drift and type coercion issues - timezone and…", link:"/level-2-core-concepts/data-quality/#interview-questions" },
+  ]},
+  { id:"tooling-frameworks", label:"Tooling & Frameworks", desc:"5 interview questions covering Tooling, Profiling.", link:"/level-2-core-concepts/data-quality/#tooling--frameworks", subs:[
+    { id:"tooling-frameworks-tooling", label:"Tooling", desc:"Great Expectations is a Python framework for defining data quality rules (\"expectations\" — expect_column_values_to_not_be_null,…", link:"/level-2-core-concepts/data-quality/#tooling--frameworks" },
+    { id:"tooling-frameworks-profiling", label:"Profiling", desc:"Profiling means computing summary statistics on a dataset before you know what to check — null rates per column, distinct value counts, min/max/mean, common patterns in string columns.", link:"/level-2-core-concepts/data-quality/#tooling--frameworks" },
+  ]},
+  { id:"practical-validation-techniques", label:"Practical Validation Techniques", desc:"6 interview questions covering Referential Integrity, Deduplication, Statistical Checks, Streaming and more.", link:"/level-2-core-concepts/data-quality/#practical-validation-techniques", subs:[
+    { id:"practical-validation-techniques-referential-integrity", label:"Referential Integrity", desc:"Most analytical warehouses accept (but don't enforce) foreign key declarations, so referential integrity has to be checked explicitly — typically an anti-join:…", link:"/level-2-core-concepts/data-quality/#practical-validation-techniques" },
+    { id:"practical-validation-techniques-deduplication", label:"Deduplication", desc:"For exact duplicates, hash the row's relevant columns and check for repeated hash values — cheaper than comparing every column pairwise.", link:"/level-2-core-concepts/data-quality/#practical-validation-techniques" },
+    { id:"practical-validation-techniques-statistical-checks", label:"Statistical Checks", desc:"Compare a statistical summary of today's batch against a rolling historical baseline — mean/median/standard deviation for numeric columns, or the distribution…", link:"/level-2-core-concepts/data-quality/#practical-validation-techniques" },
+    { id:"practical-validation-techniques-streaming", label:"Streaming", desc:"Batch checks run against a complete, stable dataset; streaming checks have to work against data that's still arriving, with no natural \"batch is done\" moment to validate against.", link:"/level-2-core-concepts/data-quality/#practical-validation-techniques" },
+    { id:"practical-validation-techniques-data-modeling", label:"Data Modeling", desc:"Use NULL for \"value doesn't exist / unknown,\" reserving it for genuine absence rather than overloading it with multiple meanings.", link:"/level-2-core-concepts/data-quality/#practical-validation-techniques" },
+    { id:"practical-validation-techniques-pipeline-design", label:"Pipeline Design", desc:"Light structural checks (can it be parsed, does it match the expected raw schema) belong at bronze, right on ingestion, so malformed source data is caught immediately rather than propagating.", link:"/level-2-core-concepts/data-quality/#practical-validation-techniques" },
+  ]},
+  { id:"metrics-ownership-trust", label:"Metrics, Ownership & Trust", desc:"4 interview questions covering Metrics, Prioritization, Ownership, Trust.", link:"/level-2-core-concepts/data-quality/#metrics-ownership--trust", subs:[
+    { id:"metrics-ownership-trust-metrics", label:"Metrics", desc:"A simple, defensible approach: weight each quality dimension (completeness, validity, freshness, uniqueness) by how much it matters for that specific dataset,…", link:"/level-2-core-concepts/data-quality/#metrics-ownership--trust" },
+    { id:"metrics-ownership-trust-prioritization", label:"Prioritization", desc:"Scale checks to the dataset's actual blast radius: a table feeding an executive dashboard or a financial report justifies deep validation, reconciliation, and…", link:"/level-2-core-concepts/data-quality/#metrics-ownership--trust" },
+    { id:"metrics-ownership-trust-ownership", label:"Ownership", desc:"The producing team owns fixing the source of the problem (a broken upstream job, a schema change that wasn't communicated), since they're the only ones who can actually correct it at the root.", link:"/level-2-core-concepts/data-quality/#metrics-ownership--trust" },
+    { id:"metrics-ownership-trust-trust", label:"Trust", desc:"Be transparent about what happened and why, rather than quietly fixing it — a short incident writeup (what broke, what was affected, what's changing) does more for trust than silence.", link:"/level-2-core-concepts/data-quality/#metrics-ownership--trust" },
+  ]},
+];
+
+const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
+const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;
+const ICON_DONE       = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="5.5 8.5 7 10 10.5 6"/></svg>`;
+const ICON_ARROW      = `<svg width="20" height="28" viewBox="0 0 20 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="10" y1="0" x2="10" y2="20"/><polyline points="5 15 10 22 15 15"/></svg>`;
+const ICON_CHEVRON    = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 5 7 9 11 5"/></svg>`;
+function iconFor(s: string) { return s==="done"?ICON_DONE:s==="inprogress"?ICON_INPROGRESS:ICON_PENDING; }
+
+const KEY = "data_quality_roadmap_v1";
+function load(): Record<string,string> { try { return JSON.parse(localStorage.getItem(KEY)||"{}"); } catch { return {}; } }
+function save(s: Record<string,string>) { localStorage.setItem(KEY, JSON.stringify(s)); }
+let state = load();
+let collapsedIds = new Set();
+function getS(id: string) { return state[id]||"pending"; }
+
+function allIds() {
+  const ids: string[] = [];
+  for (const t of ROADMAP) { ids.push(t.id); for (const s of t.subs) ids.push(s.id); }
+  return ids;
+}
+
+function refreshProgress() {
+  const ids = allIds();
+  const done = ids.filter(id => getS(id)==="done").length;
+  const pct = ids.length ? Math.round((done/ids.length)*100) : 0;
+  const bar = document.getElementById("rm-prog-bar");
+  const pctEl = document.getElementById("rm-prog-pct");
+  if (bar) bar.style.width = `${pct}%`;
+  if (pctEl) pctEl.textContent = `${pct}%`;
+}
+
+function buildFlow() {
+  const flow = document.getElementById("rm-flow");
+  if (!flow) return;
+  flow.innerHTML = "";
+  ROADMAP.forEach((topic, ti) => {
+    const s = getS(topic.id);
+    const isCollapsed = collapsedIds.has(topic.id);
+    const topicEl = document.createElement("div");
+    topicEl.className = `rm-topic-node${s!=="pending"?` is-${s}`:""}${isCollapsed?" is-collapsed":""}`;
+    topicEl.dataset.id = topic.id;
+    topicEl.innerHTML = `<span class="rm-topic-icon">${iconFor(s)}</span><span class="rm-topic-label">${topic.label}</span>${topic.subs.length?`<span class="rm-count-badge">${topic.subs.length}</span>`:""}<span class="rm-chevron">${ICON_CHEVRON}</span>`;
+    topicEl.addEventListener("click", () => openPanel(topic.id, "topic"));
+    if (topic.subs.length > 0) {
+      const chevronEl = topicEl.querySelector(".rm-chevron");
+      chevronEl?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (collapsedIds.has(topic.id)) collapsedIds.delete(topic.id); else collapsedIds.add(topic.id);
+        buildFlow();
+      });
+    }
+    flow.appendChild(topicEl);
+    if (topic.subs.length > 0 && !isCollapsed) {
+      const group = document.createElement("div");
+      group.className = "rm-sub-group";
+      for (const sub of topic.subs) {
+        const ss = getS(sub.id);
+        const subEl = document.createElement("div");
+        subEl.className = `rm-sub-node${ss!=="pending"?` is-${ss}`:""}`;
+        subEl.dataset.id = sub.id;
+        subEl.innerHTML = `<span class="rm-sub-icon">${iconFor(ss)}</span><span class="rm-sub-label">${sub.label}</span>`;
+        subEl.addEventListener("click", () => openPanel(sub.id, "subtopic", topic.id));
+        group.appendChild(subEl);
+      }
+      flow.appendChild(group);
+    }
+    if (ti < ROADMAP.length-1) {
+      const arrow = document.createElement("div");
+      arrow.className = "rm-arrow";
+      arrow.innerHTML = ICON_ARROW;
+      flow.appendChild(arrow);
+    }
+  });
+}
+
+let activeId: string|null = null, activeParent: string|null = null;
+function findItem(id: string): any {
+  for (const t of ROADMAP) { if (t.id===id) return {...t,type:"topic"}; for (const s of t.subs) { if (s.id===id) return {...s,type:"subtopic"}; } }
+  return null;
+}
+
+function openPanel(id: string, type: string, parentId?: string) {
+  activeId = id; activeParent = parentId??null;
+  const item = findItem(id); if (!item) return;
+  const badge = document.getElementById("rm-panel-badge")!;
+  const title = document.getElementById("rm-panel-title")!;
+  const body  = document.getElementById("rm-panel-body")!;
+  badge.textContent = type==="topic"?"Topic":"Subtopic";
+  badge.className   = `rm-panel-badge is-${type}`;
+  title.textContent = item.label;
+  body.innerHTML    = `<p class="rm-panel-desc">${item.desc}</p>` + (item.link ? `<a href="${item.link}" class="rm-read-more">Read more →</a>` : "");
+  if (type==="topic" && item.subs?.length>0) {
+    const sublist = document.createElement("div");
+    sublist.className = "rm-panel-sublist";
+    sublist.innerHTML = `<p class="rm-panel-sublist-title">Subtopics (${item.subs.length})</p>`;
+    for (const sub of item.subs) {
+      const ss = getS(sub.id);
+      const row = document.createElement("div");
+      row.className = `rm-panel-subitem${ss!=="pending"?` is-${ss}`:""}`;
+      row.dataset.subId = sub.id;
+      row.innerHTML = `<span class="rm-panel-subitem-icon">${iconFor(ss)}</span><span class="rm-panel-subitem-label">${sub.label}</span><span class="rm-panel-subitem-tag">${ss}</span>`;
+      row.addEventListener("click", e => { e.stopPropagation(); openPanel(sub.id,"subtopic",id); });
+      sublist.appendChild(row);
+    }
+    body.appendChild(sublist);
+  }
+  syncBtns();
+  document.getElementById("rm-drawer")!.classList.add("is-open");
+  if (document.body.classList.contains("page-chat-open")) {
+    document.body.classList.remove("page-chat-open");
+    try { sessionStorage.setItem("page-chat-open", "0"); } catch (_) {}
+    document.body.dispatchEvent(new CustomEvent("page-chat-toggle"));
+  }
+  document.body.style.overflow = "hidden";
+}
+
+function closePanel() {
+  document.getElementById("rm-drawer")!.classList.remove("is-open");
+  document.body.style.overflow = "";
+  activeId = activeParent = null;
+}
+
+function syncBtns() {
+  if (!activeId) return;
+  const s = getS(activeId);
+  const sel = document.getElementById("rm-status-select") as HTMLSelectElement;
+  const dot = document.getElementById("rm-status-dot");
+  if (sel) { sel.value = s; sel.className = `rm-status-select${s !== "pending" ? ` is-${s}` : ""}`; }
+  if (dot) dot.className = `rm-status-dot${s !== "pending" ? ` is-${s}` : ""}`;
+}
+
+function setStatus(id: string, s: string) {
+  state[id] = s; save(state); buildFlow(); refreshProgress(); syncBtns();
+  const row = document.querySelector<HTMLElement>(`.rm-panel-subitem[data-sub-id="${id}"]`);
+  if (row) {
+    row.className = `rm-panel-subitem${s!=="pending"?` is-${s}`:""}`;
+    row.dataset.subId = id;
+    const icon = row.querySelector(".rm-panel-subitem-icon"); const tag = row.querySelector(".rm-panel-subitem-tag");
+    if (icon) icon.innerHTML = iconFor(s); if (tag) tag.textContent = s;
+  }
+}
+
+buildFlow(); refreshProgress();
+document.body.appendChild(document.getElementById("rm-drawer")!);
+document.getElementById("rm-panel-close")?.addEventListener("click", closePanel);
+document.getElementById("rm-backdrop")?.addEventListener("click", closePanel);
+document.addEventListener("keydown", e => { if (e.key==="Escape") closePanel(); });
+document.body.addEventListener("page-chat-toggle", () => {
+  if (document.body.classList.contains("page-chat-open")) closePanel();
+});
+document.getElementById("rm-status-select")?.addEventListener("change", (e) => {
+  if (activeId) setStatus(activeId, (e.target as HTMLSelectElement).value);
+});
+</script>

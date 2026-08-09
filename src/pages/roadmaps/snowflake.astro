@@ -1,0 +1,251 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "Snowflake Roadmap",
+    description: "",
+  
+  }}
+>
+  <div id="rm-root">
+    <div class="rm-header">
+      <div class="rm-header-left">
+        <span class="rm-badge">Roadmap</span>
+        <h1 class="rm-title">Snowflake</h1>
+        <p class="rm-subtitle">Step-by-step guide to Snowflake architecture, performance and security</p>
+      </div>
+      <div class="rm-header-right">
+        <div class="rm-legend">
+          <span class="rm-legend-item" data-status="pending"><span class="rm-dot"></span>Pending</span>
+          <span class="rm-legend-item" data-status="inprogress"><span class="rm-dot"></span>In Progress</span>
+          <span class="rm-legend-item" data-status="done"><span class="rm-dot"></span>Done</span>
+        </div>
+        <div class="rm-progress-summary">
+          <span class="rm-prog-label">Progress</span>
+          <div class="rm-prog-bar-wrap"><div class="rm-prog-bar" id="rm-prog-bar"></div></div>
+          <span class="rm-prog-pct" id="rm-prog-pct">0%</span>
+        </div>
+      </div>
+    </div>
+    <div class="rm-flow" id="rm-flow"></div>
+    <div class="rm-drawer" id="rm-drawer">
+      <div class="rm-backdrop" id="rm-backdrop"></div>
+      <div class="rm-panel">
+        <div class="rm-panel-header">
+          <div>
+            <span id="rm-panel-badge" class="rm-panel-badge"></span>
+            <h2 id="rm-panel-title" class="rm-panel-title"></h2>
+          </div>
+          <button id="rm-panel-close" class="rm-panel-close" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+            </svg>
+          </button>
+        </div>
+        <div class="rm-panel-status-row">
+          <span class="rm-panel-status-label">Status</span>
+          <div class="rm-status-select-wrap">
+            <span class="rm-status-dot" id="rm-status-dot"></span>
+            <select class="rm-status-select" id="rm-status-select" aria-label="Set status">
+              <option value="pending">⬜ Pending</option>
+              <option value="inprogress">🟡 In Progress</option>
+              <option value="done">✅ Done</option>
+            </select>
+          </div>
+        </div>
+        <div class="rm-panel-body" id="rm-panel-body"></div>
+      </div>
+    </div>
+  </div>
+</StarlightPage>
+
+<style is:global>
+  @import "/src/styles/roadmap.css";
+</style>
+
+<script>
+const ROADMAP = [
+  { id:"architecture-storage", label:"Architecture & Storage", desc:"18 interview questions covering Fundamentals, Architecture, Storage, Compute and more.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage", subs:[
+    { id:"architecture-storage-fundamentals", label:"Fundamentals", desc:"Snowflake is a cloud-native, fully managed data warehouse that supports structured and semi-structured data with elastic scalability and shared infrastructure.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
+    { id:"architecture-storage-architecture", label:"Architecture", desc:"Snowflake uses a multi-cluster, shared data architecture that separates storage, compute, and services layers.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
+    { id:"architecture-storage-storage", label:"Storage", desc:"The cloud storage layer stores data in a compressed, columnar format on cloud object storage (S3, Azure Blob, or GCS), providing durability and high availability.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
+    { id:"architecture-storage-compute", label:"Compute", desc:"The compute layer consists of virtual warehouses — clusters of compute resources that execute queries against data in storage — scaling independently from storage.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
+    { id:"architecture-storage-services", label:"Services", desc:"The services layer handles SQL compilation, metadata management, access control, and query optimization.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
+    { id:"architecture-storage-warehouses", label:"Warehouses", desc:"Virtual warehouses are compute clusters that process queries, with sizes ranging from X-Small to 6XL, sized based on concurrent users and query complexity.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
+    { id:"architecture-storage-concurrency", label:"Concurrency", desc:"Snowflake supports high concurrency through its architecture, allowing multiple warehouses and queries to run against shared data without performance…", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
+    { id:"architecture-storage-data-loading", label:"Data Loading", desc:"Data can be loaded using the COPY INTO command from staged files, Snowpipe for continuous/automated loading, or third-party ETL/ELT tools (Fivetran, Airbyte,…", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
+    { id:"architecture-storage-schema-design", label:"Schema Design", desc:"Snowflake supports various schema designs including star schema, snowflake schema, and normalized designs depending on use case.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
+    { id:"architecture-storage-tables", label:"Tables", desc:"Staging tables (or stages) hold files temporarily for data loading and transformation before they land in target tables, while permanent tables persist for…", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
+  ]},
+  { id:"performance-optimization", label:"Performance & Optimization", desc:"9 interview questions covering Monitoring, Optimization, Clustering, Caching and more.", link:"/level-3-technologies/data-warehouses/snowflake/#performance--optimization", subs:[
+    { id:"performance-optimization-monitoring", label:"Monitoring", desc:"Query performance monitoring involves analyzing query statistics, execution plans, and metrics through the Query Profile and web UI (or…", link:"/level-3-technologies/data-warehouses/snowflake/#performance--optimization" },
+    { id:"performance-optimization-optimization", label:"Optimization", desc:"Optimization techniques include using clustering keys on large, frequently filtered tables, materialized views for expensive repeated aggregations, relying on…", link:"/level-3-technologies/data-warehouses/snowflake/#performance--optimization" },
+    { id:"performance-optimization-clustering", label:"Clustering", desc:"Clustering keys define the sort order and physical layout of data across a table's micro-partitions, improving query performance for filtered queries.", link:"/level-3-technologies/data-warehouses/snowflake/#performance--optimization" },
+    { id:"performance-optimization-caching", label:"Caching", desc:"Result caching stores query results, returning cached results instantly for identical queries executed within a time window (up to 24 hours), without…", link:"/level-3-technologies/data-warehouses/snowflake/#performance--optimization" },
+    { id:"performance-optimization-metadata", label:"Metadata", desc:"Snowflake maintains metadata in the services layer, tracking table structure, micro-partition statistics (min/max values, row counts), and data distribution —…", link:"/level-3-technologies/data-warehouses/snowflake/#performance--optimization" },
+  ]},
+  { id:"security-administration", label:"Security & Administration", desc:"14 interview questions covering Security, RBAC, Encryption, Compliance and more.", link:"/level-3-technologies/data-warehouses/snowflake/#security--administration", subs:[
+    { id:"security-administration-security", label:"Security", desc:"Security is implemented through authentication (password, SSO, key-pair, MFA), authorization (RBAC), encryption (at rest and in transit), network policies (IP…", link:"/level-3-technologies/data-warehouses/snowflake/#security--administration" },
+    { id:"security-administration-rbac", label:"RBAC", desc:"RBAC controls user access to databases, schemas, tables, and views through roles with specific privileges.", link:"/level-3-technologies/data-warehouses/snowflake/#security--administration" },
+    { id:"security-administration-encryption", label:"Encryption", desc:"Snowflake provides encryption at rest using AES-256 and encryption in transit using TLS 1.2, applied automatically to all data — there's no opt-out, and no…", link:"/level-3-technologies/data-warehouses/snowflake/#security--administration" },
+    { id:"security-administration-compliance", label:"Compliance", desc:"Compliance is managed through query history, access history, and account usage data, and integration with security information and event management (SIEM)…", link:"/level-3-technologies/data-warehouses/snowflake/#security--administration" },
+    { id:"security-administration-data-sharing", label:"Data Sharing", desc:"Snowflake Secure Data Sharing enables secure, real-time data sharing with other Snowflake accounts without copying or moving data — the consumer queries a live…", link:"/level-3-technologies/data-warehouses/snowflake/#security--administration" },
+    { id:"security-administration-data-recovery", label:"Data Recovery", desc:"Time travel allows querying and restoring data from any point in the past (a configurable retention period, up to 90 days on Enterprise edition, 1 day by…", link:"/level-3-technologies/data-warehouses/snowflake/#security--administration" },
+  ]},
+];
+
+const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
+const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;
+const ICON_DONE       = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="5.5 8.5 7 10 10.5 6"/></svg>`;
+const ICON_ARROW      = `<svg width="20" height="28" viewBox="0 0 20 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="10" y1="0" x2="10" y2="20"/><polyline points="5 15 10 22 15 15"/></svg>`;
+const ICON_CHEVRON    = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 5 7 9 11 5"/></svg>`;
+function iconFor(s: string) { return s==="done"?ICON_DONE:s==="inprogress"?ICON_INPROGRESS:ICON_PENDING; }
+
+const KEY = "snowflake_roadmap_v1";
+function load(): Record<string,string> { try { return JSON.parse(localStorage.getItem(KEY)||"{}"); } catch { return {}; } }
+function save(s: Record<string,string>) { localStorage.setItem(KEY, JSON.stringify(s)); }
+let state = load();
+let collapsedIds = new Set();
+function getS(id: string) { return state[id]||"pending"; }
+
+function allIds() {
+  const ids: string[] = [];
+  for (const t of ROADMAP) { ids.push(t.id); for (const s of t.subs) ids.push(s.id); }
+  return ids;
+}
+
+function refreshProgress() {
+  const ids = allIds();
+  const done = ids.filter(id => getS(id)==="done").length;
+  const pct = ids.length ? Math.round((done/ids.length)*100) : 0;
+  const bar = document.getElementById("rm-prog-bar");
+  const pctEl = document.getElementById("rm-prog-pct");
+  if (bar) bar.style.width = `${pct}%`;
+  if (pctEl) pctEl.textContent = `${pct}%`;
+}
+
+function buildFlow() {
+  const flow = document.getElementById("rm-flow");
+  if (!flow) return;
+  flow.innerHTML = "";
+  ROADMAP.forEach((topic, ti) => {
+    const s = getS(topic.id);
+    const isCollapsed = collapsedIds.has(topic.id);
+    const topicEl = document.createElement("div");
+    topicEl.className = `rm-topic-node${s!=="pending"?` is-${s}`:""}${isCollapsed?" is-collapsed":""}`;
+    topicEl.dataset.id = topic.id;
+    topicEl.innerHTML = `<span class="rm-topic-icon">${iconFor(s)}</span><span class="rm-topic-label">${topic.label}</span>${topic.subs.length?`<span class="rm-count-badge">${topic.subs.length}</span>`:""}<span class="rm-chevron">${ICON_CHEVRON}</span>`;
+    topicEl.addEventListener("click", () => openPanel(topic.id, "topic"));
+    if (topic.subs.length > 0) {
+      const chevronEl = topicEl.querySelector(".rm-chevron");
+      chevronEl?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (collapsedIds.has(topic.id)) collapsedIds.delete(topic.id); else collapsedIds.add(topic.id);
+        buildFlow();
+      });
+    }
+    flow.appendChild(topicEl);
+    if (topic.subs.length > 0 && !isCollapsed) {
+      const group = document.createElement("div");
+      group.className = "rm-sub-group";
+      for (const sub of topic.subs) {
+        const ss = getS(sub.id);
+        const subEl = document.createElement("div");
+        subEl.className = `rm-sub-node${ss!=="pending"?` is-${ss}`:""}`;
+        subEl.dataset.id = sub.id;
+        subEl.innerHTML = `<span class="rm-sub-icon">${iconFor(ss)}</span><span class="rm-sub-label">${sub.label}</span>`;
+        subEl.addEventListener("click", () => openPanel(sub.id, "subtopic", topic.id));
+        group.appendChild(subEl);
+      }
+      flow.appendChild(group);
+    }
+    if (ti < ROADMAP.length-1) {
+      const arrow = document.createElement("div");
+      arrow.className = "rm-arrow";
+      arrow.innerHTML = ICON_ARROW;
+      flow.appendChild(arrow);
+    }
+  });
+}
+
+let activeId: string|null = null, activeParent: string|null = null;
+function findItem(id: string): any {
+  for (const t of ROADMAP) { if (t.id===id) return {...t,type:"topic"}; for (const s of t.subs) { if (s.id===id) return {...s,type:"subtopic"}; } }
+  return null;
+}
+
+function openPanel(id: string, type: string, parentId?: string) {
+  activeId = id; activeParent = parentId??null;
+  const item = findItem(id); if (!item) return;
+  const badge = document.getElementById("rm-panel-badge")!;
+  const title = document.getElementById("rm-panel-title")!;
+  const body  = document.getElementById("rm-panel-body")!;
+  badge.textContent = type==="topic"?"Topic":"Subtopic";
+  badge.className   = `rm-panel-badge is-${type}`;
+  title.textContent = item.label;
+  body.innerHTML    = `<p class="rm-panel-desc">${item.desc}</p>` + (item.link ? `<a href="${item.link}" class="rm-read-more">Read more →</a>` : "");
+  if (type==="topic" && item.subs?.length>0) {
+    const sublist = document.createElement("div");
+    sublist.className = "rm-panel-sublist";
+    sublist.innerHTML = `<p class="rm-panel-sublist-title">Subtopics (${item.subs.length})</p>`;
+    for (const sub of item.subs) {
+      const ss = getS(sub.id);
+      const row = document.createElement("div");
+      row.className = `rm-panel-subitem${ss!=="pending"?` is-${ss}`:""}`;
+      row.dataset.subId = sub.id;
+      row.innerHTML = `<span class="rm-panel-subitem-icon">${iconFor(ss)}</span><span class="rm-panel-subitem-label">${sub.label}</span><span class="rm-panel-subitem-tag">${ss}</span>`;
+      row.addEventListener("click", e => { e.stopPropagation(); openPanel(sub.id,"subtopic",id); });
+      sublist.appendChild(row);
+    }
+    body.appendChild(sublist);
+  }
+  syncBtns();
+  document.getElementById("rm-drawer")!.classList.add("is-open");
+  if (document.body.classList.contains("page-chat-open")) {
+    document.body.classList.remove("page-chat-open");
+    try { sessionStorage.setItem("page-chat-open", "0"); } catch (_) {}
+    document.body.dispatchEvent(new CustomEvent("page-chat-toggle"));
+  }
+  document.body.style.overflow = "hidden";
+}
+
+function closePanel() {
+  document.getElementById("rm-drawer")!.classList.remove("is-open");
+  document.body.style.overflow = "";
+  activeId = activeParent = null;
+}
+
+function syncBtns() {
+  if (!activeId) return;
+  const s = getS(activeId);
+  const sel = document.getElementById("rm-status-select") as HTMLSelectElement;
+  const dot = document.getElementById("rm-status-dot");
+  if (sel) { sel.value = s; sel.className = `rm-status-select${s !== "pending" ? ` is-${s}` : ""}`; }
+  if (dot) dot.className = `rm-status-dot${s !== "pending" ? ` is-${s}` : ""}`;
+}
+
+function setStatus(id: string, s: string) {
+  state[id] = s; save(state); buildFlow(); refreshProgress(); syncBtns();
+  const row = document.querySelector<HTMLElement>(`.rm-panel-subitem[data-sub-id="${id}"]`);
+  if (row) {
+    row.className = `rm-panel-subitem${s!=="pending"?` is-${s}`:""}`;
+    row.dataset.subId = id;
+    const icon = row.querySelector(".rm-panel-subitem-icon"); const tag = row.querySelector(".rm-panel-subitem-tag");
+    if (icon) icon.innerHTML = iconFor(s); if (tag) tag.textContent = s;
+  }
+}
+
+buildFlow(); refreshProgress();
+document.body.appendChild(document.getElementById("rm-drawer")!);
+document.getElementById("rm-panel-close")?.addEventListener("click", closePanel);
+document.getElementById("rm-backdrop")?.addEventListener("click", closePanel);
+document.addEventListener("keydown", e => { if (e.key==="Escape") closePanel(); });
+document.body.addEventListener("page-chat-toggle", () => {
+  if (document.body.classList.contains("page-chat-open")) closePanel();
+});
+document.getElementById("rm-status-select")?.addEventListener("change", (e) => {
+  if (activeId) setStatus(activeId, (e.target as HTMLSelectElement).value);
+});
+</script>

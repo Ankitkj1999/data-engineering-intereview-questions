@@ -65,6 +65,7 @@ passing `npx astro build`, and logged below.
 | # | Phase | Scope | Est. pages | Status |
 |:-:|---|---|:-:|---|
 | 1 | **Engineering Foundations** | Git/GitHub, Linux, Docker, CI/CD, IaC, Networking | 6 | ✅ Done (2026-08-09) — 203 questions |
+| 1b | **Roadmap coverage** | A roadmap for every topic page with 12+ questions | 39 roadmaps | ✅ Done (2026-08-09) — 46 total, 2,005 nodes |
 | 2 | **Python depth** | 19 roadmap categories → subtopic pages, mirroring SQL | ~14 | ⬜ Not started |
 | 3 | **Cloud depth** | AWS (8) → Azure (6) → GCP (5), DE-scoped services only | ~19 | ⬜ Not started |
 | 4 | **Remaining breadth** | Monitoring, Data Lifecycle, Ingestion Types, Reverse ETL, MLOps | ~5 | ⬜ Not started |
@@ -121,6 +122,30 @@ across 36 categories, every node linking to the section anchor on its content pa
 All 6 added to the sidebar's Roadmaps group. The master DE roadmap's 6 corresponding nodes now
 link to the **roadmap** rather than straight to the page, so the drill-down is
 `DE roadmap → topic roadmap → page anchor`, matching Python/SQL/Spark.
+
+### Phase 1b — Roadmap coverage ✅ Done 2026-08-09
+
+Every topic page with 12+ questions now has a roadmap. **46 roadmaps, 298 categories, 2,005 nodes**
+(was 7 roadmaps at the start of the day).
+
+User's call on two forks: **one roadmap per tool** rather than grouping thin related tools into
+category roadmaps, and a **flat sidebar** rather than subgrouping — see
+[D9](#d9-one-roadmap-per-tool-flat-sidebar).
+
+The 33 generated in this batch were **derived from the content pages**, not hand-written: category
+= a page's `##`/`###` section, sub-nodes = the distinct `topic="..."` values of the QuestionCards
+inside it, descriptions = the first usable sentence of the first answer for that topic. Roughly
+96% of descriptions are real content; the rest fall back to a neutral
+"N interview questions on X" line where the extracted sentence didn't stand alone.
+
+**Known quality caveat:** because descriptions are extracted rather than authored, a minority read
+awkwardly — a truncated list item, or a sentence that assumed context from the question it
+answered. Node *labels* are all curated `topic` values and are reliable. Worth a cleanup pass if
+they bother you; not worth blocking on.
+
+Excluded deliberately: the five narrative level-2 pages (`what-is-data-engineering`,
+`skills-and-responsibilities`, `data-engineering-lifecycle`, `choosing-the-right-technologies`,
+`data-engineer-vs-data-scientist`) — prose introductions, not learnable topic areas.
 
 ### Phase 2 — Python depth
 
@@ -264,6 +289,21 @@ next to SQL / Python / Data Structures — *not* in a new top-level section.
 Keeps the sidebar flatter and fewer top-level groups; these are foundational skills regardless of
 whether they're a language or a tool.
 
+### D9. One roadmap per tool, flat sidebar
+
+Every topic page with 12+ questions gets **its own** roadmap — Snowflake, BigQuery, Redshift and
+Databricks are four roadmaps, not one "Cloud Data Warehouses" roadmap. The sidebar's Roadmaps
+group is a **flat list of 46 links** in learning-sequence order, collapsed by default.
+
+**Why:** user's call, 2026-08-09, chosen over a 12-roadmap grouped alternative and over
+subgrouping the sidebar. Maximum granularity — each tool is independently trackable, and its
+roadmap maps 1:1 to its content page.
+
+**Trade-off accepted:** 46 flat sidebar entries is a long list, and roadmaps built from
+single-section pages (Parquet, Avro, Kubernetes, NiFi, Observability, Cost Optimization) have only
+one category, so they render as a flat checklist rather than a staged path. Both were flagged
+before building and accepted.
+
 ---
 
 ## Open questions
@@ -373,6 +413,7 @@ Newest first. One line per working session: what was done, and what's next.
 
 | Date | What happened | Next up |
 |---|---|---|
+| 2026-08-09 | **Roadmap coverage complete — 46 roadmaps.** Generated 33 more from the content pages (categories from section headings, sub-nodes from `topic` attributes, descriptions extracted from answers). Site went 7 → 46 roadmaps, 2,005 nodes, in one day. Sidebar rebuilt as a flat 46-entry list in learning order. Caught and fixed a slug bug — Starlight renders "A & B" as `a--b`, so anchors are now read from the built HTML rather than re-derived. All 500 link targets verified. | Phase 2 — Python depth |
 | 2026-08-09 | **Phase 1 follow-up: 6 new roadmaps.** User flagged that leaving Git/Linux/Docker/CI-CD/IaC/Networking as single nodes on the master roadmap was inconsistent with Python/SQL/Spark and gave no single-view picture. Generated all 6 `/roadmaps/*.astro` from the `sql.astro` template — **239 nodes**, 36 categories, unique storage keys, every node anchored to its content-page section. Added to the sidebar; DE roadmap nodes repointed to the roadmaps. All 36 distinct link targets verified to resolve; clean build. | Phase 2 — Python depth |
 | 2026-08-09 | **Phase 1 done.** Built all 6 Engineering Foundations pages — Git (39 Q), Linux (40), Docker (33), CI/CD (29), IaC (32), Networking (30) = **203 questions**. Wired into `navigation.json`, `progress.astro`, and 13 `link:` fields on the DE roadmap. `Distributed Systems Basics` pointed at the existing system-design page rather than getting a new one. Clean build; all anchors verified. Found a pre-existing duplicate-id bug (`ssf-01`/`ssf-02`) — logged in Open questions, not fixed. | Phase 2 — Python depth |
 | 2026-08-09 | Audited all 7 roadmaps against actual content. Found the breadth gap (8 master-roadmap categories with zero content, 86/123 nodes unlinked) matters more than the depth gap, and reordered around it. Recorded settled decisions in the Decisions section — notably D1, that excluding subtopic pages from sidebar/progress is intentional, not a bug. | Phase 1 — settle placement, then Git & Linux |

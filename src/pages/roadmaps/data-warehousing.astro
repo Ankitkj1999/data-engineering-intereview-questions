@@ -1,0 +1,302 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "Data Warehousing Roadmap",
+    description: "",
+  
+  }}
+>
+  <div id="rm-root">
+    <div class="rm-header">
+      <div class="rm-header-left">
+        <span class="rm-badge">Roadmap</span>
+        <h1 class="rm-title">Data Warehousing</h1>
+        <p class="rm-subtitle">Step-by-step guide to warehouse architecture, modelling and administration</p>
+      </div>
+      <div class="rm-header-right">
+        <div class="rm-legend">
+          <span class="rm-legend-item" data-status="pending"><span class="rm-dot"></span>Pending</span>
+          <span class="rm-legend-item" data-status="inprogress"><span class="rm-dot"></span>In Progress</span>
+          <span class="rm-legend-item" data-status="done"><span class="rm-dot"></span>Done</span>
+        </div>
+        <div class="rm-progress-summary">
+          <span class="rm-prog-label">Progress</span>
+          <div class="rm-prog-bar-wrap"><div class="rm-prog-bar" id="rm-prog-bar"></div></div>
+          <span class="rm-prog-pct" id="rm-prog-pct">0%</span>
+        </div>
+      </div>
+    </div>
+    <div class="rm-flow" id="rm-flow"></div>
+    <div class="rm-drawer" id="rm-drawer">
+      <div class="rm-backdrop" id="rm-backdrop"></div>
+      <div class="rm-panel">
+        <div class="rm-panel-header">
+          <div>
+            <span id="rm-panel-badge" class="rm-panel-badge"></span>
+            <h2 id="rm-panel-title" class="rm-panel-title"></h2>
+          </div>
+          <button id="rm-panel-close" class="rm-panel-close" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+            </svg>
+          </button>
+        </div>
+        <div class="rm-panel-status-row">
+          <span class="rm-panel-status-label">Status</span>
+          <div class="rm-status-select-wrap">
+            <span class="rm-status-dot" id="rm-status-dot"></span>
+            <select class="rm-status-select" id="rm-status-select" aria-label="Set status">
+              <option value="pending">⬜ Pending</option>
+              <option value="inprogress">🟡 In Progress</option>
+              <option value="done">✅ Done</option>
+            </select>
+          </div>
+        </div>
+        <div class="rm-panel-body" id="rm-panel-body"></div>
+      </div>
+    </div>
+  </div>
+</StarlightPage>
+
+<style is:global>
+  @import "/src/styles/roadmap.css";
+</style>
+
+<script>
+const ROADMAP = [
+  { id:"warehouse-fundamentals-architecture", label:"Warehouse Fundamentals & Architecture", desc:"14 interview questions covering Warehouse Fundamentals, Dimensions.", link:"/level-2-core-concepts/data-warehousing/#warehouse-fundamentals--architecture", subs:[
+    { id:"warehouse-fundamentals-architecture-warehouse-fundamentals", label:"Warehouse Fundamentals", desc:"The data warehouse architecture is a three-tier architecture.", link:"/level-2-core-concepts/data-warehousing/#warehouse-fundamentals--architecture" },
+    { id:"warehouse-fundamentals-architecture-dimensions", label:"Dimensions", desc:"Hierarchies are logical structures that use ordered levels as a means of organizing data.", link:"/level-2-core-concepts/data-warehousing/#warehouse-fundamentals--architecture" },
+  ]},
+  { id:"star-snowflake-scd-surrogate-keys", label:"Star, Snowflake, SCD & Surrogate Keys", desc:"17 interview questions covering Schema Design, Star Schema, Surrogate Keys, SCD.", link:"/level-2-core-concepts/data-warehousing/#star-snowflake-scd--surrogate-keys", subs:[
+    { id:"star-snowflake-scd-surrogate-keys-schema-design", label:"Schema Design", desc:"Version dimension is the SCD type II in real time it using because of it will maintain the current data and full historical data.", link:"/level-2-core-concepts/data-warehousing/#star-snowflake-scd--surrogate-keys" },
+    { id:"star-snowflake-scd-surrogate-keys-star-schema", label:"Star Schema", desc:"Many-many relations can be implemented by using snowflake schema.", link:"/level-2-core-concepts/data-warehousing/#star-snowflake-scd--surrogate-keys" },
+    { id:"star-snowflake-scd-surrogate-keys-surrogate-keys", label:"Surrogate Keys", desc:"Let us take one ex: Suppose 'XYZ' is customer in Bangalore, he was residing in the city from the last 5 years, in the period of 5 years he has made purchases worth of 3 lacs.", link:"/level-2-core-concepts/data-warehousing/#star-snowflake-scd--surrogate-keys" },
+    { id:"star-snowflake-scd-surrogate-keys-scd", label:"SCD", desc:"Hybrid SCDs are combination of both SCD 1 and SCD 2.", link:"/level-2-core-concepts/data-warehousing/#star-snowflake-scd--surrogate-keys" },
+  ]},
+  { id:"facts-dimensions-measures", label:"Facts, Dimensions & Measures", desc:"27 interview questions covering Dimensions, Relational Model, Dimensional Modeling, Fact Tables.", link:"/level-2-core-concepts/data-warehousing/#facts-dimensions--measures", subs:[
+    { id:"facts-dimensions-measures-dimensions", label:"Dimensions", desc:"A junk dimension is nothing but a dimension where a certain type of data is stored which is not appropriate to store in the schema.", link:"/level-2-core-concepts/data-warehousing/#facts-dimensions--measures" },
+    { id:"facts-dimensions-measures-relational-model", label:"Relational Model", desc:"In short, dimensions are nothing but which represents qualitative data.", link:"/level-2-core-concepts/data-warehousing/#facts-dimensions--measures" },
+    { id:"facts-dimensions-measures-dimensional-modeling", label:"Dimensional Modeling", desc:"Fact is key performance indicator to analyze the business.", link:"/level-2-core-concepts/data-warehousing/#facts-dimensions--measures" },
+    { id:"facts-dimensions-measures-fact-tables", label:"Fact Tables", desc:"The fact table consists of the Index keys of the dimension/look up tables and the measures.", link:"/level-2-core-concepts/data-warehousing/#facts-dimensions--measures" },
+  ]},
+  { id:"oltp-olap-multidimensional-analysis", label:"OLTP, OLAP & Multidimensional Analysis", desc:"24 interview questions covering OLAP, OLTP vs OLAP, Views.", link:"/level-2-core-concepts/data-warehousing/#oltp-olap--multidimensional-analysis", subs:[
+    { id:"oltp-olap-multidimensional-analysis-olap", label:"OLAP", desc:"OLTP stands for Online Transaction Process System OLTP is known for maintaining transactional level data of the organization and generally, they are highly normalized.", link:"/level-2-core-concepts/data-warehousing/#oltp-olap--multidimensional-analysis" },
+    { id:"oltp-olap-multidimensional-analysis-oltp-vs-olap", label:"OLTP vs OLAP", desc:"No. OLTP database tables are normalized, and it will add additional time to query to return results.", link:"/level-2-core-concepts/data-warehousing/#oltp-olap--multidimensional-analysis" },
+    { id:"oltp-olap-multidimensional-analysis-views", label:"Views", desc:"Often calculating all the data is not possible by aggregations for this reason some complex data problems are solved.", link:"/level-2-core-concepts/data-warehousing/#oltp-olap--multidimensional-analysis" },
+  ]},
+  { id:"etl-elt-data-integration", label:"ETL, ELT & Data Integration", desc:"26 interview questions covering ETL Tools, ETL, Transformations, OLAP.", link:"/level-2-core-concepts/data-warehousing/#etl-elt--data-integration", subs:[
+    { id:"etl-elt-data-integration-etl-tools", label:"ETL Tools", desc:"Mapping Parameter defines the constant value and it cannot change the value throughout the session.", link:"/level-2-core-concepts/data-warehousing/#etl-elt--data-integration" },
+    { id:"etl-elt-data-integration-etl", label:"ETL", desc:"Static variable is not created on function stack but is created in the initialized data segment and hence the variable can be shared across the multiple call of the same function.", link:"/level-2-core-concepts/data-warehousing/#etl-elt--data-integration" },
+    { id:"etl-elt-data-integration-transformations", label:"Transformations", desc:"10 interview questions on transformations, in the ETL, ELT & Data Integration section.", link:"/level-2-core-concepts/data-warehousing/#etl-elt--data-integration" },
+    { id:"etl-elt-data-integration-olap", label:"OLAP", desc:"ETL is an extraction,transformation,loading tool i.e u can extract , u can transform using different transformations available in tool and aggreagte the data.", link:"/level-2-core-concepts/data-warehousing/#etl-elt--data-integration" },
+  ]},
+  { id:"data-modeling-conceptual-logical-physical", label:"Data Modeling: Conceptual, Logical & Physical", desc:"14 interview questions covering Data Modeling, ER Modeling.", link:"/level-2-core-concepts/data-warehousing/#data-modeling-conceptual-logical--physical", subs:[
+    { id:"data-modeling-conceptual-logical-physical-data-modeling", label:"Data Modeling", desc:"12 interview questions on data modeling, in the Data Modeling: Conceptual, Logical & Physical section.", link:"/level-2-core-concepts/data-warehousing/#data-modeling-conceptual-logical--physical" },
+    { id:"data-modeling-conceptual-logical-physical-er-modeling", label:"ER Modeling", desc:"Basic difference is E-R modeling will have logical and physical model.", link:"/level-2-core-concepts/data-warehousing/#data-modeling-conceptual-logical--physical" },
+  ]},
+  { id:"normalization-relational-theory", label:"Normalization & Relational Theory", desc:"19 interview questions covering Normalization, Relational Theory.", link:"/level-2-core-concepts/data-warehousing/#normalization--relational-theory", subs:[
+    { id:"normalization-relational-theory-normalization", label:"Normalization", desc:"Database normalization is a data design and organization process applied to data structures based on rules that help build relational databases.", link:"/level-2-core-concepts/data-warehousing/#normalization--relational-theory" },
+    { id:"normalization-relational-theory-relational-theory", label:"Relational Theory", desc:"8 interview questions on relational theory, in the Normalization & Relational Theory section.", link:"/level-2-core-concepts/data-warehousing/#normalization--relational-theory" },
+  ]},
+  { id:"relational-model-entities-attributes-keys", label:"Relational Model: Entities, Attributes & Keys", desc:"22 interview questions covering Relational Model.", link:"/level-2-core-concepts/data-warehousing/#relational-model-entities-attributes--keys", subs:[
+    { id:"relational-model-entities-attributes-keys-relational-model", label:"Relational Model", desc:"An integrity constraint is nothing but a specific requirement that the data in the database has to meet.", link:"/level-2-core-concepts/data-warehousing/#relational-model-entities-attributes--keys" },
+  ]},
+  { id:"database-objects-tables-views-storage", label:"Database Objects: Tables, Views & Storage", desc:"26 interview questions covering Views, Storage, Database Objects, Indexing and more.", link:"/level-2-core-concepts/data-warehousing/#database-objects-tables-views--storage", subs:[
+    { id:"database-objects-tables-views-storage-views", label:"Views", desc:"View — a logical, virtual structure with no data of its own; every query against it re-runs the underlying SELECT against the base tables, so changes to the…", link:"/level-2-core-concepts/data-warehousing/#database-objects-tables-views--storage" },
+    { id:"database-objects-tables-views-storage-storage", label:"Storage", desc:"A Database contains one or more Rollback Segments to temporarily store \"undo\" information.", link:"/level-2-core-concepts/data-warehousing/#database-objects-tables-views--storage" },
+    { id:"database-objects-tables-views-storage-database-objects", label:"Database Objects", desc:"A schema is collection of database objects of a User.", link:"/level-2-core-concepts/data-warehousing/#database-objects-tables-views--storage" },
+    { id:"database-objects-tables-views-storage-indexing", label:"Indexing", desc:"An Index is an optional structure associated with a table to have direct access to rows, which can be created to increase the performance of data retrieval.", link:"/level-2-core-concepts/data-warehousing/#database-objects-tables-views--storage" },
+    { id:"database-objects-tables-views-storage-relational-model", label:"Relational Model", desc:"Each database logically divided into one or more table spaces one or more data files are explicitly created for each table space.", link:"/level-2-core-concepts/data-warehousing/#database-objects-tables-views--storage" },
+    { id:"database-objects-tables-views-storage-dbms-internals", label:"DBMS Internals", desc:"The ROWID is a unique database-wide physical address for every row on every table.", link:"/level-2-core-concepts/data-warehousing/#database-objects-tables-views--storage" },
+  ]},
+  { id:"backup-recovery-dw-administration", label:"Backup, Recovery & DW Administration", desc:"13 interview questions covering DB Administration, Administration, Backup & Recovery, Storage.", link:"/level-2-core-concepts/data-warehousing/#backup-recovery--dw-administration", subs:[
+    { id:"backup-recovery-dw-administration-db-administration", label:"DB Administration", desc:"The basic advantage of RAID is to speed up the data reading from permanent storage device (hard disk).", link:"/level-2-core-concepts/data-warehousing/#backup-recovery--dw-administration" },
+    { id:"backup-recovery-dw-administration-administration", label:"Administration", desc:"A data file can be associated with only one database.", link:"/level-2-core-concepts/data-warehousing/#backup-recovery--dw-administration" },
+    { id:"backup-recovery-dw-administration-backup-recovery", label:"Backup & Recovery", desc:"A full backup is an operating system backup of all data files, on- line redo log files and control file that constitute ORACLE database and the parameter.", link:"/level-2-core-concepts/data-warehousing/#backup-recovery--dw-administration" },
+    { id:"backup-recovery-dw-administration-storage", label:"Storage", desc:"All the default storage parameters defined for the table space can be changed using the ALTER TABLESPACE command.", link:"/level-2-core-concepts/data-warehousing/#backup-recovery--dw-administration" },
+  ]},
+  { id:"transactions-dbms-internals", label:"Transactions & DBMS Internals", desc:"26 interview questions covering Transactions, Views, DBMS Internals.", link:"/level-2-core-concepts/data-warehousing/#transactions--dbms-internals", subs:[
+    { id:"transactions-dbms-internals-transactions", label:"Transactions", desc:"20 interview questions on transactions, in the Transactions & DBMS Internals section.", link:"/level-2-core-concepts/data-warehousing/#transactions--dbms-internals" },
+    { id:"transactions-dbms-internals-views", label:"Views", desc:"A view may be thought of as a virtual table, that is, a table that does not really exist in its own right but is instead derived from one or more underlying base table.", link:"/level-2-core-concepts/data-warehousing/#transactions--dbms-internals" },
+    { id:"transactions-dbms-internals-dbms-internals", label:"DBMS Internals", desc:"Two important pieces of RDBMS architecture are the kernel, which is the software, and the data dictionary, which consists of the system-level data structures…", link:"/level-2-core-concepts/data-warehousing/#transactions--dbms-internals" },
+  ]},
+  { id:"sql-stored-procedures-query-concepts", label:"SQL, Stored Procedures & Query Concepts", desc:"14 interview questions covering Indexing, Joins, Stored Procedures, SQL and more.", link:"/level-2-core-concepts/data-warehousing/#sql-stored-procedures--query-concepts", subs:[
+    { id:"sql-stored-procedures-query-concepts-indexing", label:"Indexing", desc:"1 interview question on indexing, in the SQL, Stored Procedures & Query Concepts section.", link:"/level-2-core-concepts/data-warehousing/#sql-stored-procedures--query-concepts" },
+    { id:"sql-stored-procedures-query-concepts-joins", label:"Joins", desc:"An outer join is used when one wants to select all the records from a port - whether it has satisfied the join criteria or not.", link:"/level-2-core-concepts/data-warehousing/#sql-stored-procedures--query-concepts" },
+    { id:"sql-stored-procedures-query-concepts-stored-procedures", label:"Stored Procedures", desc:"Main Purpose of Stored Procedure for reduse the network trafic and all SQL statement executing in cursor so speed too high.", link:"/level-2-core-concepts/data-warehousing/#sql-stored-procedures--query-concepts" },
+    { id:"sql-stored-procedures-query-concepts-sql", label:"SQL", desc:"The oracle engine uses work areas for internal processing in order to the execute SQL statement is called cursor.", link:"/level-2-core-concepts/data-warehousing/#sql-stored-procedures--query-concepts" },
+    { id:"sql-stored-procedures-query-concepts-triggers", label:"Triggers", desc:"A trigger is an SQL procedure that initiates an action when an event (INSERT, DELETE or UPDATE) occurs.", link:"/level-2-core-concepts/data-warehousing/#sql-stored-procedures--query-concepts" },
+  ]},
+  { id:"business-intelligence-reporting-tools", label:"Business Intelligence & Reporting Tools", desc:"12 interview questions covering Views, BI Tools, Business Objects, BI Concepts and more.", link:"/level-2-core-concepts/data-warehousing/#business-intelligence--reporting-tools", subs:[
+    { id:"business-intelligence-reporting-tools-views", label:"Views", desc:"Three different data types: Dimension, Measure, and Detail.", link:"/level-2-core-concepts/data-warehousing/#business-intelligence--reporting-tools" },
+    { id:"business-intelligence-reporting-tools-bi-tools", label:"BI Tools", desc:"3 interview questions on bi tools, in the Business Intelligence & Reporting Tools section.", link:"/level-2-core-concepts/data-warehousing/#business-intelligence--reporting-tools" },
+    { id:"business-intelligence-reporting-tools-business-objects", label:"Business Objects", desc:"Functional differences - Business objects, for building or accessing reports, needs to be installed on every pc.", link:"/level-2-core-concepts/data-warehousing/#business-intelligence--reporting-tools" },
+    { id:"business-intelligence-reporting-tools-bi-concepts", label:"BI Concepts", desc:"3 interview questions on bi concepts, in the Business Intelligence & Reporting Tools section.", link:"/level-2-core-concepts/data-warehousing/#business-intelligence--reporting-tools" },
+    { id:"business-intelligence-reporting-tools-olap", label:"OLAP", desc:"Online Analytical Processing, a category of software tools that provides analysis of data stored in a database.", link:"/level-2-core-concepts/data-warehousing/#business-intelligence--reporting-tools" },
+  ]},
+  { id:"data-marts-metadata-enterprise-concepts", label:"Data Marts, Metadata & Enterprise Concepts", desc:"20 interview questions covering Data Marts, Data Mining, Metadata, DW Philosophy and more.", link:"/level-2-core-concepts/data-warehousing/#data-marts-metadata--enterprise-concepts", subs:[
+    { id:"data-marts-metadata-enterprise-concepts-data-marts", label:"Data Marts", desc:"9 interview questions on data marts, in the Data Marts, Metadata & Enterprise Concepts section.", link:"/level-2-core-concepts/data-warehousing/#data-marts-metadata--enterprise-concepts" },
+    { id:"data-marts-metadata-enterprise-concepts-data-mining", label:"Data Mining", desc:"Data modeling is the process of designing a data base model.", link:"/level-2-core-concepts/data-warehousing/#data-marts-metadata--enterprise-concepts" },
+    { id:"data-marts-metadata-enterprise-concepts-metadata", label:"Metadata", desc:"3 interview questions on metadata, in the Data Marts, Metadata & Enterprise Concepts section.", link:"/level-2-core-concepts/data-warehousing/#data-marts-metadata--enterprise-concepts" },
+    { id:"data-marts-metadata-enterprise-concepts-dw-philosophy", label:"DW Philosophy", desc:"1 interview question on dw philosophy, in the Data Marts, Metadata & Enterprise Concepts section.", link:"/level-2-core-concepts/data-warehousing/#data-marts-metadata--enterprise-concepts" },
+    { id:"data-marts-metadata-enterprise-concepts-data-quality", label:"Data Quality", desc:"Data validation makes sure the loaded data is accurate and meets business requirements; the \"strategy\" is really just picking the right method for the source…", link:"/level-2-core-concepts/data-warehousing/#data-marts-metadata--enterprise-concepts" },
+  ]},
+];
+
+const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
+const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;
+const ICON_DONE       = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="5.5 8.5 7 10 10.5 6"/></svg>`;
+const ICON_ARROW      = `<svg width="20" height="28" viewBox="0 0 20 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="10" y1="0" x2="10" y2="20"/><polyline points="5 15 10 22 15 15"/></svg>`;
+const ICON_CHEVRON    = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 5 7 9 11 5"/></svg>`;
+function iconFor(s: string) { return s==="done"?ICON_DONE:s==="inprogress"?ICON_INPROGRESS:ICON_PENDING; }
+
+const KEY = "data_warehousing_roadmap_v1";
+function load(): Record<string,string> { try { return JSON.parse(localStorage.getItem(KEY)||"{}"); } catch { return {}; } }
+function save(s: Record<string,string>) { localStorage.setItem(KEY, JSON.stringify(s)); }
+let state = load();
+let collapsedIds = new Set();
+function getS(id: string) { return state[id]||"pending"; }
+
+function allIds() {
+  const ids: string[] = [];
+  for (const t of ROADMAP) { ids.push(t.id); for (const s of t.subs) ids.push(s.id); }
+  return ids;
+}
+
+function refreshProgress() {
+  const ids = allIds();
+  const done = ids.filter(id => getS(id)==="done").length;
+  const pct = ids.length ? Math.round((done/ids.length)*100) : 0;
+  const bar = document.getElementById("rm-prog-bar");
+  const pctEl = document.getElementById("rm-prog-pct");
+  if (bar) bar.style.width = `${pct}%`;
+  if (pctEl) pctEl.textContent = `${pct}%`;
+}
+
+function buildFlow() {
+  const flow = document.getElementById("rm-flow");
+  if (!flow) return;
+  flow.innerHTML = "";
+  ROADMAP.forEach((topic, ti) => {
+    const s = getS(topic.id);
+    const isCollapsed = collapsedIds.has(topic.id);
+    const topicEl = document.createElement("div");
+    topicEl.className = `rm-topic-node${s!=="pending"?` is-${s}`:""}${isCollapsed?" is-collapsed":""}`;
+    topicEl.dataset.id = topic.id;
+    topicEl.innerHTML = `<span class="rm-topic-icon">${iconFor(s)}</span><span class="rm-topic-label">${topic.label}</span>${topic.subs.length?`<span class="rm-count-badge">${topic.subs.length}</span>`:""}<span class="rm-chevron">${ICON_CHEVRON}</span>`;
+    topicEl.addEventListener("click", () => openPanel(topic.id, "topic"));
+    if (topic.subs.length > 0) {
+      const chevronEl = topicEl.querySelector(".rm-chevron");
+      chevronEl?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (collapsedIds.has(topic.id)) collapsedIds.delete(topic.id); else collapsedIds.add(topic.id);
+        buildFlow();
+      });
+    }
+    flow.appendChild(topicEl);
+    if (topic.subs.length > 0 && !isCollapsed) {
+      const group = document.createElement("div");
+      group.className = "rm-sub-group";
+      for (const sub of topic.subs) {
+        const ss = getS(sub.id);
+        const subEl = document.createElement("div");
+        subEl.className = `rm-sub-node${ss!=="pending"?` is-${ss}`:""}`;
+        subEl.dataset.id = sub.id;
+        subEl.innerHTML = `<span class="rm-sub-icon">${iconFor(ss)}</span><span class="rm-sub-label">${sub.label}</span>`;
+        subEl.addEventListener("click", () => openPanel(sub.id, "subtopic", topic.id));
+        group.appendChild(subEl);
+      }
+      flow.appendChild(group);
+    }
+    if (ti < ROADMAP.length-1) {
+      const arrow = document.createElement("div");
+      arrow.className = "rm-arrow";
+      arrow.innerHTML = ICON_ARROW;
+      flow.appendChild(arrow);
+    }
+  });
+}
+
+let activeId: string|null = null, activeParent: string|null = null;
+function findItem(id: string): any {
+  for (const t of ROADMAP) { if (t.id===id) return {...t,type:"topic"}; for (const s of t.subs) { if (s.id===id) return {...s,type:"subtopic"}; } }
+  return null;
+}
+
+function openPanel(id: string, type: string, parentId?: string) {
+  activeId = id; activeParent = parentId??null;
+  const item = findItem(id); if (!item) return;
+  const badge = document.getElementById("rm-panel-badge")!;
+  const title = document.getElementById("rm-panel-title")!;
+  const body  = document.getElementById("rm-panel-body")!;
+  badge.textContent = type==="topic"?"Topic":"Subtopic";
+  badge.className   = `rm-panel-badge is-${type}`;
+  title.textContent = item.label;
+  body.innerHTML    = `<p class="rm-panel-desc">${item.desc}</p>` + (item.link ? `<a href="${item.link}" class="rm-read-more">Read more →</a>` : "");
+  if (type==="topic" && item.subs?.length>0) {
+    const sublist = document.createElement("div");
+    sublist.className = "rm-panel-sublist";
+    sublist.innerHTML = `<p class="rm-panel-sublist-title">Subtopics (${item.subs.length})</p>`;
+    for (const sub of item.subs) {
+      const ss = getS(sub.id);
+      const row = document.createElement("div");
+      row.className = `rm-panel-subitem${ss!=="pending"?` is-${ss}`:""}`;
+      row.dataset.subId = sub.id;
+      row.innerHTML = `<span class="rm-panel-subitem-icon">${iconFor(ss)}</span><span class="rm-panel-subitem-label">${sub.label}</span><span class="rm-panel-subitem-tag">${ss}</span>`;
+      row.addEventListener("click", e => { e.stopPropagation(); openPanel(sub.id,"subtopic",id); });
+      sublist.appendChild(row);
+    }
+    body.appendChild(sublist);
+  }
+  syncBtns();
+  document.getElementById("rm-drawer")!.classList.add("is-open");
+  if (document.body.classList.contains("page-chat-open")) {
+    document.body.classList.remove("page-chat-open");
+    try { sessionStorage.setItem("page-chat-open", "0"); } catch (_) {}
+    document.body.dispatchEvent(new CustomEvent("page-chat-toggle"));
+  }
+  document.body.style.overflow = "hidden";
+}
+
+function closePanel() {
+  document.getElementById("rm-drawer")!.classList.remove("is-open");
+  document.body.style.overflow = "";
+  activeId = activeParent = null;
+}
+
+function syncBtns() {
+  if (!activeId) return;
+  const s = getS(activeId);
+  const sel = document.getElementById("rm-status-select") as HTMLSelectElement;
+  const dot = document.getElementById("rm-status-dot");
+  if (sel) { sel.value = s; sel.className = `rm-status-select${s !== "pending" ? ` is-${s}` : ""}`; }
+  if (dot) dot.className = `rm-status-dot${s !== "pending" ? ` is-${s}` : ""}`;
+}
+
+function setStatus(id: string, s: string) {
+  state[id] = s; save(state); buildFlow(); refreshProgress(); syncBtns();
+  const row = document.querySelector<HTMLElement>(`.rm-panel-subitem[data-sub-id="${id}"]`);
+  if (row) {
+    row.className = `rm-panel-subitem${s!=="pending"?` is-${s}`:""}`;
+    row.dataset.subId = id;
+    const icon = row.querySelector(".rm-panel-subitem-icon"); const tag = row.querySelector(".rm-panel-subitem-tag");
+    if (icon) icon.innerHTML = iconFor(s); if (tag) tag.textContent = s;
+  }
+}
+
+buildFlow(); refreshProgress();
+document.body.appendChild(document.getElementById("rm-drawer")!);
+document.getElementById("rm-panel-close")?.addEventListener("click", closePanel);
+document.getElementById("rm-backdrop")?.addEventListener("click", closePanel);
+document.addEventListener("keydown", e => { if (e.key==="Escape") closePanel(); });
+document.body.addEventListener("page-chat-toggle", () => {
+  if (document.body.classList.contains("page-chat-open")) closePanel();
+});
+document.getElementById("rm-status-select")?.addEventListener("change", (e) => {
+  if (activeId) setStatus(activeId, (e.target as HTMLSelectElement).value);
+});
+</script>

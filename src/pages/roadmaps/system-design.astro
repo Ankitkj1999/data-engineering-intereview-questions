@@ -1,0 +1,302 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "System Design Roadmap",
+    description: "",
+  
+  }}
+>
+  <div id="rm-root">
+    <div class="rm-header">
+      <div class="rm-header-left">
+        <span class="rm-badge">Roadmap</span>
+        <h1 class="rm-title">System Design</h1>
+        <p class="rm-subtitle">Step-by-step guide to designing data systems at scale</p>
+      </div>
+      <div class="rm-header-right">
+        <div class="rm-legend">
+          <span class="rm-legend-item" data-status="pending"><span class="rm-dot"></span>Pending</span>
+          <span class="rm-legend-item" data-status="inprogress"><span class="rm-dot"></span>In Progress</span>
+          <span class="rm-legend-item" data-status="done"><span class="rm-dot"></span>Done</span>
+        </div>
+        <div class="rm-progress-summary">
+          <span class="rm-prog-label">Progress</span>
+          <div class="rm-prog-bar-wrap"><div class="rm-prog-bar" id="rm-prog-bar"></div></div>
+          <span class="rm-prog-pct" id="rm-prog-pct">0%</span>
+        </div>
+      </div>
+    </div>
+    <div class="rm-flow" id="rm-flow"></div>
+    <div class="rm-drawer" id="rm-drawer">
+      <div class="rm-backdrop" id="rm-backdrop"></div>
+      <div class="rm-panel">
+        <div class="rm-panel-header">
+          <div>
+            <span id="rm-panel-badge" class="rm-panel-badge"></span>
+            <h2 id="rm-panel-title" class="rm-panel-title"></h2>
+          </div>
+          <button id="rm-panel-close" class="rm-panel-close" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+            </svg>
+          </button>
+        </div>
+        <div class="rm-panel-status-row">
+          <span class="rm-panel-status-label">Status</span>
+          <div class="rm-status-select-wrap">
+            <span class="rm-status-dot" id="rm-status-dot"></span>
+            <select class="rm-status-select" id="rm-status-select" aria-label="Set status">
+              <option value="pending">⬜ Pending</option>
+              <option value="inprogress">🟡 In Progress</option>
+              <option value="done">✅ Done</option>
+            </select>
+          </div>
+        </div>
+        <div class="rm-panel-body" id="rm-panel-body"></div>
+      </div>
+    </div>
+  </div>
+</StarlightPage>
+
+<style is:global>
+  @import "/src/styles/roadmap.css";
+</style>
+
+<script>
+const ROADMAP = [
+  { id:"pipeline-architecture-reliability-fundamentals", label:"Pipeline Architecture & Reliability Fundamentals", desc:"11 interview questions covering Batch Design, Streaming, Reliability, Data Quality and more.", link:"/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals", subs:[
+    { id:"pipeline-architecture-reliability-fundamentals-batch-design", label:"Batch Design", desc:"A typical design ingests data into a raw layer (immutable), transforms it into curated datasets (cleaned and modeled), and publishes it into marts or BI-serving datasets.", link:"/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals" },
+    { id:"pipeline-architecture-reliability-fundamentals-streaming", label:"Streaming", desc:"You typically use an event log or CDC stream (Kafka, Pub/Sub, Kinesis) and write to a raw, append-only store with durable offsets.", link:"/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals" },
+    { id:"pipeline-architecture-reliability-fundamentals-reliability", label:"Reliability", desc:"Idempotency means retries don't change the final result.", link:"/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals" },
+    { id:"pipeline-architecture-reliability-fundamentals-data-quality", label:"Data Quality", desc:"You define an allowed lateness window and design tables keyed by event time, not just ingestion time.", link:"/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals" },
+    { id:"pipeline-architecture-reliability-fundamentals-architecture", label:"Architecture", desc:"Streaming is chosen for low latency and continuous updates, but it adds real complexity — state management, ordering, exactly-once semantics.", link:"/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals" },
+    { id:"pipeline-architecture-reliability-fundamentals-data-modeling", label:"Data Modeling", desc:"Raw (or bronze) is immutable ingestion with minimal transformation.", link:"/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals" },
+    { id:"pipeline-architecture-reliability-fundamentals-platform-design", label:"Platform Design", desc:"You need isolation — separate compute or quotas per tenant — clear ownership, and strong governance.", link:"/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals" },
+    { id:"pipeline-architecture-reliability-fundamentals-schema", label:"Schema", desc:"You define compatibility rules, version schemas or contracts, and enforce them in CI and at ingestion.", link:"/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals" },
+    { id:"pipeline-architecture-reliability-fundamentals-observability", label:"Observability", desc:"You monitor freshness, volume, quality, and lineage, plus pipeline runtime and failure rates.", link:"/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals" },
+    { id:"pipeline-architecture-reliability-fundamentals-cost", label:"Cost", desc:"You optimize storage layout (partitioning, file sizes), avoid unnecessary recomputation, and use selective materialization rather than materializing everything.", link:"/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals" },
+  ]},
+  { id:"distributed-systems-fundamentals", label:"Distributed Systems Fundamentals", desc:"8 interview questions covering CAP Theorem, Consistency Models, Replication, Partitioning and more.", link:"/level-4-advanced/system-design/#distributed-systems-fundamentals", subs:[
+    { id:"distributed-systems-fundamentals-cap-theorem", label:"CAP Theorem", desc:"CAP theorem states that a distributed system can only guarantee two of Consistency, Availability, and Partition tolerance at once — and since network…", link:"/level-4-advanced/system-design/#distributed-systems-fundamentals" },
+    { id:"distributed-systems-fundamentals-consistency-models", label:"Consistency Models", desc:"Strong consistency guarantees every read sees the latest write, at the cost of latency and availability under partition — appropriate for something like a…", link:"/level-4-advanced/system-design/#distributed-systems-fundamentals" },
+    { id:"distributed-systems-fundamentals-replication", label:"Replication", desc:"Leader-follower (single-leader) replication routes all writes through one node and fans reads out to followers — simple to reason about, but the leader is a…", link:"/level-4-advanced/system-design/#distributed-systems-fundamentals" },
+    { id:"distributed-systems-fundamentals-partitioning", label:"Partitioning", desc:"The three common schemes are hash partitioning (spreads load evenly but breaks range scans), range partitioning (great for range queries and time-ordered…", link:"/level-4-advanced/system-design/#distributed-systems-fundamentals" },
+    { id:"distributed-systems-fundamentals-consensus", label:"Consensus", desc:"Whenever multiple nodes need to agree on a single value or ordering — who the current leader is, what the next entry in a replicated log is — you can't have…", link:"/level-4-advanced/system-design/#distributed-systems-fundamentals" },
+    { id:"distributed-systems-fundamentals-distributed-transactions", label:"Distributed Transactions", desc:"Two-phase commit gets all participants to prepare and vote before any of them commits, giving atomicity across systems — but the coordinator becomes a blocking…", link:"/level-4-advanced/system-design/#distributed-systems-fundamentals" },
+    { id:"distributed-systems-fundamentals-event-ordering", label:"Event Ordering", desc:"Clocks on different machines drift and aren't perfectly synchronized even with NTP, so two events in true causal order can end up with out-of-order or identical timestamps once they cross machines.", link:"/level-4-advanced/system-design/#distributed-systems-fundamentals" },
+    { id:"distributed-systems-fundamentals-quorum-systems", label:"Quorum Systems", desc:"In an N-replica system, a quorum requires W (write) and R (read) nodes to acknowledge an operation such that W + R &gt; N, guaranteeing overlap between any…", link:"/level-4-advanced/system-design/#distributed-systems-fundamentals" },
+  ]},
+  { id:"storage-database-selection", label:"Storage & Database Selection", desc:"8 interview questions covering Database Selection, Storage Architecture, OLTP vs OLAP, Storage Formats and more.", link:"/level-4-advanced/system-design/#storage--database-selection", subs:[
+    { id:"storage-database-selection-database-selection", label:"Database Selection", desc:"The decision usually comes down to access pattern and consistency needs rather than data volume alone.", link:"/level-4-advanced/system-design/#storage--database-selection" },
+    { id:"storage-database-selection-storage-architecture", label:"Storage Architecture", desc:"A data warehouse is the right choice when consumers are BI/analytics workloads that need fast, structured, governed SQL access and you're willing to pay for schema-on-write and warehouse compute.", link:"/level-4-advanced/system-design/#storage--database-selection" },
+    { id:"storage-database-selection-oltp-vs-olap", label:"OLTP vs OLAP", desc:"OLTP systems are optimized for many small, concurrent read/write transactions against a normalized schema — a single row insert/update, sub-millisecond latency, ACID guarantees.", link:"/level-4-advanced/system-design/#storage--database-selection" },
+    { id:"storage-database-selection-storage-formats", label:"Storage Formats", desc:"Row-oriented storage keeps all columns of a record together on disk, which is efficient when you read or write whole records — the OLTP pattern.", link:"/level-4-advanced/system-design/#storage--database-selection" },
+    { id:"storage-database-selection-indexing", label:"Indexing", desc:"Index the columns your queries actually filter, join, or sort on — every index speeds up reads but slows down writes and costs storage, so indexing everything \"just in case\" is a common anti-pattern.", link:"/level-4-advanced/system-design/#storage--database-selection" },
+    { id:"storage-database-selection-caching", label:"Caching", desc:"Cache-aside (lazy loading) has the application check the cache first and populate it on a miss — simple and resilient to cache failure, but the first request after eviction pays full latency.", link:"/level-4-advanced/system-design/#storage--database-selection" },
+    { id:"storage-database-selection-messaging-systems", label:"Messaging Systems", desc:"Kafka (and Kinesis, which shares its model) is a durable, ordered, replayable log — consumers track their own offset and can reprocess history, which is what…", link:"/level-4-advanced/system-design/#storage--database-selection" },
+    { id:"storage-database-selection-time-series-design", label:"Time-Series Design", desc:"Partition by time (often with device/sensor ID as a secondary key) so writes and typical time-range queries hit a small number of partitions instead of scanning everything.", link:"/level-4-advanced/system-design/#storage--database-selection" },
+  ]},
+  { id:"scalability-capacity-planning", label:"Scalability & Capacity Planning", desc:"6 interview questions covering Scalability, Capacity Estimation, Hot Partitions, Backpressure and more.", link:"/level-4-advanced/system-design/#scalability--capacity-planning", subs:[
+    { id:"scalability-capacity-planning-scalability", label:"Scalability", desc:"Vertical scaling means adding more CPU/RAM/disk to a single node — simple, no distributed-systems complexity, but bounded by the biggest machine you can buy and creates a single point of failure.", link:"/level-4-advanced/system-design/#scalability--capacity-planning" },
+    { id:"scalability-capacity-planning-capacity-estimation", label:"Capacity Estimation", desc:"Start from the business numbers you're given or can reasonably assume — daily active users or events per day — and convert to a rate (events/day ÷ 86,400…", link:"/level-4-advanced/system-design/#scalability--capacity-planning" },
+    { id:"scalability-capacity-planning-hot-partitions", label:"Hot Partitions", desc:"You detect it through per-partition metrics — throughput, CPU, or queue depth broken out by partition/shard rather than aggregated, since an aggregate average hides a single overloaded partition.", link:"/level-4-advanced/system-design/#scalability--capacity-planning" },
+    { id:"scalability-capacity-planning-backpressure", label:"Backpressure", desc:"Backpressure is what happens when a downstream consumer processes events slower than an upstream producer sends them — without handling it, the gap fills a…", link:"/level-4-advanced/system-design/#scalability--capacity-planning" },
+    { id:"scalability-capacity-planning-load-balancing", label:"Load Balancing", desc:"Round-robin is simplest and works well when requests are roughly uniform in cost, but breaks down if some requests are much more expensive than others.", link:"/level-4-advanced/system-design/#scalability--capacity-planning" },
+    { id:"scalability-capacity-planning-auto-scaling", label:"Auto-Scaling", desc:"For batch, scale the cluster to the job rather than keeping it fixed — ephemeral, job-scoped clusters (Spark-on-Kubernetes or EMR/Databricks jobs) spin up…", link:"/level-4-advanced/system-design/#scalability--capacity-planning" },
+  ]},
+  { id:"fault-tolerance-dr-high-availability", label:"Fault Tolerance, DR & High Availability", desc:"6 interview questions covering Disaster Recovery, Multi-Region Design, Failover Design, Backup Strategy and more.", link:"/level-4-advanced/system-design/#fault-tolerance-dr--high-availability", subs:[
+    { id:"fault-tolerance-dr-high-availability-disaster-recovery", label:"Disaster Recovery", desc:"RPO (Recovery Point Objective) is how much data you can afford to lose, measured in time — an RPO of 15 minutes means your backup/replication cadence must…", link:"/level-4-advanced/system-design/#fault-tolerance-dr--high-availability" },
+    { id:"fault-tolerance-dr-high-availability-multi-region-design", label:"Multi-Region Design", desc:"Active-passive keeps a fully-provisioned standby region that normally serves no traffic and gets promoted on failover — simpler to reason about and avoids…", link:"/level-4-advanced/system-design/#fault-tolerance-dr--high-availability" },
+    { id:"fault-tolerance-dr-high-availability-failover-design", label:"Failover Design", desc:"Split-brain happens when a network partition causes both the old and a newly-promoted leader to believe they're in charge and accept writes independently, diverging the data.", link:"/level-4-advanced/system-design/#fault-tolerance-dr--high-availability" },
+    { id:"fault-tolerance-dr-high-availability-backup-strategy", label:"Backup Strategy", desc:"Combine full snapshots (periodic, complete copies — simple to restore from, but expensive and slow to take often) with incremental backups or CDC-based…", link:"/level-4-advanced/system-design/#fault-tolerance-dr--high-availability" },
+    { id:"fault-tolerance-dr-high-availability-graceful-degradation", label:"Graceful Degradation", desc:"A circuit breaker stops calling a downstream dependency that's failing or timing out — after a failure threshold, it \"opens\" and fails fast instead of piling…", link:"/level-4-advanced/system-design/#fault-tolerance-dr--high-availability" },
+    { id:"fault-tolerance-dr-high-availability-chaos-engineering", label:"Chaos Engineering", desc:"Chaos engineering is deliberately injecting failures — killing a node, adding network latency, dropping a percentage of messages — into a system to verify your…", link:"/level-4-advanced/system-design/#fault-tolerance-dr--high-availability" },
+  ]},
+  { id:"data-contracts-governance-security-by-design", label:"Data Contracts, Governance & Security by Design", desc:"7 interview questions covering Access Control, PII & Masking, Data Lineage, Audit Logging and more.", link:"/level-4-advanced/system-design/#data-contracts-governance--security-by-design", subs:[
+    { id:"data-contracts-governance-security-by-design-access-control", label:"Access Control", desc:"Role-based access control (RBAC) grants permissions to roles rather than individuals, which scales better as headcount grows — you manage a handful of roles instead of per-person grants.", link:"/level-4-advanced/system-design/#data-contracts-governance--security-by-design" },
+    { id:"data-contracts-governance-security-by-design-pii-masking", label:"PII & Masking", desc:"The design principle is classifying and tagging sensitive fields at ingestion (a column-level tag like pii:email in the catalog/schema) so every downstream…", link:"/level-4-advanced/system-design/#data-contracts-governance--security-by-design" },
+    { id:"data-contracts-governance-security-by-design-data-lineage", label:"Data Lineage", desc:"Lineage needs capturing at two levels: table/dataset-level (which tables feed which — usually extracted automatically by parsing SQL/DAG definitions in your…", link:"/level-4-advanced/system-design/#data-contracts-governance--security-by-design" },
+    { id:"data-contracts-governance-security-by-design-audit-logging", label:"Audit Logging", desc:"Log at the point of access, not just the point of change — who queried what data and when, not only who ran an UPDATE.", link:"/level-4-advanced/system-design/#data-contracts-governance--security-by-design" },
+    { id:"data-contracts-governance-security-by-design-data-contracts", label:"Data Contracts", desc:"A data contract is an explicit, versioned agreement on a dataset's schema, semantics, and guarantees — field types, nullability, what a status value actually…", link:"/level-4-advanced/system-design/#data-contracts-governance--security-by-design" },
+    { id:"data-contracts-governance-security-by-design-encryption-design", label:"Encryption Design", desc:"Encryption in transit (TLS between every service-to-service and client-to-service hop) protects data from network interception and is close to table-stakes today.", link:"/level-4-advanced/system-design/#data-contracts-governance--security-by-design" },
+    { id:"data-contracts-governance-security-by-design-self-serve-platform", label:"Self-Serve Platform", desc:"The core idea is a \"paved road\": a small set of golden, well-supported patterns — a standard way to define a pipeline, a standard ingestion path, a standard…", link:"/level-4-advanced/system-design/#data-contracts-governance--security-by-design" },
+  ]},
+  { id:"applied-system-design-case-studies", label:"Applied System Design Case Studies", desc:"11 interview questions covering Case Study: Analytics Dashboard, Case Study: Log Aggregation, Case Study: Ride-Sharing, Case Study: Fraud Detection and more.", link:"/level-4-advanced/system-design/#applied-system-design-case-studies", subs:[
+    { id:"applied-system-design-case-studies-case-study-analytics-dashboard", label:"Case Study: Analytics Dashboard", desc:"Events (page views, clicks) are produced from client SDKs into a durable log (Kafka/Kinesis), partitioned by a key like session or user ID so related events…", link:"/level-4-advanced/system-design/#applied-system-design-case-studies" },
+    { id:"applied-system-design-case-studies-case-study-log-aggregation", label:"Case Study: Log Aggregation", desc:"Lightweight agents on each host tail log files and ship them to a durable buffer (Kafka), decoupling log producers from the indexing pipeline and absorbing…", link:"/level-4-advanced/system-design/#applied-system-design-case-studies" },
+    { id:"applied-system-design-case-studies-case-study-ride-sharing", label:"Case Study: Ride-Sharing", desc:"High-frequency, low-value events (continuous driver GPS pings) go through a streaming path optimized for throughput over per-event durability, often…", link:"/level-4-advanced/system-design/#applied-system-design-case-studies" },
+    { id:"applied-system-design-case-studies-case-study-fraud-detection", label:"Case Study: Fraud Detection", desc:"Transactions stream through a log into a scoring service that must respond within a tight latency budget, often under 100-200ms since this usually gates the…", link:"/level-4-advanced/system-design/#applied-system-design-case-studies" },
+    { id:"applied-system-design-case-studies-case-study-recommendations", label:"Case Study: Recommendations", desc:"Recommendations split cleanly into an offline path and an online path: offline, a batch job periodically computes candidate recommendations or embeddings from…", link:"/level-4-advanced/system-design/#applied-system-design-case-studies" },
+    { id:"applied-system-design-case-studies-case-study-feature-store", label:"Case Study: Feature Store", desc:"A feature store needs two storage paths sharing one feature definition: an offline store (warehouse or lake, holding historical feature values for training,…", link:"/level-4-advanced/system-design/#applied-system-design-case-studies" },
+    { id:"applied-system-design-case-studies-case-study-notifications", label:"Case Study: Notifications", desc:"Producers publish a notification event to a queue rather than calling delivery providers directly, decoupling \"something happened\" from \"how it gets…", link:"/level-4-advanced/system-design/#applied-system-design-case-studies" },
+    { id:"applied-system-design-case-studies-case-study-metrics-platform", label:"Case Study: Metrics Platform", desc:"Metrics arrive as high-cardinality, high-volume time-series emitted every few seconds from every host/service, so the ingestion path needs to batch and locally…", link:"/level-4-advanced/system-design/#applied-system-design-case-studies" },
+    { id:"applied-system-design-case-studies-case-study-data-catalog", label:"Case Study: Data Catalog", desc:"The catalog's core job is answering three questions for any dataset: what is this, where does it come from (lineage), and can I trust it…", link:"/level-4-advanced/system-design/#applied-system-design-case-studies" },
+    { id:"applied-system-design-case-studies-case-study-payments-reconciliation", label:"Case Study: Payments Reconciliation", desc:"1 interview question on case study: payments reconciliation, in the Applied System Design Case Studies section.", link:"/level-4-advanced/system-design/#applied-system-design-case-studies" },
+    { id:"applied-system-design-case-studies-case-study-gdpr-deletion", label:"Case Study: GDPR Deletion", desc:"1 interview question on case study: gdpr deletion, in the Applied System Design Case Studies section.", link:"/level-4-advanced/system-design/#applied-system-design-case-studies" },
+  ]},
+  { id:"slas-delivery-cost-at-scale", label:"SLAs, Delivery & Cost at Scale", desc:"6 interview questions covering SLAs & Error Budgets, Freshness Monitoring, Cost Attribution, Deployment Strategy and more.", link:"/level-4-advanced/system-design/#slas-delivery--cost-at-scale", subs:[
+    { id:"slas-delivery-cost-at-scale-slas-error-budgets", label:"SLAs & Error Budgets", desc:"An SLA is the external commitment, often with a consequence attached — \"the daily sales table is available by 8am, 99.5% of the time.\" An SLO is the internal…", link:"/level-4-advanced/system-design/#slas-delivery--cost-at-scale" },
+    { id:"slas-delivery-cost-at-scale-freshness-monitoring", label:"Freshness Monitoring", desc:"Freshness needs measuring at every stage boundary, not just the final table — timestamp each stage's output with both the event-time of its data and the…", link:"/level-4-advanced/system-design/#slas-delivery--cost-at-scale" },
+    { id:"slas-delivery-cost-at-scale-cost-attribution", label:"Cost Attribution", desc:"Attribution requires tagging resources — compute jobs, storage, warehouse queries — with an owning team/project at creation time; most cloud billing and…", link:"/level-4-advanced/system-design/#slas-delivery--cost-at-scale" },
+    { id:"slas-delivery-cost-at-scale-deployment-strategy", label:"Deployment Strategy", desc:"Blue-green deployment runs the new pipeline version fully in parallel against the same input, writing to a separate output location, and you validate its…", link:"/level-4-advanced/system-design/#slas-delivery--cost-at-scale" },
+    { id:"slas-delivery-cost-at-scale-testing-strategy", label:"Testing Strategy", desc:"Unit tests cover transformation logic in isolation.", link:"/level-4-advanced/system-design/#slas-delivery--cost-at-scale" },
+    { id:"slas-delivery-cost-at-scale-internal-data-apis", label:"Internal Data APIs", desc:"A service layer in front of derived data gives a stable contract independent of the underlying table's physical schema — you can repartition, rename columns,…", link:"/level-4-advanced/system-design/#slas-delivery--cost-at-scale" },
+  ]},
+];
+
+const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
+const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;
+const ICON_DONE       = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="5.5 8.5 7 10 10.5 6"/></svg>`;
+const ICON_ARROW      = `<svg width="20" height="28" viewBox="0 0 20 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="10" y1="0" x2="10" y2="20"/><polyline points="5 15 10 22 15 15"/></svg>`;
+const ICON_CHEVRON    = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 5 7 9 11 5"/></svg>`;
+function iconFor(s: string) { return s==="done"?ICON_DONE:s==="inprogress"?ICON_INPROGRESS:ICON_PENDING; }
+
+const KEY = "system_design_roadmap_v1";
+function load(): Record<string,string> { try { return JSON.parse(localStorage.getItem(KEY)||"{}"); } catch { return {}; } }
+function save(s: Record<string,string>) { localStorage.setItem(KEY, JSON.stringify(s)); }
+let state = load();
+let collapsedIds = new Set();
+function getS(id: string) { return state[id]||"pending"; }
+
+function allIds() {
+  const ids: string[] = [];
+  for (const t of ROADMAP) { ids.push(t.id); for (const s of t.subs) ids.push(s.id); }
+  return ids;
+}
+
+function refreshProgress() {
+  const ids = allIds();
+  const done = ids.filter(id => getS(id)==="done").length;
+  const pct = ids.length ? Math.round((done/ids.length)*100) : 0;
+  const bar = document.getElementById("rm-prog-bar");
+  const pctEl = document.getElementById("rm-prog-pct");
+  if (bar) bar.style.width = `${pct}%`;
+  if (pctEl) pctEl.textContent = `${pct}%`;
+}
+
+function buildFlow() {
+  const flow = document.getElementById("rm-flow");
+  if (!flow) return;
+  flow.innerHTML = "";
+  ROADMAP.forEach((topic, ti) => {
+    const s = getS(topic.id);
+    const isCollapsed = collapsedIds.has(topic.id);
+    const topicEl = document.createElement("div");
+    topicEl.className = `rm-topic-node${s!=="pending"?` is-${s}`:""}${isCollapsed?" is-collapsed":""}`;
+    topicEl.dataset.id = topic.id;
+    topicEl.innerHTML = `<span class="rm-topic-icon">${iconFor(s)}</span><span class="rm-topic-label">${topic.label}</span>${topic.subs.length?`<span class="rm-count-badge">${topic.subs.length}</span>`:""}<span class="rm-chevron">${ICON_CHEVRON}</span>`;
+    topicEl.addEventListener("click", () => openPanel(topic.id, "topic"));
+    if (topic.subs.length > 0) {
+      const chevronEl = topicEl.querySelector(".rm-chevron");
+      chevronEl?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (collapsedIds.has(topic.id)) collapsedIds.delete(topic.id); else collapsedIds.add(topic.id);
+        buildFlow();
+      });
+    }
+    flow.appendChild(topicEl);
+    if (topic.subs.length > 0 && !isCollapsed) {
+      const group = document.createElement("div");
+      group.className = "rm-sub-group";
+      for (const sub of topic.subs) {
+        const ss = getS(sub.id);
+        const subEl = document.createElement("div");
+        subEl.className = `rm-sub-node${ss!=="pending"?` is-${ss}`:""}`;
+        subEl.dataset.id = sub.id;
+        subEl.innerHTML = `<span class="rm-sub-icon">${iconFor(ss)}</span><span class="rm-sub-label">${sub.label}</span>`;
+        subEl.addEventListener("click", () => openPanel(sub.id, "subtopic", topic.id));
+        group.appendChild(subEl);
+      }
+      flow.appendChild(group);
+    }
+    if (ti < ROADMAP.length-1) {
+      const arrow = document.createElement("div");
+      arrow.className = "rm-arrow";
+      arrow.innerHTML = ICON_ARROW;
+      flow.appendChild(arrow);
+    }
+  });
+}
+
+let activeId: string|null = null, activeParent: string|null = null;
+function findItem(id: string): any {
+  for (const t of ROADMAP) { if (t.id===id) return {...t,type:"topic"}; for (const s of t.subs) { if (s.id===id) return {...s,type:"subtopic"}; } }
+  return null;
+}
+
+function openPanel(id: string, type: string, parentId?: string) {
+  activeId = id; activeParent = parentId??null;
+  const item = findItem(id); if (!item) return;
+  const badge = document.getElementById("rm-panel-badge")!;
+  const title = document.getElementById("rm-panel-title")!;
+  const body  = document.getElementById("rm-panel-body")!;
+  badge.textContent = type==="topic"?"Topic":"Subtopic";
+  badge.className   = `rm-panel-badge is-${type}`;
+  title.textContent = item.label;
+  body.innerHTML    = `<p class="rm-panel-desc">${item.desc}</p>` + (item.link ? `<a href="${item.link}" class="rm-read-more">Read more →</a>` : "");
+  if (type==="topic" && item.subs?.length>0) {
+    const sublist = document.createElement("div");
+    sublist.className = "rm-panel-sublist";
+    sublist.innerHTML = `<p class="rm-panel-sublist-title">Subtopics (${item.subs.length})</p>`;
+    for (const sub of item.subs) {
+      const ss = getS(sub.id);
+      const row = document.createElement("div");
+      row.className = `rm-panel-subitem${ss!=="pending"?` is-${ss}`:""}`;
+      row.dataset.subId = sub.id;
+      row.innerHTML = `<span class="rm-panel-subitem-icon">${iconFor(ss)}</span><span class="rm-panel-subitem-label">${sub.label}</span><span class="rm-panel-subitem-tag">${ss}</span>`;
+      row.addEventListener("click", e => { e.stopPropagation(); openPanel(sub.id,"subtopic",id); });
+      sublist.appendChild(row);
+    }
+    body.appendChild(sublist);
+  }
+  syncBtns();
+  document.getElementById("rm-drawer")!.classList.add("is-open");
+  if (document.body.classList.contains("page-chat-open")) {
+    document.body.classList.remove("page-chat-open");
+    try { sessionStorage.setItem("page-chat-open", "0"); } catch (_) {}
+    document.body.dispatchEvent(new CustomEvent("page-chat-toggle"));
+  }
+  document.body.style.overflow = "hidden";
+}
+
+function closePanel() {
+  document.getElementById("rm-drawer")!.classList.remove("is-open");
+  document.body.style.overflow = "";
+  activeId = activeParent = null;
+}
+
+function syncBtns() {
+  if (!activeId) return;
+  const s = getS(activeId);
+  const sel = document.getElementById("rm-status-select") as HTMLSelectElement;
+  const dot = document.getElementById("rm-status-dot");
+  if (sel) { sel.value = s; sel.className = `rm-status-select${s !== "pending" ? ` is-${s}` : ""}`; }
+  if (dot) dot.className = `rm-status-dot${s !== "pending" ? ` is-${s}` : ""}`;
+}
+
+function setStatus(id: string, s: string) {
+  state[id] = s; save(state); buildFlow(); refreshProgress(); syncBtns();
+  const row = document.querySelector<HTMLElement>(`.rm-panel-subitem[data-sub-id="${id}"]`);
+  if (row) {
+    row.className = `rm-panel-subitem${s!=="pending"?` is-${s}`:""}`;
+    row.dataset.subId = id;
+    const icon = row.querySelector(".rm-panel-subitem-icon"); const tag = row.querySelector(".rm-panel-subitem-tag");
+    if (icon) icon.innerHTML = iconFor(s); if (tag) tag.textContent = s;
+  }
+}
+
+buildFlow(); refreshProgress();
+document.body.appendChild(document.getElementById("rm-drawer")!);
+document.getElementById("rm-panel-close")?.addEventListener("click", closePanel);
+document.getElementById("rm-backdrop")?.addEventListener("click", closePanel);
+document.addEventListener("keydown", e => { if (e.key==="Escape") closePanel(); });
+document.body.addEventListener("page-chat-toggle", () => {
+  if (document.body.classList.contains("page-chat-open")) closePanel();
+});
+document.getElementById("rm-status-select")?.addEventListener("change", (e) => {
+  if (activeId) setStatus(activeId, (e.target as HTMLSelectElement).value);
+});
+</script>
