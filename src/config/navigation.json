@@ -8,6 +8,12 @@
         { "label": "Python",           "link": "/roadmaps/python/" },
         { "label": "SQL",              "link": "/roadmaps/sql/" },
         { "label": "Apache Spark",     "link": "/roadmaps/apache-spark/" },
+        { "label": "Git & GitHub",     "link": "/roadmaps/git/" },
+        { "label": "Linux",            "link": "/roadmaps/linux/" },
+        { "label": "Docker",           "link": "/roadmaps/docker/" },
+        { "label": "CI/CD",            "link": "/roadmaps/cicd/" },
+        { "label": "Infrastructure as Code", "link": "/roadmaps/iac/" },
+        { "label": "Networking",       "link": "/roadmaps/networking/" },
         { "label": "AWS Services",     "link": "/roadmaps/aws/" },
         { "label": "Azure Services",   "link": "/roadmaps/azure/" },
         { "label": "GCP Services",     "link": "/roadmaps/gcp/" }

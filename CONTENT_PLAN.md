@@ -104,9 +104,23 @@ Wiring done: all 6 in `navigation.json`, all 6 as rows in `src/pages/progress.as
 `link:` fields added to `data-engineering.astro`. Verified with a clean `npx astro build` — all
 203 cards render, every roadmap anchor target resolves in the built HTML, zero new duplicate ids.
 
-**Still open:** Git and Linux may warrant dedicated `/roadmaps/*.astro` pages (like Python/SQL) —
-see [Open questions](#open-questions). Docker/CI-CD/IaC/Networking do not; they stay as nodes on
-the master DE roadmap.
+**Follow-up done same day — all 6 got their own roadmap.** User's call: leaving them as single
+nodes on the master roadmap was inconsistent with Python/SQL/Spark and gave no single-view picture
+of each topic. Generated `/roadmaps/{git,linux,docker,cicd,iac,networking}.astro` — **239 nodes**
+across 36 categories, every node linking to the section anchor on its content page:
+
+| Roadmap | Categories | Nodes | Storage key |
+|---|:-:|:-:|---|
+| `/roadmaps/git/` | 6 | 45 | `git_roadmap_v1` |
+| `/roadmaps/linux/` | 7 | 47 | `linux_roadmap_v1` |
+| `/roadmaps/docker/` | 6 | 39 | `docker_roadmap_v1` |
+| `/roadmaps/cicd/` | 5 | 34 | `cicd_roadmap_v1` |
+| `/roadmaps/iac/` | 6 | 38 | `iac_roadmap_v1` |
+| `/roadmaps/networking/` | 6 | 36 | `networking_roadmap_v1` |
+
+All 6 added to the sidebar's Roadmaps group. The master DE roadmap's 6 corresponding nodes now
+link to the **roadmap** rather than straight to the page, so the drill-down is
+`DE roadmap → topic roadmap → page anchor`, matching Python/SQL/Spark.
 
 ### Phase 2 — Python depth
 
@@ -256,9 +270,6 @@ whether they're a language or a tool.
 
 Unresolved calls. Settle before the phase that needs them; move the answer into **Decisions**.
 
-- **Git & Linux roadmaps** — do they get dedicated `/roadmaps/*.astro` pages? The content pages now
-  exist (39 and 40 questions across 6–7 sections each), which is roughly SQL-subtopic depth, so
-  it's a reasonable candidate. Not blocking anything.
 - **SQL theory overlap** — `sql/theory.mdx` (102 Q) may duplicate the 260 questions on SQL
   subtopic pages. Worth an audit at some point; not blocking anything.
 - **Duplicate question ids `ssf-01` / `ssf-02`** — pre-existing collision between
@@ -323,7 +334,14 @@ Answer in markdown. Code fences are fine.
 - `difficulty` is `easy` | `medium` | `hard`. `topic` matches the section.
 
 **3. Wire the roadmap.** In the matching `src/pages/roadmaps/*.astro`, add `link:` to each node —
-category node → page root, sub-node → page anchor:
+category node → page root, sub-node → page anchor.
+
+> **Creating a whole new roadmap?** Every `roadmaps/*.astro` is the same file with three things
+> swapped: the page title/h1/subtitle, the `ROADMAP` array, and `const KEY` (which **must** be
+> unique — it's the localStorage key for that roadmap's progress). Copy `sql.astro` and replace
+> those three. Generating several at once from a script is reasonable; a throwaway generator was
+> used for the 6 Engineering Foundations roadmaps rather than hand-writing ~330 lines of identical
+> boilerplate six times.
 
 ```js
 { id:"concurrency", label:"Concurrency", desc:"...", link:"/level-1-foundations/python/concurrency/", subs:[
@@ -355,5 +373,6 @@ Newest first. One line per working session: what was done, and what's next.
 
 | Date | What happened | Next up |
 |---|---|---|
+| 2026-08-09 | **Phase 1 follow-up: 6 new roadmaps.** User flagged that leaving Git/Linux/Docker/CI-CD/IaC/Networking as single nodes on the master roadmap was inconsistent with Python/SQL/Spark and gave no single-view picture. Generated all 6 `/roadmaps/*.astro` from the `sql.astro` template — **239 nodes**, 36 categories, unique storage keys, every node anchored to its content-page section. Added to the sidebar; DE roadmap nodes repointed to the roadmaps. All 36 distinct link targets verified to resolve; clean build. | Phase 2 — Python depth |
 | 2026-08-09 | **Phase 1 done.** Built all 6 Engineering Foundations pages — Git (39 Q), Linux (40), Docker (33), CI/CD (29), IaC (32), Networking (30) = **203 questions**. Wired into `navigation.json`, `progress.astro`, and 13 `link:` fields on the DE roadmap. `Distributed Systems Basics` pointed at the existing system-design page rather than getting a new one. Clean build; all anchors verified. Found a pre-existing duplicate-id bug (`ssf-01`/`ssf-02`) — logged in Open questions, not fixed. | Phase 2 — Python depth |
 | 2026-08-09 | Audited all 7 roadmaps against actual content. Found the breadth gap (8 master-roadmap categories with zero content, 86/123 nodes unlinked) matters more than the depth gap, and reordered around it. Recorded settled decisions in the Decisions section — notably D1, that excluding subtopic pages from sidebar/progress is intentional, not a bug. | Phase 1 — settle placement, then Git & Linux |

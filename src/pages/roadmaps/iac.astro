@@ -1,0 +1,268 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "Infrastructure as Code Roadmap",
+    description: "",
+  
+  }}
+>
+  <div id="rm-root">
+    <div class="rm-header">
+      <div class="rm-header-left">
+        <span class="rm-badge">Roadmap</span>
+        <h1 class="rm-title">Infrastructure as Code</h1>
+        <p class="rm-subtitle">Step-by-step guide to provisioning data platform infrastructure</p>
+      </div>
+      <div class="rm-header-right">
+        <div class="rm-legend">
+          <span class="rm-legend-item" data-status="pending"><span class="rm-dot"></span>Pending</span>
+          <span class="rm-legend-item" data-status="inprogress"><span class="rm-dot"></span>In Progress</span>
+          <span class="rm-legend-item" data-status="done"><span class="rm-dot"></span>Done</span>
+        </div>
+        <div class="rm-progress-summary">
+          <span class="rm-prog-label">Progress</span>
+          <div class="rm-prog-bar-wrap"><div class="rm-prog-bar" id="rm-prog-bar"></div></div>
+          <span class="rm-prog-pct" id="rm-prog-pct">0%</span>
+        </div>
+      </div>
+    </div>
+    <div class="rm-flow" id="rm-flow"></div>
+    <div class="rm-drawer" id="rm-drawer">
+      <div class="rm-backdrop" id="rm-backdrop"></div>
+      <div class="rm-panel">
+        <div class="rm-panel-header">
+          <div>
+            <span id="rm-panel-badge" class="rm-panel-badge"></span>
+            <h2 id="rm-panel-title" class="rm-panel-title"></h2>
+          </div>
+          <button id="rm-panel-close" class="rm-panel-close" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+            </svg>
+          </button>
+        </div>
+        <div class="rm-panel-status-row">
+          <span class="rm-panel-status-label">Status</span>
+          <div class="rm-status-select-wrap">
+            <span class="rm-status-dot" id="rm-status-dot"></span>
+            <select class="rm-status-select" id="rm-status-select" aria-label="Set status">
+              <option value="pending">⬜ Pending</option>
+              <option value="inprogress">🟡 In Progress</option>
+              <option value="done">✅ Done</option>
+            </select>
+          </div>
+        </div>
+        <div class="rm-panel-body" id="rm-panel-body"></div>
+      </div>
+    </div>
+  </div>
+</StarlightPage>
+
+<style is:global>
+  @import "/src/styles/roadmap.css";
+</style>
+
+<script>
+const ROADMAP = [
+  { id:"iac-fundamentals", label:"IaC Fundamentals", desc:"Declarative desired state, idempotency and drift — the ideas the tools are built around.", link:"/level-1-foundations/iac/#iac-fundamentals", subs:[
+    { id:"iac-what", label:"What IaC Solves", desc:"Reproducibility, version control, consistency, auditability and disaster recovery.", link:"/level-1-foundations/iac/#iac-fundamentals" },
+    { id:"iac-declarative", label:"Declarative vs Imperative", desc:"Describing the end state versus the steps, and why declarative wins for infrastructure.", link:"/level-1-foundations/iac/#iac-fundamentals" },
+    { id:"iac-idempotency", label:"Idempotency", desc:"Why applying twice changes nothing, and what makes automation safe.", link:"/level-1-foundations/iac/#iac-fundamentals" },
+    { id:"iac-drift", label:"Configuration Drift", desc:"Detecting divergence with a scheduled plan, and deciding which side is right.", link:"/level-1-foundations/iac/#iac-fundamentals" },
+    { id:"iac-tools", label:"Tool Comparison", desc:"Terraform, CloudFormation, Pulumi and Ansible — provisioning versus configuration.", link:"/level-1-foundations/iac/#iac-fundamentals" },
+  ]},
+  { id:"iac-terraform", label:"Terraform Core", desc:"The workflow, the language and the meta-arguments that control how resources are created.", link:"/level-1-foundations/iac/#terraform-core", subs:[
+    { id:"iac-workflow", label:"The Core Workflow", desc:"init, fmt, validate, plan, apply — and saving the plan file in automation.", link:"/level-1-foundations/iac/#terraform-core" },
+    { id:"iac-blocks", label:"Block Types", desc:"terraform, provider, resource, data, variable, output, locals and module.", link:"/level-1-foundations/iac/#terraform-core" },
+    { id:"iac-count-foreach", label:"count vs for_each", desc:"Numeric indices shift on removal; for_each keys by identity and doesn't.", link:"/level-1-foundations/iac/#terraform-core" },
+    { id:"iac-provisioners", label:"Provisioners", desc:"Why local-exec and remote-exec are a last resort, and what to use instead.", link:"/level-1-foundations/iac/#terraform-core" },
+    { id:"iac-versions", label:"Version Constraints & Lockfile", desc:"Pessimistic constraints, and why .terraform.lock.hcl must be committed.", link:"/level-1-foundations/iac/#terraform-core" },
+    { id:"iac-lifecycle", label:"Lifecycle Meta-Arguments", desc:"prevent_destroy, create_before_destroy, ignore_changes and replace_triggered_by.", link:"/level-1-foundations/iac/#terraform-core" },
+  ]},
+  { id:"iac-state-mgmt", label:"State Management", desc:"Where most hard Terraform questions actually live — the mapping between config and reality.", link:"/level-1-foundations/iac/#state-management", subs:[
+    { id:"iac-what-state", label:"What State Is", desc:"The map from configuration to real cloud objects, and why losing it is serious.", link:"/level-1-foundations/iac/#state-management" },
+    { id:"iac-backends", label:"Remote Backends", desc:"Versioning, encryption, restricted access and locking as non-negotiables.", link:"/level-1-foundations/iac/#state-management" },
+    { id:"iac-locking", label:"State Locking", desc:"Preventing concurrent applies, and the care needed before force-unlock.", link:"/level-1-foundations/iac/#state-management" },
+    { id:"iac-import", label:"Importing Resources", desc:"Bringing a manually created resource under management with import blocks.", link:"/level-1-foundations/iac/#state-management" },
+    { id:"iac-moved", label:"moved Blocks", desc:"Renaming or re-homing a resource without Terraform destroying and recreating it.", link:"/level-1-foundations/iac/#state-management" },
+    { id:"iac-state-secrets", label:"State & Secrets", desc:"Why state holds plaintext credentials, and why it must never reach Git.", link:"/level-1-foundations/iac/#state-management" },
+    { id:"iac-split-state", label:"Splitting State", desc:"Separating by blast radius and change frequency, and sharing values between stacks.", link:"/level-1-foundations/iac/#state-management" },
+  ]},
+  { id:"iac-modules-envs", label:"Modules & Environments", desc:"Reusable building blocks, environment separation, testing and running Terraform from CI.", link:"/level-1-foundations/iac/#modules--environments", subs:[
+    { id:"iac-modules", label:"Writing Modules", desc:"When a group of resources earns a module — and the over-parameterisation trap.", link:"/level-1-foundations/iac/#modules--environments" },
+    { id:"iac-root-child", label:"Root vs Child Modules", desc:"Where the backend and providers belong, and why child modules shouldn't declare them.", link:"/level-1-foundations/iac/#modules--environments" },
+    { id:"iac-envs", label:"Environment Strategies", desc:"Directory per environment versus workspaces versus Terragrunt.", link:"/level-1-foundations/iac/#modules--environments" },
+    { id:"iac-testing", label:"Testing IaC", desc:"fmt, validate, tflint, tfsec, policy-as-code, terraform test and Terratest.", link:"/level-1-foundations/iac/#modules--environments" },
+    { id:"iac-pipeline", label:"Terraform in CI/CD", desc:"Read-only plan on the PR, posted as a comment, then applying the saved plan on merge.", link:"/level-1-foundations/iac/#modules--environments" },
+  ]},
+  { id:"iac-alternatives", label:"OpenTofu & AWS CDK", desc:"The alternatives to Terraform's HCL — a licensing fork, and infrastructure in a real language.", link:"/level-1-foundations/iac/#opentofu--aws-cdk", subs:[
+    { id:"iac-opentofu", label:"What OpenTofu Is", desc:"The BSL relicensing fork, now Linux Foundation governed and slowly diverging.", link:"/level-1-foundations/iac/#opentofu--aws-cdk" },
+    { id:"iac-tf-vs-tofu", label:"Terraform vs OpenTofu", desc:"Licence, governance, ecosystem and feature divergence — mostly not a technical call.", link:"/level-1-foundations/iac/#opentofu--aws-cdk" },
+    { id:"iac-cdk", label:"AWS CDK", desc:"Real languages synthesising CloudFormation, with constructs and managed state.", link:"/level-1-foundations/iac/#opentofu--aws-cdk" },
+    { id:"iac-hcl-vs-lang", label:"HCL vs a General-Purpose Language", desc:"When abstraction helps, and when it makes infrastructure unreviewable.", link:"/level-1-foundations/iac/#opentofu--aws-cdk" },
+  ]},
+  { id:"iac-de", label:"IaC for Data Platforms", desc:"What to manage, where the boundary with app deployment sits, and the stateful-resource risk.", link:"/level-1-foundations/iac/#iac-for-data-platforms", subs:[
+    { id:"iac-de-what", label:"What to Manage with IaC", desc:"Storage, warehouses, processing, streaming, orchestration, catalog, IAM, networking.", link:"/level-1-foundations/iac/#iac-for-data-platforms" },
+    { id:"iac-de-boundary", label:"IaC vs App Deployment", desc:"Terraform provisions the long-lived container; pipelines deploy what changes often.", link:"/level-1-foundations/iac/#iac-for-data-platforms" },
+    { id:"iac-de-iam", label:"IAM for Pipelines", desc:"Role per pipeline, prefix-scoped policies, workload identity, and no static keys.", link:"/level-1-foundations/iac/#iac-for-data-platforms" },
+    { id:"iac-de-risk", label:"Risks with Stateful Resources", desc:"Replacement plans that destroy data, and the layers of protection against them.", link:"/level-1-foundations/iac/#iac-for-data-platforms" },
+    { id:"iac-de-product", label:"Provisioning a Data Product", desc:"Composing modules so a new data product is a small, standard pull request.", link:"/level-1-foundations/iac/#iac-for-data-platforms" },
+  ]},
+];
+
+const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
+const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;
+const ICON_DONE       = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="5.5 8.5 7 10 10.5 6"/></svg>`;
+const ICON_ARROW      = `<svg width="20" height="28" viewBox="0 0 20 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="10" y1="0" x2="10" y2="20"/><polyline points="5 15 10 22 15 15"/></svg>`;
+const ICON_CHEVRON    = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 5 7 9 11 5"/></svg>`;
+function iconFor(s: string) { return s==="done"?ICON_DONE:s==="inprogress"?ICON_INPROGRESS:ICON_PENDING; }
+
+const KEY = "iac_roadmap_v1";
+function load(): Record<string,string> { try { return JSON.parse(localStorage.getItem(KEY)||"{}"); } catch { return {}; } }
+function save(s: Record<string,string>) { localStorage.setItem(KEY, JSON.stringify(s)); }
+let state = load();
+let collapsedIds = new Set();
+function getS(id: string) { return state[id]||"pending"; }
+
+function allIds() {
+  const ids: string[] = [];
+  for (const t of ROADMAP) { ids.push(t.id); for (const s of t.subs) ids.push(s.id); }
+  return ids;
+}
+
+function refreshProgress() {
+  const ids = allIds();
+  const done = ids.filter(id => getS(id)==="done").length;
+  const pct = ids.length ? Math.round((done/ids.length)*100) : 0;
+  const bar = document.getElementById("rm-prog-bar");
+  const pctEl = document.getElementById("rm-prog-pct");
+  if (bar) bar.style.width = `${pct}%`;
+  if (pctEl) pctEl.textContent = `${pct}%`;
+}
+
+function buildFlow() {
+  const flow = document.getElementById("rm-flow");
+  if (!flow) return;
+  flow.innerHTML = "";
+  ROADMAP.forEach((topic, ti) => {
+    const s = getS(topic.id);
+    const isCollapsed = collapsedIds.has(topic.id);
+    const topicEl = document.createElement("div");
+    topicEl.className = `rm-topic-node${s!=="pending"?` is-${s}`:""}${isCollapsed?" is-collapsed":""}`;
+    topicEl.dataset.id = topic.id;
+    topicEl.innerHTML = `<span class="rm-topic-icon">${iconFor(s)}</span><span class="rm-topic-label">${topic.label}</span>${topic.subs.length?`<span class="rm-count-badge">${topic.subs.length}</span>`:""}<span class="rm-chevron">${ICON_CHEVRON}</span>`;
+    topicEl.addEventListener("click", () => openPanel(topic.id, "topic"));
+    if (topic.subs.length > 0) {
+      const chevronEl = topicEl.querySelector(".rm-chevron");
+      chevronEl?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (collapsedIds.has(topic.id)) collapsedIds.delete(topic.id); else collapsedIds.add(topic.id);
+        buildFlow();
+      });
+    }
+    flow.appendChild(topicEl);
+    if (topic.subs.length > 0 && !isCollapsed) {
+      const group = document.createElement("div");
+      group.className = "rm-sub-group";
+      for (const sub of topic.subs) {
+        const ss = getS(sub.id);
+        const subEl = document.createElement("div");
+        subEl.className = `rm-sub-node${ss!=="pending"?` is-${ss}`:""}`;
+        subEl.dataset.id = sub.id;
+        subEl.innerHTML = `<span class="rm-sub-icon">${iconFor(ss)}</span><span class="rm-sub-label">${sub.label}</span>`;
+        subEl.addEventListener("click", () => openPanel(sub.id, "subtopic", topic.id));
+        group.appendChild(subEl);
+      }
+      flow.appendChild(group);
+    }
+    if (ti < ROADMAP.length-1) {
+      const arrow = document.createElement("div");
+      arrow.className = "rm-arrow";
+      arrow.innerHTML = ICON_ARROW;
+      flow.appendChild(arrow);
+    }
+  });
+}
+
+let activeId: string|null = null, activeParent: string|null = null;
+function findItem(id: string): any {
+  for (const t of ROADMAP) { if (t.id===id) return {...t,type:"topic"}; for (const s of t.subs) { if (s.id===id) return {...s,type:"subtopic"}; } }
+  return null;
+}
+
+function openPanel(id: string, type: string, parentId?: string) {
+  activeId = id; activeParent = parentId??null;
+  const item = findItem(id); if (!item) return;
+  const badge = document.getElementById("rm-panel-badge")!;
+  const title = document.getElementById("rm-panel-title")!;
+  const body  = document.getElementById("rm-panel-body")!;
+  badge.textContent = type==="topic"?"Topic":"Subtopic";
+  badge.className   = `rm-panel-badge is-${type}`;
+  title.textContent = item.label;
+  body.innerHTML    = `<p class="rm-panel-desc">${item.desc}</p>` + (item.link ? `<a href="${item.link}" class="rm-read-more">Read more →</a>` : "");
+  if (type==="topic" && item.subs?.length>0) {
+    const sublist = document.createElement("div");
+    sublist.className = "rm-panel-sublist";
+    sublist.innerHTML = `<p class="rm-panel-sublist-title">Subtopics (${item.subs.length})</p>`;
+    for (const sub of item.subs) {
+      const ss = getS(sub.id);
+      const row = document.createElement("div");
+      row.className = `rm-panel-subitem${ss!=="pending"?` is-${ss}`:""}`;
+      row.dataset.subId = sub.id;
+      row.innerHTML = `<span class="rm-panel-subitem-icon">${iconFor(ss)}</span><span class="rm-panel-subitem-label">${sub.label}</span><span class="rm-panel-subitem-tag">${ss}</span>`;
+      row.addEventListener("click", e => { e.stopPropagation(); openPanel(sub.id,"subtopic",id); });
+      sublist.appendChild(row);
+    }
+    body.appendChild(sublist);
+  }
+  syncBtns();
+  document.getElementById("rm-drawer")!.classList.add("is-open");
+  if (document.body.classList.contains("page-chat-open")) {
+    document.body.classList.remove("page-chat-open");
+    try { sessionStorage.setItem("page-chat-open", "0"); } catch (_) {}
+    document.body.dispatchEvent(new CustomEvent("page-chat-toggle"));
+  }
+  document.body.style.overflow = "hidden";
+}
+
+function closePanel() {
+  document.getElementById("rm-drawer")!.classList.remove("is-open");
+  document.body.style.overflow = "";
+  activeId = activeParent = null;
+}
+
+function syncBtns() {
+  if (!activeId) return;
+  const s = getS(activeId);
+  const sel = document.getElementById("rm-status-select") as HTMLSelectElement;
+  const dot = document.getElementById("rm-status-dot");
+  if (sel) { sel.value = s; sel.className = `rm-status-select${s !== "pending" ? ` is-${s}` : ""}`; }
+  if (dot) dot.className = `rm-status-dot${s !== "pending" ? ` is-${s}` : ""}`;
+}
+
+function setStatus(id: string, s: string) {
+  state[id] = s; save(state); buildFlow(); refreshProgress(); syncBtns();
+  const row = document.querySelector<HTMLElement>(`.rm-panel-subitem[data-sub-id="${id}"]`);
+  if (row) {
+    row.className = `rm-panel-subitem${s!=="pending"?` is-${s}`:""}`;
+    row.dataset.subId = id;
+    const icon = row.querySelector(".rm-panel-subitem-icon"); const tag = row.querySelector(".rm-panel-subitem-tag");
+    if (icon) icon.innerHTML = iconFor(s); if (tag) tag.textContent = s;
+  }
+}
+
+buildFlow(); refreshProgress();
+document.body.appendChild(document.getElementById("rm-drawer")!);
+document.getElementById("rm-panel-close")?.addEventListener("click", closePanel);
+document.getElementById("rm-backdrop")?.addEventListener("click", closePanel);
+document.addEventListener("keydown", e => { if (e.key==="Escape") closePanel(); });
+document.body.addEventListener("page-chat-toggle", () => {
+  if (document.body.classList.contains("page-chat-open")) closePanel();
+});
+document.getElementById("rm-status-select")?.addEventListener("change", (e) => {
+  if (activeId) setStatus(activeId, (e.target as HTMLSelectElement).value);
+});
+</script>
