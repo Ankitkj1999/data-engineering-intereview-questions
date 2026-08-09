@@ -1,0 +1,467 @@
+---
+title: Git & GitHub
+description: Git and GitHub interview questions covering the object model, branching and merging strategies, rebasing and history rewriting, pull request workflows, recovering from mistakes, and version control practices specific to data engineering.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## Git & GitHub: Version Control for Data Teams
+
+**Almost every data engineering interview assumes you can work in a shared repository without breaking it — resolve a conflict, clean up a messy branch, explain why a force-push is dangerous, and recover when something goes wrong. Git questions are rarely about memorising commands; they're about whether you understand what Git is actually doing to the commit graph underneath.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Git Fundamentals](#git-fundamentals)
+- [Branching & Merging](#branching--merging)
+- [Rewriting History](#rewriting-history)
+- [Remotes & Collaboration](#remotes--collaboration)
+- [Undoing Mistakes](#undoing-mistakes)
+- [Git for Data Engineering](#git-for-data-engineering)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Git is a **content-addressable filesystem with a version control interface on top**. Every commit is a snapshot of the entire tree — not a diff — identified by a hash of its content plus its parent(s). Because each commit points backwards at its parent, the history forms a **directed acyclic graph (DAG)**, and almost every Git operation is a graph manipulation: a branch is a movable pointer to a commit, a merge creates a commit with two parents, and a rebase *replays* commits as brand-new objects with different hashes.
+
+Work moves through three places: the **working directory** (files you edit), the **staging area / index** (what will go into the next commit), and the **repository** (committed history). Understanding that split explains most day-to-day confusion — why `git checkout` and `git reset` behave differently, why a file can be both modified and staged, and what each flavour of `reset` actually discards.
+
+---
+
+## Git Fundamentals
+
+<QuestionList topic="Git Fundamentals" storagePrefix="git-fundamentals">
+
+<QuestionCard id="git-fund-01" number={1} question="What is Git, and how is it different from a centralised version control system?" difficulty="easy" topic="Fundamentals">
+Git is a **distributed** version control system: every clone contains the full history, not just the latest snapshot. In a centralised system like SVN, the server holds history and you check out a working copy — most operations require a network round trip, and the server is a single point of failure.
+
+Because Git clones are complete repositories, commits, branches, diffs, and log inspection are all local and fast, and you can keep working offline. The trade-off is that "what's the current version?" becomes a convention (usually whatever is on the `main` branch of an agreed-upon remote) rather than something the tool enforces.
+</QuestionCard>
+
+<QuestionCard id="git-fund-02" number={2} question="Explain the working directory, the staging area, and the repository." difficulty="easy" topic="Fundamentals">
+- **Working directory** — the actual files on disk that you edit.
+- **Staging area (index)** — a holding space describing exactly what the next commit will contain. `git add` copies the current state of a file into it.
+- **Repository** — the committed history stored in `.git/`.
+
+The staging area is what lets you commit *part* of your work. If you fixed a bug and also reformatted an unrelated file, you can stage only the bug fix and commit it separately. A common follow-up: if you `git add` a file and then edit it again, the commit captures the *staged* version, not the newer one on disk — you must `git add` again.
+</QuestionCard>
+
+<QuestionCard id="git-fund-03" number={3} question="What are the four object types in Git's data model?" difficulty="medium" topic="Internals">
+- **Blob** — the raw contents of a file (no filename, no metadata).
+- **Tree** — a directory listing: names, modes, and pointers to blobs or other trees.
+- **Commit** — a pointer to one tree, plus parent commit(s), author, committer, timestamp, and message.
+- **Tag** — an annotated tag object pointing at a commit, with its own message and author.
+
+Every object is stored under the SHA-1 (now migrating to SHA-256) hash of its content, which is why identical file contents are stored only once across the whole repository, and why history is tamper-evident — changing any old commit changes its hash and every hash after it.
+</QuestionCard>
+
+<QuestionCard id="git-fund-04" number={4} question="Does Git store diffs or full snapshots?" difficulty="medium" topic="Internals">
+Conceptually, Git stores **full snapshots**. Each commit points at a complete tree of the project. Files that didn't change between commits simply reuse the same blob object, so the storage cost is far lower than "a full copy per commit" suggests.
+
+Diffs are *computed on demand* when you run `git diff` or `git log -p`. Separately, Git's packfiles do apply delta compression as a storage optimisation, but that's a physical storage detail, not the logical model — which matters because it explains why operations like checking out an old commit are fast.
+</QuestionCard>
+
+<QuestionCard id="git-fund-05" number={5} question="What exactly is a branch in Git?" difficulty="easy" topic="Branching">
+A branch is just a **movable pointer to a commit** — a file under `.git/refs/heads/` containing a 40-character hash. That's the entire implementation.
+
+This is why branching in Git is instant and cheap regardless of repository size: creating a branch writes one small file. When you commit on a branch, Git creates the commit and moves the pointer forward. Deleting a branch removes the pointer, not the commits.
+</QuestionCard>
+
+<QuestionCard id="git-fund-06" number={6} question="What is HEAD, and what does 'detached HEAD' mean?" difficulty="medium" topic="Fundamentals">
+`HEAD` is a pointer to **where you currently are** — normally it points at a branch name, which in turn points at a commit.
+
+A **detached HEAD** means `HEAD` points directly at a commit rather than at a branch. You get this by checking out a commit hash or a tag. You can look around and even commit, but those commits belong to no branch — switching away leaves them unreferenced and eventually garbage-collected. The fix is to create a branch there: `git switch -c my-branch`.
+</QuestionCard>
+
+<QuestionCard id="git-fund-07" number={7} question="What is the difference between git fetch and git pull?" difficulty="easy" topic="Remotes">
+`git fetch` downloads new commits and updates your remote-tracking branches (e.g. `origin/main`), but **does not touch your working directory or current branch**. Nothing you have is changed — it's purely informational.
+
+`git pull` is `fetch` followed by an integration step — by default a merge, or a rebase with `git pull --rebase`. Because it changes your working branch, `pull` can produce conflicts while `fetch` never can. Many teams prefer `fetch` then an explicit merge/rebase so integration is a deliberate act.
+</QuestionCard>
+
+<QuestionCard id="git-fund-08" number={8} question="What is the difference between git switch, git checkout, and git restore?" difficulty="medium" topic="Fundamentals">
+`git checkout` historically did two unrelated jobs — moving between branches *and* discarding file changes — which made it dangerous and confusing. Git 2.23 split it:
+
+- **`git switch`** — change branches (`git switch main`, `git switch -c new-branch`).
+- **`git restore`** — restore file contents (`git restore file.py` to discard changes, `git restore --staged file.py` to unstage).
+
+`checkout` still works for backwards compatibility, but in an interview, naming the split shows current knowledge.
+</QuestionCard>
+
+<QuestionCard id="git-fund-09" number={9} question="What does .gitignore do, and why doesn't it work on a file you've already committed?" difficulty="easy" topic="Fundamentals">
+`.gitignore` tells Git which **untracked** files to leave alone — build artefacts, virtualenvs, `.env` files, local data samples.
+
+It has no effect on files already tracked, because tracking takes precedence over ignoring. To stop tracking a file while keeping it on disk:
+
+```bash
+git rm --cached path/to/file
+```
+
+then commit. Note that this only stops *future* tracking — the file still exists in history, which matters if it contained a credential.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Branching & Merging
+
+<QuestionList topic="Branching & Merging" storagePrefix="git-branching">
+
+<QuestionCard id="git-br-01" number={1} question="What is a fast-forward merge, and when does it happen?" difficulty="easy" topic="Merging">
+A fast-forward merge happens when the target branch has **no commits of its own** since the branch point — the history is a straight line. Git doesn't need to create a merge commit; it just moves the branch pointer forward.
+
+```
+before:  main → A → B
+                      ↘ C → D  (feature)
+
+after `git merge feature` on main:  main → A → B → C → D
+```
+
+Use `git merge --no-ff` to force a merge commit anyway, which preserves the fact that a feature branch existed — some teams require this for auditability.
+</QuestionCard>
+
+<QuestionCard id="git-br-02" number={2} question="What is a three-way merge?" difficulty="medium" topic="Merging">
+When both branches have new commits, a fast-forward isn't possible. Git finds the **merge base** — the most recent common ancestor — and compares three snapshots: the base, your branch tip, and theirs.
+
+For each file, if only one side changed it, that side wins automatically. If both sides changed the same regions, Git records a **conflict** for a human to resolve. The result is a new commit with two parents.
+</QuestionCard>
+
+<QuestionCard id="git-br-03" number={3} question="How do you resolve a merge conflict?" difficulty="medium" topic="Merging">
+1. `git status` lists the conflicted files.
+2. Open each one — Git marks conflicting regions with `<<<<<<<`, `=======`, `>>>>>>>` separating your version from theirs.
+3. Edit to the correct final state and **delete the marker lines**.
+4. `git add` each resolved file to mark it done.
+5. `git commit` to complete the merge (or `git rebase --continue` during a rebase).
+
+`git merge --abort` backs out entirely and returns to the pre-merge state. A good answer also mentions that resolving a conflict means *deciding what the code should be*, not mechanically picking a side — and that you should re-run the tests afterwards, since a syntactically clean resolution can still be semantically wrong.
+</QuestionCard>
+
+<QuestionCard id="git-br-04" number={4} question="Compare Git Flow, GitHub Flow, and trunk-based development." difficulty="medium" topic="Strategy">
+- **Git Flow** — long-lived `develop` and `main`, plus `feature/`, `release/`, and `hotfix/` branches. Built for versioned software with scheduled releases. Heavy for continuous delivery.
+- **GitHub Flow** — one long-lived branch (`main`), short-lived feature branches, pull request, merge, deploy. Simple and the common default.
+- **Trunk-based development** — everyone commits to `main` (or merges within hours), with incomplete work hidden behind feature flags. Optimises for continuous integration and minimal merge pain, but demands strong automated testing.
+
+For data pipelines, GitHub Flow with environment-specific deploys is the usual fit; the interesting interview follow-up is how you promote a pipeline change from dev → staging → prod, which is a deployment question, not a branching one.
+</QuestionCard>
+
+<QuestionCard id="git-br-05" number={5} question="What does git cherry-pick do, and when is it appropriate?" difficulty="medium" topic="Branching">
+`git cherry-pick <commit>` applies the *changes introduced by* one commit onto your current branch, creating a **new commit with a new hash**.
+
+The legitimate use is a hotfix: a bug is fixed on `main` and you need that same fix on a release branch. The anti-pattern is using it routinely instead of merging — you end up with duplicated logical changes under different hashes, which makes history hard to reason about and can cause confusing conflicts later when the branches finally do merge.
+</QuestionCard>
+
+<QuestionCard id="git-br-06" number={6} question="What is the difference between a merge commit, a squash merge, and a rebase merge?" difficulty="medium" topic="Merging">
+- **Merge commit** — preserves every commit from the branch plus a commit recording the merge. Full fidelity, but a busy graph.
+- **Squash merge** — collapses the whole branch into a single commit on the target. Clean linear history; you lose the intermediate commits.
+- **Rebase merge** — replays each branch commit onto the target tip individually, producing a linear history that keeps the individual commits.
+
+Most teams pick one and enforce it in the repository settings. Squash is popular because a pull request becomes one revertible unit; rebase-merge suits teams who write carefully curated commits.
+</QuestionCard>
+
+<QuestionCard id="git-br-07" number={7} question="How do you find which commit introduced a bug?" difficulty="medium" topic="Debugging">
+`git bisect` performs a binary search over history:
+
+```bash
+git bisect start
+git bisect bad                 # current commit is broken
+git bisect good v1.4.0         # this old tag was fine
+# git checks out a midpoint; test it, then:
+git bisect good   # or: git bisect bad
+```
+
+Git narrows the range by half each step — roughly 10 tests across 1,000 commits. With a script that exits non-zero on failure you can automate it entirely via `git bisect run ./test.sh`.
+
+Alternatives worth naming: `git log -S "someString"` to find commits that added or removed a string, and `git blame` to see who last changed each line.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Rewriting History
+
+<QuestionList topic="Rewriting History" storagePrefix="git-history">
+
+<QuestionCard id="git-hist-01" number={1} question="What is git rebase, and how does it differ from git merge?" difficulty="medium" topic="Rebasing">
+Both integrate changes from one branch into another. The difference is **how**.
+
+`merge` creates a new commit joining two histories; the existing commits are untouched and the graph shows the branch really happened.
+
+`rebase` takes your commits, replays them one at a time on top of the target branch, and **creates new commits with new hashes**. The result is a straight line, as if you'd started from the newer base. Your original commits are discarded (recoverable via reflog).
+
+Merge preserves history truthfully; rebase produces a cleaner narrative. Neither is universally correct — it's a team convention.
+</QuestionCard>
+
+<QuestionCard id="git-hist-02" number={2} question="What is the golden rule of rebasing?" difficulty="medium" topic="Rebasing">
+**Never rebase commits that others have already pulled.**
+
+Rebasing rewrites hashes. If a colleague has the old commits and you replace them on the remote, their history and yours have diverged with no common ancestor for the rewritten range. Their next pull produces duplicate commits or a mess of conflicts.
+
+Rebasing your own unpushed local work is fine and encouraged. Rebasing a shared `main` is how you ruin an afternoon for the whole team.
+</QuestionCard>
+
+<QuestionCard id="git-hist-03" number={3} question="What can you do with an interactive rebase?" difficulty="medium" topic="Rebasing">
+`git rebase -i HEAD~5` opens an editor listing the last five commits, each with an action you can change:
+
+- `pick` — keep as is
+- `reword` — change the message
+- `squash` / `fixup` — combine into the previous commit (`fixup` discards its message)
+- `edit` — pause so you can amend it
+- `drop` — remove entirely
+- reorder lines to reorder commits
+
+The everyday use is cleaning up a feature branch before opening a pull request: collapsing "fix typo" and "actually fix it" into the commit they belong to.
+</QuestionCard>
+
+<QuestionCard id="git-hist-04" number={4} question="What does git commit --amend do, and what's the catch?" difficulty="easy" topic="Rewriting">
+It replaces the most recent commit with a new one combining the old commit's changes, anything currently staged, and possibly a new message.
+
+The catch: it does **not** edit the commit — it creates a replacement with a different hash. If the original was already pushed, you'd need a force-push to update the remote, which triggers the golden rule problem above. Amending unpushed local commits is safe and routine.
+</QuestionCard>
+
+<QuestionCard id="git-hist-05" number={5} question="Why is git push --force dangerous, and what should you use instead?" difficulty="medium" topic="Rewriting">
+`--force` overwrites the remote branch with yours unconditionally. If a teammate pushed in the meantime, their commits are silently removed from the branch.
+
+Use **`git push --force-with-lease`** instead. It checks that the remote is still where you last saw it and refuses if someone else has pushed — you get an error rather than destroying their work. It gives you the rewrite you want with a safety interlock.
+
+Best practice on top: protect `main` in the repository settings so force-pushes to it are rejected outright.
+</QuestionCard>
+
+<QuestionCard id="git-hist-06" number={6} question="A credential was committed and pushed. What do you do?" difficulty="hard" topic="Security">
+**Rotate the credential first.** It must be assumed compromised the moment it hit a remote — it's in every clone, in CI caches, and possibly in a fork or a scanning service. Removing it from history does not un-leak it.
+
+Then purge it from history using `git filter-repo` (the current recommended tool; `filter-branch` is deprecated and slow) or the BFG Repo-Cleaner. This rewrites every affected commit, so everyone must re-clone.
+
+Finally, prevent recurrence: add the file to `.gitignore`, use environment variables or a secrets manager, and enable push protection / secret scanning on the host.
+
+An answer that only covers the history rewrite and not the rotation is the classic failure here.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Remotes & Collaboration
+
+<QuestionList topic="Remotes & Collaboration" storagePrefix="git-collaboration">
+
+<QuestionCard id="git-collab-01" number={1} question="What is a pull request and what does it actually do?" difficulty="easy" topic="Pull Requests">
+A pull request is a **host-level feature** (GitHub, GitLab, Bitbucket), not a Git one. It's a request to merge one branch into another, wrapped in a review interface: a diff, line comments, status checks, and approvals.
+
+Its real value is the gate — automated tests, linting, and required reviewer approval must pass before the merge button is enabled. That's where CI/CD and code review attach to the workflow.
+</QuestionCard>
+
+<QuestionCard id="git-collab-02" number={2} question="What makes a good pull request?" difficulty="easy" topic="Pull Requests">
+- **Small and single-purpose** — one logical change, reviewable in well under an hour. Large PRs get rubber-stamped.
+- **A description explaining *why*** — the diff shows what changed; the reviewer needs the reasoning and any alternatives rejected.
+- **Green CI** before requesting review.
+- **Tests** covering the new behaviour.
+- **No unrelated noise** — reformatting mixed into a logic change hides the logic change.
+
+For data work, add what you validated: row counts before and after, a sample of the output, or the backfill plan.
+</QuestionCard>
+
+<QuestionCard id="git-collab-03" number={3} question="What is the difference between forking and branching?" difficulty="easy" topic="Remotes">
+A **branch** lives inside a repository you can already write to — the normal model for a team.
+
+A **fork** is a server-side copy of the whole repository under your own account. You have write access to your copy and propose changes upstream via a pull request across repositories. This is the open-source model: contributors need no write access to the original.
+
+Some companies also use forks for tightly controlled repositories, but within a team, branches are the default.
+</QuestionCard>
+
+<QuestionCard id="git-collab-04" number={4} question="What is a remote-tracking branch?" difficulty="medium" topic="Remotes">
+A remote-tracking branch such as `origin/main` is a **local, read-only bookmark of where that branch was on the remote the last time you communicated with it**. You don't commit to it; `git fetch` updates it.
+
+This is what makes Git's offline story work: `git log main..origin/main` shows what you'd be pulling, and `git status` can say "your branch is ahead by 3 commits" without any network access — it's comparing against the cached pointer.
+</QuestionCard>
+
+<QuestionCard id="git-collab-05" number={5} question="What are protected branches and branch protection rules?" difficulty="medium" topic="Governance">
+Host-side rules on a branch (usually `main`) that block direct pushes and enforce a process. Typical settings:
+
+- require a pull request before merging
+- require N approving reviews, and dismiss stale approvals on new commits
+- require status checks (tests, lint, build) to pass
+- require the branch to be up to date with the base
+- forbid force-pushes and deletion
+- require signed commits
+
+For data platforms this is often a compliance control as much as a quality one — it produces an audit trail showing who approved each production pipeline change.
+</QuestionCard>
+
+<QuestionCard id="git-collab-06" number={6} question="What is a Git submodule, and what are the alternatives?" difficulty="medium" topic="Remotes">
+A submodule embeds one repository inside another at a **pinned commit**. The parent repo stores a pointer, not the code. Useful for sharing a library across projects while controlling exactly which version each consumer gets.
+
+The pain: clones need `--recurse-submodules`, updates are a two-step commit dance, and contributors routinely commit a parent change without the submodule bump.
+
+Alternatives: publish the shared code as a proper versioned package (usually the right answer for Python), use a monorepo, or use `git subtree` if you want the files actually present in the parent repo.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Undoing Mistakes
+
+<QuestionList topic="Undoing Mistakes" storagePrefix="git-undoing">
+
+<QuestionCard id="git-undo-01" number={1} question="What is the difference between git reset --soft, --mixed, and --hard?" difficulty="medium" topic="Undoing">
+All three move the branch pointer to the commit you name. They differ in what they do to the staging area and working directory:
+
+- **`--soft`** — moves the pointer only. Your changes stay staged, ready to recommit. Use to redo a commit message or recombine commits.
+- **`--mixed`** (default) — moves the pointer and resets the index. Changes remain in the working directory but unstaged.
+- **`--hard`** — moves the pointer and **discards everything**, staged and unstaged. Uncommitted work is gone for good.
+
+`--hard` is the only genuinely destructive one, and only for uncommitted work — anything committed is still findable in the reflog.
+</QuestionCard>
+
+<QuestionCard id="git-undo-02" number={2} question="When should you use git revert instead of git reset?" difficulty="medium" topic="Undoing">
+Use **`git revert`** on any branch others share. It creates a *new* commit that applies the inverse of a previous commit, so history is only ever added to — nobody's clone breaks, and the record shows both the mistake and the correction.
+
+Use **`git reset`** only on local, unpushed commits, where rewriting is harmless.
+
+The short rule: **`revert` for public history, `reset` for private history.** Reverting a merge commit is the tricky follow-up — it needs `-m 1` to specify which parent is the mainline.
+</QuestionCard>
+
+<QuestionCard id="git-undo-03" number={3} question="What is the reflog, and how does it save you?" difficulty="medium" topic="Recovery">
+The reflog records **every movement of HEAD and of your branch pointers** in the local repository — commits, checkouts, resets, rebases, merges — even when the commits involved are no longer reachable from any branch.
+
+That makes it the undo button for "I destroyed my work":
+
+```bash
+git reflog                    # find the hash from before the mistake
+git reset --hard HEAD@{3}     # go back to it
+```
+
+It recovers from a bad `reset --hard`, a rebase gone wrong, or a deleted branch. Caveats: it's local only (not pushed, not in a fresh clone), and entries expire — 90 days by default for reachable commits, 30 for unreachable.
+</QuestionCard>
+
+<QuestionCard id="git-undo-04" number={4} question="How do you temporarily set aside work in progress?" difficulty="easy" topic="Undoing">
+`git stash` saves your uncommitted changes and returns the working directory to a clean state.
+
+```bash
+git stash push -m "wip: partial parser"
+git stash list
+git stash pop      # reapply and remove from the stash
+git stash apply    # reapply but keep it in the stash
+```
+
+By default it stashes tracked files only — add `-u` to include untracked ones, which is the common gotcha when a brand-new file mysteriously stays behind. For anything you care about, a throwaway commit on a scratch branch is safer, since stashes are easy to forget and don't travel between machines.
+</QuestionCard>
+
+<QuestionCard id="git-undo-05" number={5} question="You committed to main but meant to commit to a feature branch. How do you fix it?" difficulty="medium" topic="Recovery">
+Assuming you haven't pushed:
+
+```bash
+git branch feature-x        # point a new branch at the current commit
+git reset --hard HEAD~1     # move main back one commit
+git switch feature-x        # your commit is here
+```
+
+The commit itself never moves — you create a second pointer to it, then rewind `main`. If you had several commits to move, use `HEAD~n`.
+
+If you already pushed to a protected `main`, don't rewrite it: `git revert` the commit on `main` and re-apply it properly on a branch.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Git for Data Engineering
+
+<QuestionList topic="Git for Data Engineering" storagePrefix="git-data-engineering">
+
+<QuestionCard id="git-de-01" number={1} question="Why shouldn't you commit large data files to Git, and what are the alternatives?" difficulty="medium" topic="Data Engineering">
+Git stores every version of every file forever. A 500 MB CSV committed weekly makes the repository unusable within months — clones become enormous, and the history can't be trimmed without rewriting everything. Git also diffs and compresses text well but binary formats like Parquet poorly, so each version is stored close to in full.
+
+Alternatives:
+- **Object storage** (S3/GCS/ADLS) as the source of truth, with only the path and schema in Git.
+- **Git LFS** — replaces large files with pointers, storing content on a separate server. Works, but adds infrastructure and quota.
+- **DVC** or **lakeFS** — data-versioning tools that give you Git-like semantics over data in object storage.
+
+Commit small fixtures for tests, never production datasets.
+</QuestionCard>
+
+<QuestionCard id="git-de-02" number={2} question="How do you handle secrets and environment configuration in a data pipeline repository?" difficulty="medium" topic="Data Engineering">
+Never in the repository. The standard layering:
+
+- **`.env` files ignored via `.gitignore`**, with a committed `.env.example` documenting the required keys and no real values.
+- **A secrets manager** — AWS Secrets Manager, GCP Secret Manager, Azure Key Vault, or Vault — read at runtime by the job's identity.
+- **CI/CD secrets** for deploy-time credentials, injected as masked environment variables.
+- **Workload identity / IAM roles** instead of long-lived keys where the cloud supports it — nothing to leak.
+
+Add a pre-commit hook (`gitleaks`, `detect-secrets`) and host-side push protection so a mistake is caught before it becomes a rotation incident.
+</QuestionCard>
+
+<QuestionCard id="git-de-03" number={3} question="How do notebooks complicate version control, and how do you deal with it?" difficulty="medium" topic="Data Engineering">
+A `.ipynb` file is JSON containing source, outputs, execution counts, and metadata. Two problems follow: diffs are unreadable, and every re-run produces changes even when no code changed — plus outputs may embed sample data or credentials.
+
+Mitigations:
+- **`nbstripout`** as a pre-commit hook to strip outputs before committing.
+- **`jupytext`** to pair each notebook with a plain `.py` file that is what actually gets reviewed.
+- **`nbdime`** for notebook-aware diff and merge.
+- Culturally: treat notebooks as exploration, and move anything production-bound into tested modules.
+</QuestionCard>
+
+<QuestionCard id="git-de-04" number={4} question="How does version control fit into a dbt or SQL transformation workflow?" difficulty="medium" topic="Data Engineering">
+dbt is designed around it: models are `.sql` files in a repository, so transformations get the same review, history, and rollback as application code.
+
+The typical flow — a developer branches, changes a model, and dbt builds it into a **personal or CI schema** rather than production. CI runs `dbt build` against that schema, executing tests on real data. On merge to `main`, a scheduled or triggered job deploys to the production schema.
+
+That gives you the property that matters: the state of `main` is the definition of what production should be, and any change to a metric is traceable to a reviewed commit.
+</QuestionCard>
+
+<QuestionCard id="git-de-05" number={5} question="What belongs in a data engineering repository's CI checks?" difficulty="medium" topic="Data Engineering">
+Beyond the usual lint and unit tests:
+
+- **SQL/DAG parsing** — catch a broken Airflow DAG or malformed model before it reaches the scheduler.
+- **Unit tests on transformation logic** with small fixtures, not live data.
+- **Data quality tests** against a CI-built copy — dbt tests, Great Expectations suites.
+- **Schema-change detection** — flag a column drop or type change in a PR, since those break downstream consumers silently.
+- **Secret scanning** and dependency vulnerability checks.
+- **Plan output for IaC** posted to the pull request, so infrastructure changes are reviewable.
+
+The theme: the pipeline is code, so the same gates apply — plus data-specific ones that application CI has no equivalent for.
+</QuestionCard>
+
+<QuestionCard id="git-de-06" number={6} question="How do you structure a repository for multiple pipelines and shared code?" difficulty="medium" topic="Data Engineering">
+There's no single right answer, and the interviewer usually wants your reasoning on the trade-off.
+
+**Monorepo** — all pipelines plus shared libraries in one repository. Atomic changes across a library and its consumers, one CI config, easy discovery. Needs path-based CI filtering so a one-line change doesn't run every test.
+
+**Polyrepo** — one repository per pipeline or domain, with shared code published as versioned packages. Clean ownership boundaries and independent release cadence, at the cost of dependency-bump churn and duplicated tooling.
+
+Most data teams below a certain size are better served by a monorepo, because pipelines share so much utility code and schema knowledge that coordinating versioned releases becomes the dominant cost.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Walk me through what happens when you run `git pull` and get a conflict."**
+Name the two phases — fetch updates `origin/main`, then merge tries to integrate it into your branch. The conflict is in the merge phase. Explain that Git found a region both sides modified since the common ancestor and needs a human decision. Then resolve, `git add`, commit, and re-run tests.
+
+**"Your teammate force-pushed and your work has disappeared. What do you do?"**
+Don't panic and don't re-clone — that would discard your local recovery options. Your commits are still in your local reflog. Find them with `git reflog`, create a branch pointing at your last good commit, then rebase or merge onto the new remote state. Follow up with the team about protecting the branch.
+
+**"How would you roll back a bad pipeline deploy?"**
+Distinguish the code from the data. Reverting the commit and redeploying fixes future runs. It does not fix rows already written — you also need a backfill or restore plan for affected partitions. Mentioning that distinction unprompted signals real production experience.
+
+**"Why does your team squash merge?"**
+Any consistent answer works if you own the trade-off: squashing makes each PR one revertible unit and keeps `main` readable, at the cost of losing intermediate commits. The wrong answer is not knowing that it's a choice.
+
+---
+
+## Further Reading
+
+- [Pro Git book](https://git-scm.com/book/en/v2) — free, and the chapter on Git internals is the one worth reading twice
+- [Git official reference](https://git-scm.com/docs)
+- [Atlassian Git tutorials](https://www.atlassian.com/git/tutorials) — good diagrams for merge vs rebase
+- [Oh Shit, Git!?!](https://ohshitgit.com/) — recovery recipes for common disasters
+- [GitHub Docs: About protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)
+- [git-filter-repo](https://github.com/newren/git-filter-repo) — the current tool for rewriting history

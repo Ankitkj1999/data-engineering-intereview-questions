@@ -1,0 +1,506 @@
+---
+title: Infrastructure as Code
+description: Infrastructure as Code interview questions covering declarative vs imperative approaches, Terraform core workflow and state management, modules and environments, OpenTofu and AWS CDK, and provisioning data platform infrastructure.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## Infrastructure as Code: Provisioning You Can Review and Roll Back
+
+**Clicking through a cloud console to create an S3 bucket, a Glue job and an IAM role works exactly once. Six months later nobody remembers which settings were deliberate, staging has drifted from production, and the person who set it up has left. IaC turns infrastructure into reviewed, versioned, reproducible code — and for data platforms, where one pipeline touches storage, compute, networking and a dozen IAM policies, it stops being optional fairly quickly.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [IaC Fundamentals](#iac-fundamentals)
+- [Terraform Core](#terraform-core)
+- [State Management](#state-management)
+- [Modules & Environments](#modules--environments)
+- [OpenTofu & AWS CDK](#opentofu--aws-cdk)
+- [IaC for Data Platforms](#iac-for-data-platforms)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The central idea is **declarative desired state**. You describe what infrastructure should exist; the tool computes the difference against what does exist and makes the minimum set of changes to close the gap. That's fundamentally different from a shell script, which describes *steps* and has no idea what's already there.
+
+Making that work requires the tool to track what it created — which is what **state** is. Terraform's state file maps each resource in your configuration to a real object in the cloud. Nearly every hard Terraform question is really a state question: drift, imports, locking, moving resources, and the various ways teams corrupt state by working around it.
+
+The other property worth internalising is **idempotency**. Applying the same configuration twice must produce the same result, with the second run making no changes. That's what makes IaC safe to run from CI on every merge, and why "run it again" is a reasonable recovery strategy in a way it never was with provisioning scripts.
+
+---
+
+## IaC Fundamentals
+
+<QuestionList topic="IaC Fundamentals" storagePrefix="iac-fundamentals">
+
+<QuestionCard id="iac-fund-01" number={1} question="What is Infrastructure as Code and what problems does it solve?" difficulty="easy" topic="Fundamentals">
+Defining and provisioning infrastructure through machine-readable configuration files rather than manual console work or ad-hoc scripts.
+
+What it solves:
+- **Reproducibility** — recreate an entire environment from scratch, identically.
+- **Version control** — history, diffs, code review, and blame for infrastructure changes.
+- **Consistency** — staging and production come from the same definitions, so "it worked in staging" means something.
+- **Auditability** — every change is a reviewed commit, often a compliance requirement.
+- **Disaster recovery** — rebuild in another region from code.
+- **Documentation** — the configuration *is* the description of what exists, and it can't drift out of date the way a wiki page does.
+</QuestionCard>
+
+<QuestionCard id="iac-fund-02" number={2} question="What is the difference between declarative and imperative IaC?" difficulty="medium" topic="Fundamentals">
+**Imperative** specifies the steps: "create a VPC, then a subnet, then attach a gateway." A bash script with CLI calls. You control the order precisely, but you must handle every case yourself — what if the VPC already exists? What if the last run failed halfway?
+
+**Declarative** specifies the end state: "there should be a VPC with these subnets." Terraform, CloudFormation and Kubernetes manifests all work this way. The tool determines what to create, update or destroy, and running it repeatedly converges on the same result.
+
+Declarative is preferred for infrastructure because it's **idempotent** and self-healing against drift. Imperative still has a place for genuine one-offs — a data migration, a manual failover.
+
+The nuance worth adding: tools like AWS CDK and Pulumi let you *write* imperative code that *generates* a declarative template, giving you loops and abstractions while keeping the declarative engine underneath.
+</QuestionCard>
+
+<QuestionCard id="iac-fund-03" number={3} question="What is idempotency and why does it matter for IaC?" difficulty="medium" topic="Fundamentals">
+An operation is idempotent if applying it many times has the same effect as applying it once.
+
+For IaC this is what makes automation safe. You can run `terraform apply` on every merge without duplicating resources; if nothing changed, nothing happens. If a previous run failed halfway, re-running completes it rather than compounding the mess. And CI can continuously enforce that deployed state matches the code.
+
+It's also why provisioning with a shell script is fragile — `aws s3 mb` on an existing bucket errors, so the script needs explicit existence checks everywhere, which is exactly the logic Terraform's state and diff engine provide for you.
+</QuestionCard>
+
+<QuestionCard id="iac-fund-04" number={4} question="What is configuration drift, and how do you handle it?" difficulty="medium" topic="Fundamentals">
+Drift is when real infrastructure diverges from what your code says — someone changed a setting in the console during an incident, an autoscaler adjusted a value, or another tool modified a shared resource.
+
+Detect it by running `terraform plan` on a schedule: a non-empty plan against an unchanged codebase is drift. Some teams fail a nightly CI job on exactly that.
+
+Handle it by deciding which side is right. Usually you **re-apply to restore the code's version**. If the manual change was correct, codify and commit it. Prevent recurrence by restricting console write access in production so changes must go through the pipeline — this is where GitOps-style continuous reconciliation beats periodic applies, since it corrects drift automatically.
+</QuestionCard>
+
+<QuestionCard id="iac-fund-05" number={5} question="How do Terraform, CloudFormation, Pulumi and Ansible compare?" difficulty="medium" topic="Tools">
+- **Terraform** — declarative HCL, multi-cloud through a large provider ecosystem, external state file. The de facto standard for provisioning.
+- **CloudFormation** — AWS-native, declarative YAML/JSON, state managed by AWS for you. Deep AWS integration and no state file to protect, but AWS-only.
+- **Pulumi / AWS CDK** — infrastructure defined in a real programming language. You get loops, types and unit testing; the cost is that it's easier to build something too clever to review.
+- **Ansible** — primarily *configuration management* (installing packages, editing config on existing machines) rather than provisioning, procedural by default, agentless over SSH.
+
+The distinction that matters: Terraform and CloudFormation **provision** infrastructure; Ansible **configures** what runs on it. They're often used together.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Terraform Core
+
+<QuestionList topic="Terraform Core" storagePrefix="iac-terraform-core">
+
+<QuestionCard id="iac-tf-01" number={1} question="Walk through the core Terraform workflow." difficulty="easy" topic="Terraform">
+```bash
+terraform init      # download providers, configure the backend
+terraform fmt       # canonical formatting
+terraform validate  # syntax and internal consistency
+terraform plan      # show what would change — nothing is modified
+terraform apply     # make it so
+terraform destroy   # tear it all down
+```
+
+`init` is required after adding a provider or module, or changing the backend. `plan` is the safety mechanism and should be **saved and applied as a file** in automation:
+
+```bash
+terraform plan -out=tfplan
+terraform apply tfplan
+```
+
+Otherwise `apply` re-plans at execution time and may do something different from what was reviewed — exactly what you don't want in a pipeline.
+</QuestionCard>
+
+<QuestionCard id="iac-tf-02" number={2} question="What are the main block types in a Terraform configuration?" difficulty="easy" topic="Terraform">
+- **`terraform`** — required version and backend configuration.
+- **`provider`** — which cloud and how to authenticate.
+- **`resource`** — something Terraform creates and manages.
+- **`data`** — something that already exists, read-only, looked up at plan time.
+- **`variable`** — an input, with optional type, default and validation.
+- **`output`** — a value exported for humans or other configurations.
+- **`locals`** — named intermediate expressions, for readability.
+- **`module`** — a call to a reusable group of resources.
+
+The `resource` vs `data` distinction is the one to be crisp about: `resource` means "Terraform owns this and will create and destroy it"; `data` means "this exists already, just tell me about it."
+</QuestionCard>
+
+<QuestionCard id="iac-tf-03" number={3} question="What is the difference between count and for_each?" difficulty="medium" topic="Terraform">
+Both create multiple instances of a resource, but they key them differently — and that difference matters a lot.
+
+**`count`** gives a numeric index: `aws_s3_bucket.data[0]`, `[1]`, `[2]`. Removing the *first* item from the list shifts every subsequent index, so Terraform plans to destroy and recreate everything after it.
+
+**`for_each`** keys by a map key or set value: `aws_s3_bucket.data["raw"]`, `["curated"]`. Removing one entry affects only that resource.
+
+```hcl
+resource "aws_s3_bucket" "zone" {
+  for_each = toset(["raw", "staging", "curated"])
+  bucket   = "acme-lake-${each.key}"
+}
+```
+
+**Prefer `for_each` for anything with an identity.** Reserve `count` for a simple on/off toggle (`count = var.enabled ? 1 : 0`).
+</QuestionCard>
+
+<QuestionCard id="iac-tf-04" number={4} question="What are provisioners and why are they discouraged?" difficulty="medium" topic="Terraform">
+`local-exec` and `remote-exec` run scripts as part of resource creation. HashiCorp documents them explicitly as a **last resort**.
+
+The problems: they're imperative escapes from the declarative model, so Terraform can't plan their effect or detect drift in what they did. They only run at create time, so changing the script does nothing until the resource is replaced. And a failure taints the resource, forcing destroy-and-recreate.
+
+Use instead: `user_data` / cloud-init for machine bootstrap, a dedicated configuration management tool, a pre-baked image (Packer), or — most often for data platforms — a container image already containing what you needed to install.
+</QuestionCard>
+
+<QuestionCard id="iac-tf-05" number={5} question="How do you manage provider and module versions?" difficulty="medium" topic="Terraform">
+```hcl
+terraform {
+  required_version = ">= 1.6.0"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.40"     # >= 5.40.0, < 6.0.0
+    }
+  }
+}
+```
+
+The `~>` pessimistic constraint allows patch and minor updates but blocks a major version that could contain breaking changes.
+
+Critically, **commit `.terraform.lock.hcl`**. It pins exact provider versions and checksums so every developer and CI run uses identical providers — the equivalent of an application lockfile. Without it, a provider release can change your plan output with no change in your code.
+</QuestionCard>
+
+<QuestionCard id="iac-tf-06" number={6} question="What are lifecycle meta-arguments?" difficulty="medium" topic="Terraform">
+```hcl
+resource "aws_db_instance" "warehouse" {
+  # ...
+  lifecycle {
+    prevent_destroy       = true
+    create_before_destroy = true
+    ignore_changes        = [tags["LastModified"]]
+  }
+}
+```
+
+- **`prevent_destroy`** — makes Terraform error rather than destroy. Put it on production databases and stateful storage; cheap insurance against a misplaced `terraform destroy`.
+- **`create_before_destroy`** — build the replacement before removing the original, avoiding downtime when a change forces replacement.
+- **`ignore_changes`** — stop fighting over attributes modified outside Terraform, such as tags applied by a cost-allocation tool or a count managed by an autoscaler.
+- **`replace_triggered_by`** — force replacement when a referenced resource changes.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## State Management
+
+<QuestionList topic="State Management" storagePrefix="iac-state">
+
+<QuestionCard id="iac-state-01" number={1} question="What is Terraform state and why does it exist?" difficulty="medium" topic="State">
+A JSON file mapping the resources in your configuration to real objects in the cloud, along with their last-known attributes and dependency relationships.
+
+It exists because Terraform must answer "does this already exist, and did I create it?" Cloud APIs can list resources but can't tell you which ones *this configuration* is responsible for. State provides that mapping, lets Terraform detect drift by comparing recorded attributes against reality, and caches attributes so a plan doesn't need to re-read everything.
+
+The consequence worth stating: **state is critical infrastructure.** Lose it and Terraform no longer knows it owns anything — the next apply tries to create everything from scratch, colliding with what's already there.
+</QuestionCard>
+
+<QuestionCard id="iac-state-02" number={2} question="Why should state be remote, and how do you configure it?" difficulty="medium" topic="State">
+Local state can't be shared, isn't backed up, and offers no locking — two engineers applying at once will corrupt it.
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket       = "acme-terraform-state"
+    key          = "data-platform/prod/terraform.tfstate"
+    region       = "eu-west-1"
+    encrypt      = true
+    use_lockfile = true
+  }
+}
+```
+
+A production backend needs **versioning** (to recover a corrupted state), **encryption at rest**, **restricted access**, and **locking**. Equivalents exist for Azure Storage (blob leases), GCS, and Terraform Cloud. Older AWS setups used a DynamoDB table for locking; S3 now supports it natively.
+</QuestionCard>
+
+<QuestionCard id="iac-state-03" number={3} question="What is state locking and why does it matter?" difficulty="medium" topic="State">
+Before an operation that writes state, Terraform acquires a lock; a second run blocks or fails rather than proceeding.
+
+Without it, two concurrent applies both read the same state, each makes changes, and the second write overwrites the first — leaving resources that exist in the cloud but appear nowhere in state, which are then invisible to Terraform and to your cost tracking.
+
+If a run is killed mid-apply the lock can be left behind. `terraform force-unlock <LOCK_ID>` clears it, but **verify no apply is genuinely still running first** — force-unlocking an active apply causes exactly the corruption locking exists to prevent.
+</QuestionCard>
+
+<QuestionCard id="iac-state-04" number={4} question="Someone created a resource manually. How do you bring it under Terraform?" difficulty="medium" topic="State">
+Write the configuration to match it, then import.
+
+The modern approach is an **import block**, which is reviewable and works with `plan`:
+
+```hcl
+import {
+  to = aws_s3_bucket.raw
+  id = "acme-lake-raw"
+}
+```
+
+Run `terraform plan` — it shows what would be imported and flags any mismatch between your config and reality. Adjust until the plan is clean, then apply. Terraform can also generate a starting configuration with `terraform plan -generate-config-out=generated.tf`.
+
+The older `terraform import aws_s3_bucket.raw acme-lake-raw` still works but mutates state immediately with no review step. Either way, the goal is the same: **a subsequent plan showing no changes**, which proves your code accurately describes the resource.
+</QuestionCard>
+
+<QuestionCard id="iac-state-05" number={5} question="How do you rename or move a resource without destroying it?" difficulty="medium" topic="State">
+Terraform tracks resources by their address, so renaming one in code reads as "destroy the old, create the new" — catastrophic for a database.
+
+Use a **`moved` block**, which lives in code and goes through review:
+
+```hcl
+moved {
+  from = aws_s3_bucket.data
+  to   = aws_s3_bucket.raw_zone
+}
+```
+
+The plan then reports a move rather than a replacement. This also handles moving resources into a module, which is the common case when refactoring.
+
+`terraform state mv` does the same imperatively, but it's unreviewable and easy to get wrong. Prefer `moved` blocks, and delete them once everyone's state has been updated.
+</QuestionCard>
+
+<QuestionCard id="iac-state-06" number={6} question="Why shouldn't state files be committed to Git, and what's in them?" difficulty="medium" topic="Security">
+State contains **every attribute of every resource, including sensitive values in plaintext** — RDS passwords, generated access keys, private key material, connection strings. Marking a variable `sensitive = true` only hides it from CLI output; it's still in the state file.
+
+So state must never be committed. It also shouldn't be, mechanically: it changes on every apply, causing constant merge conflicts, and Git provides no locking.
+
+Instead: a remote backend with encryption at rest, versioning, and tight IAM. Treat read access to the state bucket as equivalent to read access to every secret in your infrastructure, and prefer generating credentials outside Terraform (or into a secrets manager) so they never enter state at all.
+</QuestionCard>
+
+<QuestionCard id="iac-state-07" number={7} question="How do you split state, and why would you?" difficulty="hard" topic="State">
+A single state file for an entire platform becomes slow (every plan refreshes every resource), risky (one mistake can destroy unrelated things), and a bottleneck (one lock for all teams).
+
+Split by **blast radius and change frequency** — commonly: networking, data storage, compute, and per-application stacks, each with its own state. Rarely-changing foundational layers stay separate from frequently-deployed pipeline code.
+
+Share values between them with **`terraform_remote_state`** data sources, or better, publish stable identifiers to SSM Parameter Store / Secrets Manager and read those — that avoids coupling one configuration to another's internal structure.
+
+The trade-off is real: more states means more coordination for cross-cutting changes. Split along ownership boundaries, not arbitrarily.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Modules & Environments
+
+<QuestionList topic="Modules & Environments" storagePrefix="iac-modules">
+
+<QuestionCard id="iac-mod-01" number={1} question="What is a Terraform module and when should you write one?" difficulty="easy" topic="Modules">
+A reusable, parameterised group of resources — any directory of `.tf` files can be a module, called with inputs and returning outputs.
+
+```hcl
+module "lake_bucket" {
+  source  = "./modules/s3-data-zone"
+  zone    = "raw"
+  env     = var.env
+  kms_key = aws_kms_key.lake.arn
+}
+```
+
+Write one when the same **group** of resources appears repeatedly — an S3 bucket with its policy, encryption, lifecycle rules and logging is a good module because those pieces always travel together.
+
+Don't write a module that wraps a single resource with no added logic; it just adds indirection. The other failure mode is over-parameterising: a module with 40 variables trying to cover every case is harder to use than the resources it wraps.
+</QuestionCard>
+
+<QuestionCard id="iac-mod-02" number={2} question="What is the difference between a root module and a child module?" difficulty="easy" topic="Modules">
+The **root module** is the directory where you run `terraform` — it holds the backend configuration and provider setup, and it's the entry point.
+
+A **child module** is anything called via a `module` block. It cannot configure a backend, and it should generally **not** declare its own `provider` block; providers are configured in the root and inherited (or passed explicitly with `providers = {}`). A module with its own provider configuration can't be used with `for_each` and is painful to remove later.
+
+Structurally: root modules are thin — composition plus environment-specific values. Child modules hold the reusable logic.
+</QuestionCard>
+
+<QuestionCard id="iac-mod-03" number={3} question="How do you manage multiple environments in Terraform?" difficulty="medium" topic="Environments">
+Three common approaches:
+
+1. **Directory per environment** — `envs/dev/`, `envs/prod/`, each a root module calling shared modules with different variables and its own state and backend. Verbose but explicit; the most common production choice because prod's configuration is visibly separate and can differ where it needs to.
+2. **Workspaces** — one configuration, multiple states, switched with `terraform workspace select`. Least duplication, but the environments share one codebase with conditionals, and it's dangerously easy to apply to the wrong workspace. Better suited to ephemeral, identical environments than to dev/prod.
+3. **Terragrunt** or similar — keeps configuration DRY while generating per-environment roots.
+
+Whichever you choose, **prod must have its own state and its own credentials**, so a mistake in dev cannot reach it.
+</QuestionCard>
+
+<QuestionCard id="iac-mod-04" number={4} question="How do you test Infrastructure as Code?" difficulty="hard" topic="Testing">
+Layered, cheapest first:
+
+- **`terraform fmt -check` and `validate`** — formatting and syntax, instant.
+- **Static analysis** — `tflint` for provider-specific mistakes, `tfsec` / `checkov` / `trivy` for security misconfigurations like a public bucket or an unencrypted volume.
+- **Policy as code** — OPA/Conftest or Sentinel evaluating the *plan* against organisational rules ("every S3 bucket must be encrypted", "no instance larger than X outside prod").
+- **`terraform test`** (native, 1.6+) — HCL-defined test files that can run plan-only assertions or apply real infrastructure and check outputs.
+- **Terratest** — Go tests that provision real infrastructure, assert against it, and destroy it. Slow and costs money, so reserve it for critical modules.
+
+Plan-based checks in CI catch most issues; the review of the plan output posted to the pull request is itself a key control.
+</QuestionCard>
+
+<QuestionCard id="iac-mod-05" number={5} question="What does a good Terraform CI/CD pipeline look like?" difficulty="medium" topic="Automation">
+On a pull request:
+1. `terraform fmt -check`, `validate`, `tflint`, `tfsec`.
+2. `terraform plan -out=tfplan` against the target environment using a **read-only** role.
+3. **Post the plan as a PR comment** so reviewers see exactly what will change — this is the single most valuable step.
+4. Policy checks against the plan JSON.
+
+On merge:
+5. Apply the **saved plan file**, not a fresh plan, so what was approved is what runs.
+6. Use OIDC for short-lived cloud credentials rather than stored keys.
+7. Require manual approval for production (a GitHub environment gate).
+
+A destroy plan should be loud — flag any PR whose plan includes deletions of stateful resources.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## OpenTofu & AWS CDK
+
+<QuestionList topic="OpenTofu & AWS CDK" storagePrefix="iac-alternatives">
+
+<QuestionCard id="iac-alt-01" number={1} question="What is OpenTofu and why does it exist?" difficulty="easy" topic="OpenTofu">
+An open-source fork of Terraform, created in 2023 after HashiCorp relicensed Terraform from the Mozilla Public License to the Business Source License — a source-available licence restricting competing commercial use. The fork was donated to the Linux Foundation and is community-governed.
+
+It began as a drop-in replacement: same HCL, same provider ecosystem, same state format, so migration from Terraform 1.5.x was essentially swapping the binary. The projects have since diverged somewhat, with OpenTofu adding features like state encryption and early variable evaluation.
+
+The honest interview answer: it's a licensing and governance decision more than a technical one. Terraform remains more widely used; OpenTofu matters if the BSL is a problem for your organisation or you want vendor-neutral governance.
+</QuestionCard>
+
+<QuestionCard id="iac-alt-02" number={2} question="How do you decide between Terraform and OpenTofu?" difficulty="medium" topic="OpenTofu">
+Considerations that actually differ:
+
+- **Licence** — BSL restricts building a competing commercial product on Terraform. For most companies simply *using* it, this is not a practical constraint; for vendors and some legal departments, it is.
+- **Governance** — Linux Foundation and open contribution versus single-vendor control.
+- **Ecosystem** — providers and modules are shared, so this is rarely the deciding factor. Third-party tooling (Terraform Cloud, some CI integrations, some policy engines) is better tested against Terraform.
+- **Feature divergence** — growing over time, so a "drop-in replacement" assumption weakens with each release.
+
+For a greenfield data platform either is defensible. The bad answer is treating it as a purely technical superiority argument in either direction.
+</QuestionCard>
+
+<QuestionCard id="iac-alt-03" number={3} question="What is AWS CDK and how does it differ from Terraform?" difficulty="medium" topic="AWS CDK">
+The Cloud Development Kit lets you define AWS infrastructure in TypeScript, Python, Java, Go or C#. At synthesis time (`cdk synth`) it generates a CloudFormation template, which CloudFormation then deploys — so the execution engine is declarative even though your code isn't.
+
+Differences from Terraform:
+- **Real language** — loops, conditionals, classes, unit tests, IDE autocomplete and type checking.
+- **Constructs** — L2/L3 constructs apply sensible defaults, so a few lines can produce a correctly wired VPC with subnets, route tables and gateways.
+- **State** — managed by CloudFormation; there's no state file to protect, but also less control.
+- **AWS only** (CDK for Terraform, `cdktf`, is the multi-cloud variant).
+
+The trade-off is reviewability: a Terraform plan shows exactly what changes, while CDK code requires reading `cdk diff` on the synthesised template to see the real effect.
+</QuestionCard>
+
+<QuestionCard id="iac-alt-04" number={4} question="When would you choose a general-purpose language over HCL?" difficulty="medium" topic="AWS CDK">
+Choose a **general-purpose language** (CDK, Pulumi) when the team is already strong in it, when you need genuine abstraction — a reusable "data pipeline" construct that expands into twenty correctly-configured resources — or when you want unit tests over your infrastructure logic.
+
+Choose **HCL** when you value the constraint. HCL's limited expressiveness keeps configurations readable by people who aren't developers, makes plans easy to reason about, and prevents the drift toward a framework only its author understands. Multi-cloud and the breadth of the provider ecosystem also favour Terraform.
+
+The failure mode to name: infrastructure code in a full programming language tends to accumulate abstraction until nobody can tell what will actually be created — which defeats the purpose of reviewable infrastructure.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## IaC for Data Platforms
+
+<QuestionList topic="IaC for Data Platforms" storagePrefix="iac-data-platforms">
+
+<QuestionCard id="iac-de-01" number={1} question="What data platform infrastructure would you manage with Terraform?" difficulty="medium" topic="Data Engineering">
+- **Storage** — S3/GCS/ADLS buckets with encryption, versioning, lifecycle rules to move cold partitions to cheaper tiers, and access policies.
+- **Warehouses** — Redshift, BigQuery datasets, Snowflake (databases, warehouses, roles and grants via the Snowflake provider).
+- **Processing** — EMR or Dataproc clusters, Glue jobs and crawlers, Databricks workspaces and job definitions.
+- **Streaming** — MSK/Kafka clusters, Kinesis streams, Pub/Sub topics and subscriptions.
+- **Orchestration** — MWAA or Cloud Composer environments, or the Kubernetes cluster Airflow runs on.
+- **Catalog and governance** — Glue Data Catalog databases, Lake Formation permissions.
+- **IAM** — roles and policies for every pipeline, which in practice is the bulk of the code.
+- **Networking** — VPCs, subnets, security groups, private endpoints.
+
+What generally does *not* belong: the pipeline logic itself, and the tables inside a warehouse (that's dbt or migrations).
+</QuestionCard>
+
+<QuestionCard id="iac-de-02" number={2} question="Where is the boundary between IaC and application deployment for a data platform?" difficulty="hard" topic="Data Engineering">
+A useful rule: **IaC provisions the long-lived container; the application pipeline deploys what changes often.**
+
+Terraform creates the MWAA environment, the S3 bucket it reads DAGs from, and the IAM roles. It does *not* deploy the DAGs — those change daily and belong to an application pipeline syncing to the bucket. Terraform creates the Databricks workspace and cluster policies; a separate pipeline deploys notebooks and jobs. Terraform creates the BigQuery dataset; dbt creates the tables inside it.
+
+Mixing them produces two bad outcomes: a DAG change requiring a Terraform apply (slow, and now every developer needs infrastructure permissions), or infrastructure drifting because it's managed by an ad-hoc deploy script.
+
+Rate of change is the practical test — if it changes weekly or faster, it probably isn't Terraform's job.
+</QuestionCard>
+
+<QuestionCard id="iac-de-03" number={3} question="How do you manage IAM for data pipelines with Terraform?" difficulty="medium" topic="Data Engineering">
+Define a **role per pipeline** with least-privilege policies rather than one shared role, so a compromised or buggy job has a bounded blast radius and CloudTrail attributes actions to a specific pipeline.
+
+Practical patterns:
+- Scope S3 policies to **prefixes**, not whole buckets — `arn:aws:s3:::lake/raw/orders/*`.
+- Separate read and write: most jobs read from several zones and write to exactly one.
+- Use **workload identity** (IRSA on EKS, GCP Workload Identity, Azure Managed Identity) so pods assume roles with no static credentials.
+- Generate repetitive roles with `for_each` over a map of pipeline definitions rather than copying blocks.
+- Enforce with policy-as-code in CI — fail any plan introducing a wildcard action or a public bucket.
+
+Never create long-lived access keys in Terraform; they land in state in plaintext.
+</QuestionCard>
+
+<QuestionCard id="iac-de-04" number={4} question="What's the risk of running terraform apply against a data platform, and how do you reduce it?" difficulty="hard" topic="Data Engineering">
+The specific danger is that data infrastructure is **stateful**. A change that forces replacement doesn't just cause downtime — it can destroy data. Changing a Redshift cluster's node type, an RDS engine version, or a bucket's name can all produce a replace plan, and Terraform will happily execute it.
+
+Mitigations:
+- **`prevent_destroy`** on every stateful resource — buckets, databases, catalogs.
+- **Read the plan properly**, watching for `must be replaced` and the `-/+` marker rather than skimming to the summary.
+- **Automated policy checks** that fail the pipeline on any deletion of a stateful resource type.
+- **Separate state** so pipeline infrastructure and storage are never in the same apply.
+- **Deletion protection** at the cloud level (RDS deletion protection, S3 MFA delete, bucket retention policies) as a second layer that Terraform cannot override.
+- **Backups and versioning** independent of Terraform.
+- Require manual approval for production applies.
+</QuestionCard>
+
+<QuestionCard id="iac-de-05" number={5} question="How would you provision a complete environment for a new data product?" difficulty="hard" topic="Data Engineering">
+Compose modules rather than writing resources directly:
+
+```hcl
+module "product" {
+  source = "../../modules/data-product"
+
+  name        = "orders"
+  env         = var.env
+  zones       = ["raw", "staging", "curated"]
+  retention   = { raw = 90, staging = 30, curated = 365 }
+  catalog_db  = true
+  airflow_role_arns = [module.orchestration.executor_role_arn]
+}
+```
+
+The module creates the storage zones with lifecycle rules, the Glue Catalog database, the pipeline IAM role scoped to those prefixes, monitoring alarms, and cost-allocation tags — all consistently, because they come from one reviewed definition.
+
+The payoff is that onboarding a new data product becomes a small pull request rather than a two-day console session, and every product ends up with the same encryption, retention and tagging standards by construction rather than by discipline.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Your `terraform apply` failed halfway through. What now?"**
+State records what was created before the failure, so re-running continues rather than duplicating. Read the error first — a permissions problem or an invalid attribute needs a code fix. Watch for resources marked *tainted*, which will be replaced on the next apply. If the failure left the lock held, verify nothing is still running before force-unlocking.
+
+**"A colleague deleted the state file. How bad is it, and what do you do?"**
+Bad but usually recoverable. If the backend has versioning, restore the previous version — this is the whole reason versioning is non-negotiable. If not, you must re-import every resource by hand, which for a real platform is days of work. Meanwhile do not run `apply`, since Terraform will try to create everything that already exists.
+
+**"How do you give a new team member the ability to deploy without giving them production access?"**
+Separate the plan and apply credentials: a read-only role for the PR plan, which anyone can trigger, and an apply role only the CI pipeline can assume via OIDC. Humans review plans; the pipeline applies them. Nobody needs standing write access to production.
+
+**"How do you know your Terraform code matches what's actually deployed?"**
+A scheduled plan against unchanged code — an empty plan means no drift. Fail the job when it isn't empty. Mention that this is periodic rather than continuous, and that a reconciliation-based tool closes the window further.
+
+---
+
+## Further Reading
+
+- [Terraform documentation](https://developer.hashicorp.com/terraform/docs)
+- [Terraform: recommended practices](https://developer.hashicorp.com/terraform/cloud-docs/recommended-practices)
+- [OpenTofu documentation](https://opentofu.org/docs/)
+- [AWS CDK developer guide](https://docs.aws.amazon.com/cdk/v2/guide/home.html)
+- [tfsec](https://github.com/aquasecurity/tfsec) and [Checkov](https://www.checkov.io/) — security scanning for IaC
+- [Terratest](https://terratest.gruntwork.io/) — automated testing for infrastructure modules
+- [Terraform Registry](https://registry.terraform.io/) — providers and community modules

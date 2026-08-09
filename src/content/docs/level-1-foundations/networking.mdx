@@ -1,0 +1,448 @@
+---
+title: Networking Fundamentals
+description: Networking interview questions for data engineers covering TCP/IP, DNS, HTTP and TLS, cloud VPCs and subnets, security groups and private endpoints, load balancing, and diagnosing connectivity and throughput problems in data pipelines.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## Networking Fundamentals: Why the Pipeline Can't Reach the Database
+
+**Data engineers don't design networks, but they debug them constantly. A Glue job that times out connecting to RDS, a Spark cluster that can't reach S3 without a NAT gateway, a Kafka consumer advertising an unreachable hostname, an egress bill that's larger than the compute bill — these are all networking problems, and they're the ones that turn a two-hour task into a two-day one when you can't reason about them.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [TCP/IP Fundamentals](#tcpip-fundamentals)
+- [DNS](#dns)
+- [HTTP & TLS](#http--tls)
+- [Cloud Networking](#cloud-networking)
+- [Load Balancing](#load-balancing)
+- [Networking for Data Engineers](#networking-for-data-engineers)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Networking is built in **layers**, each using the one below without knowing its details. The practical model has four: **link** (Ethernet, within one network segment), **internet** (IP — addressing and routing between networks), **transport** (TCP and UDP — delivering to a specific process, with or without reliability guarantees), and **application** (HTTP, DNS, JDBC, Kafka's protocol).
+
+That layering is the debugging tool. When a connection fails, you're really asking *which layer broke*: can I resolve the name (DNS), can I reach the host at all (IP/ICMP), can I open a connection to the port (TCP), does the handshake complete (TLS), does the application respond (HTTP/protocol). Working up the stack in that order turns "it doesn't connect" into a specific, answerable question — and it's exactly the structure interviewers listen for.
+
+In cloud environments, one more idea dominates: **reachability is a policy decision, not a physical one.** Two machines in the same VPC can be metres apart and unable to talk because a security group says so.
+
+---
+
+## TCP/IP Fundamentals
+
+<QuestionList topic="TCP/IP Fundamentals" storagePrefix="networking-tcpip">
+
+<QuestionCard id="net-fund-01" number={1} question="What is the difference between TCP and UDP?" difficulty="easy" topic="Transport">
+**TCP** is connection-oriented and reliable. It performs a handshake, numbers every segment, retransmits what's lost, delivers in order, and applies flow and congestion control. The cost is latency and overhead.
+
+**UDP** is connectionless and unreliable — it sends datagrams with no handshake, no ordering, and no retransmission. The gain is minimal overhead and no head-of-line blocking.
+
+Use TCP where correctness matters, which is nearly everything in data engineering: database connections, HTTP/S, Kafka, JDBC, object storage. Use UDP for streaming media, DNS queries, and metrics emission (StatsD) where losing a packet is cheaper than waiting for it.
+</QuestionCard>
+
+<QuestionCard id="net-fund-02" number={2} question="Explain the TCP three-way handshake." difficulty="medium" topic="Transport">
+1. Client sends **SYN** with its initial sequence number.
+2. Server replies **SYN-ACK**, acknowledging the client's and sending its own.
+3. Client sends **ACK**. The connection is established.
+
+Two consequences worth naming. First, it costs a **full round trip before any data flows** — which is why connection pooling matters so much for a job opening thousands of database connections, and why chatty protocols perform badly over long distances.
+
+Second, it explains a common failure signature: if you get *connection refused* immediately, the host was reached and actively rejected you (nothing listening on that port). If it *hangs and times out*, your SYN never got a response — usually a firewall or security group silently dropping packets. That distinction alone resolves most connectivity tickets.
+</QuestionCard>
+
+<QuestionCard id="net-fund-03" number={3} question="What are ports, and which ones should a data engineer know?" difficulty="easy" topic="Transport">
+A port is a 16-bit number identifying which process on a host should receive a packet — the IP address finds the machine, the port finds the service.
+
+Worth knowing:
+
+| Port | Service |
+|---|---|
+| 22 | SSH |
+| 80 / 443 | HTTP / HTTPS |
+| 53 | DNS |
+| 5432 | PostgreSQL |
+| 3306 | MySQL |
+| 1433 | SQL Server |
+| 1521 | Oracle |
+| 27017 | MongoDB |
+| 6379 | Redis |
+| 9092 | Kafka |
+| 8080 / 8081 | Common HTTP alternates, Airflow webserver |
+| 10000 | HiveServer2 |
+| 5439 | Redshift |
+
+Ports below 1024 are privileged and require root to bind.
+</QuestionCard>
+
+<QuestionCard id="net-fund-04" number={4} question="What is CIDR notation, and how do you read 10.0.0.0/16?" difficulty="medium" topic="IP">
+CIDR expresses a network as an address plus a prefix length — the number of leading bits fixed as the network portion.
+
+`10.0.0.0/16` fixes the first 16 bits, leaving 16 bits for hosts: addresses from `10.0.0.0` to `10.0.255.255`, about 65,536 of them.
+
+Quick arithmetic: available addresses are 2 to the power of (32 − prefix). So `/24` is 256, `/20` is 4,096, `/16` is 65,536. Smaller prefix means bigger network.
+
+For cloud work: AWS reserves **five** addresses in every subnet, so a `/24` subnet gives you 251 usable. This matters when sizing subnets for EKS, where every pod consumes an IP — a `/24` for a Spark-on-Kubernetes node group runs out of addresses far sooner than people expect.
+</QuestionCard>
+
+<QuestionCard id="net-fund-05" number={5} question="What is the difference between a private and a public IP address?" difficulty="easy" topic="IP">
+**Private ranges** (RFC 1918) are not routable on the public internet and can be reused in every private network:
+- `10.0.0.0/8`
+- `172.16.0.0/12`
+- `192.168.0.0/16`
+
+**Public addresses** are globally unique and routable.
+
+A machine with only a private address reaches the internet through **NAT** — a gateway rewrites the source address to its own public one and tracks the mapping. That's why an EC2 instance in a private subnet needs a NAT gateway to `pip install` anything, and why NAT gateway data-processing charges show up as a surprising line item when a pipeline pulls large volumes from the internet.
+</QuestionCard>
+
+<QuestionCard id="net-fund-06" number={6} question="How do you diagnose a connectivity problem step by step?" difficulty="medium" topic="Troubleshooting">
+Work up the layers, stopping at the first failure:
+
+```bash
+ping db.internal                    # is the host reachable? (ICMP is often blocked)
+dig db.internal                     # does the name resolve, and to what?
+traceroute db.internal              # where does the path stop?
+nc -zv db.internal 5432             # can I open a TCP connection to the port?
+telnet db.internal 5432             # same idea, older
+curl -v https://api.example.com     # full HTTP + TLS detail
+openssl s_client -connect host:443  # inspect the certificate chain
+ss -tunap                           # what's connected locally
+```
+
+`nc -zv` is the single most useful one — it separates "name doesn't resolve" from "host unreachable" from "port closed" in one command. Note that ICMP is frequently blocked in cloud environments, so a failing `ping` does not mean the host is down.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## DNS
+
+<QuestionList topic="DNS" storagePrefix="networking-dns">
+
+<QuestionCard id="net-dns-01" number={1} question="How does DNS resolution work?" difficulty="medium" topic="DNS">
+1. The application asks the OS resolver, which checks its cache and `/etc/hosts`.
+2. On a miss, it queries the configured **recursive resolver**.
+3. The resolver, if it has nothing cached, walks the hierarchy: **root** servers point to the **TLD** servers for `.com`, which point to the **authoritative** nameserver for `example.com`, which returns the record.
+4. The answer is cached at each level for its **TTL**, then returned.
+
+The practical consequence is that DNS changes are **not instant** — old answers persist for up to the TTL. Before a planned migration you lower the TTL well in advance so the cutover is fast.
+</QuestionCard>
+
+<QuestionCard id="net-dns-02" number={2} question="What are the common DNS record types?" difficulty="easy" topic="DNS">
+- **A** — hostname to IPv4 address.
+- **AAAA** — hostname to IPv6 address.
+- **CNAME** — an alias to another hostname. Cannot coexist with other records at the same name, which is why it can't be used at a zone apex.
+- **MX** — mail servers.
+- **TXT** — arbitrary text; used for domain verification, SPF and DKIM.
+- **NS** — the authoritative nameservers for a zone.
+- **SRV** — service location including port; used by some service discovery systems.
+- **PTR** — reverse lookup, IP to name.
+
+Cloud providers add non-standard alias types (Route 53 ALIAS, for instance) that behave like a CNAME but work at the apex and resolve to the provider's resource directly.
+</QuestionCard>
+
+<QuestionCard id="net-dns-03" number={3} question="How do you troubleshoot DNS?" difficulty="medium" topic="DNS">
+```bash
+dig example.com                     # full answer with TTL and sections
+dig +short example.com              # just the address
+dig @8.8.8.8 example.com            # bypass your resolver, test upstream
+dig example.com NS                  # who is authoritative
+dig +trace example.com              # walk the delegation from the root
+nslookup example.com                # simpler, still ubiquitous
+cat /etc/resolv.conf                # which resolver is configured
+```
+
+`dig @8.8.8.8` versus your default resolver is the fastest way to separate "the record is wrong" from "my resolver has a stale or broken cache." Inside a VPC, also check whether you're resolving against the cloud's internal resolver — private hosted zones only resolve from inside the VPC, which is why a name that works from an EC2 instance fails from your laptop.
+</QuestionCard>
+
+<QuestionCard id="net-dns-04" number={4} question="Why might a DNS change not take effect, and what is TTL?" difficulty="medium" topic="DNS">
+**TTL** (time to live) is how many seconds a resolver may cache a record. Until it expires, resolvers keep serving the old answer regardless of what you changed at the authoritative server.
+
+So a record with a 24-hour TTL can take a full day to propagate. Reduce the TTL to 60 seconds a day or two *before* a planned change, cut over, then raise it again — high TTLs reduce query load and improve resilience, so you don't want them permanently low.
+
+Other causes worth checking: the application or JVM caching resolutions in-process (the JVM's `networkaddress.cache.ttl` historically cached forever, which broke failovers), a stale `/etc/hosts` entry, or an intermediate resolver ignoring TTLs.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## HTTP & TLS
+
+<QuestionList topic="HTTP & TLS" storagePrefix="networking-http-tls">
+
+<QuestionCard id="net-http-01" number={1} question="What HTTP status codes matter when consuming APIs in a pipeline?" difficulty="easy" topic="HTTP">
+- **2xx** — success. `200 OK`, `201 Created`, `204 No Content`.
+- **3xx** — redirection. `301` permanent, `302` temporary; make sure your client follows them or you'll silently get empty responses.
+- **4xx** — client error, and **retrying won't help**: `400` bad request, `401` unauthenticated, `403` unauthorised, `404` not found, `422` validation failure.
+- **429 Too Many Requests** — rate limited. The important exception: this *is* retryable, and you should honour the `Retry-After` header.
+- **5xx** — server error, generally retryable with backoff: `500`, `502` bad gateway, `503` unavailable, `504` gateway timeout.
+
+The rule an ingestion job needs: **retry 5xx and 429, fail fast on 4xx.** Blind retries on a 401 just hammer an endpoint with credentials that will never work.
+</QuestionCard>
+
+<QuestionCard id="net-http-02" number={2} question="What is the difference between HTTP/1.1, HTTP/2 and HTTP/3?" difficulty="medium" topic="HTTP">
+- **HTTP/1.1** — one request at a time per connection. Clients open several connections in parallel; pipelining exists but is effectively unusable.
+- **HTTP/2** — multiplexes many streams over a single TCP connection, with header compression and server push. Removes *application-level* head-of-line blocking, but a lost TCP segment still stalls every stream on that connection.
+- **HTTP/3** — runs over QUIC on UDP. Streams are independent at the transport layer, so packet loss affects only the affected stream, and connection setup is faster (TLS handshake folded into the transport handshake).
+
+For pipelines the practical impact is on high-volume API ingestion and gRPC services, where HTTP/2 multiplexing meaningfully reduces connection overhead.
+</QuestionCard>
+
+<QuestionCard id="net-http-03" number={3} question="How does TLS work, and what is the difference between TLS and SSL?" difficulty="medium" topic="TLS">
+SSL is the obsolete predecessor; every version is deprecated and insecure. TLS replaced it, currently at 1.3, and "SSL" survives only as a colloquialism (and in names like `openssl` and `SSLContext`).
+
+The handshake in outline: client and server agree a cipher suite, the server presents its **certificate**, the client validates it against a trusted certificate authority chain and checks the hostname and expiry, then they derive a shared symmetric session key — asymmetric crypto for the handshake, fast symmetric crypto for the data. TLS 1.3 completes this in one round trip instead of two.
+
+What it provides: **encryption** (nobody can read the traffic), **authentication** (the server is who it claims), and **integrity** (traffic wasn't modified).
+</QuestionCard>
+
+<QuestionCard id="net-http-04" number={4} question="Your pipeline fails with an SSL certificate verification error. How do you diagnose it?" difficulty="medium" topic="TLS">
+```bash
+openssl s_client -connect api.example.com:443 -servername api.example.com
+curl -vI https://api.example.com
+```
+
+Look for the specific cause:
+- **Expired certificate** — check the validity dates.
+- **Hostname mismatch** — you connected to a name not in the certificate's subject alternative names.
+- **Incomplete chain** — the server sends its leaf certificate but omits the intermediate. Browsers often paper over this by fetching the intermediate; Python and Java usually don't, which is why it works in a browser but fails in your job.
+- **Missing CA bundle in the container** — a slim image without `ca-certificates` installed.
+- **A corporate TLS-inspecting proxy** re-signing traffic with an internal CA your container doesn't trust.
+
+The fix is to install the correct CA bundle or the missing intermediate. **Never `verify=False`** — that disables the authentication guarantee entirely and turns a visible error into a silent vulnerability.
+</QuestionCard>
+
+<QuestionCard id="net-http-05" number={5} question="How should a pipeline handle retries against an HTTP API?" difficulty="medium" topic="HTTP">
+- **Retry only what's retryable** — 5xx, 429, and network-level timeouts. Not 4xx.
+- **Exponential backoff with jitter** — doubling delays, plus randomness so a fleet of workers doesn't retry in lockstep and create a thundering herd.
+- **Honour `Retry-After`** when the server sends it.
+- **Cap total attempts and total elapsed time**, so a task fails visibly instead of retrying for six hours.
+- **Set explicit connect and read timeouts.** A missing read timeout is the classic cause of a task that hangs forever — the default in many clients is no timeout at all.
+- **Make retries safe** — use idempotency keys for writes, or ensure the operation is naturally idempotent, otherwise a retried request can double-insert.
+- **Circuit-break** after sustained failure rather than continuing to hammer a struggling service.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Cloud Networking
+
+<QuestionList topic="Cloud Networking" storagePrefix="networking-cloud">
+
+<QuestionCard id="net-vpc-01" number={1} question="What is a VPC, and what are public and private subnets?" difficulty="medium" topic="VPC">
+A **VPC** is a logically isolated virtual network in a cloud account, with its own IP range, subnets, route tables and gateways.
+
+A subnet is a slice of that range tied to one availability zone. The distinction between public and private is purely a **routing** one:
+
+- **Public subnet** — its route table has a route to an **internet gateway**. Instances with a public IP are reachable from the internet.
+- **Private subnet** — no internet gateway route. Outbound access, if needed, goes through a **NAT gateway** in a public subnet; inbound from the internet is impossible.
+
+Standard data platform layout: load balancers in public subnets, everything else — processing clusters, databases, warehouses — in private ones.
+</QuestionCard>
+
+<QuestionCard id="net-vpc-02" number={2} question="What is the difference between a security group and a network ACL?" difficulty="medium" topic="VPC">
+| | Security group | Network ACL |
+|---|---|---|
+| Attaches to | An instance / ENI | A subnet |
+| State | **Stateful** | **Stateless** |
+| Rules | Allow only | Allow and deny |
+| Evaluation | All rules together | In numbered order, first match wins |
+
+**Stateful** is the key word. A security group that allows inbound on 5432 automatically permits the response traffic outbound. A network ACL does not — you must write both directions explicitly, and forgetting the return path on ephemeral ports is the classic NACL bug.
+
+Use security groups as the primary control; they're easier to reason about and can reference *other security groups* as the source, which is far more maintainable than IP ranges. Reserve NACLs for coarse subnet-level denies.
+</QuestionCard>
+
+<QuestionCard id="net-vpc-03" number={3} question="What is a VPC endpoint and why does it matter for data pipelines?" difficulty="medium" topic="VPC">
+A VPC endpoint lets resources in a private subnet reach a cloud service **without traversing the internet**.
+
+- **Gateway endpoints** (S3, DynamoDB) add a route to the route table. Free.
+- **Interface endpoints** (PrivateLink — most other services) create an ENI with a private IP in your subnet. Charged hourly plus per GB.
+
+Three reasons they matter:
+1. **Cost** — a Spark job reading 10 TB from S3 through a NAT gateway incurs per-GB NAT processing charges. A gateway endpoint eliminates that entirely, and it's one of the highest-value one-line changes in cloud data engineering.
+2. **Security** — traffic never leaves the AWS network, and you can restrict the bucket policy to the endpoint.
+3. **Reachability** — a private subnet with no NAT can still reach S3.
+</QuestionCard>
+
+<QuestionCard id="net-vpc-04" number={4} question="How do you connect a VPC to an on-premises network or another VPC?" difficulty="medium" topic="VPC">
+- **VPC peering** — a direct one-to-one link between two VPCs. Simple and cheap, but **not transitive** (A-B and B-C does not give A-C) and it doesn't scale past a handful of VPCs.
+- **Transit Gateway** — a hub-and-spoke router connecting many VPCs and on-premises links, with routing control. The standard answer once you have more than a few VPCs.
+- **Site-to-site VPN** — encrypted tunnel over the public internet to your data centre. Quick to set up, but bandwidth and latency depend on the internet.
+- **Direct Connect / ExpressRoute / Cloud Interconnect** — a dedicated private circuit. Consistent latency and high bandwidth, and cheaper egress rates — which is what justifies it for continuous bulk data transfer from on-premises sources.
+- **PrivateLink** — expose a single service across accounts without joining the networks at all.
+
+A common trap: peered or connected networks must have **non-overlapping CIDR ranges**, which is why VPC address planning matters early.
+</QuestionCard>
+
+<QuestionCard id="net-vpc-05" number={5} question="What is a NAT gateway and why does it show up on the cost report?" difficulty="medium" topic="VPC">
+It lets instances in private subnets make **outbound** connections while remaining unreachable from the internet, by translating their private source addresses to its own public one.
+
+It's billed two ways: an hourly charge per gateway (per AZ, and you want one per AZ for resilience), plus a **per-GB data processing charge on everything flowing through it**.
+
+That second charge is why NAT gateways surprise data teams. A pipeline pulling terabytes from an external API, or — much worse — reading from S3 without a gateway endpoint, routes all of it through NAT and pays per gigabyte for traffic that could have been free. Checking whether S3 and DynamoDB traffic is bypassing NAT via gateway endpoints is one of the first things to look at on a large cloud data bill.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Load Balancing
+
+<QuestionList topic="Load Balancing" storagePrefix="networking-load-balancing">
+
+<QuestionCard id="net-lb-01" number={1} question="What is a load balancer and what is the difference between layer 4 and layer 7?" difficulty="medium" topic="Load Balancing">
+A load balancer distributes incoming traffic across multiple backends, providing scale, redundancy, and a stable address in front of changing instances.
+
+**Layer 4** operates on TCP/UDP. It forwards connections based on IP and port without inspecting the payload — fast, protocol-agnostic, and able to handle any TCP service (a database proxy, a Kafka broker front-end). AWS's Network Load Balancer.
+
+**Layer 7** understands the application protocol, usually HTTP. It can route by path or hostname, terminate TLS, rewrite headers, and retry failed requests — at the cost of more processing. AWS's Application Load Balancer.
+
+Choose L7 when you need content-based routing or TLS termination; L4 when you need raw throughput, non-HTTP protocols, or a static IP.
+</QuestionCard>
+
+<QuestionCard id="net-lb-02" number={2} question="What load balancing algorithms are there?" difficulty="easy" topic="Load Balancing">
+- **Round robin** — each backend in turn. Fine when requests and backends are uniform.
+- **Weighted round robin** — proportional to capacity, for heterogeneous instances.
+- **Least connections** — to whichever backend has fewest active connections. Better when request durations vary a lot, which is typical for query workloads.
+- **Least response time** — factors in latency as well.
+- **IP hash / consistent hashing** — the same client reaches the same backend, giving session affinity without shared state. Consistent hashing minimises redistribution when a backend is added or removed, which is what makes it the choice for cache clusters.
+- **Random with two choices** — pick two at random, take the less loaded. Surprisingly close to optimal with almost no coordination.
+</QuestionCard>
+
+<QuestionCard id="net-lb-03" number={3} question="Why are health checks important, and what makes a good one?" difficulty="medium" topic="Load Balancing">
+A load balancer must stop sending traffic to a backend that can't serve it. Health checks are how it knows.
+
+A good check verifies the service is **actually able to do its job** — a `/health` endpoint that confirms the database connection pool is alive, not one that returns 200 unconditionally, which reports healthy right up until every request fails.
+
+Tune the parameters deliberately: interval, timeout, and the healthy/unhealthy thresholds. Too aggressive and a brief GC pause evicts a healthy node; too lenient and failed nodes keep receiving traffic for minutes.
+
+Distinguish **liveness** (restart me, I'm broken) from **readiness** (don't send traffic yet, I'm still warming up) — conflating them causes a slow-starting Spark or JVM service to be killed in a restart loop before it ever becomes ready.
+</QuestionCard>
+
+<QuestionCard id="net-lb-04" number={4} question="What is the difference between a load balancer, a reverse proxy, and an API gateway?" difficulty="medium" topic="Load Balancing">
+They overlap heavily, and the honest answer says so — the distinction is emphasis, and one product often does all three.
+
+- **Load balancer** — primarily distributes traffic across backends for scale and availability.
+- **Reverse proxy** — sits in front of servers and forwards requests, adding TLS termination, caching, compression and header manipulation. Nginx is the archetype.
+- **API gateway** — a reverse proxy specialised for APIs, adding authentication, rate limiting, request validation, per-consumer quotas, usage metering and routing to multiple services.
+
+For a data platform you'd typically put an API gateway in front of a data-serving API (for auth and rate limiting) and a plain load balancer in front of internal services.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Networking for Data Engineers
+
+<QuestionList topic="Networking for Data Engineers" storagePrefix="networking-data-engineering">
+
+<QuestionCard id="net-de-01" number={1} question="Your Spark job can't connect to an RDS instance. Walk through the diagnosis." difficulty="hard" topic="Troubleshooting">
+Work up the layers rather than guessing:
+
+1. **DNS** — does the endpoint resolve? `dig` it from a machine in the same subnet as the job. A private RDS endpoint only resolves inside the VPC.
+2. **Routing** — are the cluster and the database in VPCs that can reach each other? If they're peered, check the route tables on both sides and confirm the CIDRs don't overlap.
+3. **Security group on the database** — does it allow inbound on 5432 *from the cluster's security group*? Referencing the source security group rather than an IP range is both more secure and more robust as nodes come and go.
+4. **Security group on the cluster** — outbound is usually open by default, but not always.
+5. **NACLs** — remember they're stateless; the return path on ephemeral ports needs an explicit rule.
+6. **Test the port directly** — `nc -zv db-endpoint 5432` from a node. Hanging means dropped packets (security group or NACL); connection refused means you reached it and nothing is listening.
+7. **Authentication** — only once the TCP connection succeeds is it worth suspecting credentials.
+
+The signature to lead with: **timeout means firewall, refused means wrong port or nothing listening.**
+</QuestionCard>
+
+<QuestionCard id="net-de-02" number={2} question="How does data transfer pricing work, and how do you reduce it?" difficulty="hard" topic="Cost">
+The general shape across clouds: **ingress is free, egress costs**, and the price depends on where the data goes.
+
+- Within an AZ, using private IPs — free.
+- **Cross-AZ** — charged per GB in *both* directions.
+- **Cross-region** — more expensive.
+- **To the internet** — most expensive.
+- **Through a NAT gateway** — a per-GB processing charge on top of everything else.
+
+Reductions, roughly by impact:
+1. **VPC gateway endpoints for S3 and DynamoDB** — removes NAT charges on what's often the largest flow.
+2. **Colocate compute with data** — same region as the bucket, and be aware that a shuffle-heavy Spark job spread across three AZs pays cross-AZ charges on all that shuffle traffic. Single-AZ placement for a transient cluster is a legitimate trade of resilience for cost.
+3. **Compress and use columnar formats** — Parquet with predicate pushdown moves a fraction of the bytes a CSV scan does.
+4. **Cache and avoid re-reading** the same data repeatedly.
+5. **Direct Connect** for sustained on-premises transfer, which has substantially lower egress rates.
+</QuestionCard>
+
+<QuestionCard id="net-de-03" number={3} question="Why do Kafka clients fail with 'connection refused' to an internal hostname even when the broker is reachable?" difficulty="hard" topic="Kafka">
+Because of **`advertised.listeners`**. A Kafka client bootstraps against the address you give it, but the broker responds with metadata containing the addresses clients should actually use — and all subsequent produce and consume traffic goes to *those*.
+
+If the broker advertises an internal hostname or a private IP that the client can't resolve or route to (client outside the VPC, broker in Kubernetes advertising a pod DNS name, a broker behind NAT advertising its private address), the bootstrap succeeds and everything afterwards fails.
+
+The fix is configuring `advertised.listeners` to an address reachable by the clients, often with multiple listeners on different ports for internal and external access. It's a favourite interview question because it looks like a network problem and is actually a configuration one.
+</QuestionCard>
+
+<QuestionCard id="net-de-04" number={4} question="What network considerations matter when choosing where to run a data pipeline?" difficulty="medium" topic="Architecture">
+- **Data gravity** — move compute to the data, not the reverse. Reading 50 TB across a region boundary is slow and expensive; running the job next to the bucket is neither.
+- **Latency to sources** — an ingestion job pulling from an on-premises database over a VPN inherits that link's latency and bandwidth ceiling.
+- **Bandwidth ceilings** — instance types have network performance tiers, and a shuffle-heavy job on small instances is bottlenecked on the NIC rather than CPU.
+- **AZ placement** — cross-AZ shuffle traffic is charged; single-AZ is cheaper but loses zone resilience.
+- **Egress** — where the output goes matters as much as where the input comes from, especially if consumers are in another cloud.
+- **Compliance** — data residency rules may fix the region regardless of any of the above.
+</QuestionCard>
+
+<QuestionCard id="net-de-05" number={5} question="How do you securely connect a cloud data platform to an on-premises source database?" difficulty="medium" topic="Security">
+Never expose the database to the internet. The options, in increasing order of investment:
+
+- **Site-to-site VPN** — encrypted tunnel between the VPC and the on-premises network. Quick to stand up; bandwidth and latency subject to the internet.
+- **Direct Connect / ExpressRoute** — dedicated private circuit. Consistent performance and cheaper egress; weeks of lead time and a fixed cost, justified by sustained volume.
+- **Bastion or jump host** in a public subnet with tightly scoped access, for administrative connections only — not for bulk data movement.
+- **Agent-based pull** — a collector inside the on-premises network initiates *outbound* connections to the cloud, so no inbound firewall rule is needed at all. Often the easiest to get through a security review.
+
+Layer on: TLS in transit, credentials from a secrets manager, a read replica rather than the primary as the source, and security groups scoped to specific source ranges.
+</QuestionCard>
+
+<QuestionCard id="net-de-06" number={6} question="Your ingestion job's throughput is far below the available bandwidth. What limits it?" difficulty="hard" topic="Performance">
+Bandwidth is rarely the actual constraint. Look at:
+
+- **Latency and concurrency.** A single TCP stream over a high-latency link is limited by the bandwidth-delay product — you cannot fill a fat, long pipe with one connection. **Parallel connections** are the fix, which is exactly what multipart uploads and partitioned reads do.
+- **Small files.** Thousands of tiny objects mean per-request overhead and TLS handshakes dominate. Batch into larger files.
+- **Connection churn** — opening a new connection per request pays handshake costs repeatedly. Use pooling and keep-alive.
+- **Server-side rate limits** — an API returning 429, or S3 request-rate limits per prefix, which you spread by partitioning across key prefixes.
+- **Single-threaded client** — the job may simply not be issuing enough concurrent requests.
+- **Instance network tier** — smaller instances have lower and sometimes burstable network limits.
+
+Measure where the time actually goes before scaling anything up.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"A job in a private subnet can't reach an external API. Why?"**
+No route to the internet. It needs a NAT gateway in a public subnet with a route from the private subnet's route table. Follow up by noting that if the destination were S3, a gateway endpoint would be the better and cheaper answer than routing through NAT.
+
+**"Explain what happens when you type a URL and press enter."**
+The classic. Structure it by layer: DNS resolution (cache, resolver, recursion), TCP handshake to the resolved IP, TLS handshake with certificate validation, HTTP request, server processing, response, render. Depth matters less than showing you know the ordering and can name what fails at each stage.
+
+**"Your cloud bill has a large 'data transfer' line. Where do you look first?"**
+NAT gateway processing charges — often S3 traffic that should be using a gateway endpoint. Then cross-AZ traffic, commonly Spark shuffle spread across zones. Then cross-region reads where compute and storage ended up in different regions.
+
+**"How would you secure a data platform's network?"**
+Everything stateful in private subnets. Security groups referencing other security groups rather than CIDR ranges. VPC endpoints so service traffic never touches the internet. TLS everywhere in transit. No standing SSH access — use a session manager. Flow logs enabled for audit and forensics.
+
+---
+
+## Further Reading
+
+- [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/) — the clearest explanation of sockets and TCP
+- [High Performance Browser Networking](https://hpbn.co/) — free book by Ilya Grigorik; the TCP, TLS and HTTP/2 chapters are the best available
+- [AWS VPC documentation](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html)
+- [AWS: data transfer costs explained](https://aws.amazon.com/blogs/architecture/overview-of-data-transfer-costs-for-common-architectures/)
+- [Cloudflare Learning Center](https://www.cloudflare.com/learning/) — good short explainers on DNS, TLS and load balancing
+- [Kafka: listeners and advertised listeners](https://www.confluent.io/blog/kafka-listeners-explained/)

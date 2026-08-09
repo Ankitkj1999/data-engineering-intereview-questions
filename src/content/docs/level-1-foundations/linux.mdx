@@ -1,0 +1,566 @@
+---
+title: Linux
+description: Linux interview questions for data engineers covering the filesystem, permissions, processes and signals, text processing with grep/awk/sed, shell scripting, cron scheduling, and diagnosing disk, memory and CPU problems on production servers.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## Linux: The Environment Every Pipeline Runs On
+
+**Your Spark jobs run on Linux. Your Airflow scheduler runs on Linux. Your container images are Linux. When a job dies at 3am, the difference between a five-minute fix and a two-hour outage is usually whether you can read a log, check disk usage, find the process eating the memory, and kill it cleanly — which is exactly what these questions test.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Filesystem & Navigation](#filesystem--navigation)
+- [Permissions & Ownership](#permissions--ownership)
+- [Processes & Signals](#processes--signals)
+- [Text Processing](#text-processing)
+- [Shell Scripting](#shell-scripting)
+- [Cron & Scheduling](#cron--scheduling)
+- [Troubleshooting & Performance](#troubleshooting--performance)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Linux's organising idea is that **everything is a file** — regular files, directories, devices, sockets, and even running-process metadata under `/proc` all present the same read/write interface. That's what makes shell pipelines so powerful: any tool that reads bytes from standard input can be composed with any tool that writes bytes to standard output, regardless of what's on either end.
+
+Three ideas underpin most interview questions. **Processes** are isolated execution contexts with a PID, a parent, an owner, and a working directory; they communicate through signals, pipes, and files. **Permissions** are a triple of read/write/execute bits for owner, group, and everyone else, checked on every access. And **streams** — stdin (0), stdout (1), stderr (2) — are what redirection and piping manipulate, which is why `2>&1` shows up in every production job definition.
+
+---
+
+## Filesystem & Navigation
+
+<QuestionList topic="Filesystem & Navigation" storagePrefix="linux-filesystem">
+
+<QuestionCard id="lnx-fs-01" number={1} question="Describe the standard Linux directory layout." difficulty="easy" topic="Filesystem">
+- **`/`** — root of the single unified tree; there are no drive letters.
+- **`/etc`** — system and application configuration files.
+- **`/var`** — variable data: logs (`/var/log`), spools, caches. Usually the first mount to fill up.
+- **`/home`** — user home directories.
+- **`/tmp`** — world-writable scratch space, typically cleared on reboot.
+- **`/opt`**, **`/usr/local`** — third-party and locally installed software.
+- **`/proc`**, **`/sys`** — virtual filesystems exposing kernel and process state as files.
+- **`/dev`** — device nodes.
+
+For a data engineer, `/var/log` and `/tmp` are the two that matter most in practice — the first is where you look when a job fails, the second is where a Spark shuffle quietly consumes 200 GB.
+</QuestionCard>
+
+<QuestionCard id="lnx-fs-02" number={2} question="What is the difference between a hard link and a symbolic link?" difficulty="medium" topic="Filesystem">
+A **hard link** is a second directory entry pointing at the same inode. Both names are equally "the file"; deleting one leaves the data intact until the last link is gone. Hard links can't cross filesystems and can't point at directories.
+
+A **symbolic link** (`ln -s`) is a small file containing a *path*. It can cross filesystems and point at directories, but breaks if the target is moved or deleted — a dangling symlink.
+
+Symlinks are what you'll actually use: a `current` symlink pointing at a versioned release directory makes deploys and rollbacks atomic.
+</QuestionCard>
+
+<QuestionCard id="lnx-fs-03" number={3} question="How do you find files on a system?" difficulty="easy" topic="Filesystem">
+```bash
+find /var/log -name "*.log" -mtime +7          # modified more than 7 days ago
+find /data -type f -size +1G                   # files over 1 GB
+find /tmp -type f -mtime +30 -delete           # clean up old scratch files
+find . -name "*.parquet" -exec ls -lh {} \;    # run a command per match
+```
+
+`find` walks the tree live, so it's accurate but slow on huge trees. `locate` queries a prebuilt database — near-instant but only as fresh as the last `updatedb`. `which` and `type` find executables on your `PATH`.
+</QuestionCard>
+
+<QuestionCard id="lnx-fs-04" number={4} question="How do you check disk usage, and why do df and du sometimes disagree?" difficulty="medium" topic="Filesystem">
+```bash
+df -h              # free space per mounted filesystem
+du -sh /var/log/*  # size of each item, summarised
+du -h --max-depth=1 /data | sort -rh | head    # biggest subdirectories
+```
+
+They disagree most often because a **deleted file is still held open by a running process**. `du` walks directory entries and no longer sees it; `df` asks the filesystem, which can't reclaim the blocks until the last file descriptor closes. Find the culprit with `lsof +L1`, then restart the process.
+
+The other cause is running out of **inodes** rather than bytes — millions of tiny files. `df -i` shows that, and it's a classic failure mode for pipelines writing small files per partition.
+</QuestionCard>
+
+<QuestionCard id="lnx-fs-05" number={5} question="How do you inspect a large log file without loading it into memory?" difficulty="easy" topic="Filesystem">
+```bash
+tail -f app.log              # follow new lines as they're written
+tail -n 100 app.log          # last 100 lines
+head -n 50 app.log
+less app.log                 # paged, searchable with /, doesn't read it all
+grep -n "ERROR" app.log | tail -20
+zcat archive.log.gz | grep "timeout"    # search compressed logs in place
+```
+
+`cat` on a 40 GB file is the mistake to avoid. `less` and `tail` read only what they need. For a running job, `tail -f` combined with `grep --line-buffered` gives you a live filtered view.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Permissions & Ownership
+
+<QuestionList topic="Permissions & Ownership" storagePrefix="linux-permissions">
+
+<QuestionCard id="lnx-perm-01" number={1} question="How do Linux file permissions work?" difficulty="easy" topic="Permissions">
+Every file has an owner, a group, and three permission triples — for **owner**, **group**, and **others** — each with read (r=4), write (w=2), execute (x=1).
+
+`ls -l` shows `-rwxr-xr--`: the leading character is the type (`-` file, `d` directory, `l` symlink), then the three triples. That example is `754`.
+
+On a **directory** the bits mean something different and this is a favourite follow-up: `r` lists the contents, `w` creates and deletes entries within it, and `x` allows traversing into it. You need `x` on every directory in a path to reach a file, which is why a file can be readable but inaccessible.
+</QuestionCard>
+
+<QuestionCard id="lnx-perm-02" number={2} question="What do chmod 755 and chmod 644 mean, and when do you use each?" difficulty="easy" topic="Permissions">
+- **755** (`rwxr-xr-x`) — owner can read/write/execute, everyone else can read and execute. The default for **directories and executable scripts**.
+- **644** (`rw-r--r--`) — owner can read and write, everyone else can read. The default for **regular files**.
+- **600** (`rw-------`) — owner only. Required for SSH private keys and credential files; SSH refuses to use a key that's group- or world-readable.
+
+Symbolic form is often clearer for a single change: `chmod +x deploy.sh`, `chmod g-w config.yaml`.
+</QuestionCard>
+
+<QuestionCard id="lnx-perm-03" number={3} question="What is the difference between chmod, chown, and chgrp?" difficulty="easy" topic="Permissions">
+- **`chmod`** — changes the permission bits.
+- **`chown`** — changes the owning user (`chown airflow file.py`), and optionally the group with `chown airflow:data file.py`.
+- **`chgrp`** — changes only the group.
+
+Add `-R` to recurse. Only root can give a file away to another user, which is why `chown` in a deploy script usually runs under `sudo`.
+</QuestionCard>
+
+<QuestionCard id="lnx-perm-04" number={4} question="What is umask?" difficulty="medium" topic="Permissions">
+`umask` is a mask of permission bits to **withhold** from newly created files. With the common default `022`, a new file gets `666 - 022 = 644` and a new directory `777 - 022 = 755`.
+
+It matters in shared pipeline environments: if a job writes output with a restrictive umask, the next job running as a different service account can't read it. Setting `umask 002` in the service's environment makes group-writable output the default, which is usually what a shared data directory needs.
+</QuestionCard>
+
+<QuestionCard id="lnx-perm-05" number={5} question="What are the setuid, setgid, and sticky bits?" difficulty="hard" topic="Permissions">
+- **setuid** (`chmod u+s`) — an executable runs with the *owner's* privileges rather than the caller's. Powerful and a classic privilege-escalation vector; avoid unless you must.
+- **setgid** on a directory (`chmod g+s`) — new files inside inherit the directory's **group** instead of the creator's primary group. Genuinely useful for shared data directories, since it keeps group ownership consistent no matter who writes.
+- **sticky bit** (`chmod +t`) — on a world-writable directory, only the file's owner can delete it. This is why `/tmp` is `1777` and users can't remove each other's files.
+</QuestionCard>
+
+<QuestionCard id="lnx-perm-06" number={6} question="What is sudo and how does it differ from logging in as root?" difficulty="easy" topic="Security">
+`sudo` runs a single command as another user (root by default) after authenticating as *yourself*, subject to rules in `/etc/sudoers`. Every invocation is logged with who ran what.
+
+Compared to a shared root login, that gives you accountability, least privilege (grant only specific commands), and no shared password to rotate. `sudo -i` opens a root shell when you genuinely need a session. On managed infrastructure, prefer configuration management or a deploy pipeline over interactive sudo entirely.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Processes & Signals
+
+<QuestionList topic="Processes & Signals" storagePrefix="linux-processes">
+
+<QuestionCard id="lnx-proc-01" number={1} question="How do you list and inspect running processes?" difficulty="easy" topic="Processes">
+```bash
+ps aux                      # every process, with user, CPU, memory
+ps -ef --forest             # tree view showing parent/child
+top                         # live, sorted by CPU
+htop                        # nicer interactive version
+pgrep -af spark             # PIDs plus command line, matching a pattern
+```
+
+Read `ps aux` columns in this order for triage: `%MEM` and `RSS` (real memory used), `%CPU`, `STAT` (state), and `START`/`TIME` (how long it's been burning CPU). `RSS` is the number that matters when you're hunting an out-of-memory kill.
+</QuestionCard>
+
+<QuestionCard id="lnx-proc-02" number={2} question="What is the difference between SIGTERM and SIGKILL?" difficulty="medium" topic="Signals">
+**SIGTERM (15)** is the polite request, and the default for `kill`. The process receives it and can run a handler — flush buffers, commit an offset, close a database connection, remove a lock file — then exit cleanly.
+
+**SIGKILL (9)** is handled by the kernel; the process never sees it and cannot trap or ignore it. It dies immediately with no cleanup, which for a data job can mean a half-written file, an uncommitted Kafka offset, or a stale lock.
+
+Always send SIGTERM first, wait, and escalate to SIGKILL only if the process is genuinely stuck. Reaching for `kill -9` reflexively is a red flag in an interview.
+</QuestionCard>
+
+<QuestionCard id="lnx-proc-03" number={3} question="What other signals should you know?" difficulty="medium" topic="Signals">
+- **SIGHUP (1)** — originally "terminal closed"; conventionally repurposed by daemons to mean *reload your configuration* without restarting.
+- **SIGINT (2)** — what Ctrl+C sends; catchable, so a script can clean up.
+- **SIGSTOP / SIGCONT (19/18)** — suspend and resume; SIGSTOP is uncatchable like SIGKILL.
+- **SIGQUIT (3)** — quit and dump core. On a JVM process it triggers a **thread dump**, which is the quickest way to see where a hung Spark driver is stuck.
+- **SIGPIPE (13)** — write to a closed pipe. This is why `head` on a long pipeline kills the upstream command.
+</QuestionCard>
+
+<QuestionCard id="lnx-proc-04" number={4} question="What is a zombie process, and how do you get rid of one?" difficulty="medium" topic="Processes">
+A zombie (`STAT` of `Z`) has already exited, but its parent hasn't called `wait()` to collect the exit status, so the kernel keeps a small entry in the process table.
+
+Zombies use no CPU or memory — just a table slot. A handful is harmless; thousands mean a buggy parent that isn't reaping children, and can exhaust the PID table.
+
+You cannot kill a zombie, since it's already dead. **Kill or fix the parent** — when the parent exits, the zombies are re-parented to init/systemd, which reaps them immediately. This is exactly why containers need proper init handling (`--init`, or `tini`) when PID 1 is an application that doesn't reap.
+</QuestionCard>
+
+<QuestionCard id="lnx-proc-05" number={5} question="How do you run a job so it survives your SSH session ending?" difficulty="medium" topic="Processes">
+```bash
+nohup python etl.py > etl.log 2>&1 &     # ignore SIGHUP, redirect output
+tmux new -s etl                          # or screen — a detachable session
+```
+
+`nohup ... &` is fine for fire-and-forget. **tmux** is better for anything you want to watch, because you can detach (`Ctrl+b d`) and reattach later (`tmux attach -t etl`) with the terminal still live.
+
+The real answer for production, though, is neither: use **systemd**, a scheduler like Airflow, or a container orchestrator, so the job is supervised, restarted on failure, and logged centrally rather than depending on someone's laptop staying connected.
+</QuestionCard>
+
+<QuestionCard id="lnx-proc-06" number={6} question="What are nice values and how do they affect scheduling?" difficulty="medium" topic="Processes">
+The nice value ranges from **-20 (highest priority)** to **19 (lowest)**, defaulting to 0. Higher niceness means the process is "nicer" to others and yields CPU more readily.
+
+```bash
+nice -n 10 python heavy_backfill.py    # start it deprioritised
+renice -n 5 -p 12345                   # change a running process
+```
+
+Only root can set a negative value. Useful for keeping a large backfill from starving interactive queries on a shared box — though note it only affects **CPU** scheduling. For I/O contention, `ionice` is the equivalent knob.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Text Processing
+
+<QuestionList topic="Text Processing" storagePrefix="linux-text-processing">
+
+<QuestionCard id="lnx-text-01" number={1} question="What are the most useful grep options?" difficulty="easy" topic="grep">
+```bash
+grep -i "error" app.log        # case-insensitive
+grep -v "DEBUG" app.log        # invert — everything that doesn't match
+grep -r "TODO" src/            # recursive
+grep -n "timeout" app.log      # show line numbers
+grep -c "ERROR" app.log        # count matching lines
+grep -A 5 -B 2 "Exception" app.log   # 5 lines after, 2 before — the stack trace
+grep -E "ERROR|FATAL" app.log  # extended regex
+grep -o "user_id=[0-9]*" app.log     # print only the match
+```
+
+`-A`/`-B`/`-C` are the ones that separate someone who has actually debugged a production log from someone who hasn't — an exception line alone is useless without its trace.
+</QuestionCard>
+
+<QuestionCard id="lnx-text-02" number={2} question="When would you use awk over grep or cut?" difficulty="medium" topic="awk">
+`awk` splits each line into fields and runs a small program per line, so it handles anything involving **columns plus logic**.
+
+```bash
+awk '{print $1, $4}' access.log                  # print specific columns
+awk -F',' '$3 > 1000 {print $1}' data.csv        # filter on a numeric field
+awk -F',' '{sum += $2} END {print sum}' data.csv # aggregate a column
+awk 'NR % 100 == 0' huge.csv                     # sample every 100th line
+awk -F',' '{count[$2]++} END {for (k in count) print k, count[k]}' data.csv
+```
+
+Use `cut` for simple fixed-delimiter extraction, `grep` for matching, `awk` the moment you need arithmetic, conditionals, or grouping. It's a genuinely fast way to sanity-check a multi-gigabyte CSV before loading it.
+</QuestionCard>
+
+<QuestionCard id="lnx-text-03" number={3} question="What is sed used for?" difficulty="medium" topic="sed">
+Stream editing — transforming text as it flows past, most often substitution:
+
+```bash
+sed 's/old/new/' file.txt         # first occurrence per line
+sed 's/old/new/g' file.txt        # all occurrences
+sed -i.bak 's/dev/prod/g' config.yaml   # edit in place, keeping a .bak
+sed -n '100,200p' huge.log        # print only lines 100-200
+sed '/^#/d' config.conf           # delete comment lines
+sed '1d' data.csv                 # strip the header row
+```
+
+`sed -n '100,200p'` on an enormous file is far cheaper than opening it in an editor. Always use `-i.bak` rather than bare `-i` — an in-place edit with a wrong regex is otherwise unrecoverable.
+</QuestionCard>
+
+<QuestionCard id="lnx-text-04" number={4} question="How do you sort, deduplicate, and count values from a text file?" difficulty="easy" topic="Pipelines">
+```bash
+sort data.txt | uniq                  # uniq only removes ADJACENT duplicates
+sort data.txt | uniq -c | sort -rn    # frequency count, most common first
+sort -t',' -k3 -n data.csv            # sort by 3rd field, numerically
+sort -u data.txt                      # sort and dedupe in one pass
+cut -d',' -f2 data.csv | sort | uniq -c | sort -rn | head    # top values in a column
+```
+
+The trap is that **`uniq` requires sorted input** — it only collapses adjacent duplicates. `sort | uniq -c | sort -rn` is the canonical "what are the most frequent values" idiom and comes up constantly.
+</QuestionCard>
+
+<QuestionCard id="lnx-text-05" number={5} question="How would you count rows and inspect the structure of a large CSV from the shell?" difficulty="medium" topic="Pipelines">
+```bash
+wc -l data.csv                        # line count (includes the header)
+head -1 data.csv | tr ',' '\n' | nl   # numbered list of column names
+awk -F',' 'NF != 12' data.csv | head  # rows with the wrong field count
+cut -d',' -f5 data.csv | sort -u | head -20    # distinct values in column 5
+awk -F',' '$3 == "" {c++} END {print c}' data.csv   # nulls in column 3
+```
+
+The `NF != 12` check is the useful one — it finds malformed rows, usually caused by unescaped commas inside quoted fields. If the file has quoted embedded delimiters, switch to a real CSV parser (`csvkit`, `duckdb`, `pandas`); naive field splitting will lie to you.
+</QuestionCard>
+
+<QuestionCard id="lnx-text-06" number={6} question="What do the pipe, redirection, and 2>&1 operators do?" difficulty="medium" topic="Streams">
+```bash
+cmd > out.txt        # stdout to a file, overwriting
+cmd >> out.txt       # append instead
+cmd 2> err.txt       # stderr only
+cmd > out.txt 2>&1   # stdout to file, then stderr to the same place
+cmd &> out.txt       # bash shorthand for the same
+cmd1 | cmd2          # stdout of cmd1 into stdin of cmd2
+cmd < input.txt      # file as stdin
+cmd 2>/dev/null      # discard errors
+```
+
+**Order matters** in `> out.txt 2>&1`: it redirects stdout to the file, *then* points stderr at wherever stdout now goes. Writing `2>&1 > out.txt` sends stderr to the terminal instead — a classic bug in job definitions where the error output vanishes precisely when you need it.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Shell Scripting
+
+<QuestionList topic="Shell Scripting" storagePrefix="linux-shell-scripting">
+
+<QuestionCard id="lnx-shell-01" number={1} question="What is a shebang, and why does it matter?" difficulty="easy" topic="Scripting">
+The first line of a script, telling the kernel which interpreter to run it with:
+
+```bash
+#!/bin/bash
+#!/usr/bin/env python3
+```
+
+The `env` form searches your `PATH`, so it picks up the Python in an active virtualenv rather than a hard-coded system path — which is why it's preferred for Python. The script also needs the execute bit (`chmod +x`) for the shebang to be used at all.
+</QuestionCard>
+
+<QuestionCard id="lnx-shell-02" number={2} question="What does set -euo pipefail do, and why should every production script start with it?" difficulty="medium" topic="Scripting">
+```bash
+set -euo pipefail
+```
+
+- **`-e`** — exit immediately if any command returns non-zero.
+- **`-u`** — treat an unset variable as an error rather than an empty string.
+- **`-o pipefail`** — a pipeline fails if *any* stage fails, not just the last one.
+
+Without these, a script silently continues after a failed step. The `pipefail` part is the one people miss: `curl bad-url | psql` would otherwise report success because `psql` exited 0. Without `-u`, a typo in a variable name expands to an empty string — and `rm -rf "$PREFIX/"` with an unset prefix is how people delete root.
+</QuestionCard>
+
+<QuestionCard id="lnx-shell-03" number={3} question="Why should you quote your variables?" difficulty="medium" topic="Scripting">
+An unquoted variable undergoes word splitting and glob expansion. If `FILE` contains `my data.csv`, then `rm $FILE` tries to remove two files — `my` and `data.csv`. If it contains `*`, it expands to every file in the directory.
+
+Always write `"$FILE"`. Use `"${FILE}"` when the name is adjacent to other characters, as in `"${FILE}_backup"`. Prefer `"$@"` over `$*` when forwarding arguments, since `"$@"` preserves each argument as a separate word.
+
+Running **ShellCheck** catches this class of bug automatically and is worth naming as a practice.
+</QuestionCard>
+
+<QuestionCard id="lnx-shell-04" number={4} question="How do exit codes work, and how do you use them?" difficulty="easy" topic="Scripting">
+Every command returns 0 for success and 1–255 for failure. `$?` holds the last exit code.
+
+```bash
+python etl.py
+if [ $? -ne 0 ]; then
+  echo "ETL failed" >&2
+  exit 1
+fi
+
+# more idiomatic:
+python etl.py || { echo "ETL failed" >&2; exit 1; }
+```
+
+Schedulers depend on this entirely — Airflow, cron, and Kubernetes all decide success or failure from the exit code. A script that catches an error, prints a message, and then exits 0 is invisible to your scheduler, which is one of the more common ways a broken pipeline goes unnoticed for a week.
+</QuestionCard>
+
+<QuestionCard id="lnx-shell-05" number={5} question="How do you make a script clean up after itself, even on failure?" difficulty="medium" topic="Scripting">
+Use `trap` to run a handler on exit or on a signal:
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+TMPDIR=$(mktemp -d)
+cleanup() {
+  rm -rf "$TMPDIR"
+}
+trap cleanup EXIT
+```
+
+`trap ... EXIT` fires on normal exit, on an error under `set -e`, and on SIGTERM — so the temp directory is removed no matter how the script ends. Without it, a failing job leaves scratch files behind and eventually fills the disk, which is a genuinely common production incident.
+</QuestionCard>
+
+<QuestionCard id="lnx-shell-06" number={6} question="How do you make a scheduled script safe to run twice concurrently?" difficulty="hard" topic="Scripting">
+Use a lock so the second instance refuses to start:
+
+```bash
+exec 200>/var/lock/etl.lock
+flock -n 200 || { echo "Already running"; exit 0; }
+```
+
+`flock` takes a lock on a file descriptor and releases it automatically when the process exits — including on a crash, unlike a hand-rolled PID file that goes stale.
+
+This matters because a cron job scheduled every 15 minutes that occasionally takes 20 will overlap itself, and two concurrent writers to the same output partition produce duplicates or corruption. Exiting 0 when the lock is held (rather than 1) avoids alert noise for what is expected behaviour.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Cron & Scheduling
+
+<QuestionList topic="Cron & Scheduling" storagePrefix="linux-cron">
+
+<QuestionCard id="lnx-cron-01" number={1} question="Explain cron syntax." difficulty="easy" topic="cron">
+Five time fields, then the command:
+
+```
+┌── minute (0-59)
+│ ┌── hour (0-23)
+│ │ ┌── day of month (1-31)
+│ │ │ ┌── month (1-12)
+│ │ │ │ ┌── day of week (0-7, 0 and 7 are Sunday)
+│ │ │ │ │
+* * * * *  command
+```
+
+```bash
+0 2 * * *        # daily at 02:00
+*/15 * * * *     # every 15 minutes
+0 9 * * 1-5      # 09:00 on weekdays
+0 0 1 * *        # midnight on the 1st of each month
+```
+
+The gotcha: if **both** day-of-month and day-of-week are restricted, cron runs when *either* matches, not both.
+</QuestionCard>
+
+<QuestionCard id="lnx-cron-02" number={2} question="Why does a script work in your shell but fail under cron?" difficulty="medium" topic="cron">
+Because **cron runs with a minimal environment**. It's the single most common cron problem.
+
+Your interactive shell sources `.bashrc`/`.profile`, so it has a full `PATH`, an activated virtualenv, and exported credentials. Cron typically gives you `PATH=/usr/bin:/bin`, no virtualenv, and none of your exports.
+
+Fixes: use absolute paths for every binary and file, set the variables you need explicitly at the top of the crontab, or have the cron entry source an environment file first. Debug it by capturing everything — `* * * * * /path/script.sh >> /tmp/cron.log 2>&1` — and comparing `env` output between the two contexts.
+</QuestionCard>
+
+<QuestionCard id="lnx-cron-03" number={3} question="How do you manage and inspect cron jobs?" difficulty="easy" topic="cron">
+```bash
+crontab -l           # list the current user's jobs
+crontab -e           # edit them
+crontab -r           # remove ALL of them — dangerously adjacent to -e
+sudo crontab -l -u airflow    # another user's jobs
+```
+
+System-wide jobs also live in `/etc/crontab`, `/etc/cron.d/`, and the `/etc/cron.{hourly,daily,weekly}` directories — worth checking when hunting a mystery job, since `crontab -l` won't show them. Logs are usually in `/var/log/syslog` or `/var/log/cron`.
+</QuestionCard>
+
+<QuestionCard id="lnx-cron-04" number={4} question="What are the limitations of cron for data pipelines, and what would you use instead?" difficulty="medium" topic="Scheduling">
+Cron has no concept of:
+
+- **Dependencies** — it can't express "run this only after the ingest finishes."
+- **Retries** or backoff on failure.
+- **Backfills** — no way to re-run a date range.
+- **Visibility** — no run history, no UI, no lineage.
+- **Alerting** — a failure is silent unless you build it yourself.
+- **Overlap protection** — you must add `flock` by hand.
+- **Distribution** — it's tied to one machine, which is a single point of failure.
+
+For real pipelines use **Airflow**, **Dagster**, or **Prefect**, which are built around exactly these gaps. Cron is still fine for simple, independent, self-contained maintenance tasks — and `systemd` timers are a better cron than cron, with proper logging and dependency handling.
+</QuestionCard>
+
+<QuestionCard id="lnx-cron-05" number={5} question="What is a systemd timer and why might you prefer it to cron?" difficulty="medium" topic="Scheduling">
+A systemd timer unit triggers a service unit on a schedule. Compared to cron it gives you:
+
+- **Centralised logging** through journald (`journalctl -u myjob.service`).
+- **Dependency ordering** — start only after the network or a mount is ready.
+- **`Persistent=true`** — runs a missed job after the machine was off, which cron never does.
+- **Resource limits** — CPU and memory caps per job.
+- **Randomised delays** to avoid a thundering herd across a fleet.
+- Real status inspection with `systemctl status`.
+
+The cost is more configuration: two unit files instead of one crontab line.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Troubleshooting & Performance
+
+<QuestionList topic="Troubleshooting & Performance" storagePrefix="linux-troubleshooting">
+
+<QuestionCard id="lnx-diag-01" number={1} question="A production server is slow. How do you diagnose it?" difficulty="hard" topic="Troubleshooting">
+Work through the four resources in order:
+
+1. **Load and CPU** — `uptime` for the 1/5/15-minute load averages, `top` for the biggest consumers. Compare load to core count (`nproc`): load 8 on 8 cores is saturated, on 32 cores it's fine.
+2. **Memory** — `free -h`. Check whether swap is in use; heavy swapping is usually the real cause. Then `dmesg | grep -i "killed process"` for OOM kills.
+3. **Disk** — `df -h` for space, `df -i` for inodes, `iostat -x 1` for utilisation and await. High `%util` with high `await` means the disk is the bottleneck.
+4. **Network** — `ss -s` for socket summary, `ss -tunap` for what's connected.
+
+The structure matters more than the specific commands: name the resource, name the tool, name what number would confirm it.
+</QuestionCard>
+
+<QuestionCard id="lnx-diag-02" number={2} question="How do you read load average?" difficulty="medium" topic="Troubleshooting">
+`uptime` shows three numbers — the average number of processes **running or waiting** over the last 1, 5, and 15 minutes.
+
+Interpret it relative to core count: 4.0 on a 4-core machine means fully utilised; 16.0 on 4 cores means heavily oversubscribed. The three values show the trend — 1-minute far above 15-minute means the problem is growing right now.
+
+The subtlety that distinguishes a strong answer: on Linux, load includes processes blocked in **uninterruptible I/O wait**, not just CPU. So a machine with idle CPUs can still show a load of 20 if it's stuck on a slow disk or a hung NFS mount.
+</QuestionCard>
+
+<QuestionCard id="lnx-diag-03" number={3} question="How do you interpret the output of free -h?" difficulty="medium" topic="Memory">
+The number people misread is **`free`**. Linux deliberately uses spare RAM for the page cache, so `free` is usually small on a healthy long-running server — that's good, not bad.
+
+Look at **`available`** instead: it estimates what a new process could get, including reclaimable cache. If `available` is healthy, you have memory.
+
+Then check the **swap** row. Steady swap usage with active paging (visible as `si`/`so` in `vmstat 1`) is genuine memory pressure and will destroy your job's performance.
+</QuestionCard>
+
+<QuestionCard id="lnx-diag-04" number={4} question="Your Spark job was killed but the logs show no error. What happened?" difficulty="hard" topic="Troubleshooting">
+Most likely the **OOM killer**. When the kernel can't satisfy an allocation, it picks a victim by score — usually the largest-memory process, which is your executor — and sends an uncatchable SIGKILL. The application gets no chance to log anything, so its own logs simply stop.
+
+Confirm with:
+
+```bash
+dmesg -T | grep -i "killed process"
+grep -i "out of memory" /var/log/syslog
+```
+
+In Kubernetes or YARN the equivalent is a container exceeding its memory limit, showing up as exit code **137** (128 + 9, i.e. SIGKILL) and a reason of `OOMKilled`.
+
+Fixes depend on the cause: raise the executor memory limit, reduce partition size, fix a skewed join, or stop collecting a large result to the driver.
+</QuestionCard>
+
+<QuestionCard id="lnx-diag-05" number={5} question="How do you find what is using a port, or which files a process has open?" difficulty="medium" topic="Troubleshooting">
+```bash
+ss -tunlp | grep 8080         # what's listening on a port
+lsof -i :8080                 # same, with process details
+lsof -p 12345                 # every file open by a PID
+lsof +D /data                 # every process using a directory
+lsof +L1                      # deleted files still held open
+fuser -k 8080/tcp             # kill whatever holds the port
+```
+
+`ss` has replaced the older `netstat` on modern systems. `lsof +L1` is the one that solves the "df says full, du says empty" mystery, and `lsof +D` tells you why a mount point is busy and won't unmount.
+</QuestionCard>
+
+<QuestionCard id="lnx-diag-06" number={6} question="A job that normally takes 10 minutes has been running for 3 hours. How do you find out where it's stuck?" difficulty="hard" topic="Troubleshooting">
+1. **Is it doing anything?** `top` — burning CPU, or idle at 0%? Idle means it's blocked, not looping.
+2. **Blocked on what?** `cat /proc/<pid>/status` for state, and `cat /proc/<pid>/wchan` for the kernel function it's waiting in.
+3. **What is it actually calling?** `strace -p <pid>` shows live system calls — a repeated `read` on a socket means it's waiting on a network response, most often a database or an API that never timed out.
+4. **Where in the code?** For a JVM process, `jstack <pid>` (or `kill -3`) gives a thread dump. For Python, `py-spy dump --pid <pid>` gives a stack trace without stopping the process.
+5. **Waiting on a lock?** Check the database for blocking sessions — a long-held transaction is a frequent culprit.
+
+The two most common real answers: a missing timeout on a network call, or lock contention in the target database.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"The disk is full. Walk me through it."**
+`df -h` to find which mount. `du -h --max-depth=1 /path | sort -rh | head` to descend to the biggest directory. Check for the two non-obvious causes — deleted-but-open files (`lsof +L1`) and inode exhaustion (`df -i`). Then fix: rotate logs, clear old scratch data, and set up `logrotate` so it doesn't recur.
+
+**"Find the top 10 IP addresses in a 50 GB access log."**
+`awk '{print $1}' access.log | sort | uniq -c | sort -rn | head -10`. The follow-up is usually about scale — note that `sort` spills to disk and can be tuned with `-S` and `--parallel`, and that at this size you'd realistically reach for a proper tool.
+
+**"How do you copy 500 GB between two servers safely?"**
+`rsync -avz --progress --partial source/ user@host:/dest/`. The important properties: `--partial` and rsync's resume capability mean an interrupted transfer doesn't restart from zero, and a second run transfers only differences. Run it under `tmux` so a dropped SSH session doesn't kill it.
+
+**"What's the first thing you check when a scheduled job silently stopped running?"**
+Confirm it's still scheduled (`crontab -l`, or the scheduler UI). Then check whether it ran and failed versus never started — cron logs in `/var/log/syslog`, or the job's own log. The classic causes are a full disk, an expired credential, and a script that fails but exits 0.
+
+---
+
+## Further Reading
+
+- [The Linux Command Line](https://linuxcommand.org/tlcl.php) — free book, the best starting point
+- [Linux Filesystem Hierarchy Standard](https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html)
+- [Brendan Gregg: Linux Performance](https://www.brendangregg.com/linuxperf.html) — the reference for diagnosing slow systems
+- [ShellCheck](https://www.shellcheck.net/) — catches the quoting and portability bugs described above
+- [explainshell.com](https://explainshell.com/) — paste any command and get each flag explained
+- [crontab.guru](https://crontab.guru/) — sanity-check a cron expression

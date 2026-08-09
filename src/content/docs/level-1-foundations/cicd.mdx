@@ -1,0 +1,461 @@
+---
+title: CI/CD
+description: CI/CD interview questions covering continuous integration and delivery fundamentals, GitHub Actions, GitLab CI, ArgoCD and GitOps, plus the deployment, testing and rollback patterns specific to data pipelines.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## CI/CD: Shipping Pipeline Changes Without Breaking Production
+
+**Data pipelines have a property application code doesn't: a bad deploy doesn't just fail, it writes wrong numbers into tables people have already built dashboards on. Rolling back the code doesn't undo the rows. That makes CI/CD questions for data engineers less about YAML syntax and more about how you test a transformation before it touches production data — and what you do when it gets through anyway.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [CI/CD Fundamentals](#cicd-fundamentals)
+- [GitHub Actions](#github-actions)
+- [GitLab CI](#gitlab-ci)
+- [ArgoCD & GitOps](#argocd--gitops)
+- [CI/CD for Data Pipelines](#cicd-for-data-pipelines)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+**Continuous Integration** is the practice of merging everyone's work into a shared branch frequently — at least daily — with an automated build and test suite verifying each merge. The point isn't the tooling; it's that integration problems surface in hours instead of at the end of a three-week branch.
+
+**Continuous Delivery** extends that so every commit that passes is *deployable*, with the actual release being a business decision. **Continuous Deployment** removes the manual gate entirely — passing the pipeline means it ships. Most data teams practise continuous delivery with a manual promotion to production, because the blast radius of a bad transformation is high and often invisible until someone questions a number on a dashboard.
+
+The unit that moves through all of this is an **artefact** — a container image, a wheel, a bundle of DAGs — built once and promoted unchanged through environments. Rebuilding per environment breaks the core guarantee that what you tested is what you deployed.
+
+---
+
+## CI/CD Fundamentals
+
+<QuestionList topic="CI/CD Fundamentals" storagePrefix="cicd-fundamentals">
+
+<QuestionCard id="cicd-fund-01" number={1} question="What is the difference between continuous integration, continuous delivery, and continuous deployment?" difficulty="easy" topic="Fundamentals">
+- **Continuous Integration** — every change is merged to the mainline frequently and automatically built and tested. Scope: verifying the code is sound.
+- **Continuous Delivery** — every change that passes CI is automatically prepared for release and *could* be deployed at any time, but a human presses the button.
+- **Continuous Deployment** — the same, minus the button. Passing the pipeline deploys to production.
+
+The two "CD"s get confused constantly; the distinction is precisely whether a human approves the production release. Data teams usually stop at continuous *delivery* for production transformations while running continuous *deployment* to dev and staging.
+</QuestionCard>
+
+<QuestionCard id="cicd-fund-02" number={2} question="What stages belong in a typical CI pipeline?" difficulty="easy" topic="Fundamentals">
+1. **Checkout** the code.
+2. **Install dependencies**, ideally from a cache.
+3. **Lint and format check** — fast, catches trivia before expensive stages.
+4. **Static analysis / type checking** — `mypy`, `ruff`, security linting.
+5. **Unit tests** with coverage.
+6. **Build the artefact** — container image, package.
+7. **Integration tests** against real dependencies in containers.
+8. **Security scanning** — dependency CVEs, secret detection, image scanning.
+9. **Publish** the artefact to a registry.
+
+Order them **fastest and most likely to fail first**. A linting error should fail in 20 seconds, not after a 12-minute test suite — this "fail fast" ordering is a standard follow-up.
+</QuestionCard>
+
+<QuestionCard id="cicd-fund-03" number={3} question="What makes a good CI pipeline?" difficulty="medium" topic="Best Practices">
+- **Fast** — under ten minutes for the pull request path, or people stop waiting and start merging around it.
+- **Reliable** — no flaky tests. A suite that fails randomly trains everyone to re-run until green, which destroys its value entirely.
+- **Deterministic** — pinned dependencies, no reliance on external services that can be down.
+- **Isolated** — each run starts clean; no state leaks between runs.
+- **Informative** — a failure tells you what broke and where, without digging through 4,000 lines of log.
+- **Build once, promote** — the same artefact through every environment.
+
+Flakiness is the answer interviewers most want to hear named, because it's the failure mode that quietly kills a team's trust in its own tests.
+</QuestionCard>
+
+<QuestionCard id="cicd-fund-04" number={4} question="How do you manage secrets in a CI/CD pipeline?" difficulty="medium" topic="Security">
+- Store them in the platform's **encrypted secret store** (GitHub Actions secrets, GitLab CI variables, Vault), never in the repository.
+- **Scope them** — environment-level secrets, so a pull request pipeline can't touch production credentials.
+- **Mask them in logs**, while knowing masking is best-effort: a secret that gets base64-encoded or split across lines can still leak.
+- Prefer **short-lived credentials via OIDC** — GitHub Actions and GitLab can exchange a signed identity token for a temporary cloud role, so no long-lived key is stored anywhere. This is the modern best-practice answer.
+- **Never expose secrets to pull requests from forks**, or anyone can open a PR that prints them.
+- Rotate on any suspicion, and run secret scanning in CI.
+</QuestionCard>
+
+<QuestionCard id="cicd-fund-05" number={5} question="What deployment strategies do you know?" difficulty="medium" topic="Deployment">
+- **Recreate** — stop the old, start the new. Simple, with downtime.
+- **Rolling** — replace instances gradually. No downtime, but two versions run simultaneously, so changes must be backward compatible.
+- **Blue-green** — run two full environments and switch traffic at once. Instant rollback by switching back, at the cost of double the infrastructure.
+- **Canary** — send a small percentage of traffic to the new version, watch metrics, then ramp up. Best risk control, most complexity.
+- **Feature flags** — deploy the code dark and enable it separately, decoupling deploy from release.
+
+For data pipelines the analogue of blue-green is **writing to a parallel table** and swapping a view or pointer once you've validated the output — the same idea applied to data rather than traffic.
+</QuestionCard>
+
+<QuestionCard id="cicd-fund-06" number={6} question="Why should you build an artifact once and promote it?" difficulty="medium" topic="Best Practices">
+The artefact is the immutable output of CI — typically a container image tagged with the commit SHA.
+
+**Build once, then promote the identical artefact** through dev, staging and production. If you rebuild per environment you've lost the guarantee that what you tested is what you're running: a transitive dependency could have published a new version between builds, a base image could have shifted, a build could simply be non-deterministic. Bugs that appear only in production and can't be reproduced elsewhere often trace back to exactly this.
+
+Environment differences belong in **configuration injected at runtime**, not baked into the artefact.
+</QuestionCard>
+
+<QuestionCard id="cicd-fund-07" number={7} question="What is a flaky test and how do you deal with one?" difficulty="medium" topic="Best Practices">
+A test that passes and fails on the same code. Common causes: dependence on wall-clock time or timezone, test-execution order coupling, shared mutable state, unhandled concurrency, or reliance on a live external service.
+
+The wrong response is adding an automatic retry and moving on — that hides the flake and, occasionally, a real intermittent bug.
+
+Do instead: **quarantine** it out of the blocking suite immediately so it stops eroding trust, file it as a defect with an owner, and fix the root cause. Data pipelines flake most often on hard-coded dates and on tests hitting a shared database — freeze time explicitly and give each run its own schema.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## GitHub Actions
+
+<QuestionList topic="GitHub Actions" storagePrefix="cicd-github-actions">
+
+<QuestionCard id="cicd-gha-01" number={1} question="Explain the structure of a GitHub Actions workflow." difficulty="easy" topic="GitHub Actions">
+A YAML file in `.github/workflows/`. The hierarchy is **workflow → jobs → steps**.
+
+```yaml
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: pytest --cov=src
+```
+
+**Jobs run in parallel by default**, each on a fresh runner, so they share no filesystem state. Steps run sequentially within a job. Use `needs:` to order jobs and `actions/upload-artifact` to pass files between them.
+</QuestionCard>
+
+<QuestionCard id="cicd-gha-02" number={2} question="What events can trigger a workflow?" difficulty="easy" topic="GitHub Actions">
+```yaml
+on:
+  push:
+    branches: [main]
+    paths: ["dags/**", "src/**"]     # only when these change
+  pull_request:
+  schedule:
+    - cron: "0 6 * * *"              # nightly, in UTC
+  workflow_dispatch:                  # manual, with optional inputs
+  release:
+    types: [published]
+  workflow_call:                      # reusable, called by another workflow
+```
+
+Two worth knowing for data work: **`paths` filters** stop a monorepo from running every test on every change, and **`workflow_dispatch`** gives you a manual button with typed inputs — the natural way to expose a parameterised backfill to the team without granting console access.
+</QuestionCard>
+
+<QuestionCard id="cicd-gha-03" number={3} question="How do you speed up a slow GitHub Actions workflow?" difficulty="medium" topic="GitHub Actions">
+- **Cache dependencies** — `actions/setup-python` with `cache: pip`, or `actions/cache` keyed on a lockfile hash.
+- **Parallelise** — split independent work into separate jobs, and use a `matrix` to fan out across versions.
+- **Filter by path** so unrelated changes don't trigger everything.
+- **Cache Docker layers** with `docker/build-push-action` and a registry or GitHub Actions cache backend.
+- **Cancel superseded runs** with a `concurrency` group, so three quick pushes don't run three full pipelines.
+- **Split the pipeline** — fast checks on every push, the expensive suite on the merge queue or nightly.
+- **Use larger or self-hosted runners** for genuinely heavy jobs.
+
+Measure before optimising: the timing breakdown in the run view usually shows one dominant step.
+</QuestionCard>
+
+<QuestionCard id="cicd-gha-04" number={4} question="What is the difference between GitHub-hosted and self-hosted runners?" difficulty="medium" topic="GitHub Actions">
+**GitHub-hosted** — a clean ephemeral VM per job, maintained by GitHub, billed per minute. Zero maintenance, guaranteed isolation, but limited resources and no access to your private network.
+
+**Self-hosted** — machines you run. Needed when jobs must reach a private database or VPC, require specific hardware (GPUs, lots of RAM for a Spark test), or when the minute-billing at high volume outweighs the maintenance cost. They also keep a warm dependency cache.
+
+The critical caveat: **never use self-hosted runners on a public repository**. A fork's pull request can execute arbitrary code on your machine, and because self-hosted runners are not ephemeral by default, one job can leave state that the next one picks up.
+</QuestionCard>
+
+<QuestionCard id="cicd-gha-05" number={5} question="How do you use secrets and environments in GitHub Actions?" difficulty="medium" topic="GitHub Actions">
+```yaml
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production        # gates + environment-scoped secrets
+    permissions:
+      id-token: write              # for OIDC
+      contents: read
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/deploy
+          aws-region: eu-west-1
+      - run: ./deploy.sh
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+```
+
+**Environments** are the important feature: they scope secrets to a deployment target and can require manual approval, restrict which branches may deploy, and enforce a wait timer. The OIDC pattern above is preferred over stored access keys — the workflow assumes a role with a short-lived token, so there's no static credential to leak or rotate.
+</QuestionCard>
+
+<QuestionCard id="cicd-gha-06" number={6} question="What is a matrix strategy?" difficulty="easy" topic="GitHub Actions">
+It runs the same job across a set of parameter combinations, in parallel.
+
+```yaml
+strategy:
+  fail-fast: false
+  matrix:
+    python-version: ["3.10", "3.11", "3.12"]
+    spark-version: ["3.4", "3.5"]
+```
+
+That produces six jobs. For data engineering it's the standard way to prove a library works across the Spark and Python versions your various clusters actually run.
+
+`fail-fast: false` is usually what you want — the default cancels every remaining combination as soon as one fails, which hides whether the failure is specific to one version or affects all of them.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## GitLab CI
+
+<QuestionList topic="GitLab CI" storagePrefix="cicd-gitlab">
+
+<QuestionCard id="cicd-glci-01" number={1} question="Explain the structure of a .gitlab-ci.yml file." difficulty="easy" topic="GitLab CI">
+A single file at the repository root defining **stages** and the **jobs** in each. Jobs within a stage run in parallel; stages run in order.
+
+```yaml
+stages: [test, build, deploy]
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+unit-tests:
+  stage: test
+  image: python:3.12-slim
+  cache:
+    key:
+      files: [requirements.txt]
+    paths: [.cache/pip]
+  script:
+    - pip install -r requirements.txt
+    - pytest --junitxml=report.xml
+  artifacts:
+    reports:
+      junit: report.xml
+
+deploy-prod:
+  stage: deploy
+  script: ./deploy.sh
+  environment:
+    name: production
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+```
+
+Each job runs in its own container specified by `image:`, which makes reproducing a CI failure locally straightforward.
+</QuestionCard>
+
+<QuestionCard id="cicd-glci-02" number={2} question="What is the difference between cache and artifacts in GitLab CI?" difficulty="medium" topic="GitLab CI">
+- **Cache** — a *performance optimisation* for files that can be regenerated: package downloads, compiled dependencies. Shared between pipelines, keyed by whatever you choose, and never guaranteed to exist. A job must work correctly on a cold cache.
+- **Artifacts** — *outputs* passed from one job to later stages, and downloadable from the UI. Test reports, coverage, built packages, a Terraform plan. Guaranteed to be passed to dependent jobs and retained per an expiry policy.
+
+The rule of thumb: if losing it only costs time, it's a cache; if losing it breaks the pipeline or you need to look at it, it's an artefact.
+</QuestionCard>
+
+<QuestionCard id="cicd-glci-03" number={3} question="What are GitLab CI rules, and how do they differ from only/except?" difficulty="medium" topic="GitLab CI">
+`rules` decide whether a job is included in the pipeline and with what attributes:
+
+```yaml
+rules:
+  - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    when: always
+  - if: $CI_COMMIT_BRANCH == "main"
+    changes: [dags/**/*]
+    when: manual
+    allow_failure: false
+  - when: never
+```
+
+`only`/`except` is the older, deprecated mechanism. `rules` supersedes it because it evaluates in order, stopping at the first match, and can set `when`, `variables` and `allow_failure` per condition — expressing things like "run automatically on merge requests, but require a manual click on main, and only when the DAGs directory changed" that `only`/`except` cannot.
+</QuestionCard>
+
+<QuestionCard id="cicd-glci-04" number={4} question="What is a GitLab Runner and what are the executor types?" difficulty="medium" topic="GitLab CI">
+A Runner is the agent that picks up jobs and executes them. The **executor** determines how:
+
+- **docker** — each job in a fresh container from the job's `image`. The usual choice: clean isolation, easy reproduction.
+- **kubernetes** — a pod per job, scaling with the cluster. Best for high volume.
+- **shell** — directly on the runner host. Fast, but jobs share state and pollute the machine.
+- **docker-machine** — auto-provisions cloud VMs on demand.
+
+Runners are registered at instance, group, or project scope, and tags route jobs to runners with the right capabilities — a `spark` tag for the memory-heavy runner, for instance.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## ArgoCD & GitOps
+
+<QuestionList topic="ArgoCD & GitOps" storagePrefix="cicd-argocd">
+
+<QuestionCard id="cicd-argo-01" number={1} question="What is GitOps?" difficulty="medium" topic="GitOps">
+An operating model with four principles:
+
+1. **Declarative** — the entire desired system state is expressed as configuration, not scripts.
+2. **Versioned and immutable** — that state lives in Git, giving you history, review, and rollback for free.
+3. **Pulled automatically** — an agent in the target environment fetches approved changes.
+4. **Continuously reconciled** — the agent constantly compares actual to desired state and corrects drift.
+
+The consequence people care about: **Git becomes the single source of truth for what is running.** Rolling back is `git revert`. Auditing who changed production is `git log`. Manual changes made in a console get reverted automatically, which eliminates the slow divergence between what's documented and what's actually deployed.
+</QuestionCard>
+
+<QuestionCard id="cicd-argo-02" number={2} question="What is ArgoCD and how does it work?" difficulty="medium" topic="ArgoCD">
+A GitOps continuous delivery controller that runs **inside** a Kubernetes cluster. You define an `Application` pointing at a Git repository path containing manifests, Helm charts or Kustomize overlays, plus a destination cluster and namespace.
+
+ArgoCD then continuously compares the live cluster state against that repository. When they diverge it reports the app as **OutOfSync** and, if auto-sync is enabled, applies the difference. It shows a live resource tree, health status per object, and a full sync history you can roll back to.
+
+The key architectural point is that ArgoCD *pulls* — your CI system never needs cluster credentials.
+</QuestionCard>
+
+<QuestionCard id="cicd-argo-03" number={3} question="What is the difference between push-based and pull-based deployment?" difficulty="medium" topic="GitOps">
+**Push-based** (traditional CI/CD): the pipeline holds cluster credentials and runs `kubectl apply` from outside. Simple, but the CI system needs standing write access to production, and it has no idea what happens after the apply — drift goes unnoticed.
+
+**Pull-based** (GitOps): an agent inside the cluster watches the repository and pulls changes. Credentials never leave the cluster, CI never needs production access, and because the agent reconciles continuously, drift is corrected rather than accumulating.
+
+The security argument is the strongest one: with pull-based deployment, compromising your CI system does not hand over your production cluster.
+</QuestionCard>
+
+<QuestionCard id="cicd-argo-04" number={4} question="How do you separate application code from deployment configuration in GitOps?" difficulty="medium" topic="GitOps">
+The common pattern is **two repositories**:
+
+- The **application repo** holds source code. Its CI builds and pushes an image tagged with the commit SHA.
+- The **config repo** holds Kubernetes manifests. A final CI step (or a tool like Argo CD Image Updater) opens a commit or PR updating the image tag.
+
+ArgoCD watches only the config repo, so a merge there is the deployment. The benefits: deployment history is separate and readable, promoting between environments is a tag change in a different overlay, and the code repo needs no cluster access at all.
+
+Keeping both in one repository is simpler and fine for small teams, but risks a change to the code triggering a reconcile loop with the automated tag commits.
+</QuestionCard>
+
+<QuestionCard id="cicd-argo-05" number={5} question="How do you handle secrets in a GitOps workflow?" difficulty="hard" topic="GitOps">
+The obvious tension: GitOps wants everything in Git, and secrets must not be in Git.
+
+Standard solutions:
+- **Sealed Secrets** — encrypt with a controller's public key; only the in-cluster controller can decrypt, so the ciphertext is safe to commit.
+- **External Secrets Operator** — commit only a *reference*; the operator fetches the actual value from AWS Secrets Manager, Vault or equivalent and creates the Kubernetes Secret.
+- **SOPS** with age or KMS — encrypt values in place, so the file stays readable and diffable with only the values encrypted.
+
+External Secrets Operator is generally the strongest answer for cloud environments: rotation happens in the secrets manager with no Git commit at all, and the cluster's workload identity does the authentication.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## CI/CD for Data Pipelines
+
+<QuestionList topic="CI/CD for Data Pipelines" storagePrefix="cicd-data-pipelines">
+
+<QuestionCard id="cicd-de-01" number={1} question="How is CI/CD for data pipelines different from application CI/CD?" difficulty="hard" topic="Data Engineering">
+Four differences that drive everything else:
+
+1. **State is external and shared.** Application code is stateless and rollback restores the previous behaviour. A pipeline writes to tables — reverting the code leaves the bad rows in place, so you need a backfill or restore plan alongside the revert.
+2. **Correctness depends on data, not just code.** A transformation can be syntactically perfect and produce wrong numbers because an upstream schema changed. Tests must run against realistic data.
+3. **Feedback is slow and delayed.** A bug can sit unnoticed for days until someone questions a metric. Application bugs usually announce themselves.
+4. **Environments are hard to replicate.** You can't clone a 50 TB warehouse per pull request, so CI runs against samples, and sampling can hide the exact skew or edge case that breaks production.
+
+Naming the state problem first is what distinguishes a real answer here.
+</QuestionCard>
+
+<QuestionCard id="cicd-de-02" number={2} question="What tests would you run in CI for a data pipeline?" difficulty="medium" topic="Data Engineering">
+- **Unit tests** on transformation functions with small hand-built fixtures — fast, deterministic, no external systems.
+- **DAG / syntax validation** — import every Airflow DAG to catch a broken import or a cycle before the scheduler does; `dbt parse` or `dbt compile` for SQL.
+- **Integration tests** against real dependencies in containers — Postgres, Kafka, MinIO via Compose or Testcontainers.
+- **Data quality tests** on the CI-built output — dbt tests, Great Expectations, Soda: uniqueness, not-null, referential integrity, accepted ranges.
+- **Schema contract checks** — fail the build if a column is dropped or a type narrowed, since those break consumers silently.
+- **Idempotency test** — run the same task twice and assert the output is identical. Non-idempotent tasks are the single most common cause of duplicate rows after a retry.
+</QuestionCard>
+
+<QuestionCard id="cicd-de-03" number={3} question="How do you deploy dbt changes safely?" difficulty="medium" topic="Data Engineering">
+On a pull request, CI builds the changed models into a **temporary schema** (`dbt_pr_123`) rather than production, then runs `dbt build`, which executes models and their tests together.
+
+Use **`dbt build --select state:modified+`** with `--defer` against the production manifest: only the modified models and their downstream dependents get built, while everything upstream is read from production. That turns a full-warehouse rebuild into a few minutes.
+
+Then run tests, review the results in the PR, and drop the temporary schema. On merge, a job promotes to production. Add `dbt source freshness` so stale upstream data fails the build rather than silently producing old numbers.
+</QuestionCard>
+
+<QuestionCard id="cicd-de-04" number={4} question="How do you deploy Airflow DAGs?" difficulty="medium" topic="Data Engineering">
+The options, roughly in order of maturity:
+
+- **Git-sync sidecar** — a container pulls the DAG repo into a shared volume on an interval. Simple and the common Kubernetes default; the trade-off is a lag between merge and pickup, and no atomic switch.
+- **Bake DAGs into the image** — immutable and versioned with everything else, but every DAG change needs an image build and a scheduler restart.
+- **Sync to object storage** (S3/GCS) which the scheduler mounts or pulls.
+- **A managed service** (MWAA, Cloud Composer) where you upload to a designated bucket.
+
+Whatever the mechanism, CI must **validate DAGs before they ship**: import every DAG file and fail on error. A DAG with an import error doesn't appear in the UI at all — it just silently stops running, which is a genuinely nasty failure mode.
+</QuestionCard>
+
+<QuestionCard id="cicd-de-05" number={5} question="How do you test against production-scale data without a full copy?" difficulty="hard" topic="Data Engineering">
+- **Representative sampling** — not random rows, but a slice that preserves the joins and edge cases: a few complete partitions, plus deliberately included nulls, duplicates and boundary values.
+- **Zero-copy clones** — Snowflake, BigQuery and Databricks all offer instant metadata-only clones of a table or schema, so CI gets a full-size, isolated copy at near-zero cost. This is the strongest answer where the platform supports it.
+- **Deferred builds** — dbt's `--defer` reads unchanged upstream models from production and builds only what you touched.
+- **Blue-green at the data layer** — build into a parallel table, run quality checks, then atomically swap a view or pointer.
+- **Synthetic data** for anything containing PII, generated to match the real distribution.
+
+Whatever you choose, pair it with production monitoring, because the sample will eventually miss something.
+</QuestionCard>
+
+<QuestionCard id="cicd-de-06" number={6} question="A deploy has written wrong data to a production table. Walk me through the response." difficulty="hard" topic="Data Engineering">
+1. **Stop the bleeding** — pause the pipeline or disable the DAG so it stops writing more.
+2. **Revert the code** so the next run is correct (`git revert`, redeploy). This fixes the future, not the past.
+3. **Assess the blast radius** — which partitions and date ranges are affected, and which downstream tables, dashboards and ML features consumed them. Lineage tooling earns its keep here.
+4. **Communicate early** — tell the consumers before they find it themselves. Mark the affected dashboards as suspect.
+5. **Restore or backfill** — use time travel / table snapshots (Delta, Iceberg, Snowflake) to restore the prior version if available; otherwise re-run the corrected pipeline over the affected range.
+6. **Cascade the fix downstream** in dependency order.
+7. **Post-mortem** — add the test that would have caught it. If a data quality check would have failed on this output, it belongs in CI and in production monitoring.
+
+The distinction interviewers listen for is between fixing the code and fixing the data — they are two separate jobs.
+</QuestionCard>
+
+<QuestionCard id="cicd-de-07" number={7} question="How do you manage environments for a data platform?" difficulty="medium" topic="Data Engineering">
+Typically **dev → staging → production**, separated by *database, schema or project*, not just by configuration — so a mistake in dev cannot reach production tables.
+
+Practical points:
+- **Same code, different config.** Connection details, schema names, and scale settings come from environment variables or a config file per environment; the artefact is identical.
+- **Per-developer schemas** in dev, so two people working simultaneously don't overwrite each other's models.
+- **Production-like data in staging** — masked or synthetic if it contains PII, but with realistic volume and distribution, since most performance bugs only appear at scale.
+- **Separate cloud accounts or projects** for the strongest isolation, with IAM boundaries preventing cross-environment access.
+- **Promotion by re-tagging** the tested artefact rather than rebuilding.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Your CI pipeline takes 45 minutes and people have started skipping it. What do you do?"**
+Measure first — find the dominant stage. Then split: fast checks (lint, unit tests, DAG validation) on every push in under five minutes, the expensive integration and data quality suite on merge or nightly. Add dependency and Docker layer caching, parallelise with jobs and a matrix, and cancel superseded runs with a concurrency group.
+
+**"How do you roll back a data pipeline deploy?"**
+Separate code from data explicitly. Redeploy the previous image tag — that's the code, and it's fast. Then assess which partitions hold bad data and either restore from a table snapshot or re-run the corrected pipeline over the affected range. Say plainly that reverting the code does not fix already-written rows; that's the point of the question.
+
+**"How would you set up CI for a dbt project?"**
+On PR: `dbt build --select state:modified+ --defer --state ./prod-manifest` into a temporary PR schema, so only changed models and their dependents are built and tested. Post the results to the PR, drop the schema afterwards. On merge to main: run against production, and publish the fresh manifest as an artefact for the next PR to defer against.
+
+**"Why is your team not doing continuous deployment to production?"**
+A good answer owns the trade-off rather than apologising: the blast radius of a wrong transformation is high and detection is delayed, so a human gate before production is a deliberate risk control. The path to removing it is better automated data quality gates and fast, reliable rollback — not just more confidence.
+
+---
+
+## Further Reading
+
+- [GitHub Actions documentation](https://docs.github.com/en/actions)
+- [GitLab CI/CD documentation](https://docs.gitlab.com/ee/ci/)
+- [ArgoCD documentation](https://argo-cd.readthedocs.io/)
+- [OpenGitOps principles](https://opengitops.dev/) — the four principles above, from the CNCF working group
+- [Continuous Delivery](https://continuousdelivery.com/) — Jez Humble and Dave Farley's site, the origin of most of this vocabulary
+- [dbt: CI/CD best practices](https://docs.getdbt.com/docs/deploy/continuous-integration)
+- [Testcontainers](https://testcontainers.com/) — real dependencies in integration tests

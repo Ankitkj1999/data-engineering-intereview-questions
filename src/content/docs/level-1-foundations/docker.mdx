@@ -1,0 +1,493 @@
+---
+title: Docker
+description: Docker interview questions for data engineers covering containers vs VMs, images and Dockerfiles, layer caching and image optimisation, volumes and networking, Docker Compose, and containerising Spark, Airflow and Python pipelines.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## Docker: Packaging Pipelines So They Run Anywhere
+
+**"It works on my machine" is the problem containers solve, and data engineering has it worse than most: a pipeline depends on a Python version, a dozen libraries with native extensions, a JDBC driver, a JVM, and a set of environment variables. Docker makes that whole stack one immutable artefact you can version, test, and ship — which is why Airflow, Spark, dbt and every managed data platform now assume it.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Docker Fundamentals](#docker-fundamentals)
+- [Images & Dockerfiles](#images--dockerfiles)
+- [Layers & Image Optimisation](#layers--image-optimisation)
+- [Storage & Networking](#storage--networking)
+- [Docker Compose](#docker-compose)
+- [Docker for Data Engineering](#docker-for-data-engineering)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A container is **not a lightweight virtual machine** — it's an ordinary Linux process with restricted visibility. Two kernel features do the work: **namespaces** isolate what a process can *see* (its own PID tree, network stack, mount table, hostname), and **cgroups** limit what it can *use* (CPU, memory, I/O). There's no guest operating system and no hypervisor; the container shares the host kernel, which is why it starts in milliseconds.
+
+The other half of Docker is the **image** — a stack of read-only filesystem layers plus metadata describing how to start the process. Containers add a thin writable layer on top. Because layers are content-addressed and shared, ten containers from the same image cost almost nothing extra on disk, and rebuilding after a code change only re-uploads what actually changed. Nearly every Docker performance question comes back to that layer model.
+
+---
+
+## Docker Fundamentals
+
+<QuestionList topic="Docker Fundamentals" storagePrefix="docker-fundamentals">
+
+<QuestionCard id="dkr-fund-01" number={1} question="What is the difference between a container and a virtual machine?" difficulty="easy" topic="Fundamentals">
+A **VM** virtualises hardware. Each one runs a full guest OS with its own kernel on top of a hypervisor — gigabytes in size, tens of seconds to boot, but with strong isolation because the kernel is not shared.
+
+A **container** virtualises the operating system. It's a process on the host, isolated by namespaces and cgroups, sharing the host kernel — megabytes in size, milliseconds to start, but with weaker isolation since a kernel vulnerability affects every container.
+
+For data engineering the practical consequence is density and speed: you can run a hundred short-lived task containers on a node where you'd fit a handful of VMs, which is exactly what Airflow's KubernetesExecutor and Spark on Kubernetes rely on.
+</QuestionCard>
+
+<QuestionCard id="dkr-fund-02" number={2} question="What is the difference between an image and a container?" difficulty="easy" topic="Fundamentals">
+An **image** is the immutable template — read-only layers plus metadata (entrypoint, environment, exposed ports). It's the artefact you build, tag, and push to a registry.
+
+A **container** is a running (or stopped) instance of an image, with a thin writable layer on top for anything the process writes.
+
+The analogy that works: image is to container as a class is to an object, or as a program on disk is to a process. Many containers can run from one image; each has its own writable layer, and deleting a container discards it.
+</QuestionCard>
+
+<QuestionCard id="dkr-fund-03" number={3} question="What are namespaces and cgroups?" difficulty="medium" topic="Internals">
+They're the Linux kernel features that make containers possible.
+
+**Namespaces** control *visibility*. Each type isolates one thing: `pid` (the container's process sees itself as PID 1), `net` (its own interfaces and ports), `mnt` (its own filesystem view), `uts` (hostname), `ipc`, and `user` (UID mapping).
+
+**cgroups** (control groups) control *consumption* — CPU shares and quotas, memory limits, I/O throughput, PID counts.
+
+Together: namespaces stop a container from seeing the host and its neighbours; cgroups stop it from starving them. When a Spark executor container gets OOMKilled, it's the memory cgroup enforcing its limit.
+</QuestionCard>
+
+<QuestionCard id="dkr-fund-04" number={4} question="What are the essential Docker commands?" difficulty="easy" topic="Fundamentals">
+```bash
+docker build -t myapp:1.0 .          # build an image from a Dockerfile
+docker run -d --name etl myapp:1.0   # run detached
+docker ps -a                         # list containers, including stopped
+docker logs -f etl                   # follow the logs
+docker exec -it etl bash             # shell into a running container
+docker stop etl && docker rm etl     # stop and remove
+docker images                        # list local images
+docker pull / docker push            # registry transfer
+docker system prune -a               # reclaim disk from unused objects
+```
+
+`docker system prune -a` is worth remembering — build caches and dangling images fill developer disks faster than anything else.
+</QuestionCard>
+
+<QuestionCard id="dkr-fund-05" number={5} question="What is the difference between docker run, docker start, and docker exec?" difficulty="medium" topic="Fundamentals">
+- **`docker run`** — creates a **new** container from an image and starts it. Running it three times gives you three containers.
+- **`docker start`** — restarts an existing stopped container, preserving its writable layer.
+- **`docker exec`** — runs an **additional** process inside an already-running container. This is how you get a debugging shell without disturbing the main process.
+
+The common confusion is expecting `docker run` to reuse a container. It never does, which is why people accumulate dozens of stopped containers — `--rm` cleans up automatically on exit.
+</QuestionCard>
+
+<QuestionCard id="dkr-fund-06" number={6} question="Why does my container exit immediately after starting?" difficulty="medium" topic="Troubleshooting">
+A container lives exactly as long as its **PID 1 process**. When that process exits, the container stops — there's no background daemon keeping it alive.
+
+The usual causes:
+- The command finished (`docker run ubuntu ls` prints and exits — that's correct behaviour).
+- The main process was started in the background, so PID 1 returned immediately.
+- The process crashed on startup — check `docker logs <container>`.
+- The service daemonised itself; run it in the foreground instead (nginx needs `daemon off;`, Airflow's webserver must not fork).
+
+Diagnose with `docker ps -a` to see the exit code, then `docker logs`. Exit code 137 means SIGKILL — usually the memory limit.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Images & Dockerfiles
+
+<QuestionList topic="Images & Dockerfiles" storagePrefix="docker-images">
+
+<QuestionCard id="dkr-img-01" number={1} question="Explain the main Dockerfile instructions." difficulty="easy" topic="Dockerfile">
+- **`FROM`** — the base image; every Dockerfile starts here.
+- **`WORKDIR`** — sets the working directory for subsequent instructions (and creates it).
+- **`COPY`** / **`ADD`** — bring files in from the build context.
+- **`RUN`** — execute a command at **build** time, creating a new layer.
+- **`ENV`** — set an environment variable, persisted into the image.
+- **`ARG`** — a build-time-only variable, not present at runtime.
+- **`EXPOSE`** — documentation of the port the app listens on; it publishes nothing by itself.
+- **`USER`** — switch the user for subsequent instructions and at runtime.
+- **`ENTRYPOINT`** / **`CMD`** — what runs when the container starts.
+- **`HEALTHCHECK`** — a command Docker runs periodically to report container health.
+</QuestionCard>
+
+<QuestionCard id="dkr-img-02" number={2} question="What is the difference between ENTRYPOINT and CMD?" difficulty="medium" topic="Dockerfile">
+`ENTRYPOINT` defines the executable; `CMD` supplies default arguments, and arguments passed to `docker run` **replace CMD** but not ENTRYPOINT.
+
+```dockerfile
+ENTRYPOINT ["python", "etl.py"]
+CMD ["--date", "2026-01-01"]
+```
+
+`docker run myimage` runs `python etl.py --date 2026-01-01`.
+`docker run myimage --date 2026-02-01` runs `python etl.py --date 2026-02-01`.
+
+Use `ENTRYPOINT` when the image *is* one tool and you want run arguments to be its arguments — which is the right shape for a pipeline task image. Use `CMD` alone when you want the default overridable entirely, e.g. so `docker run myimage bash` gives a shell.
+
+Always use the **exec form** (JSON array). The shell form wraps the process in `/bin/sh -c`, which means your program isn't PID 1 and won't receive SIGTERM — so it gets SIGKILLed on shutdown instead of cleaning up.
+</QuestionCard>
+
+<QuestionCard id="dkr-img-03" number={3} question="What is the difference between COPY and ADD?" difficulty="easy" topic="Dockerfile">
+`COPY` copies files and directories from the build context into the image. That's all it does.
+
+`ADD` does the same, but additionally auto-extracts local tar archives and can fetch remote URLs.
+
+**Prefer `COPY`.** `ADD`'s extra behaviour is implicit — a file named `data.tar.gz` silently becomes a directory — and its URL fetching produces an uncacheable layer with no checksum verification. Use `COPY` for files, and an explicit `RUN curl ... && tar -xf ...` when you genuinely need to download, so the intent is visible.
+</QuestionCard>
+
+<QuestionCard id="dkr-img-04" number={4} question="What is a multi-stage build and why does it matter?" difficulty="medium" topic="Dockerfile">
+Multiple `FROM` statements in one Dockerfile, where a later stage copies only the artefacts it needs from an earlier one. Build tooling stays out of the final image.
+
+```dockerfile
+FROM python:3.12 AS builder
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --user --no-cache-dir -r requirements.txt
+
+FROM python:3.12-slim
+WORKDIR /app
+COPY --from=builder /root/.local /root/.local
+COPY src/ ./src/
+ENV PATH=/root/.local/bin:$PATH
+CMD ["python", "-m", "src.main"]
+```
+
+The gain is large for anything needing compilers — a pipeline image with `pandas`, `numpy` and `psycopg2` built from source can drop from ~1.2 GB to ~250 MB. Smaller images pull faster (which matters when Kubernetes starts 200 task pods) and carry far less CVE surface, since the compilers and headers simply aren't there.
+</QuestionCard>
+
+<QuestionCard id="dkr-img-05" number={5} question="Why should containers not run as root, and how do you avoid it?" difficulty="medium" topic="Security">
+By default the container's root maps to the host's root. Combined with a kernel escape or a carelessly mounted host path, that's a full host compromise — and a root container writing to a mounted volume leaves root-owned files the host user can't delete.
+
+```dockerfile
+RUN useradd --create-home --uid 1000 appuser
+USER appuser
+```
+
+Install dependencies *before* switching, since the unprivileged user can't write to system paths. Note that `USER` is advisory — an operator can still override it with `docker run --user`, so enforce it at the platform level too (Kubernetes `runAsNonRoot`, a pod security policy).
+</QuestionCard>
+
+<QuestionCard id="dkr-img-06" number={6} question="How should you handle secrets in a Docker image?" difficulty="medium" topic="Security">
+Never bake them in. The specific traps:
+
+- **`ENV` and `ARG` both persist in the image metadata** — anyone with the image can read them via `docker history` or `docker inspect`.
+- **A secret in an intermediate layer stays in the image** even if a later `RUN` deletes it, because layers are additive.
+
+Do instead:
+- Inject at runtime — environment variables from the orchestrator, or a mounted file.
+- Use **BuildKit build secrets** (`RUN --mount=type=secret,id=pip_token ...`) when you need a credential *during* the build; it's mounted for that instruction only and never lands in a layer.
+- Better still, use a secrets manager or cloud workload identity so no long-lived credential exists.
+- Add a `.dockerignore` entry for `.env`, `.git`, and key files so they never enter the build context.
+</QuestionCard>
+
+<QuestionCard id="dkr-img-07" number={7} question="Why is 'latest' a bad tag to depend on?" difficulty="easy" topic="Best Practices">
+`latest` is just a default tag name, not a promise of recency, and it's mutable — the image it points to changes under you. That breaks reproducibility in the worst way: the same Dockerfile and the same commit produce different images on different days, and a pipeline that worked yesterday fails today with no change in your repository.
+
+Use explicit version tags for your own images (semantic version, or the git SHA — the SHA is ideal because it ties the running container to an exact commit). Pin base images too, ideally by digest (`python:3.12-slim@sha256:...`) for anything production-facing.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Layers & Image Optimisation
+
+<QuestionList topic="Layers & Image Optimisation" storagePrefix="docker-layers">
+
+<QuestionCard id="dkr-layer-01" number={1} question="How does Docker's layer cache work?" difficulty="medium" topic="Layers">
+Each instruction produces a layer. On rebuild, Docker walks the Dockerfile and reuses a cached layer if the instruction and its inputs are unchanged — but **the moment one layer misses, every layer after it is rebuilt**, because each depends on the state before it.
+
+For `COPY` and `ADD`, the cache key includes a checksum of the copied files' contents. For `RUN`, it's only the command *string* — which is why `RUN apt-get update` can serve a months-old cached package index. Combine it with the install in a single `RUN` to avoid that.
+
+This cascading invalidation is the single most important thing to understand about Docker build performance.
+</QuestionCard>
+
+<QuestionCard id="dkr-layer-02" number={2} question="Why does instruction order matter in a Dockerfile?" difficulty="medium" topic="Layers">
+Put what changes **least** first, so the expensive layers stay cached.
+
+```dockerfile
+# Bad — any source change reinstalls every dependency
+COPY . .
+RUN pip install -r requirements.txt
+
+# Good — dependencies only reinstall when requirements.txt changes
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+```
+
+In the bad version, editing one line of Python invalidates the `COPY`, and therefore the `pip install` after it — a two-minute rebuild every time. In the good version, source changes only invalidate the final `COPY`, so the rebuild is seconds. This is the most commonly asked Docker optimisation question, and the fix is a two-line reordering.
+</QuestionCard>
+
+<QuestionCard id="dkr-layer-03" number={3} question="How do you reduce Docker image size?" difficulty="medium" topic="Optimisation">
+In rough order of impact:
+
+1. **Multi-stage builds** — leave compilers and build tools behind.
+2. **A smaller base** — `python:3.12-slim` instead of `python:3.12` saves ~700 MB. Alpine is smaller still, but see the next question.
+3. **Chain and clean in one `RUN`** — deleting files in a *later* layer doesn't shrink the image, since the earlier layer still contains them:
+   ```dockerfile
+   RUN apt-get update && apt-get install -y --no-install-recommends curl \
+       && rm -rf /var/lib/apt/lists/*
+   ```
+4. **`--no-cache-dir`** on pip, `--no-install-recommends` on apt.
+5. **A real `.dockerignore`** — excluding `.git`, `venv/`, `__pycache__`, notebooks and local data can cut a build context from gigabytes to megabytes.
+6. **Don't install debugging tools** in the production image.
+</QuestionCard>
+
+<QuestionCard id="dkr-layer-04" number={4} question="Is Alpine always the right base image for Python data workloads?" difficulty="hard" topic="Optimisation">
+No, and this is a good discriminating question.
+
+Alpine uses **musl libc** instead of glibc. Python wheels on PyPI are built for glibc (`manylinux`), so on Alpine pip can't use them and falls back to **compiling from source**. For `pandas`, `numpy`, `scipy`, `pyarrow` or `psycopg2` that means installing gcc and headers, build times going from seconds to many minutes, and often a *larger* final image than the slim variant you were trying to beat. There are also documented performance differences in musl's allocator and DNS resolution.
+
+**Use `-slim` (Debian-based) for Python data images.** Alpine is a good fit for Go binaries and simple services with no native dependencies.
+</QuestionCard>
+
+<QuestionCard id="dkr-layer-05" number={5} question="What is a .dockerignore file and why does it matter?" difficulty="easy" topic="Optimisation">
+It excludes paths from the **build context** — the set of files Docker packages up and sends to the daemon before the build starts.
+
+Without one, a repository containing `.git`, a `venv/`, cached Parquet files and notebook checkpoints can ship gigabytes to the daemon on every build, making even a cached build slow. It's also a security control: a `COPY . .` with no `.dockerignore` will happily bake `.env` and `.git` (with its full history) into your image.
+
+```
+.git
+.venv
+__pycache__/
+*.pyc
+.env
+data/
+*.ipynb_checkpoints
+```
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Storage & Networking
+
+<QuestionList topic="Storage & Networking" storagePrefix="docker-storage-networking">
+
+<QuestionCard id="dkr-vol-01" number={1} question="Why is container storage ephemeral, and how do volumes fix it?" difficulty="easy" topic="Storage">
+A container writes to a thin layer on top of the image. Remove the container and that layer goes with it — so anything the process wrote is lost. That's intentional: it's what makes containers reproducible and disposable.
+
+**Volumes** provide persistence by mounting storage from outside the container's lifecycle. Data written there survives `docker rm`, and can be shared between containers.
+</QuestionCard>
+
+<QuestionCard id="dkr-vol-02" number={2} question="What is the difference between a volume and a bind mount?" difficulty="medium" topic="Storage">
+- **Named volume** — Docker manages the storage under `/var/lib/docker/volumes/`. Portable, backed up as a unit, works with volume drivers (including cloud/network storage), and doesn't depend on any host path existing. `docker run -v pgdata:/var/lib/postgresql/data ...`
+- **Bind mount** — maps a specific host path into the container. `docker run -v $(pwd)/src:/app/src ...`
+
+Use **bind mounts in development**, so editing code on your machine is visible inside the container immediately without a rebuild. Use **named volumes in production**, for database files and anything needing durability. There's also **tmpfs**, memory-backed and never written to disk, for scratch or sensitive data.
+
+The classic bind-mount gotcha: the host UID owns the files, so a container running as a different user gets permission errors on a mounted directory.
+</QuestionCard>
+
+<QuestionCard id="dkr-vol-03" number={3} question="What are Docker's network drivers?" difficulty="medium" topic="Networking">
+- **bridge** (default) — a private network on the host; containers get internal IPs and reach the outside via NAT. Ports must be published with `-p` to be reachable from the host.
+- **host** — the container shares the host's network stack directly. No isolation and no port mapping, but no NAT overhead.
+- **none** — no networking at all.
+- **overlay** — spans multiple hosts, for Swarm or multi-node setups.
+- **macvlan** — gives the container its own MAC and an IP on the physical network, for legacy systems that expect a real host.
+
+Most work happens on user-defined bridge networks, which is what Compose creates for you.
+</QuestionCard>
+
+<QuestionCard id="dkr-vol-04" number={4} question="How do containers talk to each other?" difficulty="medium" topic="Networking">
+Put them on the same **user-defined bridge network** and use container names as hostnames — Docker runs an embedded DNS server that resolves them:
+
+```bash
+docker network create datanet
+docker run -d --name postgres --network datanet postgres:16
+docker run --network datanet myapp   # connects to "postgres:5432"
+```
+
+Two important details. The **default** bridge network does *not* provide DNS resolution by name — only user-defined networks do, which is why `docker-compose` always creates one. And containers reach each other on the **container port**, not the published host port: if you map `-p 5433:5432`, another container still connects to `postgres:5432`.
+
+To reach a service on the host itself, use `host.docker.internal` (Docker Desktop) or the gateway IP.
+</QuestionCard>
+
+<QuestionCard id="dkr-vol-05" number={5} question="What does -p 8080:80 mean, and what's the difference from EXPOSE?" difficulty="easy" topic="Networking">
+`-p HOST:CONTAINER` publishes a port — `-p 8080:80` means traffic to port 8080 on the host is forwarded to port 80 in the container. `-p 127.0.0.1:8080:80` binds only to localhost, which you want for anything not meant to be publicly reachable.
+
+`EXPOSE` in a Dockerfile publishes nothing. It's **metadata** documenting which port the application listens on — useful for readers and for `docker run -P` (which auto-maps exposed ports to random host ports), but it has no effect on its own. Confusing the two is a common interview slip.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Docker Compose
+
+<QuestionList topic="Docker Compose" storagePrefix="docker-compose">
+
+<QuestionCard id="dkr-comp-01" number={1} question="What is Docker Compose and when should you use it?" difficulty="easy" topic="Compose">
+A tool for defining and running **multi-container applications** from a single YAML file. One `docker compose up` starts every service, wires them onto a shared network, and creates the declared volumes.
+
+It's the right tool for local development and integration testing — spinning up Postgres, Kafka, MinIO and your pipeline together so you can test against real dependencies instead of mocks. It's also fine for a single-host deployment.
+
+It is **not** an orchestrator: no multi-node scheduling, no rolling updates, no self-healing across machines. That's Kubernetes' job.
+</QuestionCard>
+
+<QuestionCard id="dkr-comp-02" number={2} question="Walk through a Compose file for a data pipeline." difficulty="medium" topic="Compose">
+```yaml
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+
+  etl:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+    volumes:
+      - ./src:/app/src
+
+volumes:
+  pgdata:
+```
+
+Points worth calling out: the ETL service reaches the database at hostname `postgres`; the bind mount on `./src` gives live code reloading in development; the named volume persists database state across restarts; and `${POSTGRES_PASSWORD}` is interpolated from the environment or a `.env` file rather than hard-coded.
+</QuestionCard>
+
+<QuestionCard id="dkr-comp-03" number={3} question="Why isn't depends_on enough to guarantee a database is ready?" difficulty="medium" topic="Compose">
+By default `depends_on` only controls **start order** — it waits for the container to be started, not for the application inside it to be ready to serve. Postgres takes several seconds to initialise, so a dependent service that connects immediately gets "connection refused" and exits.
+
+Two fixes, and a good answer mentions both:
+
+1. **`condition: service_healthy`** combined with a `healthcheck` on the dependency, as above. Compose then waits for the health check to pass.
+2. **Make the application retry** — a connection loop with backoff at startup. This is the more robust answer, because in production (Kubernetes, a restarted database, a network blip) dependencies can disappear *after* startup too, and no start-order mechanism helps with that.
+</QuestionCard>
+
+<QuestionCard id="dkr-comp-04" number={4} question="What are the most useful Compose commands?" difficulty="easy" topic="Compose">
+```bash
+docker compose up -d              # start everything, detached
+docker compose up --build         # rebuild images first
+docker compose logs -f etl        # follow one service's logs
+docker compose exec postgres psql -U postgres    # shell into a service
+docker compose ps                 # status of each service
+docker compose down               # stop and remove containers + network
+docker compose down -v            # ...and delete named volumes
+docker compose run --rm etl python -m src.backfill --date 2026-01-01
+```
+
+Two to be careful with: `down -v` destroys your database volume, and `run` starts a **one-off** container (useful for a backfill or a migration) rather than attaching to the running service — that's what `exec` is for.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Docker for Data Engineering
+
+<QuestionList topic="Docker for Data Engineering" storagePrefix="docker-data-engineering">
+
+<QuestionCard id="dkr-de-01" number={1} question="Why containerise data pipelines at all?" difficulty="easy" topic="Data Engineering">
+- **Reproducibility** — the Python version, every library, the JDBC driver and the JVM are pinned in one artefact. The job that ran in CI is byte-identical to the one in production.
+- **Dependency isolation** — two pipelines needing incompatible `pyarrow` versions coexist without conflict, which is otherwise a genuinely painful problem on a shared scheduler.
+- **Environment parity** — local, CI, staging and production all run the same image.
+- **Portability** — the same image runs under Airflow's KubernetesPodOperator, an ECS task, or a Databricks job.
+- **Scalability** — orchestrators can start hundreds of task containers on demand.
+- **Rollback** — deploying a previous image tag is instant and complete.
+</QuestionCard>
+
+<QuestionCard id="dkr-de-02" number={2} question="How do you containerise a Spark application?" difficulty="hard" topic="Data Engineering">
+The image needs the JVM, the Spark distribution, your Python or Scala code, and any connector JARs (S3A, JDBC drivers, Delta/Iceberg) — version-matched to the Spark release, since mismatched Hadoop-AWS and AWS SDK JARs are a notorious source of runtime failures.
+
+For **Spark on Kubernetes**, `spark-submit` uses the image for both driver and executor pods, so the same image must contain everything both need. Start from the official `apache/spark` image rather than assembling a JVM and Spark by hand.
+
+Things that specifically matter:
+- Keep the image small — every executor pod pulls it, so a 3 GB image makes a 200-executor job start slowly. Pre-pull onto nodes or use a registry mirror.
+- Set memory limits above the JVM heap, leaving headroom for off-heap and overhead — otherwise the container is OOMKilled while the JVM thinks it has room.
+- Never bake credentials in; use IAM roles for service accounts (IRSA) or the equivalent.
+</QuestionCard>
+
+<QuestionCard id="dkr-de-03" number={3} question="How does Airflow use Docker?" difficulty="medium" topic="Data Engineering">
+Two distinct ways, and interviewers like to check you distinguish them:
+
+1. **Airflow itself runs in containers** — webserver, scheduler, triggerer and workers as separate services, which is what the official Compose file and Helm chart set up.
+2. **Tasks run in their own containers** — via `DockerOperator` (on a Docker host) or `KubernetesPodOperator` (a fresh pod per task).
+
+The second is the architecturally important one. It decouples task dependencies from the Airflow environment entirely: each task brings its own image, so a task needing an exotic library doesn't force it into the scheduler's environment, and one task can't break another through a dependency upgrade. It also gives per-task resource limits and clean isolation.
+</QuestionCard>
+
+<QuestionCard id="dkr-de-04" number={4} question="How do you handle large data files with containers?" difficulty="medium" topic="Data Engineering">
+Don't put data in the image. Images are for **code and dependencies**; every layer is versioned and pushed to a registry, so baking in a dataset makes pulls slow and the registry enormous — and the data is stale the moment it's built.
+
+Instead:
+- Read from and write to **object storage** (S3/GCS/ADLS) using credentials injected at runtime.
+- **Mount** a volume or a network filesystem for data that must be local.
+- Use `/tmp` or a tmpfs mount for genuine scratch, and size the container's ephemeral storage for it — a Spark shuffle that fills the container's writable layer will evict the pod.
+- Commit only tiny fixtures for tests.
+</QuestionCard>
+
+<QuestionCard id="dkr-de-05" number={5} question="How do you debug a failing container in production?" difficulty="medium" topic="Troubleshooting">
+```bash
+docker ps -a                    # exit code — 137 is OOMKill, 1 is app error
+docker logs --tail 200 etl      # what it printed before dying
+docker inspect etl              # full config: env, mounts, limits, exit reason
+docker stats                    # live CPU and memory against limits
+docker exec -it etl bash        # only works if it's still running
+```
+
+For a container that exits immediately, the trick is to override the entrypoint so you get a shell in the same environment without running the failing process:
+
+```bash
+docker run -it --entrypoint bash myimage:1.0
+```
+
+Then run the command manually and watch it fail with full visibility. If the image is slim and has no shell, temporarily build a debug variant, or in Kubernetes use `kubectl debug` to attach an ephemeral container with tooling.
+</QuestionCard>
+
+<QuestionCard id="dkr-de-06" number={6} question="What belongs in a CI pipeline for a container-based data project?" difficulty="medium" topic="Data Engineering">
+- **Build the image** once, tagged with the git SHA, and reuse that exact artefact through every later stage — never rebuild per environment, or you lose the guarantee that what you tested is what you deploy.
+- **Lint the Dockerfile** with `hadolint`.
+- **Scan for vulnerabilities** with Trivy, Grype or Snyk, failing on high severity.
+- **Run tests inside the image**, so the test environment is the deployment environment.
+- **Spin up dependencies with Compose** for integration tests against a real Postgres or Kafka.
+- **Push to the registry** only after tests pass, then promote by re-tagging (`sha-abc123` → `staging` → `prod`) rather than rebuilding.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Your Docker build takes 15 minutes on every code change. How do you fix it?"**
+Almost certainly instruction order: `COPY . .` sitting before the dependency install, invalidating it every time. Move the manifest copy and install above the source copy. Then look at multi-stage builds, a `.dockerignore`, and BuildKit cache mounts for the package cache.
+
+**"A container works locally but crashes in production. Where do you look?"**
+Check the exit code first — 137 points at the memory limit, not your code. Compare environment variables and mounted secrets between the two. Confirm the image tag is genuinely the same (this is where `latest` bites). Then check resource limits, since local Docker usually has no memory cap while the production orchestrator does.
+
+**"How would you set up a local development environment for a pipeline that reads from Kafka and writes to Postgres?"**
+Compose with four services: Kafka, Postgres, your pipeline, and MinIO if object storage is involved. Health checks with `condition: service_healthy` so the pipeline waits. Bind-mount the source for live editing, named volumes for database state, and a seed script to load fixtures.
+
+**"Container or VM for this workload — how do you decide?"**
+Containers for anything stateless, short-lived, or scaled horizontally, which covers most pipeline tasks. VMs when you need a different kernel, strict multi-tenant isolation, or a legacy system that expects a full machine.
+
+---
+
+## Further Reading
+
+- [Docker official documentation](https://docs.docker.com/)
+- [Dockerfile best practices](https://docs.docker.com/build/building/best-practices/) — the authoritative version of the layer and ordering advice above
+- [Docker Compose specification](https://docs.docker.com/reference/compose-file/)
+- [hadolint](https://github.com/hadolint/hadolint) — Dockerfile linter
+- [Trivy](https://trivy.dev/) — image vulnerability scanning
+- [Spark on Kubernetes](https://spark.apache.org/docs/latest/running-on-kubernetes.html)
+- [Airflow: Running with Docker](https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html)

@@ -81,10 +81,10 @@ const ROADMAP = [
     { id:"dsa",             label:"Data Structures & Algorithms",       desc:"Arrays, hash maps, graphs, sorting — foundational for performance-aware engineering.", link:"/level-1-foundations/data-structure/" },
   ]},
   { id:"foundations", label:"CS & DevOps Foundations", desc:"The underlying systems knowledge that makes a great data engineer.", subs:[
-    { id:"git",             label:"Git and GitHub",                     desc:"Version control, branching strategies, pull requests, and code review workflows." },
-    { id:"linux",           label:"Linux Basics",                       desc:"Shell scripting, file permissions, process management, cron jobs." },
-    { id:"networking",      label:"Networking Fundamentals",            desc:"TCP/IP, HTTP/S, DNS, VPCs, firewalls — essential for distributed systems." },
-    { id:"dist-sys",        label:"Distributed Systems Basics",         desc:"Replication, partitioning, consistency models, CAP theorem." },
+    { id:"git",             label:"Git and GitHub",                     desc:"Version control, branching strategies, pull requests, and code review workflows.", link:"/level-1-foundations/git/" },
+    { id:"linux",           label:"Linux Basics",                       desc:"Shell scripting, file permissions, process management, cron jobs.", link:"/level-1-foundations/linux/" },
+    { id:"networking",      label:"Networking Fundamentals",            desc:"TCP/IP, HTTP/S, DNS, VPCs, firewalls — essential for distributed systems.", link:"/level-1-foundations/networking/" },
+    { id:"dist-sys",        label:"Distributed Systems Basics",         desc:"Replication, partitioning, consistency models, CAP theorem.", link:"/level-4-advanced/system-design/" },
   ]},
   { id:"data-lifecycle", label:"Data Lifecycle", desc:"How data moves through a system — from raw generation to serving consumers.", subs:[
     { id:"data-gen",        label:"Data Generation",                    desc:"Transactional systems, events, logs, sensors, and third-party APIs." },
@@ -180,14 +180,14 @@ const ROADMAP = [
     { id:"dataflow",        label:"Google Dataflow",                    desc:"Managed Apache Beam service — unified batch and stream processing on GCP." },
   ]},
   { id:"containers", label:"Containers & Orchestration", desc:"Packaging and deploying data applications consistently across environments.", subs:[
-    { id:"docker",          label:"Docker",                             desc:"Containerising pipelines and services — Dockerfiles, images, registries." },
+    { id:"docker",          label:"Docker",                             desc:"Containerising pipelines and services — Dockerfiles, images, registries.", link:"/level-1-foundations/docker/" },
     { id:"kubernetes",      label:"Kubernetes",                         desc:"Container orchestration — pods, deployments, services, Helm charts.", link:"/level-3-technologies/orchestration/kubernetes/" },
     { id:"gke-eks",         label:"GKE / AWS EKS",                      desc:"Managed Kubernetes on Google Cloud and AWS." },
   ]},
-  { id:"cicd", label:"CI/CD", desc:"Automating testing and deployment of data pipelines and infrastructure.", subs:[
-    { id:"gh-actions",      label:"GitHub Actions",                     desc:"Automated workflows triggered by git events — test, lint, deploy pipelines." },
-    { id:"gitlab-ci",       label:"GitLab CI",                          desc:"Built-in CI/CD in GitLab — .gitlab-ci.yml, runners, environments." },
-    { id:"argocd",          label:"ArgoCD",                             desc:"GitOps continuous delivery for Kubernetes workloads." },
+  { id:"cicd", label:"CI/CD", desc:"Automating testing and deployment of data pipelines and infrastructure.", link:"/level-1-foundations/cicd/", subs:[
+    { id:"gh-actions",      label:"GitHub Actions",                     desc:"Automated workflows triggered by git events — test, lint, deploy pipelines.", link:"/level-1-foundations/cicd/#github-actions" },
+    { id:"gitlab-ci",       label:"GitLab CI",                          desc:"Built-in CI/CD in GitLab — .gitlab-ci.yml, runners, environments.", link:"/level-1-foundations/cicd/#gitlab-ci" },
+    { id:"argocd",          label:"ArgoCD",                             desc:"GitOps continuous delivery for Kubernetes workloads.", link:"/level-1-foundations/cicd/#argocd--gitops" },
   ]},
   { id:"monitoring", label:"Monitoring", desc:"Observing the health, performance, and correctness of data systems.", link:"/level-4-advanced/observability/", subs:[
     { id:"prometheus",      label:"Prometheus",                         desc:"Metrics collection and alerting — time-series DB, PromQL, Alertmanager." },
@@ -209,11 +209,11 @@ const ROADMAP = [
     { id:"async-sync",      label:"Async vs Sync Communication",        desc:"Trade-offs between request/response and event-driven patterns." },
     { id:"msgs-streams",    label:"Messages vs Streams",               desc:"Point-to-point queues vs append-only logs — Kafka vs traditional MQ." },
   ]},
-  { id:"iac", label:"Infrastructure as Code (IaC)", desc:"Managing cloud infrastructure through code — reproducible, version-controlled environments.", subs:[
-    { id:"terraform",       label:"Terraform",                          desc:"Declarative infrastructure provisioning — providers, state, modules, workspaces." },
-    { id:"opentofu",        label:"OpenTofu",                           desc:"Open-source fork of Terraform — drop-in replacement, community-driven." },
-    { id:"aws-cdk",         label:"AWS CDK",                            desc:"Define AWS infrastructure using familiar programming languages." },
-    { id:"declarative",     label:"Declarative vs Imperative IaC",     desc:"Desired-state (Terraform) vs step-by-step (scripts) approaches." },
+  { id:"iac", label:"Infrastructure as Code (IaC)", desc:"Managing cloud infrastructure through code — reproducible, version-controlled environments.", link:"/level-1-foundations/iac/", subs:[
+    { id:"terraform",       label:"Terraform",                          desc:"Declarative infrastructure provisioning — providers, state, modules, workspaces.", link:"/level-1-foundations/iac/#terraform-core" },
+    { id:"opentofu",        label:"OpenTofu",                           desc:"Open-source fork of Terraform — drop-in replacement, community-driven.", link:"/level-1-foundations/iac/#opentofu--aws-cdk" },
+    { id:"aws-cdk",         label:"AWS CDK",                            desc:"Define AWS infrastructure using familiar programming languages.", link:"/level-1-foundations/iac/#opentofu--aws-cdk" },
+    { id:"declarative",     label:"Declarative vs Imperative IaC",     desc:"Desired-state (Terraform) vs step-by-step (scripts) approaches.", link:"/level-1-foundations/iac/#iac-fundamentals" },
   ]},
   { id:"bi-analytics", label:"Business Intelligence & Analytics", desc:"Turning processed data into insights for business stakeholders.", subs:[
     { id:"powerbi",         label:"Microsoft Power BI",                 desc:"Interactive dashboards and reports — DAX, Power Query, DirectQuery." },

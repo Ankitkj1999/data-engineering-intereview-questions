@@ -36,7 +36,13 @@
             { "label": "Progress", "link": "/level-1-foundations/python/progress/" }
           ]
         },
-        { "label": "Data Structures", "link": "/level-1-foundations/data-structure/" }
+        { "label": "Data Structures", "link": "/level-1-foundations/data-structure/" },
+        { "label": "Git & GitHub", "link": "/level-1-foundations/git/" },
+        { "label": "Linux", "link": "/level-1-foundations/linux/" },
+        { "label": "Docker", "link": "/level-1-foundations/docker/" },
+        { "label": "CI/CD", "link": "/level-1-foundations/cicd/" },
+        { "label": "Infrastructure as Code", "link": "/level-1-foundations/iac/" },
+        { "label": "Networking", "link": "/level-1-foundations/networking/" }
       ]
     },
     {
