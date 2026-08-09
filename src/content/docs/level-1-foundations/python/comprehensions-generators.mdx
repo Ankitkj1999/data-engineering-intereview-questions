@@ -1,0 +1,404 @@
+---
+title: Comprehensions & Generators
+description: Python interview questions on list, dict and set comprehensions, the iterator protocol, generator functions and expressions, yield and yield from, and the itertools recipes that let you process datasets larger than memory.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Comprehensions & Generators: Processing More Data Than You Have RAM
+
+**This is the most data-engineering-relevant topic in the Python language. A comprehension builds the whole result in memory; a generator produces items one at a time and forgets them. That single distinction is the difference between a script that handles a 200 GB file on a laptop and one that dies with a MemoryError — and interviewers use generator questions precisely because they separate people who've processed real data volumes from people who haven't.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Comprehensions](#comprehensions)
+- [The Iterator Protocol](#the-iterator-protocol)
+- [Generators](#generators)
+- [itertools](#itertools)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Python's iteration model rests on two protocols. An **iterable** implements `__iter__` and can produce a fresh iterator on demand — a list, a dict, a file. An **iterator** implements `__next__`, yields one item per call, and raises `StopIteration` when exhausted. Every `for` loop calls `iter()` on its target and then `next()` repeatedly; that's the whole mechanism.
+
+Crucially, an iterator is **single-use and stateless about the past**. Once consumed it's empty, and it holds only the current item — which is exactly why it can represent a sequence larger than memory, or one that never ends.
+
+**Generators** are the easy way to write iterators. A function containing `yield` returns a generator when called; its body doesn't run until you iterate, and it suspends at each `yield` with all local state intact. Laziness plus resumable state is what makes streaming pipelines possible in plain Python.
+
+---
+
+## Comprehensions
+
+<QuestionList topic="Comprehensions" storagePrefix="python-comprehensions">
+
+<QuestionCard id="pyg-comp-01" number={1} question="What are the comprehension forms, and why prefer them to loops?" difficulty="easy" topic="Comprehensions">
+```python
+[r["id"] for r in rows if r["valid"]]           # list
+{r["id"]: r for r in rows}                      # dict
+{r["dept"] for r in rows}                       # set
+(r["id"] for r in rows)                         # generator expression
+```
+
+Reasons to prefer them: they're a single expression, so there's no partially-built accumulator to get wrong; they're faster, because the append is done in C rather than through a bound-method call per item; and they signal intent — "I am building a collection from another one" — where a loop could be doing anything.
+
+Note the last form. Parentheses give a **generator expression**, not a tuple — there is no tuple comprehension. Use `tuple(...)` if you need one.
+</QuestionCard>
+
+<QuestionCard id="pyg-comp-02" number={2} question="How do nested comprehensions and multiple for clauses work?" difficulty="medium" topic="Comprehensions">
+Multiple `for` clauses read **left to right, outermost first** — the same order as the equivalent nested loops:
+
+```python
+[cell for row in matrix for cell in row]        # flatten
+```
+
+which mirrors:
+
+```python
+for row in matrix:
+    for cell in row:
+```
+
+That ordering trips people up because a *nested comprehension* puts the inner one first:
+
+```python
+[[cell * 2 for cell in row] for row in matrix]  # transform, keeping shape
+```
+
+Beyond two levels, readability collapses. Once you'd need a comment to explain it, use a loop or a generator function — the performance gain is not worth an expression nobody can review.
+</QuestionCard>
+
+<QuestionCard id="pyg-comp-03" number={3} question="What is the difference between a filter in a comprehension and a conditional expression?" difficulty="medium" topic="Comprehensions">
+They sit in different places and do different things.
+
+```python
+[f(x) for x in xs if p(x)]              # FILTER — drops items
+[f(x) if p(x) else g(x) for x in xs]    # TRANSFORM — keeps every item
+```
+
+The `if` **after** the `for` selects which items survive. The `if`/`else` **before** the `for` is a ternary expression choosing what value to produce, so the output length always matches the input.
+
+You can combine them, and that's where it gets dense:
+
+```python
+[f(x) if p(x) else g(x) for x in xs if q(x)]
+```
+
+Mixing up which `if` is which produces a result of the wrong length — a subtle bug in row-mapping code, since nothing errors.
+</QuestionCard>
+
+<QuestionCard id="pyg-comp-04" number={4} question="Do comprehensions leak their loop variable?" difficulty="medium" topic="Comprehensions">
+No, not in Python 3. Comprehensions have their own scope, so the loop variable is not visible afterwards:
+
+```python
+x = "original"
+[x for x in range(3)]
+print(x)                # "original" — unchanged
+```
+
+In Python 2 this leaked and clobbered `x`, which is why the question still gets asked.
+
+One consequence of that separate scope: a comprehension at **class body** level can't see other class-level names, because the comprehension's scope skips the class scope. It's an obscure but real gotcha when building a lookup table inside a class definition.
+</QuestionCard>
+
+<QuestionCard id="pyg-comp-05" number={5} question="When is a comprehension the wrong tool?" difficulty="medium" topic="Comprehensions">
+- **When the result is large.** `[line for line in open(path)]` loads the whole file; the generator form streams it.
+- **When you need side effects.** A comprehension whose value you discard, used only to call something, is a loop written confusingly.
+- **When it needs more than one condition and a nested loop** — it stops being readable.
+- **When you need try/except** — comprehensions can't contain statements, so per-item error handling forces a loop or a helper function.
+- **When you're just counting or summing** — `sum(1 for r in rows if p(r))` avoids materialising anything.
+
+The memory point is the one that matters most in data work, and it's a one-character fix: swap `[` for `(`.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## The Iterator Protocol
+
+<QuestionList topic="The Iterator Protocol" storagePrefix="python-iterators">
+
+<QuestionCard id="pyg-iter-01" number={1} question="What is the difference between an iterable and an iterator?" difficulty="medium" topic="Iterators">
+An **iterable** implements `__iter__`, which returns a fresh iterator. A **list** is iterable — you can loop over it repeatedly.
+
+An **iterator** implements `__next__` (and `__iter__` returning itself). It's a cursor: single-use, and exhausted once consumed.
+
+```python
+xs = [1, 2, 3]
+it = iter(xs)
+list(it)      # [1, 2, 3]
+list(it)      # []  — the iterator is spent
+list(xs)      # [1, 2, 3] — the list is still fine
+```
+
+This is the source of a very common bug: passing a generator to two consumers, where the second silently sees nothing. If you need multiple passes, materialise it with `list()` or re-create the generator.
+</QuestionCard>
+
+<QuestionCard id="pyg-iter-02" number={2} question="How would you implement the iterator protocol by hand?" difficulty="medium" topic="Iterators">
+```python
+class BatchReader:
+    def __init__(self, rows, size):
+        self.rows, self.size, self.pos = rows, size, 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.pos >= len(self.rows):
+            raise StopIteration
+        batch = self.rows[self.pos:self.pos + self.size]
+        self.pos += self.size
+        return batch
+```
+
+`__next__` must raise `StopIteration` to end the loop — returning `None` gives an infinite loop of `None`s.
+
+Almost always, a generator function is the better answer: same behaviour in four lines, no manual state. Write the class only when you need extra methods or attributes alongside the iteration.
+</QuestionCard>
+
+<QuestionCard id="pyg-iter-03" number={3} question="What does iter() do with two arguments?" difficulty="hard" topic="Iterators">
+`iter(callable, sentinel)` repeatedly calls the callable until it returns the sentinel value.
+
+```python
+# read fixed-size chunks until EOF, no while loop
+with open(path, "rb") as f:
+    for chunk in iter(lambda: f.read(8192), b""):
+        process(chunk)
+
+# consume a queue until a poison pill
+for task in iter(q.get, None):
+    handle(task)
+```
+
+It's an obscure but genuinely elegant way to turn a "call until it says stop" API into an iterable — which then composes with everything else that takes an iterable, including `itertools`.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Generators
+
+<QuestionList topic="Generators" storagePrefix="python-generators">
+
+<QuestionCard id="pyg-gen-01" number={1} question="What is a generator, and what happens when you call one?" difficulty="easy" topic="Generators">
+A function containing `yield`. Calling it runs **none** of the body — it returns a generator object. The body executes only as you iterate, suspending at each `yield` with all locals intact and resuming from there on the next `next()`.
+
+```python
+def read_records(path):
+    with open(path) as f:
+        for line in f:
+            yield json.loads(line)
+
+for rec in read_records("events.jsonl"):    # one record in memory at a time
+    process(rec)
+```
+
+Two properties matter: **constant memory** regardless of file size, and **immediate first result** — you can start processing before the source is fully read, which matters for latency and for infinite streams.
+</QuestionCard>
+
+<QuestionCard id="pyg-gen-02" number={2} question="What is the difference between a list comprehension and a generator expression?" difficulty="easy" topic="Generators">
+```python
+squares_list = [x**2 for x in range(10_000_000)]   # ~400 MB, builds eagerly
+squares_gen  = (x**2 for x in range(10_000_000))   # ~200 bytes, lazy
+```
+
+The list computes and stores everything up front. The generator computes on demand and stores one value.
+
+Use the list when you need random access, `len()`, or multiple passes. Use the generator when you're streaming through once — which in data engineering is most of the time.
+
+A neat detail: when a generator expression is the sole argument to a function, the extra parentheses are unnecessary — `sum(x**2 for x in xs)` is valid and idiomatic.
+</QuestionCard>
+
+<QuestionCard id="pyg-gen-03" number={3} question="What does 'yield from' do?" difficulty="medium" topic="Generators">
+It delegates to a sub-iterator, yielding all of its items — and, importantly, forwards `send()` and exceptions through to it.
+
+```python
+def read_all(paths):
+    for p in paths:
+        yield from read_records(p)     # instead of: for r in ...: yield r
+```
+
+Beyond brevity, it's essential for recursive generators:
+
+```python
+def flatten(nested):
+    for item in nested:
+        if isinstance(item, list):
+            yield from flatten(item)
+        else:
+            yield item
+```
+
+Writing that with a manual inner loop still works but is noisier, and the delegation semantics for `send`/`throw` only come with `yield from`.
+</QuestionCard>
+
+<QuestionCard id="pyg-gen-04" number={4} question="How do you chain generators into a processing pipeline?" difficulty="medium" topic="Generators">
+Compose them — each stage takes an iterable and yields an iterable, so nothing is materialised between stages:
+
+```python
+def read(path):
+    with open(path) as f:
+        yield from f
+
+def parse(lines):
+    for line in lines:
+        yield json.loads(line)
+
+def valid(records):
+    for r in records:
+        if r.get("id"):
+            yield r
+
+def enrich(records):
+    for r in records:
+        yield {**r, "loaded_at": datetime.now(timezone.utc)}
+
+pipeline = enrich(valid(parse(read("events.jsonl"))))
+for record in pipeline:
+    write(record)
+```
+
+Memory stays constant no matter the file size, each stage is independently testable, and stages can be reordered or reused. This is the Python equivalent of a Unix pipe, and it's the pattern to reach for when a pandas `read_csv` won't fit.
+</QuestionCard>
+
+<QuestionCard id="pyg-gen-05" number={5} question="What are the downsides of generators?" difficulty="medium" topic="Generators">
+- **Single-use.** Consumed once, then empty — and it fails silently, producing zero rows rather than an error.
+- **No `len()`, no indexing, no slicing.** You need `itertools.islice` instead of `[:10]`.
+- **Harder debugging.** You can't inspect the whole sequence in a debugger, and a traceback from deep in a chain of generators can be hard to read.
+- **Deferred errors.** A bug in the generator body surfaces at iteration time, potentially far from where the generator was created — which makes exception context confusing.
+- **Resource lifetime.** A generator holding an open file keeps it open until exhausted or garbage collected. Abandoning it mid-iteration can leave the file handle around.
+
+None of these outweigh the memory benefit for large data, but they're the honest trade.
+</QuestionCard>
+
+<QuestionCard id="pyg-gen-06" number={6} question="What do generator send(), throw() and close() do?" difficulty="hard" topic="Generators">
+They make a generator a **coroutine** — two-way communication rather than pure production.
+
+```python
+def accumulator():
+    total = 0
+    while True:
+        x = yield total       # yield sends out, and receives back
+        total += x
+
+acc = accumulator()
+next(acc)          # prime it — run to the first yield
+acc.send(10)       # 10
+acc.send(5)        # 15
+acc.close()        # raises GeneratorExit inside the generator
+```
+
+`send(v)` resumes the generator with `v` as the result of the `yield` expression. `throw(exc)` raises inside it. `close()` raises `GeneratorExit`, letting `finally` blocks clean up.
+
+This was the foundation of pre-`async` coroutines. Today `async`/`await` covers that use case, so `send` is rare in application code — but it explains where `async` came from, which is why it's asked.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## itertools
+
+<QuestionList topic="itertools" storagePrefix="python-itertools">
+
+<QuestionCard id="pyg-tools-01" number={1} question="Which itertools functions matter most for data processing?" difficulty="medium" topic="itertools">
+```python
+from itertools import chain, islice, groupby, tee, accumulate, product
+
+chain(a, b, c)              # concatenate iterables lazily
+chain.from_iterable(lists)  # flatten one level
+islice(it, 10)              # first 10 — slicing for iterators
+islice(it, 100, 200)        # a window, without materialising
+groupby(sorted_rows, key)   # group CONSECUTIVE equal keys
+tee(it, 2)                  # two independent iterators from one
+accumulate(xs)              # running totals
+product(a, b)               # cartesian product
+```
+
+`chain` is how you process many files as one stream. `islice` is how you take a sample from something you can't index. `accumulate` gives running totals without a loop — the equivalent of a SQL window `SUM() OVER (ORDER BY ...)`.
+</QuestionCard>
+
+<QuestionCard id="pyg-tools-02" number={2} question="What is the most common mistake with itertools.groupby?" difficulty="hard" topic="itertools">
+**It groups consecutive runs, not all equal keys** — so unsorted input silently produces duplicate groups:
+
+```python
+rows = [{"d": "a"}, {"d": "b"}, {"d": "a"}]
+for k, g in groupby(rows, key=itemgetter("d")):
+    print(k, len(list(g)))       # a 1 / b 1 / a 1  — "a" appears TWICE
+```
+
+**You must sort by the same key first.** It behaves like Unix `uniq`, not SQL `GROUP BY`.
+
+The second trap: the group is a **lazy iterator sharing the underlying stream**. Advancing to the next group invalidates the previous one, so `list(groupby(...))` gives you empty groups. Consume each group before moving on, or use `[(k, list(g)) for k, g in groupby(...)]`.
+
+When input can't be sorted, `collections.defaultdict(list)` is the right tool instead.
+</QuestionCard>
+
+<QuestionCard id="pyg-tools-03" number={3} question="How do you batch an iterator into fixed-size chunks?" difficulty="medium" topic="itertools">
+Python 3.12 added it directly:
+
+```python
+from itertools import batched
+for batch in batched(records, 1000):
+    bulk_insert(batch)
+```
+
+Before 3.12, the standard recipe:
+
+```python
+from itertools import islice
+
+def batched(iterable, n):
+    it = iter(iterable)
+    while batch := tuple(islice(it, n)):
+        yield batch
+```
+
+Note `iter()` is called **once** outside the loop — that's what makes successive `islice` calls advance the same cursor rather than restarting.
+
+This is the workhorse for bulk database inserts and API calls with size limits: stream from the source, accumulate n at a time, flush, and never hold more than n rows.
+</QuestionCard>
+
+<QuestionCard id="pyg-tools-04" number={4} question="What does itertools.tee do, and what's the catch?" difficulty="hard" topic="itertools">
+It creates several independent iterators from one, so you can make multiple passes over a single-use source:
+
+```python
+count_it, sum_it = tee(records, 2)
+n = sum(1 for _ in count_it)
+total = sum(r["amount"] for r in sum_it)
+```
+
+The catch is **memory**. `tee` buffers every item that one branch has consumed but another hasn't. If you fully exhaust the first iterator before touching the second, it buffers the entire stream — exactly the memory blow-up you used a generator to avoid.
+
+It's only safe when the branches advance roughly together. For the example above, a single pass accumulating both values is strictly better. And once you've called `tee`, don't use the original iterator.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Process a 100 GB file on a machine with 16 GB of RAM."** — a generator pipeline: stream lines, parse, filter, transform, write in batches. State explicitly that memory stays constant because nothing is materialised, and mention batching writes so you're not doing a round trip per row.
+
+**"Why does this return nothing the second time?"** — the generator was already consumed. Either re-create it or materialise it into a list, and note that the failure is silent, which is what makes it dangerous.
+
+**"Group these records by customer."** — if input is sorted, `itertools.groupby`; if not, `defaultdict(list)`. Volunteering the consecutive-runs caveat before being asked is the strong answer.
+
+**"Take a 1% sample from a stream you can't index."** — `islice` for a head sample, or a per-item random check for a true sample. Reservoir sampling if you need exactly k items from an unknown-length stream in one pass.
+
+---
+
+## Further Reading
+
+- [`itertools` documentation](https://docs.python.org/3/library/itertools.html) — read the recipes section at the bottom
+- [Generators — Python Wiki](https://wiki.python.org/moin/Generators)
+- [PEP 255 — Simple Generators](https://peps.python.org/pep-0255/)
+- [PEP 380 — `yield from`](https://peps.python.org/pep-0380/)
+- [Generator Tricks for Systems Programmers](https://www.dabeaz.com/generators/) — David Beazley; the canonical talk on generator pipelines
+- [Functional Programming HOWTO](https://docs.python.org/3/howto/functional.html)

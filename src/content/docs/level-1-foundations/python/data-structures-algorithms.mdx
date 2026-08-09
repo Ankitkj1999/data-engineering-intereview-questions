@@ -1,0 +1,488 @@
+---
+title: Data Structures & Algorithms
+description: Python data structures and algorithms interview questions covering arrays and linked lists, hash tables, heaps, stacks and queues, binary search trees, recursion and sorting — with the complexity analysis data engineering interviews expect.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Data Structures & Algorithms in Python
+
+**Data engineering interviews rarely ask you to implement a red-black tree. They ask why your join is O(n²), how you'd find the top 100 items in a billion-row stream without sorting it, and how to deduplicate a dataset that doesn't fit in memory. The algorithms matter because they're the difference between a job that finishes and one that doesn't — and because "use a hash map" is the answer to a surprising share of pipeline performance problems.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Arrays & Linked Lists](#arrays--linked-lists)
+- [Hash Tables](#hash-tables)
+- [Stacks & Queues](#stacks--queues)
+- [Heaps & Priority Queues](#heaps--priority-queues)
+- [Trees & Binary Search](#trees--binary-search)
+- [Recursion](#recursion)
+- [Sorting & Searching](#sorting--searching)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+**Big-O describes how cost grows, not how fast something is.** An O(n²) algorithm can beat an O(n log n) one on 50 elements. It stops being true at 50 million, which is where data engineering lives — so the asymptotic answer is usually the right one here, and the constant factors matter only after you've fixed the exponent.
+
+The single most valuable trade in practice is **space for time via hashing**. Nested loops comparing every row to every other row are O(n·m); building a hash index of one side first makes it O(n+m). That's exactly what a database does when it picks a hash join over a nested-loop join, and recognising the same shape in your own Python is what these questions test.
+
+The second is **bounded memory**. A heap of size k lets you find the top k of an unbounded stream in O(n log k) time and O(k) space. Streaming, chunking and external sorting all come from the same insight: you rarely need everything in memory at once.
+
+---
+
+## Arrays & Linked Lists
+
+<QuestionList topic="Arrays & Linked Lists" storagePrefix="python-dsa-arrays">
+
+<QuestionCard id="pyd-arr-01" number={1} question="Is a Python list an array or a linked list?" difficulty="medium" topic="Arrays">
+A Python list is a **dynamic array** — a contiguous block of pointers to objects, not a linked list.
+
+That gives O(1) indexing, because the address is computed arithmetically. It also explains why `insert(0, x)` is O(n): every subsequent pointer has to shift.
+
+When the block fills, CPython allocates a larger one (roughly 1.125× plus a constant) and copies. Because growth is geometric, `append` is **O(1) amortised** — most appends are free, and the occasional expensive resize averages out.
+
+Note it stores *pointers*, not the values themselves, so a list of a million ints costs far more than a million machine words. `array.array` or NumPy store unboxed values when that matters.
+</QuestionCard>
+
+<QuestionCard id="pyd-arr-02" number={2} question="What is a linked list, and when would you actually use one?" difficulty="medium" topic="Linked Lists">
+A chain of nodes, each holding a value and a pointer to the next. Insertion and deletion are O(1) **given a reference to the node**, but access by index is O(n) since you must walk the chain.
+
+In Python you rarely implement one. `collections.deque` is a doubly-linked list of blocks and covers the real use case: O(1) appends and pops at **both** ends.
+
+Genuine uses are LRU caches (a linked list for recency order plus a dict for lookup — which is what `functools.lru_cache` does internally) and situations with frequent middle-of-sequence splicing. For almost everything else, contiguous memory wins because CPU caches reward locality and pointer-chasing defeats it.
+</QuestionCard>
+
+<QuestionCard id="pyd-arr-03" number={3} question="What is the two-pointer technique?" difficulty="medium" topic="Arrays">
+Two indices moving through a sequence, replacing a nested loop with a single pass.
+
+```python
+def has_pair_with_sum(sorted_nums, target):
+    lo, hi = 0, len(sorted_nums) - 1
+    while lo < hi:
+        s = sorted_nums[lo] + sorted_nums[hi]
+        if s == target:
+            return True
+        if s < target:
+            lo += 1        # need a bigger sum
+        else:
+            hi -= 1        # need a smaller sum
+    return False
+```
+
+O(n) time, O(1) space, versus O(n²) for the naive double loop. It requires sorted input, so the real cost is often the O(n log n) sort.
+
+The data engineering version is the **merge join**: two sorted inputs advanced in lockstep, which is how databases join pre-sorted data without building a hash table.
+</QuestionCard>
+
+<QuestionCard id="pyd-arr-04" number={4} question="What is a sliding window, and where does it show up in data work?" difficulty="medium" topic="Arrays">
+A window over a sequence that expands and contracts, maintaining a running aggregate instead of recomputing it.
+
+```python
+def max_sum_window(nums, k):
+    window = sum(nums[:k])
+    best = window
+    for i in range(k, len(nums)):
+        window += nums[i] - nums[i - k]     # add new, drop old
+        best = max(best, window)
+    return best
+```
+
+O(n) rather than O(n·k).
+
+In pipelines this is a rolling average, a 7-day trailing metric, or rate limiting over a time window — and it's exactly what SQL's `OVER (ORDER BY ... ROWS BETWEEN n PRECEDING AND CURRENT ROW)` computes. Recognising the pattern means you can implement it in streaming code without buffering the whole series.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Hash Tables
+
+<QuestionList topic="Hash Tables" storagePrefix="python-dsa-hashing">
+
+<QuestionCard id="pyd-hash-01" number={1} question="How does a hash table achieve O(1) lookup?" difficulty="medium" topic="Hash Tables">
+It computes `hash(key)` and uses the result to index directly into an array of slots — no searching involved, so cost is independent of the number of entries.
+
+Two keys can land in the same slot; that's a **collision**. Python resolves it with open addressing and probing: it tries a deterministic sequence of alternative slots. When the table exceeds about two-thirds full it resizes and rehashes everything, keeping probe sequences short.
+
+So O(1) is *average* case. Worst case is O(n) if every key collides. Python randomises string hashing per process specifically so an attacker can't craft colliding keys and degrade your service.
+</QuestionCard>
+
+<QuestionCard id="pyd-hash-02" number={2} question="What makes an object hashable, and what happens if you break the rules?" difficulty="medium" topic="Hash Tables">
+An object is hashable if it implements `__hash__` and `__eq__`, and its hash never changes during its lifetime. Immutable built-ins qualify; `list`, `dict` and `set` do not.
+
+The contract: **if `a == b` then `hash(a) == hash(b)`.** Break it and dict lookups silently fail, because Python finds the right slot but rejects the entry on the equality check.
+
+```python
+@dataclass(frozen=True)      # frozen=True generates __hash__
+class PartitionKey:
+    table: str
+    date: str
+```
+
+If you define `__eq__` on a class, Python sets `__hash__` to `None` — making instances unhashable — precisely to stop you from having equal objects with different hashes by accident.
+</QuestionCard>
+
+<QuestionCard id="pyd-hash-03" number={3} question="How would you find duplicate records in a large dataset?" difficulty="medium" topic="Hash Tables">
+Single pass with a set of seen keys — O(n) time, O(distinct keys) memory:
+
+```python
+def find_duplicates(rows, key):
+    seen, dupes = set(), []
+    for r in rows:
+        k = key(r)
+        if k in seen:
+            dupes.append(r)
+        else:
+            seen.add(k)
+    return dupes
+```
+
+The interesting follow-up is **what if the keys don't fit in memory**. Then:
+- Hash keys to fixed-size digests to shrink them.
+- **Partition** by `hash(key) % N` into N files and process each independently — duplicates always land in the same partition. This is exactly how a distributed shuffle works.
+- Use a **Bloom filter** for a probabilistic pre-filter: no false negatives, so anything it rejects is definitely unique, and only candidates need exact checking.
+</QuestionCard>
+
+<QuestionCard id="pyd-hash-04" number={4} question="How would you join two datasets in Python without a database?" difficulty="hard" topic="Hash Tables">
+Build a hash index on the smaller side, then stream the larger one past it:
+
+```python
+from collections import defaultdict
+
+def hash_join(left, right, left_key, right_key):
+    index = defaultdict(list)
+    for r in right:                     # build phase — smaller side
+        index[right_key(r)].append(r)
+    for l in left:                      # probe phase — streams
+        for r in index.get(left_key(l), ()):
+            yield (l, r)
+```
+
+O(n+m) instead of the O(n·m) nested loop, at the cost of holding the build side in memory.
+
+This *is* a database hash join, and naming that connection is the point of the question. The follow-ups map to real engine behaviour: build on the smaller side; if it doesn't fit, partition both inputs by key hash and join partition-wise (a grace hash join); and if one side is tiny, it's a broadcast join.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Stacks & Queues
+
+<QuestionList topic="Stacks & Queues" storagePrefix="python-dsa-stacks-queues">
+
+<QuestionCard id="pyd-stack-01" number={1} question="How do you implement a stack and a queue in Python?" difficulty="easy" topic="Stacks & Queues">
+A **stack** (LIFO) is just a list — `append` to push, `pop()` to pop, both O(1).
+
+A **queue** (FIFO) must not be a list, because `pop(0)` is O(n). Use `collections.deque`:
+
+```python
+from collections import deque
+
+q = deque()
+q.append(x)          # enqueue, O(1)
+q.popleft()          # dequeue, O(1)
+q.appendleft(x)      # also O(1) — deque works at both ends
+```
+
+For cross-thread work use `queue.Queue`, which adds locking and blocking semantics; `deque` is thread-safe for appends and pops but doesn't give you "block until an item arrives."
+
+`deque(maxlen=n)` is a neat bonus: it silently discards from the far end, making a fixed-size rolling buffer of the last n events.
+</QuestionCard>
+
+<QuestionCard id="pyd-stack-02" number={2} question="What problems are naturally solved with a stack?" difficulty="medium" topic="Stacks & Queues">
+Anything with nesting or "most recent unmatched" semantics:
+
+- **Balanced delimiters** — push openers, pop and check on closers. The basis of parsing JSON or SQL.
+- **Expression evaluation** — infix to postfix, then evaluate.
+- **Depth-first traversal** — an explicit stack replaces recursion, avoiding stack-overflow limits.
+- **Undo** — push each state.
+- **Call stacks** — which is why deep recursion and stacks are the same topic.
+
+In data engineering the common one is **dependency resolution**: a DAG's topological sort via DFS uses a stack, and that's how Airflow determines task order and how dbt builds its model graph.
+</QuestionCard>
+
+<QuestionCard id="pyd-stack-03" number={3} question="How would you detect a cycle in a DAG of pipeline tasks?" difficulty="hard" topic="Stacks & Queues">
+DFS with three colours — unvisited, in-progress, done. Hitting an in-progress node means a back edge, therefore a cycle:
+
+```python
+def has_cycle(graph):
+    WHITE, GREY, BLACK = 0, 1, 2
+    color = {n: WHITE for n in graph}
+
+    def visit(n):
+        color[n] = GREY
+        for m in graph[n]:
+            if color[m] == GREY:          # back edge
+                return True
+            if color[m] == WHITE and visit(m):
+                return True
+        color[n] = BLACK
+        return False
+
+    return any(visit(n) for n in graph if color[n] == WHITE)
+```
+
+O(V+E). Marking only "visited" isn't enough — you'd flag a diamond-shaped DAG as cyclic, since a node legitimately reachable by two paths isn't a cycle. The three-colour distinction is the whole trick.
+
+Kahn's algorithm (repeatedly removing zero-in-degree nodes) is the queue-based alternative and gives you a topological order at the same time.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Heaps & Priority Queues
+
+<QuestionList topic="Heaps & Priority Queues" storagePrefix="python-dsa-heaps">
+
+<QuestionCard id="pyd-heap-01" number={1} question="What is a heap, and what does Python provide?" difficulty="medium" topic="Heaps">
+A binary heap is a complete binary tree where every parent is ≤ its children (a min-heap), stored flat in an array. That invariant gives O(1) access to the minimum and O(log n) insert and extract.
+
+Python's `heapq` operates on a plain list:
+
+```python
+import heapq
+
+h = []
+heapq.heappush(h, (priority, item))
+smallest = heapq.heappop(h)
+heapq.heapify(existing_list)          # O(n), in place
+heapq.nlargest(10, rows, key=...)     # convenience wrappers
+```
+
+It's a **min**-heap only. For a max-heap, push negated priorities. Note that tuples compare element-wise, so if two priorities tie Python compares the second element — push a tiebreaker counter if your items aren't comparable.
+</QuestionCard>
+
+<QuestionCard id="pyd-heap-02" number={2} question="How do you find the top k items in a stream too large to sort?" difficulty="hard" topic="Heaps">
+Keep a **min-heap of size k**. The smallest of your current best k sits at the root, so each new item is one comparison away from a decision:
+
+```python
+import heapq
+
+def top_k(stream, k):
+    h = []
+    for item in stream:
+        if len(h) < k:
+            heapq.heappush(h, item)
+        elif item > h[0]:
+            heapq.heapreplace(h, item)     # pop min, push new, one sift
+    return sorted(h, reverse=True)
+```
+
+**O(n log k) time, O(k) space** — versus O(n log n) time and O(n) space for sorting everything. With n = 1 billion and k = 100 that's the difference between feasible and impossible, and it works on an unbounded stream that never fits in memory.
+
+`heapq.nlargest(k, iterable)` does exactly this for you.
+</QuestionCard>
+
+<QuestionCard id="pyd-heap-03" number={3} question="How would you merge many sorted files into one sorted output?" difficulty="hard" topic="Heaps">
+A k-way merge with a heap holding one row per file — the classic external sort merge phase:
+
+```python
+import heapq
+
+def merge_sorted_files(paths):
+    files = [open(p) for p in paths]
+    # heapq.merge does exactly this, lazily
+    yield from heapq.merge(*files, key=parse_key)
+```
+
+The heap holds only k items (one per input), so memory is O(k) regardless of total data size. Each output row costs O(log k), giving O(n log k) overall.
+
+This is how you sort data larger than RAM: split into chunks that fit, sort each, write them out, then merge. It's what `sort` on the command line does when it spills, and what Spark does during a sort-merge join.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Trees & Binary Search
+
+<QuestionList topic="Trees & Binary Search" storagePrefix="python-dsa-trees">
+
+<QuestionCard id="pyd-bst-01" number={1} question="What is a binary search tree, and what's its weakness?" difficulty="medium" topic="Trees">
+A BST keeps every left descendant less than the node and every right descendant greater, giving O(log n) search, insert and delete — *if it stays balanced*.
+
+The weakness is that it doesn't, on its own. Inserting sorted data produces a linked list and degrades every operation to O(n). That's exactly what happens when you index an auto-incrementing ID or a timestamp, which is precisely the common case in data systems.
+
+The fix is a self-balancing variant — AVL, red-black — which rotates on insert to bound the height. Databases use **B-trees** instead: high branching factor means fewer levels and therefore fewer disk reads, which matters far more than comparison count when each level is an I/O.
+</QuestionCard>
+
+<QuestionCard id="pyd-bst-02" number={2} question="Implement binary search, and name the classic bug." difficulty="medium" topic="Binary Search">
+```python
+def binary_search(xs, target):
+    lo, hi = 0, len(xs) - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if xs[mid] == target:
+            return mid
+        if xs[mid] < target:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return -1
+```
+
+The classic bugs are the boundary conditions: `while lo < hi` instead of `<=` misses the single-element case, and forgetting the `+1`/`-1` gives an infinite loop.
+
+In languages with fixed-width ints, `(lo + hi)` can overflow — hence the famous `lo + (hi - lo) // 2` idiom. Python's arbitrary-precision ints make that unnecessary, which is worth saying if asked.
+
+In practice use `bisect`: `bisect_left` and `bisect_right` are tested, C-speed, and also give you insertion points for maintaining a sorted list.
+</QuestionCard>
+
+<QuestionCard id="pyd-bst-03" number={3} question="What are the tree traversal orders and when does each matter?" difficulty="medium" topic="Trees">
+- **In-order** (left, node, right) — on a BST this yields **sorted order**. That's the property that makes range scans on an index work.
+- **Pre-order** (node, left, right) — serialising or copying a tree; you see a parent before its children.
+- **Post-order** (left, right, node) — children before parents. This is the one for evaluating an expression tree, computing directory sizes, or **executing a dependency graph**, since you must finish dependencies before the thing that needs them.
+- **Level-order / BFS** — a queue rather than a stack; finds shortest paths and processes a DAG generation by generation.
+
+Post-order and BFS are the two that show up in orchestration: task execution order and stage scheduling.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Recursion
+
+<QuestionList topic="Recursion" storagePrefix="python-dsa-recursion">
+
+<QuestionCard id="pyd-rec-01" number={1} question="What does a correct recursive function need?" difficulty="easy" topic="Recursion">
+A **base case** that returns without recursing, and a **recursive case** that makes progress toward it.
+
+```python
+def flatten(nested):
+    for item in nested:
+        if isinstance(item, list):
+            yield from flatten(item)      # recursive case
+        else:
+            yield item                    # base case
+```
+
+Missing or unreachable base cases give infinite recursion, which in Python raises `RecursionError` rather than crashing the process — the limit defaults to 1000 frames.
+
+The practical use in data work is walking nested structures: JSON documents, directory trees, and dependency graphs, all of which have arbitrary depth that a fixed set of loops can't handle.
+</QuestionCard>
+
+<QuestionCard id="pyd-rec-02" number={2} question="Why does Python not optimise tail recursion, and what do you do instead?" difficulty="medium" topic="Recursion">
+Guido rejected tail-call optimisation deliberately: it would erase frames from tracebacks, and Python prioritises debuggability. So every recursive call consumes a real stack frame regardless of shape.
+
+That means deep recursion fails. On a 100,000-node linked structure, a recursive walk raises `RecursionError`.
+
+The answer is **convert to iteration with an explicit stack**:
+
+```python
+def walk(root):
+    stack = [root]
+    while stack:
+        node = stack.pop()
+        yield node
+        stack.extend(node.children)
+```
+
+Same traversal, heap-allocated stack, no depth limit. Raising `sys.setrecursionlimit` is available but a bad idea — exceed the real C stack and you get a segfault instead of an exception.
+</QuestionCard>
+
+<QuestionCard id="pyd-rec-03" number={3} question="What is memoization, and how do you apply it in Python?" difficulty="medium" topic="Recursion">
+Caching results so repeated subproblems are computed once. Naive recursive Fibonacci is O(2ⁿ) because it recomputes the same values exponentially often; memoized it's O(n).
+
+```python
+from functools import cache      # 3.9+; lru_cache(maxsize=None) before that
+
+@cache
+def fib(n):
+    return n if n < 2 else fib(n - 1) + fib(n - 2)
+```
+
+Requirements: arguments must be **hashable**, and the function must be **pure** — same inputs, same output, no side effects. Caching a function that reads a database gives you stale results.
+
+Use `lru_cache(maxsize=N)` when the key space is unbounded, so the cache can't grow without limit. In pipelines it's ideal for expensive lookups — a dimension table fetch inside a per-row transform.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Sorting & Searching
+
+<QuestionList topic="Sorting & Searching" storagePrefix="python-dsa-sorting">
+
+<QuestionCard id="pyd-sort-01" number={1} question="What algorithm does Python's sort use?" difficulty="medium" topic="Sorting">
+**Timsort** — a hybrid of merge sort and insertion sort, designed for real-world data.
+
+It finds existing sorted runs, extends short ones with insertion sort, and merges them. On already-sorted or nearly-sorted input it approaches **O(n)**; worst case is O(n log n).
+
+Two properties matter in practice. It's **stable**, so equal elements keep their relative order — which is what makes successive sorts compose into a multi-key sort. And it's **adaptive**, so partially ordered data (very common — think append-only event logs already roughly in time order) sorts much faster than the worst case suggests.
+</QuestionCard>
+
+<QuestionCard id="pyd-sort-02" number={2} question="Compare the common sorting algorithms." difficulty="medium" topic="Sorting">
+| Algorithm | Average | Worst | Space | Stable |
+|---|---|---|---|:-:|
+| Quicksort | O(n log n) | O(n²) | O(log n) | No |
+| Merge sort | O(n log n) | O(n log n) | O(n) | Yes |
+| Heapsort | O(n log n) | O(n log n) | O(1) | No |
+| Timsort | O(n log n) | O(n log n) | O(n) | Yes |
+| Insertion sort | O(n²) | O(n²) | O(1) | Yes |
+| Counting/radix | O(n+k) | O(n+k) | O(n+k) | Yes |
+
+Quicksort is usually fastest in practice despite the quadratic worst case (bad pivots on sorted input), and it sorts in place. Merge sort's guaranteed bound and stability make it the choice for external sorting, where the merge phase streams from disk. Insertion sort wins on tiny or nearly-sorted inputs, which is why Timsort embeds it.
+</QuestionCard>
+
+<QuestionCard id="pyd-sort-03" number={3} question="Why does stability matter?" difficulty="medium" topic="Sorting">
+A stable sort preserves the input order of equal elements. That lets you build a multi-key ordering by sorting repeatedly, least significant key first:
+
+```python
+rows.sort(key=lambda r: r["name"])        # secondary
+rows.sort(key=lambda r: r["department"])  # primary — ties keep name order
+```
+
+It's also what makes `GROUP BY` and windowed operations reproducible: without stability, two runs over identical data can emit rows in different orders, so "the first record per group" becomes non-deterministic — which surfaces as a pipeline that produces different output on a re-run and fails reconciliation.
+</QuestionCard>
+
+<QuestionCard id="pyd-sort-04" number={4} question="How would you sort a file larger than memory?" difficulty="hard" topic="Sorting">
+**External merge sort**, in two phases:
+
+1. **Split and sort** — read chunks that fit in RAM, sort each in memory, write each out as a sorted run.
+2. **Merge** — open all runs and do a k-way merge with a heap, streaming to output. Memory is O(k), independent of total size.
+
+```python
+import heapq
+# phase 2, essentially:
+with open("out.txt", "w") as out:
+    out.writelines(heapq.merge(*[open(p) for p in run_paths]))
+```
+
+If there are too many runs to open at once, merge in passes.
+
+This is the mechanism behind `sort -S` spilling to disk, a database's on-disk sort, and Spark's shuffle spill. Naming it is usually what the interviewer is after.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"This pipeline step takes 6 hours. Here's the code."** — look for a nested loop doing membership tests or lookups against a list. Replacing the inner scan with a dict or set index is the single most common fix, turning O(n·m) into O(n+m).
+
+**"Find the 100 most frequent values in a 500 GB log file."** — count with a `Counter` over a streaming read (memory is O(distinct values), not O(rows)), then `heapq.nlargest(100, ...)`. If distinct values also don't fit, partition by `hash(value) % N` and combine per-partition results.
+
+**"How would you detect whether two large datasets contain the same records?"** — sort-and-compare is O(n log n); hashing each record and comparing sets is O(n) but needs memory. A single checksum over sorted hashes answers "are they identical" cheaply; you need the full sets to answer "what differs."
+
+**"What's the complexity of this?"** — count nested loops over the input, note that `in` on a list is O(n) while `in` on a set is O(1), and remember that sorting inside a loop is a common hidden O(n² log n).
+
+---
+
+## Further Reading
+
+- [Python `heapq` documentation](https://docs.python.org/3/library/heapq.html)
+- [Python `bisect` documentation](https://docs.python.org/3/library/bisect.html)
+- [`collections` — deque, Counter, defaultdict](https://docs.python.org/3/library/collections.html)
+- [TimeComplexity — Python Wiki](https://wiki.python.org/moin/TimeComplexity)
+- [Timsort description](https://github.com/python/cpython/blob/main/Objects/listsort.txt) — from the CPython source, by its author
+- [Grokking Algorithms](https://www.manning.com/books/grokking-algorithms) — the friendliest introduction if the theory is rusty

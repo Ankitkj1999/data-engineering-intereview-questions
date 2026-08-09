@@ -1,0 +1,503 @@
+---
+title: Testing
+description: Python testing interview questions covering pytest, fixtures, parametrization, mocking, unittest and doctest, tox, coverage, and the specific problem of testing data pipelines and transformations.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Testing: Proving a Transformation Is Correct Before It Writes to Production
+
+**Testing data pipelines is harder than testing application code, and interviewers know it. The logic depends on data you don't control, the environment involves databases and object storage, and a bug doesn't crash — it writes plausible-looking wrong numbers into a table someone is about to make a decision from. The good answers here are about structuring code so the logic *can* be tested in isolation, and about which tests belong in CI versus in production monitoring.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [pytest Fundamentals](#pytest-fundamentals)
+- [Fixtures](#fixtures)
+- [Mocking](#mocking)
+- [Other Testing Tools](#other-testing-tools)
+- [Testing Data Pipelines](#testing-data-pipelines)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The **test pyramid** still applies: many fast unit tests over pure logic, fewer integration tests against real dependencies, and a small number of end-to-end runs. Inverting it — mostly slow end-to-end tests — gives a suite nobody waits for, and a suite nobody waits for stops catching anything.
+
+The enabling design principle is **separating pure computation from I/O**. A transformation that takes rows and returns rows is trivially testable with fixtures. The same logic embedded in a function that also opens a database connection, reads a file and writes to S3 requires mocking all three to test any of it. Push I/O to the edges, and the hard-to-get-right part becomes the easy-to-test part.
+
+The property that distinguishes data testing is that **correctness depends on the data, not just the code**. Unit tests prove your function handles the cases you thought of. They cannot prove upstream didn't start sending nulls in a column that was never null before — that needs data quality checks running against real data, in CI and in production.
+
+---
+
+## pytest Fundamentals
+
+<QuestionList topic="pytest Fundamentals" storagePrefix="python-testing-pytest">
+
+<QuestionCard id="pyq-pt-01" number={1} question="Why is pytest preferred over unittest?" difficulty="easy" topic="pytest">
+- **Plain `assert`** — pytest rewrites assertions to show the actual values on failure, so you don't need `assertEqual`, `assertIn`, `assertAlmostEqual` and the rest.
+- **No boilerplate** — test functions, not classes inheriting `TestCase`.
+- **Fixtures** — composable, explicitly requested by name, far more flexible than `setUp`/`tearDown`.
+- **Parametrization** — one test, many cases, each reported separately.
+- **A large plugin ecosystem** — `pytest-cov`, `pytest-xdist` for parallelism, `pytest-mock`, `pytest-postgresql`.
+
+```python
+def test_normalise_strips_whitespace():
+    assert normalise("  A  ") == "a"
+```
+
+That's the whole test. And pytest **runs unittest tests too**, so adopting it in a legacy codebase costs nothing.
+</QuestionCard>
+
+<QuestionCard id="pyq-pt-02" number={2} question="How does pytest discover tests?" difficulty="easy" topic="pytest">
+By convention: files matching `test_*.py` or `*_test.py`, functions prefixed `test_`, and classes prefixed `Test` (which must not define `__init__`).
+
+```bash
+pytest                          # everything under the current directory
+pytest tests/test_transforms.py::test_dedup     # one test
+pytest -k "dedup and not slow"  # by name expression
+pytest -m integration           # by marker
+pytest -x --ff                  # stop at first failure, failures first
+pytest -q --tb=short            # quieter output
+```
+
+`-k` and markers are the two worth remembering — a fast inner loop means running the twelve tests you care about, not the whole suite.
+
+`conftest.py` holds shared fixtures and applies to its directory and below, with no import needed.
+</QuestionCard>
+
+<QuestionCard id="pyq-pt-03" number={3} question="How do you test that code raises an exception?" difficulty="easy" topic="pytest">
+```python
+import pytest
+
+def test_rejects_negative_amount():
+    with pytest.raises(ValidationError, match="must be non-negative"):
+        parse_row({"amount": -1})
+
+def test_error_carries_context():
+    with pytest.raises(SchemaMismatch) as exc_info:
+        load(bad_file)
+    assert exc_info.value.table == "orders"
+```
+
+`match` is a regex against the string form, which stops the test passing on the *right exception for the wrong reason*.
+
+Two related helpers: `pytest.warns` for warnings, and `pytest.approx` for floats — `assert total == pytest.approx(0.3)` rather than an exact comparison that fails on binary representation.
+</QuestionCard>
+
+<QuestionCard id="pyq-pt-04" number={4} question="What is parametrization and why does it matter for data code?" difficulty="medium" topic="pytest">
+One test body, many input cases, each reported as a separate test:
+
+```python
+@pytest.mark.parametrize("raw,expected", [
+    ("1234",     1234),
+    ("1,234",    1234),
+    (" 1234 ",   1234),
+    ("",         None),
+    (None,       None),
+    ("abc",      None),
+])
+def test_parse_int(raw, expected):
+    assert parse_int(raw) == expected
+```
+
+This is the highest-value pytest feature for data work, because parsing and cleaning functions are exactly the code where the edge cases *are* the requirement. A table of cases is also readable as documentation of what the function promises.
+
+Each case is independent — one failure doesn't hide the rest — and `pytest.param(..., marks=pytest.mark.xfail)` marks known-broken cases without deleting them.
+</QuestionCard>
+
+<QuestionCard id="pyq-pt-05" number={5} question="What are markers, and how do you use them?" difficulty="medium" topic="pytest">
+Labels on tests, for selection and behaviour:
+
+```python
+@pytest.mark.slow
+@pytest.mark.integration
+def test_full_load_against_postgres(pg): ...
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX only")
+@pytest.mark.xfail(reason="upstream bug #4312", strict=True)
+```
+
+Register custom ones in `pyproject.toml` so typos are caught:
+
+```toml
+[tool.pytest.ini_options]
+markers = ["slow: takes >1s", "integration: needs external services"]
+addopts = "-m 'not integration'"
+```
+
+The practical pattern: default to running only fast unit tests, and run `pytest -m integration` on merge or nightly. That keeps the pull request loop under a minute while still exercising real dependencies before release.
+
+`xfail(strict=True)` is worth noting — it fails if the test unexpectedly *passes*, telling you the upstream bug is fixed.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Fixtures
+
+<QuestionList topic="Fixtures" storagePrefix="python-testing-fixtures">
+
+<QuestionCard id="pyq-fix-01" number={1} question="What is a fixture and how does it work?" difficulty="medium" topic="Fixtures">
+A function providing test dependencies, requested by naming it as a parameter:
+
+```python
+@pytest.fixture
+def sample_rows():
+    return [
+        {"id": "1", "amount": 10.0, "ts": "2026-01-01"},
+        {"id": "2", "amount": None,  "ts": "2026-01-02"},
+    ]
+
+def test_drops_null_amounts(sample_rows):
+    assert len(drop_nulls(sample_rows)) == 1
+```
+
+pytest resolves the name, runs the fixture, and injects the result — dependency injection, essentially.
+
+Fixtures can request other fixtures, which is what makes them composable in a way `setUp` never was. Put shared ones in `conftest.py` and they're available throughout that directory tree without importing.
+</QuestionCard>
+
+<QuestionCard id="pyq-fix-02" number={2} question="How do fixtures handle setup and teardown?" difficulty="medium" topic="Fixtures">
+With `yield` — everything before is setup, everything after is teardown, and teardown runs even if the test fails:
+
+```python
+@pytest.fixture
+def db_connection():
+    conn = psycopg2.connect(TEST_DSN)
+    conn.autocommit = False
+    yield conn
+    conn.rollback()          # discard everything the test did
+    conn.close()
+```
+
+The rollback pattern is worth knowing: run each test inside a transaction and roll it back, so tests share one database without polluting each other and without the cost of recreating schemas.
+
+`request.addfinalizer(fn)` is the older form. `yield` is clearer, and multiple fixtures tear down in reverse order of setup.
+</QuestionCard>
+
+<QuestionCard id="pyq-fix-03" number={3} question="What are fixture scopes?" difficulty="medium" topic="Fixtures">
+How often a fixture is created: `function` (default), `class`, `module`, `package`, `session`.
+
+```python
+@pytest.fixture(scope="session")
+def postgres_container():
+    with PostgresContainer("postgres:16") as pg:      # started once
+        yield pg
+
+@pytest.fixture                                       # per test
+def clean_schema(postgres_container): ...
+```
+
+The rule: **expensive and immutable things get a wide scope; anything mutated gets function scope.** Starting a container per test is unusable; sharing mutable state between tests creates order-dependent failures that pass locally and fail in CI.
+
+The common structure is a session-scoped expensive resource wrapped in a function-scoped fixture that resets state — container once, transaction per test.
+</QuestionCard>
+
+<QuestionCard id="pyq-fix-04" number={4} question="Which built-in fixtures are useful?" difficulty="medium" topic="Fixtures">
+```python
+def test_writes_output(tmp_path):            # a pathlib.Path, auto-cleaned
+    out = tmp_path / "out.parquet"
+    write(rows, out)
+    assert out.exists()
+
+def test_reads_config(monkeypatch):
+    monkeypatch.setenv("DB_HOST", "localhost")
+    monkeypatch.setattr(mymod, "NOW", lambda: FIXED_TIME)
+
+def test_logs_warning(caplog):
+    process(bad_rows)
+    assert "skipped 3 rows" in caplog.text
+
+def test_prints(capsys):
+    main()
+    assert "done" in capsys.readouterr().out
+```
+
+`tmp_path` and `monkeypatch` are the two used constantly. `monkeypatch` is preferable to manual patching because it **undoes itself** at test end — no leaked environment variables affecting later tests.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Mocking
+
+<QuestionList topic="Mocking" storagePrefix="python-testing-mocking">
+
+<QuestionCard id="pyq-mock-01" number={1} question="What is mocking, and when should you use it?" difficulty="medium" topic="Mocking">
+Replacing a real dependency with a stand-in that records calls and returns canned values.
+
+```python
+from unittest.mock import patch, MagicMock
+
+@patch("mypipeline.loader.boto3.client")
+def test_upload_retries_on_throttle(mock_client):
+    mock_client.return_value.put_object.side_effect = [ThrottleError, None]
+    upload(rows, "bucket", "key")
+    assert mock_client.return_value.put_object.call_count == 2
+```
+
+Use it for things that are slow, non-deterministic, external, or have side effects you don't want — network calls, wall-clock time, random values, sending emails.
+
+Don't use it as a substitute for testable design. If a function needs five mocks, the problem is the function's coupling, not the absence of a sixth mock.
+</QuestionCard>
+
+<QuestionCard id="pyq-mock-02" number={2} question="What is the most common mocking mistake?" difficulty="hard" topic="Mocking">
+**Patching the wrong location.** You must patch where the name is *looked up*, not where it's defined:
+
+```python
+# mypipeline/loader.py
+from boto3 import client            # bound into loader's namespace at import
+
+# test:
+@patch("boto3.client")              # WRONG — loader already has its own reference
+@patch("mypipeline.loader.client")  # RIGHT
+```
+
+The rule is "patch where it's used, not where it's from." A test that patches the wrong target passes while silently exercising the real dependency — which is worse than failing, because it makes network calls in CI and gives false confidence.
+
+The related mistake is over-mocking to the point where the test only verifies that the mocks were called, proving nothing about actual behaviour.
+</QuestionCard>
+
+<QuestionCard id="pyq-mock-03" number={3} question="What is the difference between Mock, MagicMock and autospec?" difficulty="medium" topic="Mocking">
+- **`Mock`** — accepts any attribute access and any call, returning new Mocks.
+- **`MagicMock`** — a Mock that also supports dunder methods, so it works with `len()`, iteration, `in`, and context managers. The usual default.
+- **`create_autospec` / `patch(..., autospec=True)`** — builds the mock from the **real object's signature**, so calling it with wrong arguments raises.
+
+Autospec is the one to prefer. A plain Mock happily accepts `client.put_objekt(...)` and returns a Mock, so the test passes while the real code would `AttributeError`. Autospec catches typos and signature drift — the mock stays honest when the real API changes.
+
+The trade is a small setup cost and occasional friction with dynamic attributes.
+</QuestionCard>
+
+<QuestionCard id="pyq-mock-04" number={4} question="How do you test code that depends on the current time?" difficulty="medium" topic="Mocking">
+Never call `datetime.now()` directly in logic you need to test deterministically. Options:
+
+```python
+# 1. Inject it — the cleanest, no mocking needed
+def partition_path(table: str, now: datetime) -> str:
+    return f"{table}/dt={now:%Y-%m-%d}"
+
+# 2. Patch a module-level indirection
+@patch("mypipeline.transforms.utcnow", return_value=FIXED)
+
+# 3. Use freezegun
+@freeze_time("2026-01-15T12:00:00Z")
+def test_daily_partition(): ...
+```
+
+Injection is the best answer because it removes the need for a mock at all and makes the dependency visible in the signature.
+
+Related traps worth mentioning: tests that pass on most days but fail on month boundaries or during DST transitions, and anything relying on the machine's local timezone. Use timezone-aware UTC everywhere.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Other Testing Tools
+
+<QuestionList topic="Other Testing Tools" storagePrefix="python-testing-tools">
+
+<QuestionCard id="pyq-other-01" number={1} question="What is unittest, and is it still relevant?" difficulty="easy" topic="unittest">
+The standard library's xUnit-style framework — `TestCase` classes, `setUp`/`tearDown`, and `assertEqual`-family methods.
+
+```python
+class TestParse(unittest.TestCase):
+    def setUp(self):
+        self.rows = load_fixture()
+    def test_drops_nulls(self):
+        self.assertEqual(len(drop_nulls(self.rows)), 1)
+```
+
+Still relevant because it's **in the standard library** — no dependency required, which matters for libraries that don't want a test-only dependency, and in restricted environments.
+
+`unittest.mock` in particular is used universally, including by pytest users. But for a new project, pytest is the better choice, and it runs `TestCase` classes anyway so migration can be gradual.
+</QuestionCard>
+
+<QuestionCard id="pyq-other-02" number={2} question="What is doctest, and where is it appropriate?" difficulty="easy" topic="doctest">
+It runs examples embedded in docstrings and checks their output:
+
+```python
+def normalise(name: str) -> str:
+    """Lowercase and strip a name.
+
+    >>> normalise("  Alice  ")
+    'alice'
+    """
+    return name.strip().lower()
+```
+
+`pytest --doctest-modules` collects them.
+
+Its value is keeping documentation honest — an example that drifts from the implementation fails the build.
+
+Its limits are real: output must match exactly (whitespace, dict ordering, float representation, memory addresses in reprs), so it's brittle for anything non-trivial. Use it for small, illustrative examples on utility functions, not as your test suite.
+</QuestionCard>
+
+<QuestionCard id="pyq-other-03" number={3} question="What are tox and nox for?" difficulty="medium" topic="tox">
+Running your test suite across **multiple isolated environments** — several Python versions, or several dependency version combinations.
+
+```ini
+[tox]
+envlist = py311,py312,lint
+
+[testenv]
+deps = pytest
+commands = pytest {posargs}
+```
+
+`nox` does the same with Python configuration instead of INI, which is easier when the logic gets conditional.
+
+Why it matters for data engineering: your library may need to work with both pandas 1.x and 2.x, or run on the Python version baked into a Spark or Airflow image that differs from your laptop. Tox catches "works on 3.12, breaks on 3.10" before a user does.
+
+CI matrices (GitHub Actions `strategy.matrix`) overlap with this; tox additionally gives you the same check locally.
+</QuestionCard>
+
+<QuestionCard id="pyq-other-04" number={4} question="How useful is code coverage, really?" difficulty="medium" topic="Coverage">
+```bash
+pytest --cov=mypipeline --cov-report=term-missing --cov-fail-under=80
+```
+
+Coverage measures which lines **executed**, not which behaviour was **verified**. A test that calls a function and asserts nothing gives 100% coverage and zero confidence.
+
+So it's a good tool for finding what's *untested* — the report's missing-lines column reliably points at genuinely unexercised error paths. It's a poor target: mandating 95% produces tests written to touch lines rather than to check behaviour.
+
+Sensible use: set a floor to prevent regression, look at the diff coverage on pull requests rather than the absolute number, and accept that some code (thin I/O wrappers) is better covered by integration tests than by contorted unit tests.
+</QuestionCard>
+
+<QuestionCard id="pyq-other-05" number={5} question="What is property-based testing?" difficulty="hard" topic="Hypothesis">
+Instead of specific examples, you state a **property that must always hold**, and the framework generates inputs trying to break it — then shrinks any failure to a minimal reproducing case.
+
+```python
+from hypothesis import given, strategies as st
+
+@given(st.lists(st.integers()))
+def test_dedup_preserves_membership(xs):
+    assert set(dedup(xs)) == set(xs)
+
+@given(st.text())
+def test_parse_roundtrip(s):
+    assert deserialize(serialize(s)) == s
+```
+
+It excels at exactly the code data engineers write: parsers, serialisers, and transformations where round-trip and invariant properties are natural. It routinely finds edge cases nobody would think to write — empty input, unicode surrogates, extreme values, duplicates.
+
+The cost is that properties take more thought than examples, and tests are slower. Use it for the tricky pure functions, not everywhere.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Testing Data Pipelines
+
+<QuestionList topic="Testing Data Pipelines" storagePrefix="python-testing-pipelines">
+
+<QuestionCard id="pyq-de-01" number={1} question="How do you make a data pipeline testable?" difficulty="hard" topic="Data Engineering">
+**Separate the pure transformation from the I/O.** That single change does most of the work:
+
+```python
+# Hard to test — I/O and logic entangled
+def run():
+    rows = pd.read_sql(QUERY, get_conn())
+    rows = rows[rows.amount > 0]
+    rows["net"] = rows.amount * (1 - rows.tax_rate)
+    rows.to_parquet("s3://bucket/out.parquet")
+
+# Testable — the logic takes data and returns data
+def transform(rows: pd.DataFrame) -> pd.DataFrame:
+    rows = rows[rows.amount > 0].copy()
+    rows["net"] = rows.amount * (1 - rows.tax_rate)
+    return rows
+
+def run(source: Source, sink: Sink) -> None:
+    sink.write(transform(source.read()))
+```
+
+`transform` now needs no database, no network and no mocks — just a small DataFrame in and an expected one out. `run` is thin enough that an integration test covers it.
+
+Everything else — dependency injection for sources and sinks, small fixture datasets, deterministic time — follows from this split.
+</QuestionCard>
+
+<QuestionCard id="pyq-de-02" number={2} question="What should the test fixtures for a transformation contain?" difficulty="medium" topic="Data Engineering">
+Small, hand-built, and deliberately nasty. Ten rows that each encode a decision beat ten thousand sampled rows:
+
+- The **happy path** — a couple of ordinary rows.
+- **Nulls** in every nullable column.
+- **Empty input** — a very common crash, since many aggregations misbehave on zero rows.
+- **Duplicates**, if deduplication is part of the contract.
+- **Boundary values** — zero, negative, maximum, the first and last day of a period.
+- **Type edge cases** — numeric strings, leading zeros that must not be stripped, very large integers.
+- **Unicode and awkward text** — embedded delimiters, quotes, newlines in a field.
+- **Timezone-sensitive timestamps** — the day boundary in a non-UTC zone.
+
+Keep them as code or small committed files, not as a query against production — fixtures must be deterministic and reviewable.
+</QuestionCard>
+
+<QuestionCard id="pyq-de-03" number={3} question="How do you test code that talks to a database or S3?" difficulty="medium" topic="Data Engineering">
+Real dependencies in containers, rather than mocks, wherever practical:
+
+- **Testcontainers** — spin up a real Postgres, Kafka or MinIO per test session. High fidelity; catches SQL dialect and driver behaviour a mock never would.
+- **`moto`** — an in-process AWS mock for S3, DynamoDB and more. Fast and dependency-free, though it can drift from real AWS behaviour.
+- **SQLite** as a stand-in for Postgres — fast but a genuinely different dialect, so it hides real bugs. Use with caution.
+- **A dedicated test schema** in a shared database, with each test in a rolled-back transaction.
+
+The general preference: mock at the **boundary of the external system**, not at every layer. Test your SQL against a real engine, because SQL that's syntactically fine and semantically wrong is exactly the bug you're trying to catch.
+</QuestionCard>
+
+<QuestionCard id="pyq-de-04" number={4} question="How do you test for idempotency?" difficulty="hard" topic="Data Engineering">
+Run the task twice and assert the output is identical:
+
+```python
+def test_load_is_idempotent(sink, sample_rows):
+    load(sample_rows, sink)
+    first = sink.snapshot()
+    load(sample_rows, sink)          # same input, again
+    assert sink.snapshot() == first
+```
+
+This matters more than almost any other pipeline test, because **every scheduler retries**. A task that isn't idempotent turns a transient network blip into duplicated rows, and duplicates in a fact table are painful to detect and worse to correct.
+
+Related tests worth writing: re-running a **backfill** for one partition replaces rather than appends; and a task that fails **halfway** leaves no partial output — which is the argument for writing to a temp location and swapping atomically on success.
+</QuestionCard>
+
+<QuestionCard id="pyq-de-05" number={5} question="What's the difference between unit tests and data quality tests?" difficulty="medium" topic="Data Engineering">
+They catch different failures, and you need both.
+
+**Unit tests** verify *code* against fixed inputs. They run in CI, are fast and deterministic, and catch logic bugs before merge. They cannot tell you the upstream started sending nulls.
+
+**Data quality tests** verify *data* against expectations — uniqueness, not-null, referential integrity, accepted ranges, row-count deltas, freshness. They run against real data, in CI against a sample and **in production on every run**. They catch upstream schema drift, a partner sending a bad file, and a silent volume drop.
+
+Tools: pytest for the first; dbt tests, Great Expectations or Soda for the second.
+
+The point to make in an interview: a pipeline can have 100% unit test coverage and still write wrong numbers, because the code is correct and the data changed.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"How would you test this transformation function?"** — first restructure so it takes data and returns data with no I/O. Then a parametrized table of cases covering nulls, empties, duplicates and boundaries, plus an idempotency check if it writes.
+
+**"Your test suite takes 40 minutes and people skip it."** — split by marker: fast unit tests on every push, integration on merge. Use `pytest-xdist` for parallelism, session-scoped containers instead of per-test, and check whether slow tests are really integration tests wearing a unit test's clothes.
+
+**"A test passes locally and fails in CI."** — usually shared mutable state plus test ordering, an unpinned dependency, a timezone or locale difference, or a wall-clock dependency. `pytest -p no:randomly` and running a single test in isolation narrows it quickly.
+
+**"How do you know a pipeline change didn't break the numbers?"** — unit tests for the logic, then build the changed models into a temporary schema against real data and compare aggregates to production. Mention that reverting code doesn't fix rows already written.
+
+---
+
+## Further Reading
+
+- [pytest documentation](https://docs.pytest.org/) — the fixtures page is the one to read properly
+- [`unittest.mock` documentation](https://docs.python.org/3/library/unittest.mock.html) — including the "where to patch" section
+- [Hypothesis documentation](https://hypothesis.readthedocs.io/)
+- [Testcontainers for Python](https://testcontainers-python.readthedocs.io/)
+- [tox documentation](https://tox.wiki/)
+- [Great Expectations](https://greatexpectations.io/) — data quality testing

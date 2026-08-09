@@ -1,0 +1,381 @@
+---
+title: Concurrency
+description: Python concurrency interview questions covering the GIL, threading, multiprocessing, asyncio, concurrent.futures, and how to choose between them for I/O-bound versus CPU-bound data engineering workloads.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Concurrency: Making Python Do More Than One Thing
+
+**Almost every concurrency question in a Python interview is really the GIL question in disguise. Threads don't speed up CPU-bound work; processes do, but pay for it in memory and serialisation; asyncio handles enormous I/O concurrency but only if every library in the path was written for it. Getting this right is worth real money in data engineering — a pipeline pulling from 500 API endpoints sequentially takes hours, and the same work done concurrently takes minutes.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [The GIL](#the-gil)
+- [Threading](#threading)
+- [Multiprocessing](#multiprocessing)
+- [asyncio](#asyncio)
+- [Choosing an Approach](#choosing-an-approach)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The distinction everything hangs on is **I/O-bound versus CPU-bound**. An I/O-bound task spends its time waiting — for a network response, a disk read, a database query. A CPU-bound task spends its time computing. They need opposite solutions, and applying the wrong one makes things slower rather than faster.
+
+The **GIL** (Global Interpreter Lock) allows only one thread to execute Python bytecode at a time in a CPython process. It is released during I/O waits and inside some C extensions, which is precisely why threads still help I/O-bound work and don't help pure-Python computation.
+
+The three tools map cleanly once that's clear. **Threads** — I/O-bound, shared memory, cheap. **Processes** — CPU-bound, true parallelism, each with its own GIL, paying for inter-process communication. **asyncio** — I/O-bound at very high concurrency, single-threaded cooperative scheduling, but async all the way down.
+
+---
+
+## The GIL
+
+<QuestionList topic="The GIL" storagePrefix="python-concurrency-gil">
+
+<QuestionCard id="pyx-gil-01" number={1} question="What is the GIL and why does it exist?" difficulty="medium" topic="GIL">
+A mutex in CPython that permits only one thread to execute Python bytecode at a time, regardless of core count.
+
+It exists because CPython manages memory with **reference counting**. Every object holds a count that changes constantly, and making each of those updates atomic would require fine-grained locking that slows down single-threaded code substantially. A single global lock keeps the interpreter simple and single-threaded execution fast.
+
+It also makes C extensions far easier to write correctly, which is a large part of why Python's scientific ecosystem exists at all.
+
+The trade is explicit: single-thread performance and ecosystem simplicity, at the cost of multi-core Python-level parallelism.
+</QuestionCard>
+
+<QuestionCard id="pyx-gil-02" number={2} question="When is the GIL released?" difficulty="medium" topic="GIL">
+This is the question that actually matters, because it's why threads are ever useful.
+
+The GIL is released during:
+- **Blocking I/O** — file reads and writes, network calls, database queries, `time.sleep`.
+- **C extensions that explicitly release it** — NumPy on large array operations, most compression and hashing libraries, most database drivers.
+- **Periodically**, every few milliseconds, so CPU-bound threads take turns rather than starving each other.
+
+So a thread waiting on an HTTP response holds no lock, and other threads run freely. Ten threads fetching ten URLs genuinely overlap their waiting.
+
+What stays serialised is pure-Python computation — parsing, string manipulation, arithmetic in a loop. That's the work threads cannot parallelise.
+</QuestionCard>
+
+<QuestionCard id="pyx-gil-03" number={3} question="How do you work around the GIL?" difficulty="medium" topic="GIL">
+- **`multiprocessing` / `ProcessPoolExecutor`** — separate processes, separate GILs, true parallelism.
+- **NumPy, pandas, PyArrow, Polars** — the heavy loop runs in C with the GIL released, so one call processes millions of rows without touching the interpreter per element.
+- **Cython or a native extension** — release the GIL around your own compute-heavy section.
+- **A different runtime** — PyPy still has a GIL; Jython and IronPython don't, but the ecosystem is limited.
+- **Python 3.13+ free-threaded builds** (PEP 703) — an experimental no-GIL build, not yet the default and with a single-thread performance cost.
+
+For data work the most practical answer is usually the second: vectorising with NumPy or pushing computation into Arrow/Polars beats managing processes.
+</QuestionCard>
+
+<QuestionCard id="pyx-gil-04" number={4} question="Does the GIL make Python thread-safe?" difficulty="hard" topic="GIL">
+No — a common and costly misconception.
+
+The GIL guarantees only that a single **bytecode instruction** doesn't interleave. Most useful operations are several instructions, and a thread switch can happen between them:
+
+```python
+counter += 1     # LOAD, ADD, STORE — a switch between LOAD and STORE loses an update
+```
+
+Run that in ten threads a million times each and the total will be short.
+
+Some operations *are* atomic because they compile to a single bytecode — `list.append`, `dict[key] = value` — which is why those containers can be shared without explicit locking. But check-then-act sequences like `if k not in d: d[k] = v` are not.
+
+You still need `threading.Lock` for anything read-modify-write.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Threading
+
+<QuestionList topic="Threading" storagePrefix="python-concurrency-threading">
+
+<QuestionCard id="pyx-thread-01" number={1} question="When do threads actually help in Python?" difficulty="medium" topic="Threading">
+When the work is **I/O-bound**: HTTP requests, database queries, S3 uploads, file reads. The GIL is released during the wait, so waits overlap.
+
+```python
+from concurrent.futures import ThreadPoolExecutor
+
+with ThreadPoolExecutor(max_workers=20) as pool:
+    results = list(pool.map(fetch_url, urls))
+```
+
+Fetching 500 endpoints at 200 ms each takes 100 seconds sequentially and about 5 with 20 workers.
+
+They don't help pure-Python CPU work — that's serialised by the GIL, and you'll lose a little to context-switching overhead.
+
+Sizing: for I/O-bound work, worker count can far exceed core count since threads are mostly idle. Bound it by what the remote service tolerates, not by your CPU.
+</QuestionCard>
+
+<QuestionCard id="pyx-thread-02" number={2} question="How do you use ThreadPoolExecutor properly?" difficulty="medium" topic="Threading">
+```python
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+with ThreadPoolExecutor(max_workers=10) as pool:
+    futures = {pool.submit(fetch, url): url for url in urls}
+    for fut in as_completed(futures):
+        url = futures[fut]
+        try:
+            handle(fut.result())          # re-raises exceptions from the worker
+        except Exception:
+            log.exception("failed: %s", url)
+```
+
+Three things worth knowing. `pool.map` preserves input order and is simplest; `as_completed` yields results as they finish, which is better when durations vary.
+
+**Exceptions are stored, not raised, until you call `.result()`.** Code that submits work and never checks results swallows every error silently — a genuinely common bug.
+
+The `with` block waits for all tasks on exit, so nothing is abandoned.
+</QuestionCard>
+
+<QuestionCard id="pyx-thread-03" number={3} question="What synchronisation primitives does threading provide?" difficulty="medium" topic="Threading">
+- **`Lock`** — mutual exclusion. Always use `with lock:` so it's released on exception.
+- **`RLock`** — re-entrant; the same thread can acquire it repeatedly, needed when a locked method calls another locked method.
+- **`Semaphore`** — allows N holders; the natural way to cap concurrent connections.
+- **`Event`** — a broadcast flag for signalling shutdown to workers.
+- **`Condition`** — wait for a state change; the basis of producer/consumer.
+- **`Barrier`** — all threads wait until N arrive.
+- **`queue.Queue`** — already thread-safe, and usually the right answer instead of raw locks.
+
+The practical guidance: prefer a `Queue` to shared mutable state plus locks. It removes an entire category of race conditions, and `Queue.join()` plus sentinel values gives clean shutdown.
+</QuestionCard>
+
+<QuestionCard id="pyx-thread-04" number={4} question="What is a race condition and a deadlock?" difficulty="medium" topic="Threading">
+A **race condition** is when correctness depends on thread timing — two threads read a counter, both increment, one update is lost. Fix by making the critical section atomic with a lock, or by not sharing mutable state at all.
+
+A **deadlock** is when threads wait on each other forever. The classic form is lock-ordering: thread A holds lock 1 and wants 2; thread B holds 2 and wants 1.
+
+Prevention: **acquire locks in a consistent global order**, hold them for as short a time as possible, use timeouts (`lock.acquire(timeout=5)`), and prefer a single coarse lock over several fine ones unless profiling proves you need them.
+
+The related failure is a **livelock** — threads active but making no progress — and **starvation**, where one thread never gets the lock.
+</QuestionCard>
+
+<QuestionCard id="pyx-thread-05" number={5} question="What is a daemon thread?" difficulty="easy" topic="Threading">
+One that doesn't keep the process alive: when only daemon threads remain, Python exits.
+
+```python
+t = threading.Thread(target=heartbeat, daemon=True)
+t.start()
+```
+
+Good for background chores whose interruption is harmless — metrics heartbeats, cache refreshers.
+
+The danger is that daemon threads are killed **abruptly** at interpreter shutdown, with no chance to run `finally` blocks or flush buffers. Never use one for something that writes data or holds a transaction; you'll get truncated output on shutdown.
+
+For work that must complete, use a non-daemon thread plus an `Event` for cooperative shutdown, and `join()` it.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Multiprocessing
+
+<QuestionList topic="Multiprocessing" storagePrefix="python-concurrency-multiprocessing">
+
+<QuestionCard id="pyx-mp-01" number={1} question="When should you use multiprocessing?" difficulty="medium" topic="Multiprocessing">
+For **CPU-bound** work in pure Python — parsing, complex per-row transformations, compression, cryptography, simulation. Each process has its own interpreter and GIL, so they genuinely run in parallel.
+
+```python
+from concurrent.futures import ProcessPoolExecutor
+
+with ProcessPoolExecutor(max_workers=8) as pool:
+    results = pool.map(parse_file, paths, chunksize=10)
+```
+
+Set `max_workers` to roughly `os.cpu_count()` — more processes than cores just adds context switching.
+
+`chunksize` matters more than people expect: without it, each item is a separate IPC round trip, and for cheap per-item work the overhead dominates. Batch items so each task does meaningful work.
+</QuestionCard>
+
+<QuestionCard id="pyx-mp-02" number={2} question="What are the costs of multiprocessing?" difficulty="medium" topic="Multiprocessing">
+- **Startup** — each process is a fresh interpreter. With `spawn`, every worker re-imports your modules, which for a pandas-heavy project is seconds per worker.
+- **Memory** — no shared address space, so N processes means roughly N copies of anything they load.
+- **Serialisation** — arguments and return values are **pickled** and copied. Sending a large DataFrame to each worker can cost more than the computation saves.
+- **Picklability** — lambdas, local functions, open file handles and database connections can't be pickled. This is the error people hit first.
+- **Debugging** — tracebacks cross process boundaries, and breakpoints in workers are awkward.
+
+The rule of thumb: multiprocessing pays off when per-task compute clearly exceeds the cost of shipping the data. Otherwise you get a slower program and more memory usage.
+</QuestionCard>
+
+<QuestionCard id="pyx-mp-03" number={3} question="What is the difference between fork and spawn?" difficulty="hard" topic="Multiprocessing">
+- **fork** (Linux default before 3.14) — clones the parent process. Fast, and children inherit memory copy-on-write. But it copies *everything*, including locks held by other threads and open connections, which causes deadlocks and corrupted sockets in a multi-threaded parent.
+- **spawn** (Windows and macOS default) — starts a fresh interpreter and re-imports the module. Slower and requires everything passed to be picklable, but clean and predictable.
+- **forkserver** — forks from a small, clean server process. A good middle ground on Linux.
+
+The practical consequences: with `spawn`, worker-creating code **must** be under `if __name__ == "__main__":` or the re-import recursively spawns processes. And with `fork`, never inherit a database connection — create it inside the worker, because sharing a socket across processes corrupts it.
+</QuestionCard>
+
+<QuestionCard id="pyx-mp-04" number={4} question="How do processes share data?" difficulty="medium" topic="Multiprocessing">
+They don't share by default — that's the point. The options:
+
+- **`multiprocessing.Queue` / `Pipe`** — pass messages; everything is pickled.
+- **`Value` / `Array`** — shared ctypes in shared memory, with a lock.
+- **`Manager`** — server process hosting shared `dict`/`list`; convenient but every access is an IPC round trip, so it's slow.
+- **`shared_memory`** (3.8+) — a raw shared buffer, and the right tool for large NumPy arrays since it avoids copying entirely.
+- **The filesystem or object storage** — often the simplest answer: workers write Parquet files, the parent reads them.
+
+For data engineering, the best strategy is usually to **avoid sharing**: partition the input, have each worker process its own slice and write its own output, and combine afterwards. That's the same shared-nothing model Spark uses.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## asyncio
+
+<QuestionList topic="asyncio" storagePrefix="python-concurrency-asyncio">
+
+<QuestionCard id="pyx-async-01" number={1} question="How does asyncio work?" difficulty="medium" topic="asyncio">
+A single thread runs an **event loop**. Coroutines voluntarily yield control at `await` points; while one waits on I/O, the loop runs another. No threads, no GIL contention, no locks for the common case.
+
+```python
+import asyncio, aiohttp
+
+async def fetch(session, url):
+    async with session.get(url) as resp:
+        return await resp.json()
+
+async def main(urls):
+    async with aiohttp.ClientSession() as session:
+        return await asyncio.gather(*(fetch(session, u) for u in urls))
+
+asyncio.run(main(urls))
+```
+
+Because a coroutine costs a few kilobytes rather than a thread's ~8 MB stack, asyncio scales to tens of thousands of concurrent connections where threads would exhaust memory.
+
+The scheduling is **cooperative**: a coroutine that never awaits blocks the entire loop.
+</QuestionCard>
+
+<QuestionCard id="pyx-async-02" number={2} question="What is the difference between a coroutine, a task and a future?" difficulty="medium" topic="asyncio">
+- **Coroutine** — what `async def` returns when called. It does nothing until awaited or scheduled. Calling it and discarding the result is a no-op plus a warning.
+- **Task** — a coroutine scheduled on the loop, running concurrently. Created with `asyncio.create_task(coro)`.
+- **Future** — a low-level placeholder for a result that will arrive. `Task` is a subclass; you rarely create one directly.
+
+The distinction that matters:
+
+```python
+await fetch(a)                          # runs, waits, THEN continues — sequential
+t1 = asyncio.create_task(fetch(a))      # starts now
+t2 = asyncio.create_task(fetch(b))
+await t1; await t2                      # concurrent
+```
+
+Awaiting immediately in a loop is the most common asyncio mistake — it's just sequential code with extra syntax. Use `gather` or `create_task` for real concurrency.
+</QuestionCard>
+
+<QuestionCard id="pyx-async-03" number={3} question="What happens if you call a blocking function inside async code?" difficulty="hard" topic="asyncio">
+It blocks the **entire event loop**. Every other coroutine stops, because there's only one thread and nothing yields.
+
+```python
+async def bad():
+    time.sleep(5)                # freezes everything for 5 seconds
+    requests.get(url)            # same — requests is synchronous
+```
+
+Fixes:
+- Use an async library — `aiohttp`/`httpx` instead of `requests`, `asyncpg` instead of `psycopg2`, `aiofiles` for file I/O.
+- Offload to a thread: `await asyncio.to_thread(blocking_fn, arg)`.
+- For CPU-bound work, `run_in_executor` with a `ProcessPoolExecutor`.
+
+This is asyncio's biggest practical constraint: it requires **async all the way down**. One synchronous database driver in the path negates the whole design, which is why mature sync codebases rarely convert.
+</QuestionCard>
+
+<QuestionCard id="pyx-async-04" number={4} question="How do you run many async tasks with error handling and concurrency limits?" difficulty="hard" topic="asyncio">
+```python
+async def fetch_all(urls, limit=20):
+    sem = asyncio.Semaphore(limit)
+
+    async def bounded(url):
+        async with sem:                       # cap in-flight requests
+            return await fetch(url)
+
+    results = await asyncio.gather(
+        *(bounded(u) for u in urls),
+        return_exceptions=True,               # one failure doesn't cancel the rest
+    )
+    return [r for r in results if not isinstance(r, Exception)]
+```
+
+Two points interviewers look for. A **semaphore** to bound concurrency — unbounded `gather` over 100,000 URLs opens 100,000 sockets and gets you rate-limited or blocked.
+
+And `return_exceptions=True`, because by default the first exception propagates and leaves the other tasks running unawaited. In 3.11+, `asyncio.TaskGroup` handles this more cleanly with structured concurrency.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Choosing an Approach
+
+<QuestionList topic="Choosing an Approach" storagePrefix="python-concurrency-choosing">
+
+<QuestionCard id="pyx-choose-01" number={1} question="Threading, multiprocessing or asyncio — how do you decide?" difficulty="medium" topic="Choosing">
+| | Threading | Multiprocessing | asyncio |
+|---|---|---|---|
+| Best for | I/O-bound | CPU-bound | I/O-bound, very high concurrency |
+| Parallelism | No (GIL) | Yes | No |
+| Memory per unit | ~8 MB stack | Full process | ~KB |
+| Practical scale | hundreds | ~core count | tens of thousands |
+| Shared state | Shared, needs locks | Copied, needs IPC | Shared, single-threaded |
+| Library support | Any | Any picklable | Async libraries only |
+
+Decision path: **CPU-bound → processes.** **I/O-bound with sync libraries → threads.** **I/O-bound, thousands of connections, async ecosystem available → asyncio.**
+
+And before any of them, ask whether you can vectorise with NumPy/Polars or push the work into the database — which is usually faster than any concurrency scheme.
+</QuestionCard>
+
+<QuestionCard id="pyx-choose-02" number={2} question="How would you speed up a pipeline that calls a slow API for a million records?" difficulty="hard" topic="Choosing">
+Diagnose first: I/O-bound, so parallelism helps, but the constraint is almost certainly the API rather than your code.
+
+The approach:
+1. **Batch** — if the API accepts multiple IDs per call, that beats any concurrency scheme. A thousand-fold reduction in calls dwarfs a twenty-fold speed-up.
+2. **Cache** — many of a million records will share lookup keys.
+3. **Concurrency** — `ThreadPoolExecutor` with sync clients, or asyncio for very high fan-out.
+4. **Respect the rate limit** — a semaphore sized to the documented limit, with retry and backoff on 429s.
+5. **Checkpoint** — persist progress so a failure at 90% doesn't restart from zero.
+6. **Batch the writes** too, rather than one insert per record.
+
+Leading with batching and caching rather than "add threads" is what separates a good answer here.
+</QuestionCard>
+
+<QuestionCard id="pyx-choose-03" number={3} question="Why might adding more workers make a pipeline slower?" difficulty="hard" topic="Choosing">
+- **The bottleneck is elsewhere** — if the database is saturated, more concurrent clients just add contention and lock waits.
+- **Wrong tool** — threads on CPU-bound work add switching overhead to serialised execution.
+- **Serialisation cost** — processes pickling large payloads can spend more time copying than computing.
+- **Memory pressure** — more workers means more resident memory; once you swap, everything collapses.
+- **Rate limiting** — the remote service starts returning 429s, and retries amplify the load.
+- **Too-small tasks** — per-task overhead dominates when each unit of work is trivial. Increase `chunksize`.
+- **Lock contention** — a coarse lock around a hot section serialises the very work you parallelised.
+
+Always measure before and after. "Add more workers" is a hypothesis, not a fix.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Why doesn't threading speed up my data transformation?"** — the GIL. Pure-Python computation is CPU-bound and serialised. Use processes, or better, vectorise the transformation so the loop happens in C.
+
+**"Download 10,000 files from S3 as fast as possible."** — I/O-bound, so `ThreadPoolExecutor` with a worker count tuned to bandwidth and rate limits, or asyncio with `aioboto3`. Mention bounding concurrency and handling partial failures.
+
+**"Your multiprocessing job uses 60 GB of RAM."** — each worker holds its own copy of whatever was loaded. Load data inside workers rather than in the parent, use `shared_memory` for large arrays, or partition so each worker only touches its slice.
+
+**"What's wrong with this async code?"** — usually a blocking call inside a coroutine (`requests`, `time.sleep`), or awaiting in a loop instead of gathering, which makes it sequential.
+
+---
+
+## Further Reading
+
+- [`concurrent.futures` documentation](https://docs.python.org/3/library/concurrent.futures.html) — the high-level API to prefer
+- [`asyncio` documentation](https://docs.python.org/3/library/asyncio.html)
+- [`multiprocessing` documentation](https://docs.python.org/3/library/multiprocessing.html)
+- [PEP 703 — Making the GIL Optional](https://peps.python.org/pep-0703/)
+- [Python Concurrency: The Tricky Bits](https://python.hamel.dev/concurrency/)
+- [David Beazley: Understanding the GIL](https://www.dabeaz.com/GIL/) — the definitive talk

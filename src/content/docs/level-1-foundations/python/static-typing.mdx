@@ -1,0 +1,353 @@
+---
+title: Static Typing
+description: Python static typing interview questions covering type hints, the typing module, generics and protocols, mypy and pyright, Pydantic validation, and using types to catch schema errors in data pipelines.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Static Typing: Catching Schema Bugs Before They Reach Production
+
+**Python's type hints don't do anything at runtime — and that's the first thing to say when asked. Their value is that a checker can prove, before you deploy, that a function returning `dict | None` is being used without a None check. In data engineering that maps directly onto the most common class of production bug: a column that's sometimes missing, a field that's sometimes a string and sometimes an int, a function that silently returns nothing on the empty case.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Type Hint Basics](#type-hint-basics)
+- [The typing Module](#the-typing-module)
+- [Type Checkers](#type-checkers)
+- [Pydantic & Runtime Validation](#pydantic--runtime-validation)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Python is and remains **dynamically typed**. Annotations are metadata stored in `__annotations__`; the interpreter never checks them. Writing `def f(x: int)` and calling `f("hello")` runs without complaint. The checking happens in a **separate tool** — mypy, pyright — run in your editor and in CI.
+
+The type system is **gradual**. Any unannotated code is implicitly `Any`, which is compatible with everything, so you can add types file by file to a large codebase without a big-bang migration. That's what makes adoption practical on an existing pipeline repo.
+
+The distinction that matters most in practice is **static checking versus runtime validation**. A type checker verifies your code is internally consistent; it cannot verify that the JSON arriving from an upstream API matches what you claimed. For data crossing a trust boundary you need runtime validation — which is where Pydantic comes in, and why the two tools are complementary rather than alternatives.
+
+---
+
+## Type Hint Basics
+
+<QuestionList topic="Type Hint Basics" storagePrefix="python-typing-basics">
+
+<QuestionCard id="pyt-basic-01" number={1} question="Do type hints affect runtime behaviour?" difficulty="easy" topic="Type Hints">
+No. They're stored in `__annotations__` and otherwise ignored:
+
+```python
+def double(x: int) -> int:
+    return x * 2
+
+double("ab")        # returns "abab" — no error at all
+```
+
+The interpreter performs no checking or coercion. Value comes from tools that read the annotations: **type checkers** (mypy, pyright) in CI and your editor, **IDEs** for autocomplete and refactoring, and **libraries that opt in** to reading them at runtime — Pydantic, FastAPI, dataclasses, `attrs`.
+
+There is a small runtime cost: annotations are evaluated at function definition time unless deferred. `from __future__ import annotations` makes them strings, which speeds up import and allows forward references.
+</QuestionCard>
+
+<QuestionCard id="pyt-basic-02" number={2} question="How do you annotate collections and optional values?" difficulty="easy" topic="Type Hints">
+Modern syntax (3.9+ for built-in generics, 3.10+ for `|`):
+
+```python
+def load(paths: list[str]) -> dict[str, list[dict]]: ...
+def find(id: str) -> Record | None: ...
+def process(rows: list[dict], limit: int | None = None) -> tuple[int, int]: ...
+```
+
+Older code uses `typing.List`, `typing.Dict`, `typing.Optional[X]` and `typing.Union[A, B]` — all still valid, but the built-in forms are preferred now.
+
+`X | None` is the important one, and `Optional[X]` means exactly the same thing — it does *not* mean "this argument can be omitted." An optional *parameter* is one with a default; `Optional` is about the value being possibly `None`.
+</QuestionCard>
+
+<QuestionCard id="pyt-basic-03" number={3} question="What is Any, and why is it dangerous?" difficulty="medium" topic="Type Hints">
+`Any` is compatible with every type in both directions — assignable to anything, and anything is assignable to it. It's the escape hatch that makes gradual typing work.
+
+The danger is that it's **infectious**. Once a value is `Any`, everything derived from it is unchecked, so a single `Any` in the wrong place silently disables checking across a whole call chain — you keep the annotations without the guarantees.
+
+Prefer alternatives:
+- **`object`** when you truly accept anything — unlike `Any`, you must narrow it before use, so the checker still helps.
+- **A `TypeVar`** when the type varies but is related across parameters and return.
+- **A `Protocol`** when you need particular behaviour rather than a particular class.
+
+Turn on mypy's `--disallow-any-explicit` or at least `warn_return_any` to keep it visible.
+</QuestionCard>
+
+<QuestionCard id="pyt-basic-04" number={4} question="How do you annotate a function that returns nothing, or never returns?" difficulty="medium" topic="Type Hints">
+```python
+def write(rows: list[dict]) -> None: ...        # returns None
+def fail(msg: str) -> NoReturn:                 # never returns normally
+    raise PipelineError(msg)
+```
+
+`-> None` means the function completes and yields `None`. `NoReturn` (or `Never` in 3.11+) means control never comes back — it always raises or exits.
+
+`NoReturn` is more useful than it looks: it lets the checker understand that code after a call to your error helper is unreachable, so it stops reporting spurious "possibly unbound" errors on variables assigned only in the non-error branch.
+
+Omitting the return annotation entirely makes the return type `Any`, so annotate `-> None` explicitly.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## The typing Module
+
+<QuestionList topic="The typing Module" storagePrefix="python-typing-module">
+
+<QuestionCard id="pyt-mod-01" number={1} question="What is a TypeVar and when do you need one?" difficulty="medium" topic="Generics">
+A type variable expresses that types are **related** across a signature, rather than fixed:
+
+```python
+from typing import TypeVar
+
+T = TypeVar("T")
+
+def first(items: list[T]) -> T | None:
+    return items[0] if items else None
+```
+
+`first(["a"])` is checked as `str | None`, `first([1])` as `int | None`. Annotating it `list[Any] -> Any` would lose that entirely.
+
+Python 3.12 has cleaner syntax: `def first[T](items: list[T]) -> T | None:`.
+
+You can constrain them — `TypeVar("N", int, float)` allows only those, and `TypeVar("T", bound=Record)` allows `Record` and its subclasses, which is the common form for "any of my model types."
+</QuestionCard>
+
+<QuestionCard id="pyt-mod-02" number={2} question="What is a Protocol, and why is it useful for pipelines?" difficulty="medium" topic="Protocols">
+Structural typing — anything with the right shape satisfies it, no inheritance required:
+
+```python
+from typing import Protocol
+
+class Sink(Protocol):
+    def write(self, rows: list[dict]) -> None: ...
+
+def load(rows: list[dict], sink: Sink) -> None:
+    sink.write(rows)
+```
+
+Any object with a matching `write` is accepted, including third-party classes that have never heard of your `Sink`.
+
+This is duck typing the checker can verify, and it fits pipeline code well: your `load` function shouldn't care whether the sink is S3, Postgres, or a test double collecting rows in a list. With an ABC, the test double would have to inherit from your class; with a Protocol it just needs the method.
+
+`@runtime_checkable` enables `isinstance` against it, though only method presence is checked, not signatures.
+</QuestionCard>
+
+<QuestionCard id="pyt-mod-03" number={3} question="What is TypedDict, and when is it the right choice?" difficulty="medium" topic="TypedDict">
+It types the **shape of a dict** while leaving it a plain dict at runtime:
+
+```python
+from typing import TypedDict, NotRequired
+
+class Event(TypedDict):
+    id: str
+    timestamp: str
+    amount: float
+    source: NotRequired[str]        # optional key
+```
+
+`Event` is `dict` at runtime — zero conversion cost, still JSON-serialisable, still works with every dict-based API.
+
+That's exactly why it fits data engineering: records arriving as parsed JSON stay dicts, but the checker can now catch `event["amont"]` as an unknown key and `event["amount"] + 1` on a `str` field.
+
+Choose it over a dataclass when the data must remain a dict; choose a dataclass when you want attribute access, methods, or immutability.
+</QuestionCard>
+
+<QuestionCard id="pyt-mod-04" number={4} question="What are Literal, Final and TypeAlias?" difficulty="medium" topic="Type Hints">
+```python
+from typing import Literal, Final, TypeAlias
+
+Mode = Literal["append", "overwrite", "error"]
+MAX_BATCH: Final = 10_000
+RowDict: TypeAlias = dict[str, str | int | float | None]
+
+def write(df, mode: Mode = "append") -> None: ...
+```
+
+**`Literal`** restricts to specific values, so `write(mode="apend")` is a type error rather than a runtime one — genuinely useful for the string-flag parameters that litter data APIs.
+
+**`Final`** says a name is never reassigned; the checker flags attempts.
+
+**`TypeAlias`** names a complex type so it can be reused and understood. In 3.12, `type RowDict = dict[...]` is the new syntax.
+
+`Literal` combined with `@overload` also lets a function's return type depend on a flag argument — the pattern behind `read_csv(..., chunksize=...)` returning either a frame or an iterator.
+</QuestionCard>
+
+<QuestionCard id="pyt-mod-05" number={5} question="How do you annotate generators, iterables and callables?" difficulty="medium" topic="Type Hints">
+```python
+from collections.abc import Iterator, Iterable, Callable, Sequence, Mapping
+
+def read(path: str) -> Iterator[dict]: ...              # a generator
+def process(rows: Iterable[dict]) -> list[dict]: ...    # accepts any iterable
+def apply(fn: Callable[[dict], dict], rows: Iterable[dict]) -> Iterator[dict]: ...
+```
+
+Two guidelines worth stating. Prefer `collections.abc` over the deprecated `typing` equivalents.
+
+And **accept the most general type, return the most specific**. A function taking `Iterable[dict]` works with lists, generators and sets; one taking `list[dict]` forces callers to materialise. Conversely, returning `Iterator[dict]` tells the caller they get one pass, which is information they need.
+
+For a generator using `send`, the full form is `Generator[YieldType, SendType, ReturnType]`.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Type Checkers
+
+<QuestionList topic="Type Checkers" storagePrefix="python-typing-checkers">
+
+<QuestionCard id="pyt-check-01" number={1} question="How do mypy and pyright differ?" difficulty="medium" topic="Type Checkers">
+- **mypy** — the original, from the Python core team's orbit. The reference implementation; its behaviour effectively defines the semantics of ambiguous cases. Written in Python, so it's slower on large codebases.
+- **pyright** — Microsoft's, written in TypeScript. Much faster, better incremental checking, stricter inference by default, and it powers Pylance in VS Code, so most people use it without realising.
+
+They mostly agree. Differences appear in inference edge cases and in how aggressively each narrows types.
+
+Practical setup: pyright in the editor for instant feedback, and one of them in CI as the gate. Running both is over-engineering; pick the one whose strictness matches your team.
+</QuestionCard>
+
+<QuestionCard id="pyt-check-02" number={2} question="How do you introduce type checking to an existing untyped codebase?" difficulty="hard" topic="Adoption">
+Incrementally — a big-bang conversion fails.
+
+1. **Add the tool with everything lenient**, so the build is green from day one.
+2. **Enable it strictly for new files only**, via per-module config.
+3. **Type the boundaries first** — public function signatures, data models, config. That's where the most bugs live and the most value is.
+4. **Ratchet**: turn on one option at a time (`disallow_untyped_defs`, then `warn_return_any`, then `strict`) module by module.
+
+```toml
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+
+[[tool.mypy.overrides]]
+module = "mypipeline.legacy.*"
+ignore_errors = true
+```
+
+Also install stub packages (`pandas-stubs`, `types-requests`) — much of the initial noise is missing third-party types rather than real problems.
+</QuestionCard>
+
+<QuestionCard id="pyt-check-03" number={3} question="What is type narrowing?" difficulty="medium" topic="Type Checkers">
+The checker refining a type based on control flow, so you don't need casts:
+
+```python
+def process(rec: Record | None) -> str:
+    if rec is None:
+        return "missing"
+    return rec.name          # narrowed to Record here — no error
+```
+
+Narrowing happens on `is None` checks, `isinstance`, truthiness, `assert`, and comparisons against `Literal` values.
+
+This is the mechanism that makes `X | None` genuinely useful rather than annoying: the checker forces you to handle the `None` branch, and once handled, stops complaining. Catching missing None-checks is probably the single highest-value thing a type checker does in pipeline code.
+
+`TypeGuard` (3.10+) lets you write your own narrowing functions when the logic is custom.
+</QuestionCard>
+
+<QuestionCard id="pyt-check-04" number={4} question="How do you suppress a type error, and when is that acceptable?" difficulty="medium" topic="Type Checkers">
+```python
+result = legacy_api()  # type: ignore[no-any-return]
+value = cast(int, raw["count"])
+if TYPE_CHECKING:
+    from .heavy import Model         # import only for annotations
+```
+
+Always use the **specific error code** — a bare `# type: ignore` also hides future, real errors on that line. Configure `warn_unused_ignores` so stale suppressions get flagged when the underlying issue is fixed.
+
+Legitimate uses: an untyped third-party library, a genuine checker limitation, or metaprogramming the type system can't express.
+
+Illegitimate: silencing an error you don't understand. That's usually the checker correctly identifying a case you haven't handled, and suppressing it converts a caught bug into a production one.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Pydantic & Runtime Validation
+
+<QuestionList topic="Pydantic & Runtime Validation" storagePrefix="python-typing-pydantic">
+
+<QuestionCard id="pyt-pyd-01" number={1} question="What does Pydantic do that type hints alone cannot?" difficulty="medium" topic="Pydantic">
+It **validates and coerces at runtime**, using the annotations as the schema:
+
+```python
+from pydantic import BaseModel, Field
+
+class Event(BaseModel):
+    id: str
+    amount: float = Field(ge=0)
+    tags: list[str] = []
+
+Event(id="x", amount="12.5")     # coerced to 12.5
+Event(id="x", amount=-1)         # ValidationError
+```
+
+Type hints check *your code*; Pydantic checks *your data*. That distinction is the whole answer, and it matters because the data is the part you don't control.
+
+At a pipeline's ingestion boundary this converts a class of silent corruption — a string where a number was expected, a missing field defaulting to `None` and propagating — into an immediate, located error with a clear message.
+</QuestionCard>
+
+<QuestionCard id="pyt-pyd-02" number={2} question="Where should validation happen in a pipeline?" difficulty="medium" topic="Pydantic">
+**At the boundaries, once.** Validate when data enters — an API response, a file read, a queue message, a config file — then work with trusted objects internally.
+
+Reasons not to validate everywhere: it costs real time per object, and repeated validation of already-validated data is pure overhead in a hot loop.
+
+A common pattern for high-volume work is to validate a **sample or the schema** rather than every row — check the first N records and the column types, then process the bulk with a fast path. Or validate with Pydantic at the edge and convert to a `dataclass(slots=True)` for the inner loop.
+
+Also validate **config at startup**, so a malformed environment variable fails immediately rather than three hours into a run.
+</QuestionCard>
+
+<QuestionCard id="pyt-pyd-03" number={3} question="What are the trade-offs of Pydantic?" difficulty="medium" topic="Pydantic">
+**For:** declarative schemas from annotations, clear and structured error messages, JSON Schema generation, coercion, custom validators, and settings management from environment variables (`BaseSettings`).
+
+**Against:**
+- **Performance** — v1 was slow enough to matter in tight loops; v2's Rust core is dramatically faster but still costs more than constructing a dataclass.
+- **Coercion can surprise** — v1 would happily turn `"1"` into `1`. v2 is stricter, and `strict=True` disables coercion entirely.
+- **A heavy dependency** for something small.
+- **v1 to v2 was a breaking change**, and mixed-version environments are painful.
+
+For internal records with no untrusted input, a `dataclass` is lighter and sufficient. Reach for Pydantic where the data comes from outside.
+</QuestionCard>
+
+<QuestionCard id="pyt-pyd-04" number={4} question="How do types help catch schema drift?" difficulty="hard" topic="Data Engineering">
+Schema drift — an upstream adds, removes, renames or retypes a column — is one of the most common causes of silently wrong data, because the pipeline often keeps running.
+
+Types help at two levels:
+
+**Statically**, a `TypedDict` or model documents the expected shape, so `row["customer_id"]` after the field is renamed to `customerId` is flagged in CI rather than producing `KeyError` at 3am — or worse, `None` if the code used `.get()`.
+
+**At runtime**, a Pydantic model with `extra="forbid"` fails on unexpected fields, turning a silent addition into a visible, actionable error. `extra="ignore"` does the opposite and hides it.
+
+Pair this with an explicit schema check on read — comparing actual columns and dtypes against expected — and an alert on mismatch. The types make the expectation reviewable in version control, which is the real win: the schema contract lives next to the code and changes go through code review.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Do type hints make Python code faster?"** — no. They're ignored at runtime and add a small import-time cost. The gain is bugs caught before deployment, plus better tooling. Anyone claiming a speed-up is confusing them with Cython or `mypyc`.
+
+**"How would you prevent a schema change upstream from silently corrupting your output?"** — a typed model at the ingestion boundary with `extra="forbid"`, an explicit column-and-dtype check on read, alerting on mismatch, and the expected schema version-controlled so changes are reviewed.
+
+**"Your function returns `dict | None` and callers keep hitting AttributeError."** — that's exactly what a type checker catches: it forces the `None` branch to be handled before the value is used. Turn on mypy in CI and the whole class disappears.
+
+**"Dataclass or Pydantic?"** — dataclass for internal, already-trusted data; Pydantic where data crosses a trust boundary and needs validating. Mention the per-object cost as the reason not to use Pydantic everywhere.
+
+---
+
+## Further Reading
+
+- [`typing` documentation](https://docs.python.org/3/library/typing.html)
+- [mypy documentation](https://mypy.readthedocs.io/) — the cheat sheet page is the fastest way in
+- [pyright documentation](https://microsoft.github.io/pyright/)
+- [Pydantic documentation](https://docs.pydantic.dev/)
+- [PEP 484 — Type Hints](https://peps.python.org/pep-0484/) — the original proposal
+- [PEP 544 — Protocols](https://peps.python.org/pep-0544/)
+- [PEP 589 — TypedDict](https://peps.python.org/pep-0589/)

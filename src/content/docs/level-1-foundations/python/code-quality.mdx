@@ -1,0 +1,381 @@
+---
+title: Code Quality & Tooling
+description: Python code quality interview questions covering formatters like black and ruff, linting and static analysis, docstring conventions and Sphinx, pre-commit hooks, logging, and profiling and debugging tools.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Code Quality & Tooling: The Automation That Replaces Style Arguments
+
+**A formatter ends every debate about line length permanently. A linter catches the unused import and the mutable default before a human reviewer wastes attention on them. In data engineering specifically, the highest-value tooling is often the least glamorous: structured logging that tells you which partition failed, and a profiler that shows the six-hour job is spending five of them in a `.apply()` that should have been vectorised.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Formatting](#formatting)
+- [Linting & Static Analysis](#linting--static-analysis)
+- [Documentation](#documentation)
+- [Pre-commit & Automation](#pre-commit--automation)
+- [Logging](#logging)
+- [Profiling & Debugging](#profiling--debugging)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The organising idea is **automate the objective, reserve humans for the subjective**. Formatting, import ordering, unused variables and obvious bug patterns are all machine-decidable — so a machine should decide them, in a pre-commit hook and again in CI. Code review then spends its budget on whether the logic is right and the design will survive, which is the part tools can't do.
+
+The second idea is that **quality tooling must be fast and non-negotiable**. A linter that takes two minutes gets skipped; a formatter that's merely "recommended" produces a codebase with three styles. Ruff's speed matters for exactly this reason — a check that runs in 50 milliseconds can be enforced on every save without anyone resenting it.
+
+For data engineering, add a third: **observability is a code quality concern**. A pipeline that fails without saying which file, which partition, or which row is a maintenance problem regardless of how clean its formatting is.
+
+---
+
+## Formatting
+
+<QuestionList topic="Formatting" storagePrefix="python-quality-formatting">
+
+<QuestionCard id="pyl-fmt-01" number={1} question="What is black, and what does 'opinionated' mean here?" difficulty="easy" topic="Formatting">
+An auto-formatter that rewrites your code into a single canonical style. "Opinionated" means it has almost no configuration — you can set line length and little else.
+
+That's the feature, not a limitation. With no options there's nothing to argue about, no per-project bikeshedding, and every diff shows only real changes rather than reformatting noise.
+
+```bash
+black .                  # rewrite in place
+black --check --diff .   # CI mode: fail if anything would change
+```
+
+It normalises quotes to double, standardises trailing commas, and uses "magic trailing comma" — if you leave a trailing comma, it keeps the construct exploded across lines, which is a deliberate way to control collection formatting.
+</QuestionCard>
+
+<QuestionCard id="pyl-fmt-02" number={2} question="What is ruff, and why has it displaced so many tools?" difficulty="medium" topic="Formatting">
+A Rust-based linter and formatter that reimplements the rules of flake8, isort, pyupgrade, pydocstyle, bandit and dozens of plugins — running **10–100× faster**, typically checking a large codebase in well under a second.
+
+```toml
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "PD"]
+ignore = ["E501"]
+```
+
+`ruff format` is also a black-compatible formatter, so one tool and one config file replaces four or five.
+
+The speed is the substantive point: it's fast enough to run on every keystroke in the editor and on every commit without anyone noticing, which is what makes enforcement stick.
+</QuestionCard>
+
+<QuestionCard id="pyl-fmt-03" number={3} question="How do black, yapf and autopep8 differ?" difficulty="medium" topic="Formatting">
+- **black** — opinionated, deterministic, near-zero configuration. Reformats everything to its own style.
+- **yapf** (Google) — highly configurable, uses a clang-format-style algorithm to find the "best" layout within your constraints. Powerful, but configurability reintroduces the arguments black eliminates.
+- **autopep8** — only fixes PEP 8 *violations*, leaving compliant code untouched. The least invasive, and therefore the least consistent — two files can both pass while looking quite different.
+
+For a new project, `ruff format` or black. autopep8 is a reasonable choice when retrofitting a large legacy codebase where a full reformat would destroy git blame — though a one-off reformat commit added to `.git-blame-ignore-revs` handles that cleanly.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Linting & Static Analysis
+
+<QuestionList topic="Linting & Static Analysis" storagePrefix="python-quality-linting">
+
+<QuestionCard id="pyl-lint-01" number={1} question="What is the difference between a formatter and a linter?" difficulty="easy" topic="Linting">
+A **formatter** changes layout only — whitespace, line breaks, quote style. It never changes behaviour, so running it is always safe.
+
+A **linter** analyses code for problems: unused imports, undefined names, shadowed built-ins, mutable default arguments, bare excepts, likely bugs. Most only report; some can auto-fix a safe subset.
+
+They're complementary, not alternatives. Black makes your code look consistent; it will happily format a function with a mutable default argument. Ruff or flake8 catches that.
+
+The usual stack is: formatter (ruff format / black) + linter (ruff) + type checker (mypy / pyright), all three in pre-commit and CI.
+</QuestionCard>
+
+<QuestionCard id="pyl-lint-02" number={2} question="Which lint rules matter most for data engineering code?" difficulty="medium" topic="Linting">
+- **F** (pyflakes) — undefined names, unused imports and variables. Catches real bugs, not style.
+- **B** (bugbear) — mutable default arguments, `except` without re-raise, loop-variable binding in closures. The highest-value ruleset.
+- **I** (isort) — deterministic import ordering, which removes a whole category of merge conflict.
+- **UP** (pyupgrade) — modernises syntax as you raise the minimum Python version.
+- **SIM** — simplifications; catches needlessly complex conditionals.
+- **PD** (pandas-vet) — flags `inplace=True`, chained assignment, `.values` over `.to_numpy()`.
+- **S** (bandit) — security: `eval`, `subprocess` with `shell=True`, hardcoded passwords.
+- **DTZ** — naive `datetime` calls. Genuinely valuable in pipelines, where naive timestamps cause silent, timezone-dependent wrongness.
+
+Start with `E,F,I,B` and add rulesets as the team gets comfortable.
+</QuestionCard>
+
+<QuestionCard id="pyl-lint-03" number={3} question="How do you handle lint errors you can't or shouldn't fix?" difficulty="medium" topic="Linting">
+```python
+import numpy as np  # noqa: F401  — re-exported for the public API
+result = eval(expr)  # noqa: S307  — expr is validated against an allowlist above
+```
+
+Always use the **specific rule code** and add a reason. A bare `# noqa` disables every rule on that line, including future ones that would have caught a real bug.
+
+Configure `ruff` with `unfixable` and enable warnings on unused suppressions, so a `noqa` that's no longer needed gets flagged rather than accumulating forever.
+
+For whole-file or directory exceptions, use `per-file-ignores` in config rather than scattering comments — for instance, allowing unused imports in `__init__.py` and assert statements in `tests/`.
+</QuestionCard>
+
+<QuestionCard id="pyl-lint-04" number={4} question="What security-focused static analysis should a data project run?" difficulty="medium" topic="Security">
+- **Secret scanning** — `gitleaks` or `detect-secrets` in pre-commit, plus host-side push protection. Credentials in a repo are the most common serious finding.
+- **`bandit`** (or ruff's `S` rules) — flags `eval`, `pickle` on untrusted data, `subprocess(shell=True)`, weak hashes, `yaml.load` without `SafeLoader`.
+- **Dependency scanning** — `pip-audit` or Dependabot against known CVEs.
+- **SQL injection** — string-formatted queries. Parameterised queries always.
+
+Two are especially relevant to data work. **`pickle` is arbitrary code execution on load** — never unpickle data from an untrusted source, which rules it out as an interchange format. And **`yaml.load` without `SafeLoader`** can instantiate arbitrary objects, which matters because pipeline config is so often YAML.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Documentation
+
+<QuestionList topic="Documentation" storagePrefix="python-quality-docs">
+
+<QuestionCard id="pyl-doc-01" number={1} question="What are the docstring conventions, and which should you pick?" difficulty="easy" topic="Documentation">
+```python
+def load(path: str, chunk_size: int = 8192) -> Iterator[dict]:
+    """Stream records from a JSONL file.
+
+    Args:
+        path: Filesystem or S3 path to read.
+        chunk_size: Bytes to read per call.
+
+    Yields:
+        One parsed record per line.
+
+    Raises:
+        SchemaMismatch: If a record lacks required fields.
+    """
+```
+
+That's **Google style** — the most readable, and the most common in new code. **NumPy style** uses underlined sections and suits functions with many parameters; it dominates scientific packages. **reStructuredText** (`:param x:`) is Sphinx's native format and looks dated.
+
+Pick one and enforce it with ruff's `D` rules. Which one matters far less than consistency, since tooling parses whichever you configure.
+</QuestionCard>
+
+<QuestionCard id="pyl-doc-02" number={2} question="What is Sphinx, and how does it fit a data project?" difficulty="medium" topic="Documentation">
+A documentation generator that builds HTML from reStructuredText or Markdown, with `autodoc` pulling docstrings straight from the code so API reference never drifts.
+
+```bash
+sphinx-quickstart docs
+sphinx-build -b html docs docs/_build
+```
+
+Useful extensions: `autodoc` (API from docstrings), `napoleon` (understand Google/NumPy style), `myst-parser` (Markdown), `intersphinx` (cross-link to pandas' and Python's own docs).
+
+For a shared internal library it's worth it — consumers get searchable API docs generated from code they can trust. For a pipeline repo nobody imports, a good README plus docstrings is usually sufficient; **MkDocs with mkdocstrings** is a lighter alternative that many teams now prefer.
+</QuestionCard>
+
+<QuestionCard id="pyl-doc-03" number={3} question="What should a data pipeline repository document?" difficulty="medium" topic="Documentation">
+Docstrings cover functions. The things that actually get asked in an incident are usually not in code:
+
+- **What the pipeline produces** — which tables, at what grain, on what schedule.
+- **Upstream dependencies** — sources, their owners, and expected freshness.
+- **How to run it locally** — the single most valuable README section.
+- **Schema and contracts** — the expected input shape, and what downstream consumers rely on.
+- **Runbook** — what to do when it fails, how to backfill, who to contact.
+- **Decisions and their reasons** — why this partitioning, why this dedup strategy. An ADR or a decisions file.
+
+The last one is what saves the next engineer, because the code shows *what* it does and never *why* the obvious alternative was rejected.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Pre-commit & Automation
+
+<QuestionList topic="Pre-commit & Automation" storagePrefix="python-quality-precommit">
+
+<QuestionCard id="pyl-pc-01" number={1} question="What is pre-commit and why use it?" difficulty="medium" topic="Automation">
+A framework for running checks on staged files before a commit is created.
+
+```yaml
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: detect-private-key
+```
+
+Value: problems are caught in seconds locally rather than after a CI round trip, and formatting never reaches review. It runs only on **staged files**, so it stays fast.
+
+Run the same checks in CI too — pre-commit hooks can be bypassed with `--no-verify`, so they're a convenience, not the enforcement point.
+</QuestionCard>
+
+<QuestionCard id="pyl-pc-02" number={2} question="Which pre-commit hooks are worth having in a data project?" difficulty="medium" topic="Automation">
+Beyond ruff and the type checker:
+
+- **`check-added-large-files`** — stops someone committing a 200 MB CSV. Directly prevents the most common repo-bloat incident.
+- **`detect-private-key`, `gitleaks`** — secret scanning before it's too late to avoid rotation.
+- **`check-yaml` / `check-json` / `check-toml`** — catches a malformed DAG or config file locally instead of at deploy.
+- **`nbstripout`** — strips notebook outputs, which otherwise bloat diffs and can leak sample data.
+- **`end-of-file-fixer`, `trailing-whitespace`** — trivial, but they remove a permanent source of noisy diffs.
+- **`no-commit-to-branch`** — blocks direct commits to `main`.
+
+`check-added-large-files` and `nbstripout` are the two most specific to data work, and both prevent problems that are painful to undo after the fact.
+</QuestionCard>
+
+<QuestionCard id="pyl-pc-03" number={3} question="How do you introduce these tools to an existing messy codebase?" difficulty="medium" topic="Automation">
+1. **Format everything in one commit**, alone, with no logic changes. Add its SHA to `.git-blame-ignore-revs` so `git blame` skips it and history stays useful.
+2. **Add the linter with a minimal ruleset** — `F` and `E` only — so the build is green immediately.
+3. **Fix the auto-fixable** in a second mechanical commit.
+4. **Ratchet**: add one ruleset at a time, or use `per-file-ignores` to hold legacy directories at the old standard while new code meets the new one.
+5. **Add pre-commit and CI** together, so the standard can't regress.
+
+The principle is that the build must never be red for reasons unrelated to the change under review. A tool that makes everyone's PR fail on day one gets removed on day two.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Logging
+
+<QuestionList topic="Logging" storagePrefix="python-quality-logging">
+
+<QuestionCard id="pyl-log-01" number={1} question="Why should you never use print() in a pipeline?" difficulty="easy" topic="Logging">
+`print` has no level, no timestamp, no source, no structure, and no way to route or silence it. It goes to stdout regardless of whether anyone wants it.
+
+`logging` gives you all of that:
+
+```python
+import logging
+log = logging.getLogger(__name__)
+
+log.info("loaded %s rows from %s", len(rows), path)
+log.warning("skipped %s malformed rows", bad_count)
+log.exception("failed loading partition %s", partition)   # includes traceback
+```
+
+Use `__name__` so the logger is named after the module, which makes per-module level control possible. Pass arguments as **lazy `%s` parameters**, not f-strings — the formatting is skipped entirely if the level is disabled, which matters in a hot loop.
+
+`log.exception` inside an `except` block is the one people forget; it attaches the traceback automatically.
+</QuestionCard>
+
+<QuestionCard id="pyl-log-02" number={2} question="How should logging be configured in an application?" difficulty="medium" topic="Logging">
+**Libraries configure nothing; applications configure once, at entry point.**
+
+```python
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
+```
+
+A library that calls `basicConfig` or adds handlers hijacks its consumers' logging setup — so libraries should only ever create loggers and emit records, adding a `NullHandler` to their root logger.
+
+Levels, used correctly: **DEBUG** for development detail, **INFO** for lifecycle events (started, N rows, finished), **WARNING** for recoverable anomalies, **ERROR** for failed operations, **CRITICAL** for unrecoverable ones. The common failure is logging everything at INFO, which makes the level useless as a filter.
+</QuestionCard>
+
+<QuestionCard id="pyl-log-03" number={3} question="What is structured logging and why does it matter for pipelines?" difficulty="medium" topic="Logging">
+Emitting logs as machine-parseable records — usually JSON — with fields rather than interpolated prose.
+
+```python
+log.info("partition_loaded", extra={
+    "table": "orders", "partition": "2026-01-15",
+    "rows": 1_240_331, "duration_s": 42.1,
+})
+```
+
+Why it matters: a log aggregator can then query "all failures for table=orders in the last day" or chart load duration over time. With free-text logs you're writing regexes against prose, and the format changes whenever someone edits a message.
+
+Add a **correlation ID** — run ID, DAG run, task instance — to every record so one pipeline execution can be reconstructed across services. `structlog` or `python-json-logger` handle the plumbing.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Profiling & Debugging
+
+<QuestionList topic="Profiling & Debugging" storagePrefix="python-quality-profiling">
+
+<QuestionCard id="pyl-prof-01" number={1} question="How do you profile a slow Python pipeline?" difficulty="medium" topic="Profiling">
+Measure before optimising — intuition about Python performance is usually wrong.
+
+```bash
+python -m cProfile -o out.prof pipeline.py     # deterministic, whole run
+snakeviz out.prof                              # visualise it
+py-spy top --pid 12345                         # sampling, on a LIVE process
+py-spy dump --pid 12345                        # stack trace of a hung job
+```
+
+- **cProfile** — function-level counts and cumulative time. Adds overhead, so it distorts very fast functions.
+- **line_profiler** (`@profile`) — per-line timing when you've narrowed to one function.
+- **py-spy** — samples an already-running process **without modifying or restarting it**. This is the one for production, and the only realistic option for a job that only misbehaves at scale.
+- **memory_profiler / memray** — for memory rather than time.
+
+Sort by **cumulative** time to find the slow subtree, then by **total** time to find the hot function within it.
+</QuestionCard>
+
+<QuestionCard id="pyl-prof-02" number={2} question="What are the most common Python performance mistakes in data code?" difficulty="hard" topic="Profiling">
+- **Row-wise iteration over a DataFrame** — `iterrows()` or `.apply()` where a vectorised operation would do. Frequently a 100× difference.
+- **Membership testing against a list** — O(n) per check inside a loop; a set makes it O(1).
+- **String concatenation in a loop** — O(n²); use `"".join`.
+- **Repeated I/O per row** — a query or an API call inside the loop instead of a batched lookup or a join.
+- **Materialising when you could stream** — `list(...)` on something you iterate once.
+- **`pd.concat` inside a loop** — quadratic copying; collect into a list and concat once.
+- **Wrong dtypes** — object-dtype columns where category or a numeric type would be dramatically smaller and faster.
+
+The single highest-value habit: before optimising Python, ask whether the work should happen in the database or in a vectorised library at all.
+</QuestionCard>
+
+<QuestionCard id="pyl-prof-03" number={3} question="What debugging tools should you know beyond print?" difficulty="medium" topic="Debugging">
+```python
+breakpoint()                    # 3.7+; drops into pdb (or your configured debugger)
+```
+
+```bash
+python -m pdb script.py         # debug from the start
+pytest --pdb                    # drop into the debugger on test failure
+pytest -l                       # show local variables in the traceback
+```
+
+Core pdb commands: `n` (next), `s` (step in), `c` (continue), `l` (list source), `p expr` (print), `w` (where — the stack), `u`/`d` (move up and down frames).
+
+`ipdb` gives tab-completion and syntax highlighting. `pytest --pdb` is the highest-leverage of these — landing directly in the failing state beats adding prints and re-running.
+
+For production, `py-spy dump` on a stuck process, plus good structured logging, generally beats attaching a debugger.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"How do you enforce code standards across a team?"** — automate everything objective: formatter and linter in pre-commit and CI, with CI as the real gate since hooks can be bypassed. Then code review handles design and correctness. Mention introducing it incrementally so the build is never red for unrelated reasons.
+
+**"This job used to take 20 minutes and now takes 6 hours. How do you investigate?"** — check whether data volume changed first, then profile. Use `py-spy` against the running job since reproducing at scale is often impractical. Look for row-wise operations, per-row I/O, and memory pressure causing swap.
+
+**"Your pipeline failed at 3am. What do you want in the logs?"** — which task, which partition, which input file, how many rows in and out, the full traceback, and a correlation ID linking it to the scheduler run. Structured fields so it's queryable, not prose.
+
+**"Why not just use print statements?"** — no levels, no timestamps, no routing, no structure, and no way to turn them off. Then note that `log.exception` gives you the traceback for free.
+
+---
+
+## Further Reading
+
+- [Ruff documentation](https://docs.astral.sh/ruff/) — rules, config, and the migration guide from flake8
+- [Black documentation](https://black.readthedocs.io/)
+- [pre-commit](https://pre-commit.com/)
+- [Python `logging` HOWTO](https://docs.python.org/3/howto/logging.html) — and the cookbook, which is better than it sounds
+- [py-spy](https://github.com/benfred/py-spy) — profiling a live process
+- [PEP 257 — Docstring Conventions](https://peps.python.org/pep-0257/)
+- [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)

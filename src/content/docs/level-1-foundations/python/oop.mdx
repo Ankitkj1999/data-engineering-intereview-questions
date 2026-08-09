@@ -1,0 +1,444 @@
+---
+title: Object-Oriented Programming
+description: Python OOP interview questions covering classes and instances, instance/class/static methods, inheritance and the MRO, dunder methods, properties, dataclasses, abstract base classes, slots and composition over inheritance.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Object-Oriented Programming in Python
+
+**Python's OOP is unusually permissive — no real private attributes, multiple inheritance, and the ability to rewrite a class at runtime. That flexibility means interview questions here tend to probe the mechanics: what `self` actually is, how attribute lookup walks the MRO, and why `__str__` and `__repr__` both exist. For data engineering specifically, the useful answers are usually about *not* over-using classes: dataclasses for records, protocols for interfaces, and composition instead of deep hierarchies.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Classes & Instances](#classes--instances)
+- [Methods & Attributes](#methods--attributes)
+- [Inheritance](#inheritance)
+- [Dunder Methods](#dunder-methods)
+- [Dataclasses & Modern Patterns](#dataclasses--modern-patterns)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A class is a **factory and a namespace**. Calling it invokes `__new__` to allocate and `__init__` to initialise, producing an instance whose own attributes live in `self.__dict__`. Attribute lookup checks the instance first, then walks the class and its ancestors in **MRO** order — which is why a class attribute acts like a shared default until an instance shadows it by assignment.
+
+Python has no enforced privacy. A single underscore is a convention; a double underscore triggers **name mangling** (`__x` becomes `_ClassName__x`), which prevents accidental collisions in subclasses but stops nobody determined. The language's stance is that consenting adults don't need the compiler to police access.
+
+The design guidance that matters most for pipeline code: **prefer composition and plain data**. A `dataclass` for a record, a `Protocol` for an interface, and a function that takes data and returns data will beat a four-level inheritance hierarchy on both testability and the ability of the next person to follow it.
+
+---
+
+## Classes & Instances
+
+<QuestionList topic="Classes & Instances" storagePrefix="python-oop-classes">
+
+<QuestionCard id="pyo-cls-01" number={1} question="What is self, and why must it be written explicitly?" difficulty="easy" topic="Classes">
+`self` is the instance, passed as the first argument to every instance method. `obj.method(x)` is sugar for `Class.method(obj, x)`.
+
+It's explicit because of Python's "explicit is better than implicit" principle, and because it removes ambiguity: `self.count` is unmistakably an attribute, while in languages with an implicit `this`, a bare `count` could be a local, a member, or a global.
+
+The name is convention, not syntax — `def method(this)` works — but breaking it will fail review everywhere.
+
+The practical consequence is that a function defined outside a class can be attached to it and will receive the instance as its first argument, which is how monkey-patching works.
+</QuestionCard>
+
+<QuestionCard id="pyo-cls-02" number={2} question="What is the difference between __init__ and __new__?" difficulty="medium" topic="Classes">
+`__new__` **creates** the instance and returns it; `__init__` **initialises** an already-created instance and must return `None`.
+
+```python
+class Config:
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+```
+
+You almost never need `__new__`. The exceptions are subclassing an immutable type (`int`, `str`, `tuple`), where the value must be set at creation because there's nothing to mutate afterwards; implementing singletons or object pools; and some metaclass work.
+
+A trap: if `__new__` returns an instance of a different class, `__init__` is never called.
+</QuestionCard>
+
+<QuestionCard id="pyo-cls-03" number={3} question="What is the difference between a class attribute and an instance attribute?" difficulty="medium" topic="Classes">
+A class attribute lives on the class and is shared; an instance attribute lives on the instance.
+
+```python
+class Job:
+    retries = 3           # class attribute — shared default
+    def __init__(self, name):
+        self.name = name  # instance attribute
+
+j = Job("load")
+j.retries        # 3 — found on the class
+j.retries = 5    # creates an INSTANCE attribute, shadowing it
+Job.retries      # still 3
+```
+
+The dangerous case is a **mutable** class attribute:
+
+```python
+class Batch:
+    rows = []            # BUG — shared by every instance
+```
+
+Every `Batch` appends to the same list. Mutable state belongs in `__init__` as an instance attribute — the same trap as mutable default arguments, from the same cause.
+</QuestionCard>
+
+<QuestionCard id="pyo-cls-04" number={4} question="How does Python handle private attributes?" difficulty="medium" topic="Classes">
+By convention, not enforcement.
+
+- **`_name`** — "internal, don't rely on this." Purely a signal; nothing stops access.
+- **`__name`** — triggers **name mangling** to `_ClassName__name`. Not privacy: `obj._Job__name` works fine. Its actual purpose is preventing a subclass from accidentally overwriting a base class's attribute of the same name.
+- **`__name__`** — reserved for Python's protocols; don't invent your own.
+
+The right answer names the philosophy: Python trusts the caller. If you need to guarantee an invariant, use a `@property` with validation rather than trying to hide the attribute — the property gives you a hook while keeping the attribute-style API.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Methods & Attributes
+
+<QuestionList topic="Methods & Attributes" storagePrefix="python-oop-methods">
+
+<QuestionCard id="pyo-meth-01" number={1} question="Compare instance methods, class methods and static methods." difficulty="easy" topic="Methods">
+```python
+class Loader:
+    def run(self):                    # instance — gets the instance
+        ...
+
+    @classmethod
+    def from_config(cls, path):       # class — gets the class
+        return cls(**json.load(open(path)))
+
+    @staticmethod
+    def normalise(name):              # neither — just namespaced
+        return name.strip().lower()
+```
+
+**Instance methods** operate on instance state. **Class methods** receive the class, which makes them the right tool for **alternative constructors** — and because they get `cls` rather than a hard-coded name, they return the correct type when subclassed. **Static methods** are plain functions grouped with the class for organisation.
+
+The `from_config` pattern is the one worth remembering: `SubLoader.from_config(...)` returns a `SubLoader`, which a hard-coded `Loader(...)` would not.
+</QuestionCard>
+
+<QuestionCard id="pyo-meth-02" number={2} question="What is @property and when should you use it?" difficulty="medium" topic="Attributes">
+It turns a method into a read-only computed attribute, optionally with a setter:
+
+```python
+class Dataset:
+    def __init__(self, rows):
+        self._rows = rows
+
+    @property
+    def row_count(self):
+        return len(self._rows)
+
+    @property
+    def path(self):
+        return self._path
+
+    @path.setter
+    def path(self, value):
+        if not value.startswith("s3://"):
+            raise ValueError("path must be an S3 URI")
+        self._path = value
+```
+
+The main reason to use it: you can start with a plain attribute and later add validation or computation **without changing the public API** — no callers need to switch from `obj.path` to `obj.get_path()`.
+
+Keep properties cheap. A property that runs a database query surprises people, because attribute access looks free. Use `@cached_property` if it's expensive but stable, or a normal method if it's expensive and dynamic.
+</QuestionCard>
+
+<QuestionCard id="pyo-meth-03" number={3} question="What are __slots__ and when are they worth it?" difficulty="hard" topic="Attributes">
+They replace the per-instance `__dict__` with a fixed set of descriptors:
+
+```python
+class Row:
+    __slots__ = ("id", "amount", "ts")
+    def __init__(self, id, amount, ts):
+        self.id, self.amount, self.ts = id, amount, ts
+```
+
+Benefits: substantially less memory per instance (often 40–50% for small objects) and slightly faster attribute access.
+
+Costs: you can't add attributes not listed, there's no `__dict__` (breaking code that inspects it), multiple inheritance with slots is fiddly, and it doesn't apply to a subclass unless the subclass also defines `__slots__`.
+
+Worth it when you're creating millions of small objects — parsed records in a streaming pipeline is the canonical case. Not worth it otherwise; measure before adding it.
+</QuestionCard>
+
+<QuestionCard id="pyo-meth-04" number={4} question="What do __getattr__ and __getattribute__ do?" difficulty="hard" topic="Attributes">
+`__getattribute__` is called for **every** attribute access. `__getattr__` is called **only when normal lookup fails**.
+
+```python
+class LazyConfig:
+    def __init__(self, source):
+        self._source = source
+    def __getattr__(self, name):          # only for misses
+        try:
+            return self._source[name]
+        except KeyError:
+            raise AttributeError(name) from None
+```
+
+Use `__getattr__` for fallbacks — proxies, lazy loading, dict-backed config objects.
+
+Avoid `__getattribute__` unless you have no choice: it intercepts everything, so a naive implementation that accesses `self.anything` recurses infinitely. Always delegate via `super().__getattribute__(name)`.
+
+Note `__getattr__` must raise `AttributeError` for genuinely missing names, or `hasattr` and `getattr` with a default stop working correctly.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Inheritance
+
+<QuestionList topic="Inheritance" storagePrefix="python-oop-inheritance">
+
+<QuestionCard id="pyo-inh-01" number={1} question="What is the MRO, and how does Python compute it?" difficulty="hard" topic="Inheritance">
+The **Method Resolution Order** is the linear sequence Python searches for an attribute across a class and its ancestors. Inspect it with `Class.__mro__` or `Class.mro()`.
+
+Python uses **C3 linearisation**, which guarantees three things: a class always precedes its parents, the order of parents in the class statement is preserved, and the result is monotonic (a subclass's MRO is consistent with its parents').
+
+```python
+class A: ...
+class B(A): ...
+class C(A): ...
+class D(B, C): ...
+D.__mro__      # D, B, C, A, object
+```
+
+This resolves the **diamond problem**: `A` appears once, after both `B` and `C`. If no consistent order exists, Python raises `TypeError` at class-creation time rather than picking arbitrarily.
+</QuestionCard>
+
+<QuestionCard id="pyo-inh-02" number={2} question="What does super() actually do?" difficulty="hard" topic="Inheritance">
+It returns a proxy that dispatches to the **next class in the MRO** — not to "the parent class." That distinction is the whole point.
+
+```python
+class Base:
+    def __init__(self, **kw): super().__init__(**kw)
+class Timestamped(Base):
+    def __init__(self, ts=None, **kw):
+        self.ts = ts or now()
+        super().__init__(**kw)           # next in MRO, not necessarily Base
+```
+
+Because it follows the MRO of the **instance's** class, a mixin's `super()` call can land on a sibling class it knows nothing about. That's what makes cooperative multiple inheritance work — and why every class in such a hierarchy must call `super().__init__` and accept `**kwargs`.
+
+Calling `Base.__init__(self, ...)` directly instead breaks that chain and can skip classes entirely.
+</QuestionCard>
+
+<QuestionCard id="pyo-inh-03" number={3} question="What is an abstract base class, and how do you define one?" difficulty="medium" topic="Inheritance">
+A class that can't be instantiated and defines methods subclasses must implement:
+
+```python
+from abc import ABC, abstractmethod
+
+class Sink(ABC):
+    @abstractmethod
+    def write(self, rows: list[dict]) -> None: ...
+
+    def write_batched(self, rows, size=1000):   # concrete, shared
+        for batch in batched(rows, size):
+            self.write(batch)
+
+class S3Sink(Sink):
+    def write(self, rows): ...
+```
+
+Instantiating `Sink()` raises `TypeError`; so does a subclass that forgets `write` — the error arrives at construction, not at the first call in production.
+
+Use an ABC when you want shared concrete behaviour alongside the contract. When you only want the contract and don't control the implementing classes, a `Protocol` is better — it needs no inheritance at all.
+</QuestionCard>
+
+<QuestionCard id="pyo-inh-04" number={4} question="Why prefer composition over inheritance?" difficulty="medium" topic="Inheritance">
+Inheritance couples a subclass to its parent's implementation, not just its interface. Change the parent and every descendant can break — the fragile base class problem. Deep hierarchies also force behaviour into a single axis, which fails as soon as you need to vary two things independently.
+
+Composition assembles behaviour from parts:
+
+```python
+class Pipeline:
+    def __init__(self, source, transform, sink):
+        self.source, self.transform, self.sink = source, transform, sink
+
+    def run(self):
+        self.sink.write(self.transform(self.source.read()))
+```
+
+Any source works with any sink, each part is independently testable with a stub, and adding a new sink doesn't touch existing classes.
+
+Use inheritance for genuine "is-a" specialisation with shared implementation; use composition for "has-a" or "uses-a", which is most pipeline code.
+</QuestionCard>
+
+<QuestionCard id="pyo-inh-05" number={5} question="What is a mixin?" difficulty="medium" topic="Inheritance">
+A class providing a focused piece of behaviour, designed to be combined with others rather than instantiated alone.
+
+```python
+class LoggingMixin:
+    def log(self, msg):
+        logging.getLogger(type(self).__name__).info(msg)
+
+class RetryMixin:
+    def with_retry(self, fn, times=3): ...
+
+class S3Loader(LoggingMixin, RetryMixin, Loader): ...
+```
+
+Conventions that keep them workable: name them `...Mixin`, keep each to one concern, don't give them `__init__` if you can avoid it, and remember they come **before** the base class in the bases list so their methods win in the MRO.
+
+They're a real use of multiple inheritance — but if a mixin starts depending on attributes it doesn't define, that's a sign it should be a composed object instead.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Dunder Methods
+
+<QuestionList topic="Dunder Methods" storagePrefix="python-oop-dunder">
+
+<QuestionCard id="pyo-dun-01" number={1} question="What is the difference between __str__ and __repr__?" difficulty="easy" topic="Dunder Methods">
+`__repr__` is for **developers** — unambiguous, ideally valid Python that would recreate the object. It's what the REPL shows, what appears in a list, and what `repr()` returns.
+
+`__str__` is for **users** — readable. It's what `print()` and `str()` use.
+
+```python
+class Partition:
+    def __repr__(self):
+        return f"Partition(table={self.table!r}, date={self.date!r})"
+    def __str__(self):
+        return f"{self.table}/{self.date}"
+```
+
+If you implement only one, implement `__repr__` — `str()` falls back to it, so you get both. The reverse isn't true.
+
+The practical argument: logs and tracebacks use `repr`, so a good one turns `an error occurred processing <object at 0x7f...>` into something that tells you which partition failed.
+</QuestionCard>
+
+<QuestionCard id="pyo-dun-02" number={2} question="Which dunder methods matter for data engineering?" difficulty="medium" topic="Dunder Methods">
+- **`__repr__`** — debuggable logs and tracebacks.
+- **`__eq__` and `__hash__`** — so records can be compared, deduplicated, and used as dict keys. Define them together.
+- **`__lt__`** — enables sorting; `@total_ordering` fills in the rest from `__lt__` and `__eq__`.
+- **`__iter__` / `__next__`** — make an object streamable.
+- **`__len__`** — `len()` and truthiness.
+- **`__getitem__` / `__setitem__`** — indexing and slicing.
+- **`__enter__` / `__exit__`** — usable with `with`.
+- **`__call__`** — instances usable as functions, e.g. a configurable transform.
+- **`__contains__`** — the `in` operator.
+
+`__eq__` plus `__hash__` is the pair that matters most: without them, two records with identical contents are distinct objects, so set-based deduplication silently does nothing.
+</QuestionCard>
+
+<QuestionCard id="pyo-dun-03" number={3} question="What happens if you define __eq__ without __hash__?" difficulty="hard" topic="Dunder Methods">
+Python sets `__hash__` to `None`, making instances **unhashable** — they can't go in a set or be dict keys.
+
+That's deliberate. The contract requires equal objects to have equal hashes; if you redefine equality but keep the default identity-based hash, two equal objects would hash differently and a dict lookup would fail to find an entry it should have.
+
+To have both, define them consistently over the same fields:
+
+```python
+class Key:
+    def __eq__(self, other):
+        return (self.table, self.date) == (other.table, other.date)
+    def __hash__(self):
+        return hash((self.table, self.date))
+```
+
+Or let `@dataclass(frozen=True)` generate both. Only make something hashable if the fields involved are immutable — mutating a key after inserting it corrupts the container.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Dataclasses & Modern Patterns
+
+<QuestionList topic="Dataclasses & Modern Patterns" storagePrefix="python-oop-modern">
+
+<QuestionCard id="pyo-dc-01" number={1} question="What does @dataclass generate, and when should you use one?" difficulty="medium" topic="Dataclasses">
+```python
+from dataclasses import dataclass, field
+
+@dataclass(frozen=True, slots=True)
+class Record:
+    id: str
+    amount: float
+    tags: list[str] = field(default_factory=list)
+```
+
+It generates `__init__`, `__repr__`, `__eq__`, and — with `order=True` — comparison methods, all from the annotated fields.
+
+Note `field(default_factory=list)`: a bare `= []` raises an error, because dataclasses explicitly guard against the mutable-default trap.
+
+Options worth knowing: `frozen=True` makes instances immutable and hashable; `slots=True` (3.10+) adds `__slots__` for memory; `kw_only=True` forces keyword arguments.
+
+Use one whenever you'd otherwise write a class that's mostly `__init__` assigning attributes — which describes most record types in a pipeline.
+</QuestionCard>
+
+<QuestionCard id="pyo-dc-02" number={2} question="Dataclass, NamedTuple, TypedDict or Pydantic — how do you choose?" difficulty="hard" topic="Dataclasses">
+- **`dataclass`** — the default for internal records. Mutable by default, `frozen=True` when you want value semantics. No runtime validation.
+- **`NamedTuple`** — immutable, tuple-compatible (so it unpacks and indexes), very lightweight. Good when you need tuple behaviour or minimal memory.
+- **`TypedDict`** — it *is* a plain dict at runtime, just annotated. Right when data must stay JSON-serialisable or interoperate with dict-based APIs, with zero conversion cost.
+- **`Pydantic BaseModel`** — **validates and coerces at runtime**. Use it at trust boundaries: API payloads, config files, ingested records from an external system.
+
+The deciding question is whether you need runtime validation. Pydantic costs performance per object, so validate once at the boundary and convert to a dataclass for the hot inner loop.
+</QuestionCard>
+
+<QuestionCard id="pyo-dc-03" number={3} question="What is a Protocol, and how does it differ from an ABC?" difficulty="hard" topic="Modern Patterns">
+A `Protocol` defines an interface by **structure** — any class with matching methods satisfies it, with no inheritance:
+
+```python
+from typing import Protocol
+
+class Sink(Protocol):
+    def write(self, rows: list[dict]) -> None: ...
+
+def load(rows, sink: Sink) -> None:      # any object with .write() works
+    sink.write(rows)
+```
+
+An **ABC** requires explicit inheritance — nominal typing. A **Protocol** is structural: duck typing that a type checker can verify.
+
+Protocols win when you don't control the implementing classes (third-party objects can satisfy your interface without knowing it exists) and when you want to avoid coupling. ABCs win when you want to share concrete implementation alongside the contract, or need `isinstance` checks — though `@runtime_checkable` gives Protocols a limited version of that.
+</QuestionCard>
+
+<QuestionCard id="pyo-dc-04" number={4} question="When should you NOT use a class?" difficulty="medium" topic="Modern Patterns">
+More often than people expect in data code.
+
+- **A class with one method and no state** is a function. `class Validator: def validate(self, x)` should just be `def validate(x)`.
+- **A class used only to group functions** should be a module.
+- **A class that's just fields** should be a dataclass, a NamedTuple, or a dict.
+- **A deep hierarchy expressing configuration variants** should be data plus a dispatch table.
+
+Python has module-level functions and first-class functions, so it doesn't need the class-as-namespace workaround that Java requires. The failure mode is a `PipelineBase` → `ETLPipeline` → `S3ETLPipeline` chain where a function taking a config object would have been clearer, more testable, and easier to change.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Design the class structure for a pipeline that reads from several sources and writes to several sinks."** — the answer they want is composition plus protocols: a `Source` protocol, a `Sink` protocol, and a pipeline that takes instances. Not an inheritance hierarchy per source-sink pair.
+
+**"Why can't I put this object in a set?"** — it defines `__eq__` without `__hash__`, so Python made it unhashable. Explain the contract that motivates it.
+
+**"What's the MRO of this diamond, and which method runs?"** — C3 linearisation, left to right, each class once, subclass before parents. Mention that `super()` follows the MRO rather than going to a fixed parent.
+
+**"You're creating 50 million small record objects and running out of memory."** — `__slots__` or `@dataclass(slots=True)`, or step back and question whether you need objects at all rather than tuples, or a columnar structure like Arrow.
+
+---
+
+## Further Reading
+
+- [Python Classes tutorial](https://docs.python.org/3/tutorial/classes.html)
+- [Data model — special method names](https://docs.python.org/3/reference/datamodel.html#special-method-names)
+- [`dataclasses` documentation](https://docs.python.org/3/library/dataclasses.html)
+- [`abc` documentation](https://docs.python.org/3/library/abc.html)
+- [PEP 544 — Protocols: Structural subtyping](https://peps.python.org/pep-0544/)
+- [Python's MRO explained](https://www.python.org/download/releases/2.3/mro/) — the original C3 write-up

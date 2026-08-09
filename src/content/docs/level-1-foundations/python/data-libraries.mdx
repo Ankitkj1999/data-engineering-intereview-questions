@@ -1,0 +1,412 @@
+---
+title: Data Engineering Libraries
+description: Interview questions on the Python data stack — pandas, NumPy, PyArrow, Polars, DuckDB — plus file I/O, Parquet, serialisation formats, and choosing the right tool for a given data size.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## The Python Data Stack
+
+**This is where Python stops being a general-purpose language and becomes a data engineering one. The recurring theme in these questions is the same: get out of the Python interpreter. A `for` loop over a million rows is slow because each iteration touches the interpreter; the same work in NumPy, Arrow or DuckDB runs in compiled code over contiguous memory. Knowing which library does that, and where each one's limits are, is most of the practical skill.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [NumPy](#numpy)
+- [pandas](#pandas)
+- [PyArrow & Parquet](#pyarrow--parquet)
+- [Polars & DuckDB](#polars--duckdb)
+- [File I/O & Serialisation](#file-io--serialisation)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The foundation is **columnar, contiguous, typed memory**. A Python list of a million dicts stores a million pointers to a million objects, each with headers and reference counts, scattered across the heap. A NumPy array or an Arrow column stores the raw values back to back in one block. That changes everything downstream: the CPU can prefetch and vectorise, compression works, and the operation runs in C without the interpreter in the loop.
+
+The second idea is **eager versus lazy**. pandas executes each operation immediately, materialising an intermediate result every time. Polars, DuckDB and Spark build a query plan first, letting them push filters down to the file, drop unused columns before reading, and fuse operations. On large data the plan matters more than the per-operation speed.
+
+The third is **knowing your size class**. Under a few hundred megabytes, pandas is fine and familiar. Into the tens of gigabytes on one machine, Polars or DuckDB will usually beat it by a wide margin at lower memory. Beyond a single machine, you're into Spark. Choosing the heaviest tool for a small job is as much a mistake as the reverse.
+
+---
+
+## NumPy
+
+<QuestionList topic="NumPy" storagePrefix="python-libs-numpy">
+
+<QuestionCard id="pyz-np-01" number={1} question="Why is a NumPy array faster than a Python list?" difficulty="medium" topic="NumPy">
+Three reasons compounding:
+
+1. **Contiguous typed memory.** A `float64` array stores raw 8-byte values back to back. A list stores pointers to individual Python float objects, each ~24 bytes with a header, scattered in memory.
+2. **No interpreter in the loop.** `arr * 2` runs one C loop; `[x * 2 for x in lst]` runs a million interpreter iterations with boxing and unboxing at each step.
+3. **SIMD and cache locality.** Contiguous data lets the CPU prefetch and process multiple values per instruction.
+
+The result is typically **10–100×** for elementwise work, plus far less memory — often 5–10× smaller for numeric data.
+
+The corollary is the rule that governs all of this: if you're writing a Python loop over a NumPy array, you've lost the benefit.
+</QuestionCard>
+
+<QuestionCard id="pyz-np-02" number={2} question="What is vectorization and broadcasting?" difficulty="medium" topic="NumPy">
+**Vectorization** is expressing an operation over whole arrays so the loop runs in C:
+
+```python
+result = np.where(amounts > 0, amounts * (1 - tax), 0)     # no Python loop
+```
+
+**Broadcasting** is NumPy's rule for combining arrays of different shapes without copying: dimensions are compared from the right, and a dimension of size 1 is stretched to match.
+
+```python
+prices = np.array([[10.], [20.], [30.]])      # (3, 1)
+rates  = np.array([0.1, 0.2])                 # (2,)
+prices * (1 + rates)                          # (3, 2) — no explicit tiling
+```
+
+Broadcasting avoids materialising the expanded arrays, so it's memory-efficient as well as concise. The failure mode is a shape mismatch producing a confusing error, or worse, an unintended broadcast that silently gives the wrong shape.
+</QuestionCard>
+
+<QuestionCard id="pyz-np-03" number={3} question="What is the difference between a view and a copy?" difficulty="hard" topic="NumPy">
+A **view** shares the underlying buffer; a **copy** allocates new memory.
+
+```python
+a = np.arange(10)
+b = a[2:5]          # VIEW — b.base is a
+b[0] = 99
+a[2]                # 99 — a changed too
+
+c = a[[2, 3, 4]]    # fancy indexing → COPY
+c[0] = 0
+a[2]                # still 99
+```
+
+Basic slicing gives views; fancy indexing and boolean masks give copies.
+
+This matters two ways. **Correctness** — modifying a view mutates the original, which surprises people passing slices into functions. And **memory** — a small view keeps the *entire* original array alive, so slicing 100 rows out of a 10 GB array and holding them retains all 10 GB. Call `.copy()` when you want to release the parent.
+</QuestionCard>
+
+<QuestionCard id="pyz-np-04" number={4} question="How does NumPy handle missing values?" difficulty="medium" topic="NumPy">
+It doesn't, really — and this is a genuine limitation.
+
+For floats there's `np.nan`, but it's a float value, so it has awkward semantics: `np.nan != np.nan` is `True`, and any arithmetic involving it propagates. Use `np.isnan()`, never `== np.nan`. Aggregations need the `nan`-aware variants — `np.nansum`, `np.nanmean` — or they return `nan` for the whole array.
+
+For **integers there is no NaN**. An int array simply cannot represent missing, which is why pandas historically upcast integer columns containing nulls to float64 — silently losing precision above 2⁵³ and changing the dtype of your key columns.
+
+That's a large part of why Arrow-backed types matter: Arrow stores a separate **validity bitmap**, so nullability is independent of the value type and an integer column with nulls stays an integer column.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## pandas
+
+<QuestionList topic="pandas" storagePrefix="python-libs-pandas">
+
+<QuestionCard id="pyz-pd-01" number={1} question="Why is iterrows() slow, and what should you use instead?" difficulty="medium" topic="pandas">
+`iterrows()` constructs a **new Series object per row**, boxing every value into a Python object, and loses dtypes in the process. On a million rows that's a million object allocations.
+
+In rough order of preference:
+
+```python
+df["net"] = df.amount * (1 - df.tax)               # 1. vectorised — best
+df["cat"] = np.where(df.amount > 100, "hi", "lo")  # 2. np.where for conditionals
+df["x"] = df.a.map(lookup_dict)                    # 3. map for lookups
+df["y"] = df.apply(fn, axis=1)                     # 4. apply — still a Python loop
+for row in df.itertuples():                        # 5. itertuples if you must
+```
+
+`apply(axis=1)` is often mistaken for vectorised; it isn't — it's a Python loop with extra overhead. `itertuples` is roughly 10× faster than `iterrows` because it yields lightweight namedtuples.
+
+Typical speed-up from vectorising a row-wise `apply`: **50–200×**.
+</QuestionCard>
+
+<QuestionCard id="pyz-pd-02" number={2} question="What is the SettingWithCopyWarning and what causes it?" difficulty="hard" topic="pandas">
+It appears when you assign to something that might be a view of another DataFrame, so pandas can't tell whether you meant to modify the original:
+
+```python
+subset = df[df.amount > 0]      # may be a view or a copy — unspecified
+subset["net"] = ...             # SettingWithCopyWarning
+```
+
+The danger is that the assignment may silently do nothing, or may modify `df` unintentionally. It's a **warning about ambiguity**, not a style complaint.
+
+Fixes: be explicit with `.copy()` when you want an independent frame, or use `.loc` for a single indexed assignment:
+
+```python
+subset = df[df.amount > 0].copy()
+df.loc[df.amount > 0, "net"] = df.amount * 0.9
+```
+
+pandas 3.0's copy-on-write semantics remove the ambiguity entirely — assignments never propagate to a parent — which is the long-term fix.
+</QuestionCard>
+
+<QuestionCard id="pyz-pd-03" number={3} question="How do you reduce a DataFrame's memory usage?" difficulty="medium" topic="pandas">
+```python
+df.info(memory_usage="deep")                 # measure first — deep counts strings
+df["status"] = df["status"].astype("category")     # low-cardinality strings
+df["count"] = pd.to_numeric(df["count"], downcast="integer")
+df = pd.read_csv(path, usecols=COLS, dtype=DTYPES)  # don't load what you don't need
+```
+
+In order of typical impact:
+1. **Only read the columns you need** — the biggest win, and free.
+2. **`category` for low-cardinality strings** — a status column with 5 distinct values across 10M rows can drop by 95%.
+3. **Downcast numerics** — int64 to int32 or int16 where the range allows.
+4. **Arrow-backed string dtype** (`dtype_backend="pyarrow"`) — far smaller than object dtype.
+5. **Chunked reading** with `chunksize` when the whole frame won't fit.
+6. **Parquet instead of CSV** — typed, compressed, and columnar, so you read only what you need.
+
+Object dtype is almost always the culprit; `memory_usage="deep"` is what reveals it.
+</QuestionCard>
+
+<QuestionCard id="pyz-pd-04" number={4} question="What are the different merge types, and what goes wrong with joins?" difficulty="medium" topic="pandas">
+```python
+pd.merge(left, right, on="id", how="inner", validate="one_to_one", indicator=True)
+```
+
+`how` takes `inner`, `left`, `right`, `outer`, and `cross`.
+
+The three failure modes worth naming:
+
+- **Unintended row multiplication.** If the right side has duplicate keys, a "lookup" join silently multiplies rows. `validate="m:1"` turns that into an error instead of a wrong row count.
+- **Silent non-matches.** A left join fills unmatched rows with NaN and reports nothing. `indicator=True` adds a `_merge` column so you can count them.
+- **Dtype and whitespace mismatches.** `int64` won't match `object`, and `"ABC "` won't match `"ABC"`. Both produce zero matches with no error.
+
+Always assert row counts before and after a join. It's the cheapest data quality check available and catches most join bugs.
+</QuestionCard>
+
+<QuestionCard id="pyz-pd-05" number={5} question="How do you process a file larger than memory with pandas?" difficulty="medium" topic="pandas">
+```python
+totals = []
+for chunk in pd.read_csv(path, chunksize=500_000, usecols=COLS, dtype=DTYPES):
+    chunk = chunk[chunk.amount > 0]
+    totals.append(chunk.groupby("dept")["amount"].sum())
+
+result = pd.concat(totals).groupby(level=0).sum()
+```
+
+The pattern is map-then-reduce: filter and aggregate each chunk, keep only the small partial results, combine at the end. Note the partial aggregates must be **combinable** — sums and counts are, medians and exact distinct counts are not.
+
+Be honest about the alternative, though: if you're writing chunking logic by hand, **Polars' lazy scan or DuckDB will usually do it better**, faster, and in less code, because they handle the streaming and spilling for you. Chunked pandas is the right answer mainly when you're constrained to pandas.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## PyArrow & Parquet
+
+<QuestionList topic="PyArrow & Parquet" storagePrefix="python-libs-arrow">
+
+<QuestionCard id="pyz-ar-01" number={1} question="What is Apache Arrow and why does it matter?" difficulty="medium" topic="Arrow">
+A **language-independent columnar in-memory format**, plus libraries implementing it.
+
+The point is **zero-copy interoperability**. Historically, moving data between pandas, Spark, a database driver and a file format meant serialising and deserialising at every boundary — often the dominant cost. With Arrow, all of them can share the same memory buffer without conversion.
+
+Practical consequences: `pandas.read_parquet` is fast because Arrow does the reading; Spark's Python UDFs got dramatically faster when they switched to Arrow batches; and DuckDB, Polars and pandas can hand data to each other essentially for free.
+
+Arrow also gives proper **nullability via a validity bitmap**, so an integer column with nulls stays an integer column — fixing NumPy's limitation.
+</QuestionCard>
+
+<QuestionCard id="pyz-ar-02" number={2} question="Why is Parquet preferred over CSV for analytics?" difficulty="easy" topic="Parquet">
+- **Columnar** — a query touching 3 of 50 columns reads only those 3. On a wide table that alone is a 10× reduction.
+- **Compressed** — per-column encoding (dictionary, run-length, delta) plus Snappy or ZSTD. Typically 5–10× smaller than CSV.
+- **Typed** — the schema is in the file, so no dtype inference, no "is this column a string or an int" ambiguity, and no date parsing on read.
+- **Statistics per row group** — min/max/null counts let readers skip entire blocks that can't match a filter (predicate pushdown).
+- **Splittable** — engines can read row groups in parallel.
+
+CSV keeps one advantage: it's human-readable and universally accepted, which is why it persists at system boundaries. For anything internal and analytical, Parquet wins decisively.
+</QuestionCard>
+
+<QuestionCard id="pyz-ar-03" number={3} question="What is predicate and projection pushdown?" difficulty="medium" topic="Parquet">
+Two optimisations that move work down to the storage layer instead of filtering after loading:
+
+- **Projection pushdown** — read only the requested columns.
+- **Predicate pushdown** — use row-group statistics to skip blocks that cannot contain matching rows.
+
+```python
+pq.read_table(path, columns=["id", "amount"], filters=[("dt", "=", "2026-01-15")])
+```
+
+Combined with **partitioning** — a Hive-style directory layout like `dt=2026-01-15/` — an engine can eliminate whole directories before opening a single file.
+
+The reason to know this: it's why the same query is seconds on well-organised Parquet and minutes on a pile of CSVs. Getting partitioning right is often a bigger win than any code optimisation.
+</QuestionCard>
+
+<QuestionCard id="pyz-ar-04" number={4} question="How do you choose a partitioning scheme?" difficulty="hard" topic="Parquet">
+Partition on the column most queries **filter** on — usually a date.
+
+```
+s3://lake/orders/dt=2026-01-15/region=eu/part-0000.parquet
+```
+
+The trade-offs:
+
+- **Too coarse** (year) — every query scans far more than it needs.
+- **Too fine** (timestamp, or user_id) — the **small files problem**. Thousands of tiny files mean huge metadata overhead and slow listing, and each file's compression and statistics become ineffective. This is the more common mistake.
+- **Skew** — partitioning on something unevenly distributed leaves one enormous partition that dominates every job.
+
+Aim for partition files in the **128 MB to 1 GB** range. Partition on low-cardinality, frequently-filtered columns; use sorting and row-group statistics within a partition for higher-cardinality ones rather than adding another partition level.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Polars & DuckDB
+
+<QuestionList topic="Polars & DuckDB" storagePrefix="python-libs-polars-duckdb">
+
+<QuestionCard id="pyz-pl-01" number={1} question="What is Polars, and how does it differ from pandas?" difficulty="medium" topic="Polars">
+A DataFrame library written in Rust on Arrow memory, with an expression API and a **lazy query engine**.
+
+Differences that matter:
+- **Multi-threaded by default** — pandas is largely single-core.
+- **Lazy mode** — `scan_parquet` builds a plan, so filters and column selection are pushed into the file read.
+- **Arrow-native** — proper null handling, no object dtype, no silent int-to-float upcasting.
+- **No index** — which removes a whole category of pandas confusion.
+- **Strict schema** — type mismatches error rather than silently coercing.
+
+```python
+(pl.scan_parquet("s3://lake/orders/*.parquet")
+   .filter(pl.col("amount") > 0)
+   .group_by("dept").agg(pl.col("amount").sum())
+   .collect())                                    # nothing runs until here
+```
+
+Typical results are 5–30× faster than pandas at a fraction of the memory. The cost is a smaller ecosystem and an API your team has to learn.
+</QuestionCard>
+
+<QuestionCard id="pyz-pl-02" number={2} question="What is DuckDB and when would you use it?" difficulty="medium" topic="DuckDB">
+An **in-process analytical database** — SQLite's deployment model with a columnar, vectorised OLAP engine. No server, one dependency, runs inside your Python process.
+
+```python
+duckdb.sql("""
+    SELECT dept, sum(amount) AS total
+    FROM 's3://lake/orders/*.parquet'
+    WHERE dt >= '2026-01-01'
+    GROUP BY dept
+""").df()
+```
+
+It queries Parquet, CSV and JSON directly — including on S3 — with full pushdown, and reads pandas and Polars frames in-process with zero copy.
+
+Use it when the operation is naturally **SQL**: joins, aggregations, window functions over files. It handles larger-than-memory data by spilling, and it's frequently faster than hand-written pandas while being far less code. It's become the default answer for "I need to analyse a pile of Parquet files without standing up infrastructure."
+</QuestionCard>
+
+<QuestionCard id="pyz-pl-03" number={3} question="How do you choose between pandas, Polars, DuckDB and Spark?" difficulty="hard" topic="Choosing">
+| Data size | Tool |
+|---|---|
+| < 1 GB | pandas — familiar, fine, huge ecosystem |
+| 1–100 GB, one machine | Polars or DuckDB |
+| > 100 GB, or already on a cluster | Spark |
+
+Beyond size:
+- **SQL-shaped work** — DuckDB, because the query is the code.
+- **Complex row-level Python logic** — pandas or Polars, where expressing it is easier.
+- **Existing ecosystem dependency** — scikit-learn, statsmodels and most ML tooling expect pandas.
+- **Team familiarity** — a real factor; a 5× speed-up nobody can maintain is a bad trade.
+
+The mistake to avoid in both directions: reaching for Spark on 2 GB of data, where the cluster startup exceeds the total work, and hand-writing chunked pandas for 50 GB, where DuckDB would have done it in one query.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## File I/O & Serialisation
+
+<QuestionList topic="File I/O & Serialisation" storagePrefix="python-libs-io">
+
+<QuestionCard id="pyz-io-01" number={1} question="What should you always specify when opening a file?" difficulty="easy" topic="File I/O">
+```python
+with open(path, "r", encoding="utf-8", newline="") as f:
+    ...
+```
+
+- **`with`** — guarantees closure even on exception.
+- **`encoding`** — never rely on the platform default. It differs between your laptop and the container, so a file that reads fine locally raises `UnicodeDecodeError` in production.
+- **`newline=""`** — required when using the `csv` module, so it can handle quoted fields containing newlines correctly.
+- **Binary mode (`"rb"`)** for non-text — Parquet, images, compressed data.
+
+For large files, **iterate the file object** rather than `.read()` or `.readlines()`: `for line in f` streams one line at a time in constant memory.
+</QuestionCard>
+
+<QuestionCard id="pyz-io-02" number={2} question="Compare CSV, JSON, JSONL, Parquet and Avro." difficulty="medium" topic="Formats">
+| Format | Shape | Schema | Best for |
+|---|---|---|---|
+| CSV | row, text | none | interchange, human inspection |
+| JSON | nested, text | none | APIs, config |
+| JSONL | row, text | none | streaming logs and events |
+| Parquet | **columnar**, binary | embedded | analytics, storage |
+| Avro | row, binary | embedded | streaming, schema evolution |
+| ORC | columnar, binary | embedded | Hive ecosystem |
+
+The distinction to make in an interview: **Parquet is columnar and optimised for reading a few columns from many rows**; **Avro is row-based and optimised for writing whole records and evolving schemas**, which is why Kafka pipelines use Avro and the analytics tables they land in use Parquet.
+
+JSONL beats JSON for data because each line is independent — it streams, splits, and appends; a single JSON array must be parsed in full.
+</QuestionCard>
+
+<QuestionCard id="pyz-io-03" number={3} question="When is pickle appropriate, and when is it dangerous?" difficulty="medium" topic="Serialisation">
+`pickle` serialises almost any Python object, including custom classes — convenient, and that's the trap.
+
+**Never unpickle untrusted data.** Loading a pickle can execute arbitrary code by design; it's remote code execution, not a parsing bug. That rules it out as an interchange format between systems or teams.
+
+Other problems: it's **Python-only**, so nothing else can read it; it's **fragile across versions**, since a changed class definition can break loading; and it's not compressed or columnar.
+
+Legitimate uses: caching within a single trusted application, and `multiprocessing`, which uses it internally. For anything crossing a boundary, use Parquet, Avro, JSON or Protobuf.
+</QuestionCard>
+
+<QuestionCard id="pyz-io-04" number={4} question="How do you read files from S3 or other object storage in Python?" difficulty="medium" topic="File I/O">
+```python
+import pandas as pd, polars as pl, duckdb
+
+pd.read_parquet("s3://bucket/path/*.parquet")      # via fsspec + s3fs
+pl.scan_parquet("s3://bucket/path/*.parquet")      # lazy, with pushdown
+duckdb.sql("SELECT * FROM 's3://bucket/path/*.parquet'")
+```
+
+`fsspec` provides the common filesystem abstraction (`s3fs`, `gcsfs`, `adlfs`), so the same code works across clouds by changing the URL scheme.
+
+Practical points: use **credentials from the environment or an IAM role**, never hardcoded keys. Read **many files as one dataset** with a glob rather than looping and concatenating. And in the cloud, place compute in the same region as the bucket — cross-region reads are slow and billed per gigabyte.
+</QuestionCard>
+
+<QuestionCard id="pyz-io-05" number={5} question="How do you write output so downstream consumers never read a partial file?" difficulty="hard" topic="File I/O">
+Write to a temporary location, then make it visible atomically.
+
+**Local filesystem** — write to a temp file on the *same* filesystem and `os.replace()`, which is atomic.
+
+**Object storage** — S3 has no rename, so the equivalents are:
+- Write to a staging prefix, then copy to the final prefix once complete.
+- Write with a **success marker** (`_SUCCESS`) that consumers check before reading — the Hadoop/Spark convention.
+- Use a **table format** (Delta, Iceberg, Hudi), where a commit to the metadata log makes the new files visible in one atomic step. This is the strongest answer, because it also gives snapshot isolation for concurrent readers.
+
+Without one of these, a consumer scheduled to run during your write reads whatever files exist so far and silently produces incomplete results.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"This pandas job takes 4 hours."** — profile, then look for `apply(axis=1)` or `iterrows`, per-row lookups that should be joins, `pd.concat` in a loop, and object dtypes. If it's still too slow after vectorising, move to Polars or DuckDB rather than optimising pandas further.
+
+**"Read 500 GB of Parquet and compute a daily aggregate."** — DuckDB or Polars lazy scan with the filter and columns pushed into the read, relying on partition pruning. Explain that you never materialise the full dataset; only the aggregate is in memory.
+
+**"Why did the row count go up after a join?"** — duplicate keys on the join side. Demonstrate `validate="m:1"` and asserting counts before and after.
+
+**"CSV or Parquet for this new pipeline?"** — Parquet for anything internal: typed, compressed, columnar, with pushdown. Keep CSV only where a human or an external system requires it.
+
+---
+
+## Further Reading
+
+- [NumPy user guide](https://numpy.org/doc/stable/user/) — the broadcasting page especially
+- [pandas user guide](https://pandas.pydata.org/docs/user_guide/) — see "Scaling to large datasets"
+- [Apache Arrow / PyArrow docs](https://arrow.apache.org/docs/python/)
+- [Polars user guide](https://docs.pola.rs/)
+- [DuckDB documentation](https://duckdb.org/docs/)
+- [Parquet file format](https://parquet.apache.org/docs/file-format/)
+- [Modern Polars](https://kevinheavey.github.io/modern-polars/) — side-by-side pandas and Polars comparison

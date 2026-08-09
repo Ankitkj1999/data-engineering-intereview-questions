@@ -11,10 +11,10 @@ are the way they are, so settled questions don't get re-opened as if they were b
 
 ## You are here
 
-> **Current phase: Phase 2 (Python depth) — not started.** Phase 1 ✅ done 2026-08-09.
+> **Current phase: Phase 3 (Cloud depth) — not started.** Phases 1, 1b and 2 ✅ done 2026-08-09.
 > Last updated: 2026-08-09
 
-Site total: **3,269 questions** across 47 topic pages + 43 subtopic pages.
+Site total: **3,549 questions** across 47 topic pages + 57 subtopic pages, and 46 roadmaps.
 
 ---
 
@@ -66,7 +66,7 @@ passing `npx astro build`, and logged below.
 |:-:|---|---|:-:|---|
 | 1 | **Engineering Foundations** | Git/GitHub, Linux, Docker, CI/CD, IaC, Networking | 6 | ✅ Done (2026-08-09) — 203 questions |
 | 1b | **Roadmap coverage** | A roadmap for every topic page with 12+ questions | 39 roadmaps | ✅ Done (2026-08-09) — 46 total, 2,005 nodes |
-| 2 | **Python depth** | 19 roadmap categories → subtopic pages, mirroring SQL | ~14 | ⬜ Not started |
+| 2 | **Python depth** | 19 roadmap categories → subtopic pages, mirroring SQL | 14 | ✅ Done (2026-08-09) — 280 questions |
 | 3 | **Cloud depth** | AWS (8) → Azure (6) → GCP (5), DE-scoped services only | ~19 | ⬜ Not started |
 | 4 | **Remaining breadth** | Monitoring, Data Lifecycle, Ingestion Types, Reverse ETL, MLOps | ~5 | ⬜ Not started |
 | 5 | **Wire the master roadmap** | Add `link:` to the 86 unlinked DE roadmap nodes | 0 new | ⬜ Not started |
@@ -147,31 +147,41 @@ Excluded deliberately: the five narrative level-2 pages (`what-is-data-engineeri
 `skills-and-responsibilities`, `data-engineering-lifecycle`, `choosing-the-right-technologies`,
 `data-engineer-vs-data-scientist`) — prose introductions, not learnable topic areas.
 
-### Phase 2 — Python depth
+### Phase 2 — Python depth ✅ Done 2026-08-09
 
-Roadmap: `src/pages/roadmaps/python.astro` (19 categories, 58 subs, **zero `link:` fields**).
-Content today: `python/theory.mdx` (40 Q) + `python/practice.mdx` (27 Q). Keep both; subtopic
-pages go alongside, exactly as SQL's did.
+14 subtopic pages, **280 questions**, at `src/content/docs/level-1-foundations/python/`. All 19
+roadmap categories and **77 of 77 nodes** in `python.astro` now carry a `link:` (was zero).
+`theory.mdx` (40 Q) and `practice.mdx` (27 Q) kept as-is — the new pages go alongside, exactly as
+SQL's did.
 
-| Category | Subs |
-|---|---|
-| Learn the Basics | 11 — syntax, variables, conditionals, loops, casting, exceptions, functions, list/tuple/set/dict |
-| Data Structures & Algorithms | 6 — arrays/linked lists, hash tables, heaps, stacks & queues, BST, recursion, sorting |
-| Object Oriented Programming | 3 — classes, inheritance, methods & dunder |
-| Concurrency | 4 — GIL, threading, multiprocessing, asyncio |
-| Static Typing | 5 — typing, Pydantic, mypy, pyright, pyre |
-| Testing | 5 — pytest, unittest, doctest, tox, nose |
-| Package Managers | 9 — pip, PyPI, Poetry, Conda, uv, Pipenv, virtualenv, pyenv, pyproject.toml |
-| Code Formatting | 4 — ruff, black, yapf, Sphinx |
-| Modules | 2 — builtin, custom |
-| Learn a Framework | 9 — FastAPI, Django, Flask, aiohttp, Tornado, Sanic, Dash, Pyramid, gevent |
+| Page | Q | Covers |
+|---|:-:|---|
+| `basics.mdx` | 34 | syntax, variables, types & casting, control flow, exceptions, built-ins, lists/tuples/sets/dicts |
+| `data-structures-algorithms.mdx` | 24 | arrays & linked lists, hash tables, stacks/queues, heaps, trees & binary search, recursion, sorting |
+| `functions.mdx` | 18 | definitions, arguments, lambdas, scope & closures, functional programming |
+| `comprehensions-generators.mdx` | 18 | comprehensions, iterator protocol, generators, itertools |
+| `decorators-context-managers.mdx` | 18 | decorator fundamentals & practical patterns, context managers, contextlib |
+| `oop.mdx` | 20 | classes, methods & attributes, inheritance & MRO, dunder methods, dataclasses & protocols |
+| `concurrency.mdx` | 20 | GIL, threading, multiprocessing, asyncio, choosing an approach |
+| `modules-packaging.mdx` | 20 | imports, packages, virtual environments, package managers, building & distributing |
+| `static-typing.mdx` | 17 | type hints, typing module, mypy/pyright, Pydantic & runtime validation |
+| `testing.mdx` | 23 | pytest, fixtures, mocking, unittest/doctest/tox, testing data pipelines |
+| `code-quality.mdx` | 19 | formatting, linting, documentation, pre-commit, logging, profiling & debugging |
+| `regular-expressions.mdx` | 18 | pattern syntax, `re` module, groups, lookarounds, ReDoS & performance |
+| `data-libraries.mdx` | 21 | NumPy, pandas, PyArrow/Parquet, Polars/DuckDB, file I/O & serialisation |
+| `web-frameworks.mdx` | 10 | framework comparison, FastAPI, building data APIs |
 
-These 9 roadmap nodes have **no subs** and are prime DE-interview material — give each its own
-page or fold into a shared one: Lambdas · Decorators · Iterators · Generator Expressions ·
-List Comprehensions · Context Managers · Regular Expressions · Paradigms · Common Packages.
+**Trims applied**, both suggested in the original plan: the nine framework nodes became **one**
+`web-frameworks.mdx` (least interview-relevant for a data engineer), and the nine sub-less roadmap
+nodes (Lambdas, Decorators, Iterators, Comprehensions, Generator Expressions, Context Managers,
+Paradigms, Regular Expressions, Common Packages) were folded into thematic pages rather than
+getting one thin page each.
 
-> Suggested trim: **Learn a Framework** is the least interview-relevant group for a data engineer.
-> One combined page, not nine.
+Per [D1](#d1-sidebar-and-progress-track-interview-topics-only--not-subtopic-pages) these are
+**subtopic** pages: roadmap links yes, sidebar no, progress dashboard no.
+
+Verified: clean `npx astro build`, all 77 roadmap targets resolve against the built HTML, zero new
+duplicate question ids.
 
 ### Phase 3 — Cloud depth
 
@@ -372,6 +382,9 @@ Answer in markdown. Code fences are fine.
 - `number` restarts at 1 within each `QuestionList`.
 - `storagePrefix` is unique per `QuestionList`: `<page-slug>-<section-slug>`.
 - `difficulty` is `easy` | `medium` | `hard`. `topic` matches the section.
+- **MDX gotcha:** a bare `<` followed by a letter in prose is parsed as a JSX tag and fails the
+  build — `<object at 0x7f...>`, `<pid>`, `<T>`. Wrap them in backticks. Curly braces are the same
+  hazard. Fenced code blocks and inline code are safe.
 
 **3. Wire the roadmap.** In the matching `src/pages/roadmaps/*.astro`, add `link:` to each node —
 category node → page root, sub-node → page anchor.
@@ -413,6 +426,7 @@ Newest first. One line per working session: what was done, and what's next.
 
 | Date | What happened | Next up |
 |---|---|---|
+| 2026-08-09 | **Phase 2 done — Python depth.** 14 subtopic pages, **280 questions**, taking Python from 67 questions on 2 flat pages to 347 across 16. All **77 of 77** `python.astro` roadmap nodes now linked (was zero). Applied both planned trims: 9 framework nodes → one page, 9 sub-less nodes folded into thematic pages. Per D1, these are subtopic pages — roadmap only, no sidebar or progress. Hit one MDX gotcha: an unbackticked `<object at 0x…>` in prose parses as a JSX tag and fails the build. | Phase 3 — Cloud depth |
 | 2026-08-09 | **Roadmap coverage complete — 46 roadmaps.** Generated 33 more from the content pages (categories from section headings, sub-nodes from `topic` attributes, descriptions extracted from answers). Site went 7 → 46 roadmaps, 2,005 nodes, in one day. Sidebar rebuilt as a flat 46-entry list in learning order. Caught and fixed a slug bug — Starlight renders "A & B" as `a--b`, so anchors are now read from the built HTML rather than re-derived. All 500 link targets verified. | Phase 2 — Python depth |
 | 2026-08-09 | **Phase 1 follow-up: 6 new roadmaps.** User flagged that leaving Git/Linux/Docker/CI-CD/IaC/Networking as single nodes on the master roadmap was inconsistent with Python/SQL/Spark and gave no single-view picture. Generated all 6 `/roadmaps/*.astro` from the `sql.astro` template — **239 nodes**, 36 categories, unique storage keys, every node anchored to its content-page section. Added to the sidebar; DE roadmap nodes repointed to the roadmaps. All 36 distinct link targets verified to resolve; clean build. | Phase 2 — Python depth |
 | 2026-08-09 | **Phase 1 done.** Built all 6 Engineering Foundations pages — Git (39 Q), Linux (40), Docker (33), CI/CD (29), IaC (32), Networking (30) = **203 questions**. Wired into `navigation.json`, `progress.astro`, and 13 `link:` fields on the DE roadmap. `Distributed Systems Basics` pointed at the existing system-design page rather than getting a new one. Clean build; all anchors verified. Found a pre-existing duplicate-id bug (`ssf-01`/`ssf-02`) — logged in Open questions, not fixed. | Phase 2 — Python depth |

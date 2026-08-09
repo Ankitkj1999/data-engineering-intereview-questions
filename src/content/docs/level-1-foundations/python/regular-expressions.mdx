@@ -1,0 +1,367 @@
+---
+title: Regular Expressions
+description: Python regex interview questions covering pattern syntax, the re module API, groups and named captures, greedy versus lazy matching, lookarounds, catastrophic backtracking, and parsing real-world data safely.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Regular Expressions: Powerful, and the Wrong Tool More Often Than You Think
+
+**Regex questions in data engineering interviews are usually a test of judgement as much as syntax. Yes, you should be able to write a capture group and explain greedy versus lazy matching. But the better signal is knowing that parsing CSV with a regex breaks on quoted commas, that validating email with a regex is a losing game, and that one badly nested quantifier can hang a production job forever on a single malformed line.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Pattern Syntax](#pattern-syntax)
+- [The re Module](#the-re-module)
+- [Groups & Captures](#groups--captures)
+- [Advanced Patterns](#advanced-patterns)
+- [Performance & Pitfalls](#performance--pitfalls)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A regex is a pattern compiled into a **state machine** that walks the input trying to find a match. Python's engine is **backtracking**: when a branch fails, it returns to the last choice point and tries the alternative. That's what makes lookarounds and backreferences possible, and it's also what makes certain patterns catastrophically slow — the number of paths explored can grow exponentially with input length.
+
+The practical framing is **what regex is and isn't for**. It's excellent for extracting fields from semi-structured text with a stable shape: log lines, filenames, S3 keys, fixed-format identifiers. It's the wrong tool for anything with **nesting or context** — CSV with quoted delimiters, JSON, HTML, SQL — because those aren't regular languages and no pattern handles them correctly in general.
+
+The engineering habit that matters: always ask whether a purpose-built parser exists first. `csv`, `json`, `urllib.parse`, `email.utils` and `dateutil` all beat a hand-written pattern on correctness, and they've already found the edge cases you haven't.
+
+---
+
+## Pattern Syntax
+
+<QuestionList topic="Pattern Syntax" storagePrefix="python-regex-syntax">
+
+<QuestionCard id="pyr-syn-01" number={1} question="What are the core regex metacharacters?" difficulty="easy" topic="Syntax">
+| Pattern | Matches |
+|---|---|
+| `.` | any character except newline |
+| `\d` `\D` | digit / non-digit |
+| `\w` `\W` | word character `[a-zA-Z0-9_]` / non-word |
+| `\s` `\S` | whitespace / non-whitespace |
+| `^` `$` | start / end of string (or line with `re.M`) |
+| `\b` | word boundary |
+| `[abc]` `[^abc]` | character class / negated class |
+| `a|b` | alternation |
+| `\.` | a literal dot — escaped |
+
+`\b` is the underused one: `\bcat\b` matches "cat" but not "concatenate", which is exactly what you want when searching logs for a token.
+
+Note that `\d` matches Unicode digits by default in Python 3, including Arabic-Indic numerals. Add `re.ASCII` if you need `[0-9]` only.
+</QuestionCard>
+
+<QuestionCard id="pyr-syn-02" number={2} question="What are the quantifiers, and what is greedy versus lazy matching?" difficulty="medium" topic="Syntax">
+`*` (0+), `+` (1+), `?` (0 or 1), `{n}`, `{n,}`, `{n,m}`.
+
+All are **greedy** by default — they consume as much as possible, then backtrack. Adding `?` makes them **lazy**, consuming as little as possible.
+
+```python
+text = "<a><b>"
+re.findall(r"<.*>",  text)     # ['<a><b>']   greedy — spans both
+re.findall(r"<.*?>", text)     # ['<a>', '<b>'] lazy — stops at the first >
+```
+
+This is the single most common regex bug: a greedy `.*` swallowing far more than intended, so a pattern that works on one-record input silently merges records on real input.
+
+Often better than lazy is a **negated class**: `<[^>]*>` says "anything but a closing bracket," which is both clearer and faster since it never backtracks.
+</QuestionCard>
+
+<QuestionCard id="pyr-syn-03" number={3} question="What do the common regex flags do?" difficulty="easy" topic="Syntax">
+```python
+re.IGNORECASE  (re.I)   # case-insensitive
+re.MULTILINE   (re.M)   # ^ and $ match at line boundaries, not just string ends
+re.DOTALL      (re.S)   # . also matches newline
+re.VERBOSE     (re.X)   # allow whitespace and # comments in the pattern
+re.ASCII       (re.A)   # \d \w \s match ASCII only
+```
+
+`re.VERBOSE` is the one worth adopting as a habit — it turns an unreadable pattern into a documented one:
+
+```python
+LOG = re.compile(r"""
+    (?P<ip>\S+)\s+           # client address
+    \S+\s+\S+\s+             # identity, user (usually -)
+    \[(?P<ts>[^\]]+)\]\s+    # timestamp in brackets
+    "(?P<method>[A-Z]+)\s+(?P<path>\S+)[^"]*"\s+
+    (?P<status>\d{3})
+""", re.VERBOSE)
+```
+
+Any pattern destined for production and longer than a line should be written this way.
+</QuestionCard>
+
+<QuestionCard id="pyr-syn-04" number={4} question="What is a raw string, and why does regex need it?" difficulty="easy" topic="Syntax">
+`r"..."` disables Python's own backslash escape processing, so the regex engine receives the backslashes intact.
+
+```python
+"\d"     # Python leaves this as \d (with a DeprecationWarning) — fragile
+r"\d"    # unambiguous
+"\\d"    # equivalent, but noisy
+"\b"     # a BACKSPACE character — not a word boundary!
+r"\b"    # a word boundary
+```
+
+The `\b` case is the one that actually breaks code: without the `r`, Python interprets it as the backspace escape before the regex engine ever sees it, so your word-boundary pattern silently matches nothing.
+
+Always use raw strings for patterns. Linters flag non-raw strings containing backslashes for exactly this reason.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## The re Module
+
+<QuestionList topic="The re Module" storagePrefix="python-regex-module">
+
+<QuestionCard id="pyr-mod-01" number={1} question="What is the difference between match, search, findall and finditer?" difficulty="easy" topic="re Module">
+```python
+re.match(p, s)      # anchored at the START only — returns Match or None
+re.search(p, s)     # first match ANYWHERE — Match or None
+re.fullmatch(p, s)  # the WHOLE string must match
+re.findall(p, s)    # list of all matches (strings, or tuples if groups)
+re.finditer(p, s)   # lazy iterator of Match objects
+```
+
+`match` versus `search` is the classic confusion — `re.match(r"world", "hello world")` returns `None`, because `match` only tries position 0.
+
+Two practical notes. Use **`fullmatch` for validation**, since `match` alone accepts anything with a valid prefix — `re.match(r"\d+", "123abc")` succeeds. And prefer **`finditer` over `findall`** on large inputs: it's lazy, and it gives Match objects so you can access named groups and positions.
+</QuestionCard>
+
+<QuestionCard id="pyr-mod-02" number={2} question="Should you compile patterns?" difficulty="medium" topic="re Module">
+```python
+PATTERN = re.compile(r"^(?P<table>\w+)/dt=(?P<date>\d{4}-\d{2}-\d{2})/")
+
+for key in s3_keys:
+    if m := PATTERN.match(key):
+        yield m["table"], m["date"]
+```
+
+`re` caches compiled patterns internally, so the raw performance gain is smaller than people assume — but the cache is bounded and keyed on the pattern string, so it can be evicted.
+
+The real reasons to compile: it makes the pattern a **named module-level constant** rather than a magic string buried in a loop, it's compiled once at import rather than looked up per call, and it reads better. For a pattern applied to millions of rows, compile it.
+</QuestionCard>
+
+<QuestionCard id="pyr-mod-03" number={3} question="How do re.sub and re.split work?" difficulty="medium" topic="re Module">
+```python
+re.sub(r"\s+", " ", text)                    # collapse whitespace
+re.sub(r"(\d{4})-(\d{2})", r"\2/\1", text)   # reorder with backreferences
+re.sub(r"\d", "#", text, count=1)            # limit replacements
+re.split(r"[,;|]\s*", line)                  # split on any of several delimiters
+re.subn(r"x", "y", text)                     # returns (result, number_of_subs)
+```
+
+`sub` also accepts a **function** as the replacement, which is where it becomes genuinely powerful:
+
+```python
+re.sub(r"\b\d{12,19}\b", lambda m: "*" * len(m.group()), text)   # mask card numbers
+```
+
+`subn` is useful in pipelines because the count tells you how many rows were actually affected — worth logging when a cleaning step runs over production data.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Groups & Captures
+
+<QuestionList topic="Groups & Captures" storagePrefix="python-regex-groups">
+
+<QuestionCard id="pyr-grp-01" number={1} question="How do capture groups work?" difficulty="easy" topic="Groups">
+Parentheses capture the matched substring, numbered left to right from 1:
+
+```python
+m = re.search(r"(\w+)@(\w+)\.(\w+)", "contact alice@example.com")
+m.group(0)      # 'alice@example.com' — the whole match
+m.group(1)      # 'alice'
+m.groups()      # ('alice', 'example', 'com')
+```
+
+Group 0 is always the full match.
+
+Note the effect on `findall`: with **no** groups it returns whole matches; with **one** group it returns just that group; with **several** it returns tuples. That inconsistency surprises people — if you want whole matches from a pattern that has groups, use non-capturing groups or `finditer`.
+</QuestionCard>
+
+<QuestionCard id="pyr-grp-02" number={2} question="What are named groups, and why prefer them?" difficulty="medium" topic="Groups">
+```python
+PATH = re.compile(r"(?P<table>\w+)/dt=(?P<date>[\d-]+)/part-(?P<part>\d+)")
+m = PATH.match("orders/dt=2026-01-15/part-00003")
+m["table"]        # 'orders'
+m.groupdict()     # {'table': 'orders', 'date': '2026-01-15', 'part': '00003'}
+```
+
+Prefer them for anything with more than two groups. Numeric indices are unreadable at the call site and — worse — **silently shift** when someone inserts a group into the middle of the pattern, so `m.group(3)` starts returning something else with no error.
+
+`groupdict()` is particularly handy in data work: it produces a dict ready to become a record, which composes directly with the rest of a parsing pipeline.
+</QuestionCard>
+
+<QuestionCard id="pyr-grp-03" number={3} question="What is a non-capturing group?" difficulty="medium" topic="Groups">
+`(?:...)` groups for structure — alternation or quantification — without capturing:
+
+```python
+re.findall(r"(?:https?|ftp)://(\S+)", text)     # captures only the host part
+```
+
+Use it whenever you need parentheses purely to scope a `|` or a quantifier. It keeps group numbering clean, avoids the `findall` tuple surprise, and is marginally faster since the engine doesn't record the span.
+
+The rule of thumb: **if you don't intend to read it back, make it non-capturing.** Patterns with five groups where only two are used are a common source of index confusion.
+</QuestionCard>
+
+<QuestionCard id="pyr-grp-04" number={4} question="What is a backreference?" difficulty="medium" topic="Groups">
+A reference to a previously captured group, matching **the same text again**:
+
+```python
+re.search(r"\b(\w+)\s+\1\b", "the the quick fox")   # finds "the the"
+re.sub(r"(['\"])(.*?)\1", r"«\2»", text)           # matched quote characters
+re.sub(r"(\w+)-(\w+)", r"\2_\1", text)             # \1 \2 in the replacement
+```
+
+Inside a pattern it's `\1`; inside a replacement string it's also `\1` (or `\g<name>` for named groups).
+
+It's the classic duplicate-word finder, and genuinely useful for matched delimiters. Note that backreferences are what push regex beyond true regular languages, and they're a common ingredient in catastrophically slow patterns — use them deliberately.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Advanced Patterns
+
+<QuestionList topic="Advanced Patterns" storagePrefix="python-regex-advanced">
+
+<QuestionCard id="pyr-adv-01" number={1} question="What are lookahead and lookbehind assertions?" difficulty="hard" topic="Lookarounds">
+Zero-width checks — they assert what surrounds a position without consuming characters:
+
+```python
+(?=...)     # positive lookahead   — followed by
+(?!...)     # negative lookahead   — NOT followed by
+(?<=...)    # positive lookbehind  — preceded by
+(?<!...)    # negative lookbehind  — NOT preceded by
+```
+
+```python
+re.findall(r"\d+(?=\s*USD)", "50 USD and 30 EUR")     # ['50']
+re.findall(r"(?<=\$)\d+", "$100 and 200")             # ['100']
+re.sub(r"(?<=\d)(?=(\d{3})+$)", ",", "1234567")       # '1,234,567'
+```
+
+Because they're zero-width, the matched text excludes them — which is exactly what you want when the surrounding context identifies the field but isn't part of it.
+
+Python requires **fixed-width lookbehind**, so `(?<=\d{3})` works but `(?<=\d+)` raises an error. The `regex` package on PyPI lifts that restriction.
+</QuestionCard>
+
+<QuestionCard id="pyr-adv-02" number={2} question="How would you parse a log line into structured fields?" difficulty="medium" topic="Parsing">
+```python
+LOG = re.compile(r"""
+    ^(?P<ts>\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2})\s+
+    (?P<level>DEBUG|INFO|WARNING|ERROR|CRITICAL)\s+
+    (?P<logger>[\w.]+)\s+
+    (?P<message>.*)$
+""", re.VERBOSE)
+
+def parse(line: str) -> dict | None:
+    m = LOG.match(line)
+    return m.groupdict() if m else None
+```
+
+Points worth making: **named groups** so the result is a record; **`re.VERBOSE`** so the pattern is reviewable; **anchored** with `^` and `$` so a partial match can't succeed silently; and returning `None` rather than raising, so the caller decides whether an unparseable line is fatal.
+
+Then **count the failures**. A parser that silently drops 8% of lines is worse than one that crashes, because nobody notices.
+</QuestionCard>
+
+<QuestionCard id="pyr-adv-03" number={3} question="When should you NOT use a regex?" difficulty="medium" topic="Best Practices">
+- **CSV** — quoted fields can contain the delimiter and even newlines. Use the `csv` module.
+- **JSON, XML, HTML** — nested and recursive; not regular languages. Use a parser.
+- **URLs** — use `urllib.parse`.
+- **Email addresses** — the RFC-correct pattern is notoriously enormous and still doesn't tell you whether the address exists. Check for an `@` with something either side, then send a confirmation.
+- **Dates** — `datetime.strptime` or `dateutil` handles formats and validity; a regex matching `2026-02-31` says nothing about whether it's a real date.
+- **Fixed-width fields** — slicing is clearer and faster.
+- **Simple substring checks** — `"error" in line` beats a regex on both readability and speed.
+
+The heuristic: if the format has **nesting, escaping, or a specification**, use the library that implements the specification.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Performance & Pitfalls
+
+<QuestionList topic="Performance & Pitfalls" storagePrefix="python-regex-performance">
+
+<QuestionCard id="pyr-perf-01" number={1} question="What is catastrophic backtracking?" difficulty="hard" topic="Performance">
+When nested quantifiers create exponentially many ways to match, a near-miss forces the engine to explore all of them.
+
+```python
+re.match(r"(a+)+$", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaX")   # effectively hangs
+```
+
+The inner `a+` and outer `+` can partition the same run of `a`s in exponentially many ways. On a matching input it's fine; on a **failing** input the engine tries every partition before giving up. Thirty characters can take longer than the age of the universe.
+
+Danger signs: nested quantifiers `(x+)+`, `(x*)*`, `(x+)*`; alternations where branches can match the same text, like `(a|a)+`; and `.*` appearing more than once.
+
+Fixes: use a **negated character class** instead of `.*` (`[^"]*` rather than `.*?`), avoid nesting quantifiers, anchor the pattern, and make alternation branches mutually exclusive.
+</QuestionCard>
+
+<QuestionCard id="pyr-perf-02" number={2} question="Why is catastrophic backtracking a security issue?" difficulty="hard" topic="Performance">
+It's a denial-of-service vector — **ReDoS**. If a pattern runs against user-supplied or externally-ingested input, an attacker (or an unlucky malformed record) can send a string that pins a CPU indefinitely.
+
+Python's `re` has **no timeout**, so there's no built-in way to abandon a runaway match. A single bad line in an ingested file can hang a pipeline worker forever, and it looks like a hung job rather than an error.
+
+Mitigations: review patterns for nested quantifiers, especially any applied to untrusted input; test with `re2` (Google's engine, which guarantees linear time by rejecting backreferences and lookarounds); bound the input length before matching; and run a linter rule or a tool like `dlint` that flags risky patterns.
+
+For pipelines, capping line length before applying a regex is a cheap and effective guard.
+</QuestionCard>
+
+<QuestionCard id="pyr-perf-03" number={3} question="How do you make regex faster in a data pipeline?" difficulty="medium" topic="Performance">
+- **Compile once** at module level, not inside the loop.
+- **Anchor** with `^` where the pattern must start at the beginning — the engine can then fail immediately instead of retrying at every position.
+- **Prefer negated classes to lazy quantifiers** — `[^,]+` beats `.*?,`.
+- **Pre-filter cheaply** — `if "ERROR" not in line: continue` before running an expensive pattern skips most lines with a fast substring scan.
+- **Use `str` methods when they suffice** — `startswith`, `split`, `replace` and `in` are substantially faster than an equivalent regex.
+- **Use `finditer`** rather than `findall` on large inputs to avoid building a full list.
+- **Vectorise** — pandas `.str.extract()` and Polars' regex expressions apply the pattern in a tight loop rather than a per-row Python call.
+
+The cheap pre-filter is usually the biggest single win on log processing.
+</QuestionCard>
+
+<QuestionCard id="pyr-perf-04" number={4} question="What regex pitfalls come up specifically with ingested data?" difficulty="medium" topic="Pitfalls">
+- **Unicode** — `\w` matches accented and non-Latin characters by default. Sometimes right, sometimes not; be deliberate and use `re.ASCII` when you mean ASCII.
+- **Line endings** — `$` matches before a trailing `\n`, and Windows `\r\n` leaves a stray `\r` in your last field. Strip explicitly.
+- **Empty matches** — a pattern that can match zero characters, like `\d*`, will match at every position and produce surprising `findall` output.
+- **Silent partial matches** — `match` succeeds on a valid prefix. Use `fullmatch` when validating.
+- **Encoding** — patterns and data must both be `str` or both `bytes`; mixing raises `TypeError`.
+- **Unvalidated assumptions** — the pattern works on the sample file and fails on 2% of production rows. Always count non-matches and alert on the rate.
+
+That last one is the difference between a script and a pipeline: instrument the failure rate rather than assuming the pattern holds.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Extract the table and date from these S3 keys."** — a compiled pattern with named groups, anchored, returning `groupdict()`. Mention counting non-matches so schema drift in the key format is visible.
+
+**"Why is this regex hanging?"** — nested quantifiers causing catastrophic backtracking on a failing input. Explain the exponential path explosion, then fix it with a negated character class and anchoring.
+
+**"Parse this CSV with a regex."** — push back: quoted fields containing commas and newlines make it incorrect in general. Use the `csv` module. Being willing to reject the premise is the point of the question.
+
+**"Validate an email address."** — a full RFC 5322 pattern is impractical and still proves nothing about deliverability. Check for a plausible shape, then verify by sending a confirmation. Over-strict patterns reject valid addresses, which is a real customer-facing bug.
+
+---
+
+## Further Reading
+
+- [`re` module documentation](https://docs.python.org/3/library/re.html)
+- [Regular Expression HOWTO](https://docs.python.org/3/howto/regex.html) — the best introduction in the Python docs
+- [regex101.com](https://regex101.com/) — interactive tester with a step-by-step explainer; set the flavour to Python
+- [`regex` package](https://pypi.org/project/regex/) — variable-width lookbehind, better Unicode, timeouts
+- [OWASP: Regular expression DoS](https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS)
+- [Mastering Regular Expressions](https://www.oreilly.com/library/view/mastering-regular-expressions/0596528124/) — the reference, if you need real depth

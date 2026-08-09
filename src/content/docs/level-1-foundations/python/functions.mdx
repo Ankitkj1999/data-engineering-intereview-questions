@@ -1,0 +1,374 @@
+---
+title: Functions & Lambdas
+description: Python functions interview questions covering definitions and arguments, *args and **kwargs, lambdas, scope and closures, first-class functions, and functional programming with map, filter, reduce and functools.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Functions & Lambdas: Python's Most Reused Building Block
+
+**Functions are where Python's "everything is an object" rule gets interesting. They can be passed around, returned, stored in dicts, and closed over surrounding state — which is what makes decorators, callbacks, and configurable transformation factories possible. Interview questions here are usually really about scope and evaluation timing, and the late-binding closure bug catches people who've written Python for years.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Defining Functions](#defining-functions)
+- [Arguments](#arguments)
+- [Lambdas](#lambdas)
+- [Scope & Closures](#scope--closures)
+- [Functional Programming](#functional-programming)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A `def` statement does two things: it builds a **function object** and binds it to a name. The object is ordinary — it has attributes, can be reassigned, stored in a list, or passed as an argument. That's what "first-class function" means, and it's the foundation for decorators and callbacks.
+
+The second idea is **scope resolution**, governed by the LEGB rule: Local, Enclosing, Global, Built-in. Python decides at *compile* time whether a name is local to a function — assigning to a name anywhere in the body makes it local everywhere in that body — and resolves the value at *call* time. Splitting those two moments apart explains both `UnboundLocalError` and the late-binding closure surprise.
+
+---
+
+## Defining Functions
+
+<QuestionList topic="Defining Functions" storagePrefix="python-functions-defining">
+
+<QuestionCard id="pyf-def-01" number={1} question="What makes functions first-class objects in Python?" difficulty="medium" topic="Functions">
+They can be treated like any other value: assigned to names, stored in containers, passed as arguments, and returned from other functions.
+
+```python
+def upper(s): return s.upper()
+
+TRANSFORMS = {"upper": upper, "strip": str.strip}     # in a dict
+def apply(fn, rows): return [fn(r) for r in rows]     # as an argument
+```
+
+They also carry attributes — `__name__`, `__doc__`, `__module__`, `__annotations__`, and any you attach yourself.
+
+The practical payoff in data engineering is a **dispatch table**: mapping a config string to a transform function, so a pipeline's steps are data rather than a hard-coded `if`/`elif` chain.
+</QuestionCard>
+
+<QuestionCard id="pyf-def-02" number={2} question="What does a function return if there's no return statement?" difficulty="easy" topic="Functions">
+`None`. A bare `return` does the same.
+
+This is why `xs = xs.sort()` is a classic bug — `sort()` mutates in place and returns `None`, so you've replaced your list with nothing. The same applies to `list.append`, `dict.update`, and `set.add`.
+
+The convention behind it is worth naming: **methods that mutate return `None`, functions that build something return the new object.** That's why `sorted()` returns a list but `.sort()` doesn't, and it's a deliberate signal about which one you're calling.
+</QuestionCard>
+
+<QuestionCard id="pyf-def-03" number={3} question="What are docstrings and type annotations, and do they affect runtime?" difficulty="easy" topic="Functions">
+```python
+def load(path: str, chunk_size: int = 8192) -> Iterator[dict]:
+    """Stream records from a JSONL file.
+
+    Args:
+        path: Filesystem path to read.
+        chunk_size: Bytes per read.
+
+    Yields:
+        One parsed record per line.
+    """
+```
+
+The docstring is the first string literal in the body; it's stored as `__doc__` and is what `help()` shows.
+
+**Neither changes runtime behaviour.** Annotations are stored in `__annotations__` and ignored by the interpreter — Python will happily pass an `int` where you annotated `str`. They exist for static checkers (mypy, pyright), IDEs, and libraries that choose to read them at runtime, like Pydantic and FastAPI.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Arguments
+
+<QuestionList topic="Arguments" storagePrefix="python-functions-arguments">
+
+<QuestionCard id="pyf-args-01" number={1} question="Explain *args and **kwargs." difficulty="easy" topic="Arguments">
+`*args` collects extra **positional** arguments into a tuple; `**kwargs` collects extra **keyword** arguments into a dict.
+
+```python
+def log_event(name, *args, **kwargs):
+    print(name, args, kwargs)
+
+log_event("run", 1, 2, retries=3)      # run (1, 2) {'retries': 3}
+```
+
+They also work in the other direction — **unpacking**:
+
+```python
+args = [1, 2]; opts = {"retries": 3}
+log_event("run", *args, **opts)
+```
+
+The main use is writing wrappers that forward arguments they don't need to know about, which is exactly what decorators do. Overusing them in ordinary functions hides the real signature from readers and from type checkers.
+</QuestionCard>
+
+<QuestionCard id="pyf-args-02" number={2} question="What are positional-only and keyword-only parameters?" difficulty="medium" topic="Arguments">
+```python
+def transform(df, /, *, dropna=False, fillna=None):
+    ...
+```
+
+Everything **before `/`** is positional-only — callers can't use `df=...`, which frees you to rename the parameter later without breaking anyone.
+
+Everything **after `*`** is keyword-only — callers must write `dropna=True`. This is the more useful one: it stops `transform(df, True, None)` from appearing in a codebase, where nobody can tell what the booleans mean.
+
+The rule of thumb: make boolean flags and optional tuning parameters keyword-only. It costs callers nothing and makes call sites self-documenting.
+</QuestionCard>
+
+<QuestionCard id="pyf-args-03" number={3} question="When are default arguments evaluated?" difficulty="medium" topic="Arguments">
+**Once, at function definition time** — not per call. The resulting object is stored on the function and reused.
+
+That's harmless for immutables but broken for anything mutable or time-dependent:
+
+```python
+def process(rows, seen=set()):           # BUG — one set shared forever
+def snapshot(ts=datetime.now()):         # BUG — frozen at import time
+```
+
+Both need the `None` sentinel:
+
+```python
+def snapshot(ts=None):
+    ts = ts or datetime.now()
+```
+
+The second form is the one people miss — a default of `datetime.now()` doesn't error, it just quietly returns the time your process started, which can go unnoticed for months.
+</QuestionCard>
+
+<QuestionCard id="pyf-args-04" number={4} question="Is Python pass-by-value or pass-by-reference?" difficulty="medium" topic="Arguments">
+Neither, exactly — it's **pass-by-object-reference** (sometimes called pass-by-assignment). The parameter name is bound to the same object the caller passed.
+
+What follows:
+
+```python
+def mutate(xs): xs.append(4)      # caller SEES this
+def rebind(xs): xs = [9]          # caller does NOT
+```
+
+Mutating the object affects the caller, because it's the same object. **Rebinding the name** only changes the local name.
+
+So the observable behaviour depends on the object's mutability, not on the calling convention. The practical rule: a function that takes a list or dict and modifies it is changing its caller's data — either document that clearly or copy first.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Lambdas
+
+<QuestionList topic="Lambdas" storagePrefix="python-functions-lambdas">
+
+<QuestionCard id="pyf-lambda-01" number={1} question="What is a lambda, and how does it differ from def?" difficulty="easy" topic="Lambdas">
+An anonymous function limited to a **single expression**, whose value is returned implicitly.
+
+```python
+square = lambda x: x ** 2          # discouraged — just use def
+sorted(rows, key=lambda r: r["ts"]) # idiomatic
+```
+
+Differences from `def`: no statements (no assignment, no `try`, no loops), no docstring, and `__name__` is `"<lambda>"` — which makes tracebacks and profiler output unhelpful.
+
+PEP 8 explicitly says don't assign a lambda to a name; if it deserves a name it deserves a `def`. Lambdas earn their place as throwaway arguments to `sorted`, `min`, `max`, `groupby` and similar.
+</QuestionCard>
+
+<QuestionCard id="pyf-lambda-02" number={2} question="When is a lambda the wrong choice?" difficulty="medium" topic="Lambdas">
+- **When you name it** — `f = lambda x: ...` is strictly worse than `def f(x): ...`, which gives a real name in tracebacks.
+- **When it grows** — anything needing a conditional expression plus nested calls is past the readability threshold.
+- **When a comprehension is clearer** — `map(lambda r: r["id"], rows)` reads worse than `[r["id"] for r in rows]`.
+- **When `operator` covers it** — `key=itemgetter("ts")` is both faster and clearer than the equivalent lambda.
+- **In multiprocessing** — lambdas can't be pickled, so they can't cross a process boundary. This is a real error people hit when parallelising a pipeline.
+
+That last one is the practical gotcha: use a module-level `def` for anything passed to a process pool.
+</QuestionCard>
+
+<QuestionCard id="pyf-lambda-03" number={3} question="Why does this loop of lambdas all return the same value?" difficulty="hard" topic="Lambdas">
+```python
+fns = [lambda: i for i in range(3)]
+[f() for f in fns]        # [2, 2, 2] — not [0, 1, 2]
+```
+
+**Late binding.** The lambda closes over the *variable* `i`, not its value at creation. By the time any lambda is called, the loop has finished and `i` is 2.
+
+Two fixes:
+
+```python
+fns = [lambda i=i: i for i in range(3)]        # default binds NOW
+fns = [partial(lambda i: i, i) for i in range(3)]
+```
+
+The default-argument trick works because defaults are evaluated at definition time — the same mechanism that causes the mutable-default bug, used deliberately here.
+
+This bites in real code when building a list of callbacks or per-column transform functions in a loop.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Scope & Closures
+
+<QuestionList topic="Scope & Closures" storagePrefix="python-functions-scope">
+
+<QuestionCard id="pyf-scope-01" number={1} question="What is the LEGB rule?" difficulty="medium" topic="Scope">
+The order Python searches for a name:
+
+1. **Local** — inside the current function
+2. **Enclosing** — any enclosing function's scope, for nested functions
+3. **Global** — module level
+4. **Built-in** — `len`, `print`, and friends
+
+First match wins. This is why shadowing a built-in (`list = [1,2]`) breaks `list()` for the rest of the module — the global now precedes the built-in.
+
+Note that `if`, `for` and `while` blocks do **not** create scope in Python. A variable assigned inside a loop is visible after it, which surprises people coming from C-like languages.
+</QuestionCard>
+
+<QuestionCard id="pyf-scope-02" number={2} question="Why does this raise UnboundLocalError?" difficulty="hard" topic="Scope">
+```python
+count = 0
+def increment():
+    count += 1      # UnboundLocalError
+```
+
+Python decides at **compile time** which names are local. Because `count` is assigned somewhere in the body, it's local for the *entire* body — including the read on the right of `+=`, which happens before anything is assigned.
+
+Fixes:
+
+```python
+def increment():
+    global count
+    count += 1
+```
+
+Better, avoid the situation — take the value as a parameter and return the new one. Mutating module-level state from inside functions is the actual problem the error is pointing at; `global` just silences it.
+
+Note that a pure read (`print(count)`) works fine, because no assignment appears in the body.
+</QuestionCard>
+
+<QuestionCard id="pyf-scope-03" number={3} question="What is a closure, and what is it useful for?" difficulty="medium" topic="Closures">
+A nested function that captures variables from its enclosing scope and keeps them alive after the outer function returns.
+
+```python
+def make_validator(min_value, max_value):
+    def validate(x):
+        return min_value <= x <= max_value     # captured
+    return validate
+
+in_range = make_validator(0, 100)
+in_range(42)      # True
+```
+
+The captured values live in `validate.__closure__`, not on the stack, so they survive.
+
+In pipelines this is the **configurable transform factory**: build a function once from config, then apply it per row without re-reading the config. It's a lighter alternative to a class with one method, and it's the mechanism decorators are built on.
+</QuestionCard>
+
+<QuestionCard id="pyf-scope-04" number={4} question="What does nonlocal do?" difficulty="medium" topic="Closures">
+It lets a nested function **rebind** a name in the nearest enclosing function scope — the enclosing-scope equivalent of `global`.
+
+```python
+def counter():
+    n = 0
+    def increment():
+        nonlocal n        # without this: UnboundLocalError
+        n += 1
+        return n
+    return increment
+```
+
+Without `nonlocal`, `n += 1` would make `n` local to `increment` and fail on the read.
+
+You only need it to **rebind**. Reading an enclosing variable, or mutating a captured mutable object (`items.append(x)`), works without any declaration — because neither is an assignment to the name.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Functional Programming
+
+<QuestionList topic="Functional Programming" storagePrefix="python-functions-functional">
+
+<QuestionCard id="pyf-fp-01" number={1} question="How do map, filter and reduce work, and when should you use them?" difficulty="medium" topic="Functional">
+```python
+from functools import reduce
+
+map(str.upper, names)                       # lazy iterator of transformed items
+filter(lambda r: r["amount"] > 0, rows)     # lazy iterator of kept items
+reduce(lambda a, b: a + b, amounts, 0)      # fold to a single value
+```
+
+`map` and `filter` return **lazy iterators** in Python 3, so they don't build intermediate lists — genuinely useful when chaining over a large dataset.
+
+That said, a comprehension is usually clearer for both, and Python has dedicated built-ins that beat `reduce` for the common folds — `sum`, `min`, `max`, `any`, `all`, `math.prod`. Guido wanted `reduce` removed from built-ins for exactly that reason; it now lives in `functools`. Reach for it only when the accumulation is genuinely custom.
+</QuestionCard>
+
+<QuestionCard id="pyf-fp-02" number={2} question="What is functools.partial and when is it useful?" difficulty="medium" topic="Functional">
+It pre-fills some arguments, returning a new callable that takes the rest.
+
+```python
+from functools import partial
+
+to_int = partial(int, base=16)
+to_int("ff")                     # 255
+
+read_csv = partial(pd.read_csv, sep="|", encoding="utf-8", dtype=str)
+```
+
+Two places it beats a lambda. It's **picklable**, so it works with `multiprocessing` where a lambda fails. And it composes cleanly with APIs expecting a single-argument callable — `pool.map(partial(process, config=cfg), rows)` is the standard way to pass fixed configuration into a parallel map.
+</QuestionCard>
+
+<QuestionCard id="pyf-fp-03" number={3} question="What does the operator module give you?" difficulty="easy" topic="Functional">
+C-implemented equivalents of common expressions, most usefully as `key` functions:
+
+```python
+from operator import itemgetter, attrgetter, methodcaller
+
+sorted(rows, key=itemgetter("date", "id"))     # multi-key, faster than a lambda
+max(objs, key=attrgetter("score"))
+sorted(names, key=methodcaller("lower"))
+```
+
+`itemgetter` with several keys returns a tuple, which is exactly what multi-level sorting needs — and it's noticeably faster than an equivalent lambda on large collections, since it avoids a Python-level call per element.
+
+`operator.add`, `mul` and friends are also the idiomatic things to hand to `reduce` or `itertools.accumulate`.
+</QuestionCard>
+
+<QuestionCard id="pyf-fp-04" number={4} question="What is a pure function, and why does it matter for pipelines?" difficulty="medium" topic="Functional">
+One whose output depends only on its inputs, with no side effects — no mutation of arguments, no I/O, no reliance on global state.
+
+Why it matters in data engineering specifically:
+
+- **Testable** — no fixtures, no mocks, no database. Pass values, assert on the result.
+- **Cacheable** — `functools.cache` is only correct on pure functions.
+- **Parallelisable** — no shared state means no locks and no race conditions, which is what lets Spark distribute a UDF across executors.
+- **Retryable** — a pure transform is naturally idempotent, so a retried task can't double-apply an effect.
+
+The practical pattern is to push I/O to the edges: read, transform with pure functions, write. That keeps the logic that's easy to get wrong also easy to test.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"What does this print?"** — almost always the late-binding closure loop, or a mutable default argument. Both hinge on *when* something is evaluated. Explain the timing, not just the output.
+
+**"Write a function that builds other functions."** — a closure-based factory: a configurable validator, a column transformer parameterised by config, a retry wrapper. They're checking you understand closures rather than reaching for a class.
+
+**"Your multiprocessing code fails with 'cannot pickle lambda'."** — lambdas and locally-defined functions can't be pickled to cross a process boundary. Use a module-level `def`, or `functools.partial` over one.
+
+**"How would you make this transformation testable?"** — separate the pure computation from the I/O around it. Take data in, return data out, and let the caller handle reading and writing.
+
+---
+
+## Further Reading
+
+- [Python: Defining Functions](https://docs.python.org/3/tutorial/controlflow.html#defining-functions)
+- [`functools` documentation](https://docs.python.org/3/library/functools.html) — partial, reduce, cache, wraps
+- [`operator` documentation](https://docs.python.org/3/library/operator.html)
+- [PEP 3102 — Keyword-Only Arguments](https://peps.python.org/pep-3102/)
+- [PEP 570 — Positional-Only Parameters](https://peps.python.org/pep-0570/)
+- [Functional Programming HOWTO](https://docs.python.org/3/howto/functional.html)

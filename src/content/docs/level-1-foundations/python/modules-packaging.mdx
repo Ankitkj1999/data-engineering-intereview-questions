@@ -1,0 +1,396 @@
+---
+title: Modules & Packaging
+description: Python modules and packaging interview questions covering imports, packages, virtual environments, pip, Poetry, uv, Conda, pyproject.toml, dependency resolution and building distributable packages.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Modules & Packaging: Making Code Importable and Reproducible
+
+**"It works on my machine" is a packaging problem. Data engineering makes it worse than most: a pipeline depends on a specific pandas, a native Arrow build, a JDBC driver and a CUDA version, and it has to behave identically on a laptop, in CI, and inside a Spark executor. Interview questions here are less about `import` syntax and more about whether you can make an environment reproducible and explain why a lockfile matters.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Modules & Imports](#modules--imports)
+- [Packages](#packages)
+- [Virtual Environments](#virtual-environments)
+- [Package Managers](#package-managers)
+- [Building & Distributing](#building--distributing)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A **module** is a single `.py` file; a **package** is a directory of modules. Importing either executes its top-level code **once** per process and caches the result in `sys.modules`. That caching explains both why repeated imports are cheap and why a module with expensive side effects at import time slows every process that touches it.
+
+Python finds modules by walking `sys.path` in order: the script's directory, then `PYTHONPATH`, then the installed site-packages. The first match wins — which is why a local file named `random.py` breaks the standard library, and why import errors are so often really path errors.
+
+The packaging half rests on **isolation and pinning**. A virtual environment gives a project its own site-packages so two projects can need incompatible versions. A **lockfile** records the exact resolved version of every transitive dependency, which is what turns "should work" into "will produce the same environment on every machine."
+
+---
+
+## Modules & Imports
+
+<QuestionList topic="Modules & Imports" storagePrefix="python-modules-imports">
+
+<QuestionCard id="pym-mod-01" number={1} question="What happens when you import a module?" difficulty="medium" topic="Modules">
+1. Python checks `sys.modules` for a cached copy — if found, it's returned immediately.
+2. Otherwise it searches `sys.path` in order for a matching module.
+3. It compiles the source to bytecode, cached in `__pycache__` for next time.
+4. It **executes the module top to bottom**, creating a module object.
+5. It stores that object in `sys.modules` and binds the name locally.
+
+Step 4 is the one with consequences: top-level code runs on import. A module that opens a database connection or reads a config file at import time does that work in every process that imports it, and fails at import if the resource is unavailable — which makes tests hard to run and startup slow.
+
+Keep module top level to definitions and cheap constants.
+</QuestionCard>
+
+<QuestionCard id="pym-mod-02" number={2} question="What are the import forms, and which should you use?" difficulty="easy" topic="Imports">
+```python
+import pandas                      # namespace preserved
+import pandas as pd                # conventional alias
+from pathlib import Path           # bring one name in
+from mypkg.utils import clean, load
+from os.path import *              # avoid
+```
+
+Prefer the first three. `import x` keeps the origin visible at every use site, which helps readers.
+
+`from x import *` is the one to argue against: it pollutes the namespace, silently shadows existing names, breaks linters' ability to detect undefined names, and makes it impossible to tell where a name came from. The only sanctioned use is a package's own `__init__.py` re-exporting a curated API, controlled by `__all__`.
+</QuestionCard>
+
+<QuestionCard id="pym-mod-03" number={3} question="What is the difference between absolute and relative imports?" difficulty="medium" topic="Imports">
+```python
+from mypkg.utils.parsing import clean_row     # absolute — full path from the root
+from .parsing import clean_row                # relative — same package
+from ..models import Record                   # relative — parent package
+```
+
+**PEP 8 recommends absolute imports.** They're unambiguous, work regardless of where the module is executed from, and don't break when a module is moved.
+
+Relative imports are acceptable inside a package for tightly coupled internal modules, and they keep the package renameable.
+
+The failure to know about: relative imports only work when the module is imported **as part of a package**. Running `python mypkg/utils/parsing.py` directly gives `ImportError: attempted relative import with no known parent package`. Use `python -m mypkg.utils.parsing` instead.
+</QuestionCard>
+
+<QuestionCard id="pym-mod-04" number={4} question="What is a circular import, and how do you fix one?" difficulty="hard" topic="Imports">
+Two modules importing each other. Because a module is only partially executed while it's being imported, the second import sees an incomplete module and fails with `ImportError: cannot import name X (most likely due to a circular import)`.
+
+Fixes, best first:
+1. **Restructure** — the cycle usually means the shared thing belongs in a third module both can import. This is the real fix.
+2. **Import inside the function** rather than at module level, deferring it to call time.
+3. **`if TYPE_CHECKING:`** — if the import exists only for type annotations, guard it and quote the annotation. This is very common and completely safe.
+
+```python
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .pipeline import Pipeline
+
+def run(p: "Pipeline") -> None: ...
+```
+
+A cycle is usually a design signal, not just an import problem.
+</QuestionCard>
+
+<QuestionCard id="pym-mod-05" number={5} question="What does `if __name__ == '__main__':` do?" difficulty="easy" topic="Modules">
+`__name__` is `"__main__"` when a file is run directly, and the module's dotted name when it's imported. The guard makes a block run only in the first case.
+
+```python
+def main(): ...
+
+if __name__ == "__main__":
+    main()
+```
+
+It lets a file be both an importable module and a runnable script, without executing the script part when someone imports a function from it.
+
+It's also **mandatory** for `multiprocessing` with the `spawn` start method — workers re-import the module, and without the guard that re-runs the process-creating code, spawning recursively until the machine falls over.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Packages
+
+<QuestionList topic="Packages" storagePrefix="python-modules-packages">
+
+<QuestionCard id="pym-pkg-01" number={1} question="What is a package, and what does __init__.py do?" difficulty="easy" topic="Packages">
+A directory Python treats as a module namespace. `__init__.py` marks it as a **regular package** and runs when the package is first imported.
+
+```
+mypkg/
+├── __init__.py
+├── sources/
+│   ├── __init__.py
+│   └── s3.py
+└── transforms.py
+```
+
+`__init__.py` is typically used to define the public API:
+
+```python
+from .transforms import clean, enrich
+__all__ = ["clean", "enrich"]
+__version__ = "1.2.0"
+```
+
+That lets users write `from mypkg import clean` instead of reaching into the internal layout, so you can reorganise modules later without breaking them.
+
+Keep it light — everything in it runs on every import of anything in the package.
+</QuestionCard>
+
+<QuestionCard id="pym-pkg-02" number={2} question="Is __init__.py still required?" difficulty="medium" topic="Packages">
+Not strictly. Since PEP 420 (Python 3.3), a directory without one is a **namespace package** and can still be imported.
+
+But you usually still want it. Namespace packages exist to let a single logical package be split across multiple directories or distributions — a real but niche need. Using them accidentally causes confusing problems: subtle import shadowing, and packaging tools that fail to detect your package when auto-discovering.
+
+The practical advice: include `__init__.py` in ordinary packages, even if empty. Use namespace packages deliberately, for plugin systems where several distributions contribute to one namespace.
+</QuestionCard>
+
+<QuestionCard id="pym-pkg-03" number={3} question="How does Python find modules, and how do you debug an ImportError?" difficulty="medium" topic="Imports">
+It searches `sys.path` in order:
+1. The directory of the script being run (or the current directory for `-c` and the REPL)
+2. `PYTHONPATH` entries
+3. Installation-dependent defaults, ending in `site-packages`
+
+Debugging:
+
+```python
+import sys; print(sys.path)          # where is it looking?
+import mypkg; print(mypkg.__file__)  # which copy did it find?
+```
+
+Two classic causes. **Shadowing** — a local `random.py` or `types.py` sits earlier on the path than the standard library, so the wrong module wins. And **the package isn't installed** — the fix is `pip install -e .` so the project is importable from anywhere, rather than manipulating `sys.path` at runtime, which breaks as soon as the working directory changes.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Virtual Environments
+
+<QuestionList topic="Virtual Environments" storagePrefix="python-modules-venv">
+
+<QuestionCard id="pym-venv-01" number={1} question="What is a virtual environment and why is it necessary?" difficulty="easy" topic="Virtual Environments">
+An isolated directory with its own Python interpreter link and its own `site-packages`, so a project's dependencies don't collide with any other project's.
+
+```bash
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+deactivate
+```
+
+Without one, everything installs globally. Two projects needing different pandas versions then can't coexist, installing a package can break an unrelated tool, and you may need `sudo` to install — which risks breaking OS tooling that depends on the system Python.
+
+Activation simply puts the environment's `bin` first on `PATH`, so `python` and `pip` resolve to the environment's copies.
+</QuestionCard>
+
+<QuestionCard id="pym-venv-02" number={2} question="What is the difference between venv, virtualenv, pyenv and conda?" difficulty="medium" topic="Virtual Environments">
+They solve different problems, which is why the names get confused:
+
+- **`venv`** — standard library, creates an isolated environment from the Python you already have. The default choice.
+- **`virtualenv`** — the older third-party original. Faster and supports older Pythons; largely superseded.
+- **`pyenv`** — manages **Python versions themselves**, not packages. Use it to install and switch between 3.10 and 3.12; combine it with `venv`.
+- **`conda`** — manages environments *and* packages *and* non-Python binaries (CUDA, MKL, GDAL, a JVM), with its own resolver and channels.
+
+The distinction that matters: `pyenv` picks the interpreter, `venv` isolates the packages, and `conda` does both plus native dependencies. Conda's advantage is real in ML and geospatial work where the hard part is compiled libraries.
+</QuestionCard>
+
+<QuestionCard id="pym-venv-03" number={3} question="How do you make an environment reproducible?" difficulty="medium" topic="Virtual Environments">
+Pin **everything**, including transitive dependencies.
+
+`pip freeze > requirements.txt` captures exact versions of what's installed, but it mixes your direct dependencies with everything they pulled in, so you lose track of what you actually asked for.
+
+The better pattern separates the two:
+- **`requirements.in`** or `pyproject.toml` — your direct dependencies, with loose constraints.
+- **`requirements.txt`** — generated and fully pinned, ideally with hashes.
+
+```bash
+pip-compile requirements.in          # or: uv pip compile
+pip-sync requirements.txt            # install exactly this, remove anything else
+```
+
+Poetry and uv do this natively with a lockfile. Also pin the **Python version** and, for production, build a container image — that's the only way to also pin the system libraries a native wheel links against.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Package Managers
+
+<QuestionList topic="Package Managers" storagePrefix="python-modules-managers">
+
+<QuestionCard id="pym-pm-01" number={1} question="What are the essential pip commands and options?" difficulty="easy" topic="pip">
+```bash
+pip install pandas==2.2.0            # exact version
+pip install "pandas>=2.0,<3.0"       # compatible range
+pip install -r requirements.txt
+pip install -e .                     # editable — develop without reinstalling
+pip install --no-deps pkg            # skip dependencies
+pip download / pip wheel             # fetch or build wheels for offline installs
+pip list --outdated
+pip check                            # report broken dependency requirements
+```
+
+`pip install -e .` is the one to know for project work: it links your source into the environment so imports resolve from anywhere and edits take effect immediately — no reinstall loop, and no `sys.path` hacking in tests.
+
+`pip check` is underused; it surfaces conflicting requirements pip installed anyway.
+</QuestionCard>
+
+<QuestionCard id="pym-pm-02" number={2} question="What is PyPI, and what is a wheel?" difficulty="medium" topic="PyPI">
+**PyPI** is the public index pip installs from by default. Companies commonly run a private index or a proxy (Artifactory, Nexus, CodeArtifact) for internal packages and to control what enters the build.
+
+A **wheel** (`.whl`) is a pre-built distribution — essentially a zip that installs by unpacking, with no build step. An **sdist** is source that must be compiled on install.
+
+Wheels matter enormously for data work: installing pandas or NumPy from source needs a C compiler and takes minutes; the wheel installs in seconds. Wheel filenames encode compatibility (`manylinux`, CPython version, architecture), which is why Alpine images fall back to source builds — musl doesn't match the `manylinux` tag.
+
+Security note: installing from PyPI runs arbitrary code from an sdist's build step. Pin, and prefer hashes.
+</QuestionCard>
+
+<QuestionCard id="pym-pm-03" number={3} question="Compare Poetry, uv, Pipenv and plain pip." difficulty="medium" topic="Package Managers">
+- **pip + venv + pip-tools** — standard, universally available, needs assembling. Still a perfectly good answer.
+- **Poetry** — dependency management, locking, virtualenv handling and publishing in one tool, driven by `pyproject.toml`. Mature and widely adopted; its resolver can be slow.
+- **uv** — a Rust-based drop-in replacement for pip and pip-tools, typically **10–100× faster**, with locking and Python version management built in. Rapidly becoming the default choice for new projects.
+- **Pipenv** — the earlier attempt at Poetry's role. Still works, but momentum has moved on.
+- **conda/mamba** — when you need non-Python binaries.
+
+For a new data project today, **uv** is the strongest recommendation on speed alone — resolver time is a real cost in CI, where every build reinstalls.
+</QuestionCard>
+
+<QuestionCard id="pym-pm-04" number={4} question="What is dependency resolution, and what is 'dependency hell'?" difficulty="hard" topic="Package Managers">
+The resolver must find one version of every package satisfying all constraints simultaneously — including transitive ones. It's a constraint-satisfaction problem, and in general NP-hard.
+
+**Dependency hell** is when no such set exists: package A needs `pyarrow>=14`, package B pins `pyarrow<13`. There's no valid resolution.
+
+Options, in order of preference: upgrade the package with the stale pin; find a version of A that works with B's constraint; vendor or fork; split the conflicting parts into separate services or containers so they never share an environment.
+
+Historically pip installed the last-requested version and left you with a silently broken environment. Since pip 20.3 the resolver is strict and errors instead — better, though it surfaces conflicts that were always there.
+</QuestionCard>
+
+<QuestionCard id="pym-pm-05" number={5} question="What goes in pyproject.toml?" difficulty="medium" topic="pyproject.toml">
+The standardised project configuration file (PEP 518/621), replacing `setup.py`, `setup.cfg` and most tool-specific files:
+
+```toml
+[project]
+name = "mypipeline"
+version = "1.2.0"
+requires-python = ">=3.11"
+dependencies = ["pandas>=2.0", "pyarrow>=14"]
+
+[project.optional-dependencies]
+dev = ["pytest", "mypy", "ruff"]
+
+[project.scripts]
+run-pipeline = "mypipeline.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+```
+
+The wins: one file for metadata, dependencies and tool config; declarative rather than an executable `setup.py`; and `[project.scripts]` generating console entry points on install. Most modern tools — ruff, mypy, pytest, black — read their settings from here.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Building & Distributing
+
+<QuestionList topic="Building & Distributing" storagePrefix="python-modules-distributing">
+
+<QuestionCard id="pym-dist-01" number={1} question="How do you build and publish a package?" difficulty="medium" topic="Distribution">
+```bash
+python -m build              # produces dist/*.whl and dist/*.tar.gz
+twine check dist/*
+twine upload --repository testpypi dist/*     # rehearse first
+twine upload dist/*
+```
+
+Or `poetry build && poetry publish`, or `uv build`.
+
+Practices worth naming: test on **TestPyPI** before the real thing, since a version on PyPI can never be reused even if deleted. Use **API tokens**, not passwords, and in CI use PyPI's **trusted publishing** (OIDC) so no long-lived token is stored anywhere.
+
+For internal packages, publish to a private index instead — the process is identical with a different repository URL.
+</QuestionCard>
+
+<QuestionCard id="pym-dist-02" number={2} question="How should a data engineering project be structured?" difficulty="medium" topic="Distribution">
+```
+myproject/
+├── pyproject.toml
+├── README.md
+├── src/
+│   └── mypipeline/
+│       ├── __init__.py
+│       ├── sources/
+│       ├── transforms/
+│       └── cli.py
+├── tests/
+├── dags/                    # if Airflow
+└── .pre-commit-config.yaml
+```
+
+The **`src/` layout** is the part worth defending: it makes the package impossible to import accidentally from the working directory, so your tests exercise the *installed* package rather than the source tree. That catches missing files in the distribution — a bug that otherwise only appears after release.
+
+Keep DAG definitions thin and put the logic in the package, so it can be unit-tested without a scheduler.
+</QuestionCard>
+
+<QuestionCard id="pym-dist-03" number={3} question="How do you version a package?" difficulty="medium" topic="Distribution">
+**Semantic versioning** — `MAJOR.MINOR.PATCH`: breaking changes bump major, backwards-compatible features bump minor, fixes bump patch. That's what lets consumers write `>=2.1,<3.0` with confidence.
+
+Keep a single source of truth. Either read it from the installed metadata:
+
+```python
+from importlib.metadata import version
+__version__ = version("mypipeline")
+```
+
+or derive it from git tags with `setuptools-scm` or `hatch-vcs`, so tagging a release *is* setting the version and the two can never disagree.
+
+CalVer (`2026.08.1`) is a reasonable alternative for internal tools released on a schedule, where "breaking change" isn't a meaningful signal to anyone.
+</QuestionCard>
+
+<QuestionCard id="pym-dist-04" number={4} question="How do you share code across multiple pipelines?" difficulty="medium" topic="Distribution">
+Two shapes, and the interviewer usually wants the trade-off.
+
+**Internal package** — publish a versioned `company-data-utils` to a private index. Each pipeline pins a version, so upgrades are deliberate and one team's change can't break another overnight. The cost is release overhead and version drift across consumers.
+
+**Monorepo** — shared code and pipelines in one repository, imported directly. Changes are atomic across the library and all callers, and there's no publishing step. The cost is needing path-filtered CI and the risk that a change breaks everything at once.
+
+For most data teams below a certain size the monorepo wins, because pipelines share so much schema knowledge and utility code that coordinating versioned releases becomes the dominant cost. Copy-pasting shared code is the option to argue against in both cases.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"The pipeline runs locally but fails in production with ImportError."** — the package isn't installed in the production environment, or the working directory differed so a `sys.path` assumption broke. Fix by installing the project properly (`pip install .`) and using absolute imports.
+
+**"How do you guarantee the same dependencies in dev, CI and production?"** — a lockfile pinning every transitive dependency with hashes, the Python version pinned too, and a container image built once and promoted unchanged through environments.
+
+**"Two libraries you need require incompatible versions of pyarrow."** — resolve if possible, otherwise isolate: separate environments, separate containers, or separate services. Explain that forcing an install with `--no-deps` produces a silently broken environment.
+
+**"Your Docker build reinstalls all dependencies on every code change."** — copy the dependency manifest and install *before* copying the source, so the install layer stays cached. Same layer-ordering principle as any Docker build.
+
+---
+
+## Further Reading
+
+- [Python Packaging User Guide](https://packaging.python.org/) — the authoritative source
+- [PEP 621 — Project metadata in pyproject.toml](https://peps.python.org/pep-0621/)
+- [PEP 517/518 — Build system interface](https://peps.python.org/pep-0517/)
+- [`venv` documentation](https://docs.python.org/3/library/venv.html)
+- [uv documentation](https://docs.astral.sh/uv/)
+- [Poetry documentation](https://python-poetry.org/docs/)
+- [The Import System](https://docs.python.org/3/reference/import.html)

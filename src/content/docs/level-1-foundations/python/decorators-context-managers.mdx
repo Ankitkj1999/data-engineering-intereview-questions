@@ -1,0 +1,449 @@
+---
+title: Decorators & Context Managers
+description: Python interview questions on decorators — how they work, functools.wraps, parameterised and class-based decorators — and context managers, the with statement, __enter__/__exit__, contextlib and ExitStack.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Decorators & Context Managers: Python's Two Wrapping Protocols
+
+**These two features solve the same underlying problem from different angles: code that must run *around* something else. A decorator wraps a function — retries, timing, caching, logging. A context manager wraps a block — connections, transactions, temporary files, locks. Both let you write the setup-and-teardown once and stop relying on every caller to remember it, which is why pipeline code is full of them.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Decorator Fundamentals](#decorator-fundamentals)
+- [Practical Decorators](#practical-decorators)
+- [Context Manager Fundamentals](#context-manager-fundamentals)
+- [contextlib & Advanced Patterns](#contextlib--advanced-patterns)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+A **decorator** is just a function that takes a function and returns a replacement. The `@` syntax is pure sugar: `@retry` above `def load()` means exactly `load = retry(load)`. Once that clicks, everything else — parameterised decorators, stacking, class decorators — follows from ordinary function composition.
+
+A **context manager** is any object with `__enter__` and `__exit__`. The `with` statement calls `__enter__` on entry and guarantees `__exit__` runs on exit — normal completion, `return`, `break`, or exception. That guarantee is the whole point: it's `try`/`finally` with the cleanup written once, next to the setup, instead of at every call site.
+
+The reason both matter in data engineering is that pipelines are full of resources that leak and operations that fail transiently. A connection not returned to the pool, a transaction never committed, a temp file left on a full disk, an API call that failed once and would have worked on retry — these are the recurring production problems these two features exist to solve.
+
+---
+
+## Decorator Fundamentals
+
+<QuestionList topic="Decorator Fundamentals" storagePrefix="python-decorators-basics">
+
+<QuestionCard id="pyc-dec-01" number={1} question="What is a decorator, and what does the @ syntax actually do?" difficulty="medium" topic="Decorators">
+A callable that takes a function and returns a replacement for it. The `@` is shorthand for reassignment:
+
+```python
+@timer
+def load(): ...
+
+# is exactly:
+def load(): ...
+load = timer(load)
+```
+
+A minimal one:
+
+```python
+import functools
+
+def timer(fn):
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        try:
+            return fn(*args, **kwargs)
+        finally:
+            log.info("%s took %.2fs", fn.__name__, time.perf_counter() - start)
+    return wrapper
+```
+
+`*args, **kwargs` lets the wrapper forward any signature. The `try`/`finally` means timing is still logged when the function raises — which is when you most want to know.
+</QuestionCard>
+
+<QuestionCard id="pyc-dec-02" number={2} question="Why do you need functools.wraps?" difficulty="medium" topic="Decorators">
+Because the wrapper replaces the original, and without help it carries the wrapper's identity:
+
+```python
+@timer
+def load_orders(): ...
+
+load_orders.__name__      # 'wrapper' without @wraps, 'load_orders' with it
+load_orders.__doc__       # None without it
+```
+
+`functools.wraps` copies `__name__`, `__doc__`, `__module__`, `__qualname__`, `__dict__` and `__annotations__` onto the wrapper, and sets `__wrapped__` so the original is still reachable.
+
+It matters more than it looks. Without it, tracebacks and log lines all say "wrapper", `help()` is useless, `inspect.signature` is wrong, and — the one that actually breaks things — pytest fixtures and frameworks that dispatch on function names stop working.
+</QuestionCard>
+
+<QuestionCard id="pyc-dec-03" number={3} question="How do you write a decorator that takes arguments?" difficulty="hard" topic="Decorators">
+You need one more layer: the outer call returns the actual decorator.
+
+```python
+def retry(times=3, delay=1.0, exceptions=(Exception,)):
+    def decorator(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            for attempt in range(1, times + 1):
+                try:
+                    return fn(*args, **kwargs)
+                except exceptions:
+                    if attempt == times:
+                        raise
+                    time.sleep(delay * 2 ** (attempt - 1))
+        return wrapper
+    return decorator
+
+@retry(times=5, delay=0.5)
+def fetch(url): ...
+```
+
+Three levels: `retry(...)` returns `decorator`, which is applied to `fetch`, returning `wrapper`.
+
+The gotcha is that `@retry` and `@retry()` are then different things — the first passes the function as `times`. Handle both with a `fn=None` first parameter if you want the bare form to work.
+</QuestionCard>
+
+<QuestionCard id="pyc-dec-04" number={4} question="What happens when you stack decorators?" difficulty="medium" topic="Decorators">
+They apply **bottom-up**, and therefore execute **top-down**.
+
+```python
+@timer          # applied second → runs first
+@retry(3)       # applied first  → runs second
+def fetch(): ...
+
+# equivalent to: fetch = timer(retry(3)(fetch))
+```
+
+So `timer` wraps the retrying version — meaning it measures total time across all attempts. Swap them and you'd time each attempt separately.
+
+Order genuinely matters when the decorators interact. A cache above a retry caches the final result; below it, each retry attempt checks the cache. Authentication should generally be outermost; logging outermost captures everything, innermost captures only successful entry.
+</QuestionCard>
+
+<QuestionCard id="pyc-dec-05" number={5} question="Can a class be a decorator, or be decorated?" difficulty="medium" topic="Decorators">
+Both.
+
+**A class as a decorator** — implement `__call__`, and use `__init__` to hold state:
+
+```python
+class CountCalls:
+    def __init__(self, fn):
+        functools.update_wrapper(self, fn)
+        self.fn, self.count = fn, 0
+    def __call__(self, *args, **kwargs):
+        self.count += 1
+        return self.fn(*args, **kwargs)
+```
+
+Useful when the decorator needs mutable state or extra methods — `fetch.count` is now readable.
+
+**A class being decorated** — the decorator receives and returns the class. `@dataclass` and `@functools.total_ordering` work this way, adding methods to the class before handing it back.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Practical Decorators
+
+<QuestionList topic="Practical Decorators" storagePrefix="python-decorators-practical">
+
+<QuestionCard id="pyc-use-01" number={1} question="What built-in decorators should you know?" difficulty="easy" topic="Decorators">
+- **`@property`** — expose a method as an attribute, with optional `@x.setter`.
+- **`@staticmethod`** — no `self` or `cls`; a plain function namespaced in the class.
+- **`@classmethod`** — receives the class; the standard way to write alternative constructors.
+- **`@functools.cache` / `@lru_cache(maxsize=n)`** — memoization.
+- **`@functools.wraps`** — for writing your own decorators.
+- **`@functools.singledispatch`** — overload by first-argument type.
+- **`@dataclass`** — generate `__init__`, `__repr__`, `__eq__`.
+- **`@abstractmethod`** — with `ABC`, force subclasses to implement.
+- **`@contextlib.contextmanager`** — build a context manager from a generator.
+
+`@cached_property` deserves a mention too: computes once per instance, then caches on the instance — ideal for an expensive schema lookup on a config object.
+</QuestionCard>
+
+<QuestionCard id="pyc-use-02" number={2} question="How would you use lru_cache in a pipeline, and when is it wrong?" difficulty="medium" topic="Decorators">
+```python
+@lru_cache(maxsize=10_000)
+def lookup_customer(customer_id: str) -> dict:
+    return db.query("SELECT ... WHERE id = ?", customer_id)
+```
+
+Enriching a million rows against a dimension table with 10,000 distinct keys turns a million queries into 10,000.
+
+When it's wrong:
+- **The function isn't pure** — caching a query against changing data serves stale results forever. There's no TTL.
+- **Arguments aren't hashable** — a dict or list argument raises `TypeError`.
+- **The key space is unbounded** — `maxsize=None` (`@cache`) grows without limit and leaks memory in a long-running worker.
+- **It's a method** — the cache holds `self`, keeping instances alive and preventing garbage collection.
+
+For anything needing invalidation or a TTL, use a real cache (`cachetools`, Redis) rather than `lru_cache`.
+</QuestionCard>
+
+<QuestionCard id="pyc-use-03" number={3} question="Write a decorator that retries with exponential backoff and jitter." difficulty="hard" topic="Decorators">
+```python
+import random, time, functools
+
+def retry(times=3, base=0.5, cap=30, exceptions=(Exception,)):
+    def decorator(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            for attempt in range(times):
+                try:
+                    return fn(*args, **kwargs)
+                except exceptions as e:
+                    if attempt == times - 1:
+                        raise
+                    sleep = min(cap, base * 2 ** attempt)
+                    sleep = random.uniform(0, sleep)      # full jitter
+                    log.warning("attempt %d failed (%s), retrying in %.1fs",
+                                attempt + 1, e, sleep)
+                    time.sleep(sleep)
+        return wrapper
+    return decorator
+```
+
+Points an interviewer is listening for: **jitter**, so a fleet of workers doesn't retry in lockstep and hammer a recovering service; a **cap** on the delay; re-raising on the final attempt rather than returning `None`; and a **narrow exception tuple**, because retrying a `ValueError` from bad input just wastes time.
+
+In production, `tenacity` does all this and is worth naming.
+</QuestionCard>
+
+<QuestionCard id="pyc-use-04" number={4} question="What are the drawbacks of decorators?" difficulty="medium" topic="Decorators">
+- **Indirection.** The code that runs isn't the code you're reading, which makes debugging harder — tracebacks include wrapper frames.
+- **Signature obscuring.** Without `@wraps`, introspection breaks; even with it, `*args, **kwargs` hides the real signature from type checkers unless you use `ParamSpec`.
+- **Import-time execution.** Decorators run when the module is imported. Anything expensive or side-effecting there slows startup and can fail at import.
+- **Ordering subtleties.** Stacked decorators interact in ways that aren't obvious from reading top to bottom.
+- **Testing.** You often need to reach the undecorated function — `fn.__wrapped__`, which is another reason `@wraps` matters.
+
+They're excellent for genuinely cross-cutting concerns. They're a poor way to express business logic.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Context Manager Fundamentals
+
+<QuestionList topic="Context Manager Fundamentals" storagePrefix="python-context-managers">
+
+<QuestionCard id="pyc-ctx-01" number={1} question="What does the with statement guarantee?" difficulty="easy" topic="Context Managers">
+That `__exit__` runs when the block is left — however it's left. Normal completion, an early `return`, a `break`, or an exception all trigger cleanup.
+
+```python
+with open(path) as f:
+    data = f.read()
+# f is closed here, even if read() raised
+```
+
+It's equivalent to a `try`/`finally`, but written once inside the context manager rather than at every call site. That's the real benefit: correctness stops depending on every caller remembering to clean up.
+
+Without it, the classic leak is an exception between opening a connection and closing it, which in a long-running worker exhausts the pool.
+</QuestionCard>
+
+<QuestionCard id="pyc-ctx-02" number={2} question="How do you write a context manager as a class?" difficulty="medium" topic="Context Managers">
+```python
+class Transaction:
+    def __init__(self, conn):
+        self.conn = conn
+
+    def __enter__(self):
+        self.conn.execute("BEGIN")
+        return self.conn                 # this is what `as` binds
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is None:
+            self.conn.execute("COMMIT")
+        else:
+            self.conn.execute("ROLLBACK")
+        return False                     # don't suppress the exception
+```
+
+`__enter__`'s return value is what `as` binds — often `self`, but not necessarily.
+
+`__exit__` receives the exception details, or three `None`s if the block succeeded. **Returning a truthy value suppresses the exception** — almost always wrong, and a silent-failure bug when done accidentally. Return `False` or nothing.
+</QuestionCard>
+
+<QuestionCard id="pyc-ctx-03" number={3} question="How do you write one with contextlib.contextmanager?" difficulty="medium" topic="Context Managers">
+A generator with exactly one `yield`. Everything before it is setup, everything after is teardown:
+
+```python
+from contextlib import contextmanager
+
+@contextmanager
+def transaction(conn):
+    conn.execute("BEGIN")
+    try:
+        yield conn                # value bound by `as`
+    except Exception:
+        conn.execute("ROLLBACK")
+        raise
+    else:
+        conn.execute("COMMIT")
+```
+
+The `try` is essential — without it, an exception in the body propagates without ever running the teardown, defeating the purpose.
+
+Prefer this form for simple setup/teardown; it's much less boilerplate. Use the class form when the manager needs state, extra methods, or reuse across multiple `with` blocks (a generator-based one is single-use).
+</QuestionCard>
+
+<QuestionCard id="pyc-ctx-04" number={4} question="What context managers do you use in data pipelines?" difficulty="medium" topic="Context Managers">
+- **Files** — `open()`, guaranteeing the handle is closed and buffers flushed.
+- **Database connections and transactions** — commit on success, roll back on failure, always return the connection to the pool.
+- **Locks** — `with lock:` guarantees release even if the body raises, avoiding a deadlock.
+- **Temporary files and directories** — `tempfile.TemporaryDirectory()`, cleaned up even on crash. This prevents the "scratch files filled the disk" incident.
+- **Spark/Dask sessions** — ensure `stop()` runs and the cluster is released.
+- **Timing and instrumentation** — a `with timed("load"):` block that always records duration.
+- **`mock.patch`** — scoped patching in tests, undone automatically.
+- **Atomic writes** — write to a temp path, then rename on success, so consumers never see a partial file.
+
+That last one is a genuinely valuable custom manager to know how to build.
+</QuestionCard>
+
+<QuestionCard id="pyc-ctx-05" number={5} question="Can you use multiple context managers in one with statement?" difficulty="easy" topic="Context Managers">
+Yes, and they nest left to right — the leftmost is entered first and exited last:
+
+```python
+with open(src) as fin, open(dst, "w") as fout:
+    fout.writelines(fin)
+```
+
+From Python 3.10 you can wrap them in parentheses across lines:
+
+```python
+with (
+    open(src) as fin,
+    open(dst, "w") as fout,
+):
+    ...
+```
+
+Important detail: if the *second* `__enter__` raises, the first manager **is** still exited correctly — the statement handles partial entry properly. For a variable number of managers known only at runtime, use `ExitStack`.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## contextlib & Advanced Patterns
+
+<QuestionList topic="contextlib & Advanced Patterns" storagePrefix="python-contextlib">
+
+<QuestionCard id="pyc-lib-01" number={1} question="What is ExitStack and when do you need it?" difficulty="hard" topic="contextlib">
+It manages a **dynamic** number of context managers, unwinding them in reverse on exit.
+
+```python
+from contextlib import ExitStack
+
+with ExitStack() as stack:
+    files = [stack.enter_context(open(p)) for p in paths]
+    merged = heapq.merge(*files)
+    ...
+# every file closed, in reverse order, even if one open() failed
+```
+
+You can't express that with a fixed `with` statement when the count is only known at runtime.
+
+`stack.callback(fn, *args)` registers arbitrary cleanup, and `stack.pop_all()` transfers ownership elsewhere — useful for "set up several resources, and only commit to them if everything succeeded."
+</QuestionCard>
+
+<QuestionCard id="pyc-lib-02" number={2} question="What contextlib helpers are worth knowing?" difficulty="medium" topic="contextlib">
+```python
+from contextlib import suppress, redirect_stdout, closing, nullcontext
+
+with suppress(FileNotFoundError):
+    os.remove(path)                     # cleaner than try/except/pass
+
+with closing(urlopen(url)) as page:     # adds `with` to objects that
+    ...                                 # only have .close()
+
+with redirect_stdout(buffer):
+    noisy_library_call()
+
+cm = open(path) if path else nullcontext(sys.stdin)
+with cm as f:                           # conditional context manager
+    ...
+```
+
+`suppress` is the most-used — it makes "ignore this specific error" explicit and readable. `nullcontext` solves the awkward "sometimes I need a context manager, sometimes I don't" branch without duplicating the body.
+</QuestionCard>
+
+<QuestionCard id="pyc-lib-03" number={3} question="How would you write an atomic file write?" difficulty="hard" topic="contextlib">
+Write to a temporary file in the same directory, then rename — `os.replace` is atomic on POSIX and Windows, so a reader sees either the old file or the complete new one, never a partial:
+
+```python
+from contextlib import contextmanager
+import os, tempfile
+
+@contextmanager
+def atomic_write(path, mode="w", **kwargs):
+    d = os.path.dirname(os.path.abspath(path))
+    fd, tmp = tempfile.mkstemp(dir=d)       # same filesystem — rename must be atomic
+    try:
+        with os.fdopen(fd, mode, **kwargs) as f:
+            yield f
+            f.flush()
+            os.fsync(f.fileno())            # durable before we swap
+        os.replace(tmp, path)
+    except BaseException:
+        os.unlink(tmp)
+        raise
+```
+
+Two details matter: the temp file must be on the **same filesystem** (hence `dir=d`), or `replace` isn't atomic; and `fsync` before the rename ensures the data is really on disk if the machine loses power.
+
+This pattern prevents downstream jobs reading a half-written output — a real and hard-to-debug pipeline failure.
+</QuestionCard>
+
+<QuestionCard id="pyc-lib-04" number={4} question="What is the async equivalent of a context manager?" difficulty="medium" topic="contextlib">
+`async with`, backed by `__aenter__` and `__aexit__`:
+
+```python
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def session():
+    s = aiohttp.ClientSession()
+    try:
+        yield s
+    finally:
+        await s.close()
+
+async with session() as s:
+    async with s.get(url) as resp:
+        data = await resp.json()
+```
+
+The reason it exists: cleanup itself may need to await — closing a connection pool, flushing an async writer. A regular `__exit__` can't await, so the async protocol is a genuine necessity rather than a convenience.
+
+`AsyncExitStack` is the dynamic version, mirroring `ExitStack`.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Write a retry decorator."** — the near-universal decorator question. Cover `functools.wraps`, exponential backoff with jitter, a delay cap, re-raising on the last attempt, and catching a narrow exception tuple.
+
+**"Your pipeline runs out of database connections after a few hours. Why?"** — connections acquired without a context manager, leaked when an exception skipped the `close()`. The fix is `with`, and the tell is that it only shows up under error conditions.
+
+**"How do you make sure a partially written file is never consumed downstream?"** — write to a temp path on the same filesystem and `os.replace` on success. Wrap it in a context manager so it's one line at every call site.
+
+**"Explain what `@property` does and when you'd use it."** — expose computed state as an attribute without breaking the existing API when a plain attribute later needs logic behind it. Mention `@cached_property` for expensive one-time computation.
+
+---
+
+## Further Reading
+
+- [`functools` documentation](https://docs.python.org/3/library/functools.html)
+- [`contextlib` documentation](https://docs.python.org/3/library/contextlib.html)
+- [PEP 318 — Decorators for Functions and Methods](https://peps.python.org/pep-0318/)
+- [PEP 343 — The "with" Statement](https://peps.python.org/pep-0343/)
+- [Primer on Python Decorators](https://realpython.com/primer-on-python-decorators/)
+- [tenacity](https://tenacity.readthedocs.io/) — the retry library worth using instead of hand-rolling

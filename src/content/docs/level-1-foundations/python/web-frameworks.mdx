@@ -1,0 +1,218 @@
+---
+title: Web Frameworks
+description: Python web framework interview questions for data engineers — FastAPI, Flask and Django compared, WSGI versus ASGI, building data APIs, and the async frameworks worth knowing about.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Web Frameworks: The Part of the Stack Data Engineers Touch Occasionally
+
+**This is the least interview-relevant topic on the Python roadmap for a data engineer — but it isn't zero. You will be asked to expose a model or a dataset over an API, write a webhook receiver for an ingestion source, or explain why the dashboard querying your warehouse directly is a bad idea. The depth expected is "can build and reason about a small service," not "can architect a web application."**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Framework Comparison](#framework-comparison)
+- [FastAPI](#fastapi)
+- [Building Data APIs](#building-data-apis)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Python web frameworks sit on one of two interfaces. **WSGI** is the older synchronous standard — one request occupies one worker until it completes, so concurrency comes from running many processes or threads. **ASGI** is the async successor, letting a single process handle many concurrent requests by yielding during I/O waits. Flask and Django are WSGI-native; FastAPI and Starlette are ASGI.
+
+For data work the distinction matters because data APIs are overwhelmingly **I/O-bound** — they wait on a warehouse query, not on CPU. That's exactly the workload ASGI handles well, and exactly where a synchronous framework needs a large worker pool to achieve the same concurrency.
+
+The design principle that matters more than framework choice: **an API in front of a warehouse is not a warehouse**. Analytical queries take seconds to minutes, and an HTTP request that runs one directly will time out, hold a connection, and let any caller trigger an expensive scan. The usual answer is pre-aggregation, caching, pagination, and asynchronous job submission for anything long-running.
+
+---
+
+## Framework Comparison
+
+<QuestionList topic="Framework Comparison" storagePrefix="python-web-comparison">
+
+<QuestionCard id="pyw-cmp-01" number={1} question="Compare Django, Flask and FastAPI." difficulty="medium" topic="Frameworks">
+- **Django** — batteries included: ORM, admin interface, auth, migrations, templating. Excellent when you need a full application with a database-backed domain model and a UI. Heavy for a JSON API, though Django REST Framework is mature.
+- **Flask** — a microframework. Routing and request handling; everything else is your choice of extension. Small, flexible, huge ecosystem. Synchronous by design (async support exists but is limited).
+- **FastAPI** — ASGI-native, built on Starlette and Pydantic. Type-hint-driven validation, automatic OpenAPI docs, async support. The default choice for a new Python API today.
+
+For a data engineer: **FastAPI** for a service, **Flask** if the team already uses it or the service is trivially small, **Django** only if you genuinely need the admin and ORM — an internal data catalogue or a metadata tool being the realistic case.
+</QuestionCard>
+
+<QuestionCard id="pyw-cmp-02" number={2} question="What is the difference between WSGI and ASGI?" difficulty="medium" topic="Frameworks">
+**WSGI** (PEP 3333) is the synchronous interface between a web server and a Python application. One request occupies a worker for its duration; concurrency comes from `gunicorn` running N worker processes or threads.
+
+**ASGI** is the async equivalent, and additionally supports long-lived connections — WebSockets and server-sent events — which WSGI cannot express at all.
+
+The practical consequence: a request that waits three seconds on a warehouse query blocks a WSGI worker for three seconds. With ASGI and an async database driver, that worker handles other requests during the wait, so a single process can serve far more concurrent requests.
+
+Servers: `gunicorn` for WSGI, `uvicorn` for ASGI (often run as `gunicorn` with uvicorn workers, to get gunicorn's process management).
+</QuestionCard>
+
+<QuestionCard id="pyw-cmp-03" number={3} question="What are the other frameworks on the roadmap, and do they matter?" difficulty="easy" topic="Frameworks">
+Briefly, and honestly — most are historical or niche for a data engineer:
+
+- **aiohttp** — async HTTP client *and* server. The **client** is what you'll actually use, for concurrent API ingestion.
+- **Tornado** — predates asyncio; had its own event loop, now integrates with it. Still under Jupyter, which is why it's installed on your machine.
+- **Sanic** — fast async framework, largely superseded by FastAPI.
+- **Pyramid** — flexible, scales from micro to large; small community now.
+- **gevent** — greenlet-based concurrency that monkey-patches the standard library to make synchronous code non-blocking. Used by some older Gunicorn deployments.
+- **Plotly Dash** — not a web framework so much as a **dashboarding tool** on Flask, and the one most likely to be genuinely useful for surfacing data.
+
+Knowing that aiohttp's client and Dash exist is worth more than any depth on the others.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## FastAPI
+
+<QuestionList topic="FastAPI" storagePrefix="python-web-fastapi">
+
+<QuestionCard id="pyw-fa-01" number={1} question="What makes FastAPI different from Flask?" difficulty="medium" topic="FastAPI">
+Type hints drive validation, serialisation and documentation:
+
+```python
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class Query(BaseModel):
+    table: str
+    start_date: date
+    limit: int = 100
+
+@app.post("/aggregate")
+async def aggregate(q: Query) -> list[dict]:
+    return await run_query(q)
+```
+
+From those annotations FastAPI generates request validation, error responses, response serialisation, and an interactive **OpenAPI/Swagger** page — none of which you write.
+
+The other differences: it's **async-native**, so I/O-bound endpoints scale without a large worker pool, and its **dependency injection** system handles database sessions and auth cleanly. Flask needs extensions for most of this and doesn't get the type-driven documentation at all.
+</QuestionCard>
+
+<QuestionCard id="pyw-fa-02" number={2} question="What is FastAPI's dependency injection used for?" difficulty="medium" topic="FastAPI">
+Declaring what an endpoint needs, so the framework provides it — with setup and teardown handled per request:
+
+```python
+from fastapi import Depends, HTTPException
+
+async def get_db():
+    async with SessionLocal() as session:
+        yield session                      # teardown after the response
+
+async def require_api_key(x_api_key: str = Header(...)):
+    if not valid(x_api_key):
+        raise HTTPException(401, "invalid key")
+
+@app.get("/rows")
+async def rows(db=Depends(get_db), _=Depends(require_api_key)):
+    ...
+```
+
+The value is that connection lifecycle, authentication and shared configuration are declared once and reused, rather than repeated in every handler. Dependencies can depend on other dependencies, and overriding them in tests is a single call — which makes endpoints genuinely unit-testable.
+</QuestionCard>
+
+<QuestionCard id="pyw-fa-03" number={3} question="What happens if you use a blocking call in an async endpoint?" difficulty="hard" topic="FastAPI">
+It blocks the event loop, and therefore **every other concurrent request** in that worker.
+
+```python
+@app.get("/bad")
+async def bad():
+    return pd.read_sql(HEAVY_QUERY, sync_engine)     # freezes the whole worker
+```
+
+Three correct options:
+
+1. **Use an async driver** — `asyncpg`, `databases`, SQLAlchemy's async engine.
+2. **Offload to a thread** — `await asyncio.to_thread(blocking_fn)`.
+3. **Define the endpoint as `def` rather than `async def`** — FastAPI then runs it in a threadpool automatically, which is the pragmatic choice when your database library is synchronous.
+
+That third point is the one people miss: a plain `def` endpoint in FastAPI is safe with blocking code; an `async def` one is not. Mixing them up is the most common FastAPI performance bug.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Building Data APIs
+
+<QuestionList topic="Building Data APIs" storagePrefix="python-web-data-apis">
+
+<QuestionCard id="pyw-api-01" number={1} question="What are the risks of putting an API directly in front of a data warehouse?" difficulty="hard" topic="Data APIs">
+- **Latency mismatch.** Analytical queries take seconds to minutes; HTTP clients time out in seconds. The request fails while the query keeps running and keeps costing money.
+- **Uncontrolled cost.** On BigQuery or Snowflake, an unbounded query triggered by an anonymous request is a direct bill, and a loop in a caller's code is an expensive incident.
+- **Concurrency limits.** Warehouses handle tens of concurrent queries, not thousands. A traffic spike queues everything, including your scheduled pipelines.
+- **No isolation.** An ad-hoc API query competing with production ETL slows both.
+
+Mitigations: **pre-aggregate** into a serving store (Postgres, Redis, DynamoDB) shaped for the access pattern; **cache** aggressively; **paginate** and cap result sizes; **rate limit** per consumer; and for anything genuinely long-running, accept the request, return a job ID, and let the client poll.
+</QuestionCard>
+
+<QuestionCard id="pyw-api-02" number={2} question="How would you design an endpoint that returns a large result set?" difficulty="medium" topic="Data APIs">
+Never return an unbounded result in one response.
+
+- **Paginate.** Prefer **keyset pagination** (`WHERE id > last_seen ORDER BY id LIMIT n`) over `OFFSET`, which degrades linearly as offset grows and can skip or duplicate rows when data changes between pages.
+- **Cap the page size** server-side, and enforce it regardless of what the client asks for.
+- **Stream** when the result is genuinely large — `StreamingResponse` over a generator, so memory stays constant and the client gets bytes immediately.
+- **Or don't use HTTP.** For a bulk export, write Parquet to object storage and return a **pre-signed URL**. That's faster, cheaper, resumable, and doesn't hold a connection for ten minutes.
+
+That last option is the answer interviewers most want to hear — recognising that an API is the wrong transport for bulk data.
+</QuestionCard>
+
+<QuestionCard id="pyw-api-03" number={3} question="How do you handle a long-running job triggered over HTTP?" difficulty="medium" topic="Data APIs">
+Don't do the work in the request. Use the **asynchronous request-reply** pattern:
+
+1. `POST /jobs` validates the request, enqueues it (Celery, RQ, SQS, or a scheduler trigger), and returns **202 Accepted** with a job ID.
+2. `GET /jobs/{id}` returns status — queued, running, failed, succeeded — and a result location when done.
+3. Optionally, a webhook or WebSocket pushes completion instead of polling.
+
+This decouples the HTTP timeout from the work duration entirely, survives a client disconnect, and makes retries and progress reporting possible.
+
+Make the submission **idempotent** with a client-supplied key, so a retried POST doesn't launch the job twice — a real problem when a network blip makes a client resend.
+</QuestionCard>
+
+<QuestionCard id="pyw-api-04" number={4} question="What should a production data API have beyond the endpoints?" difficulty="medium" topic="Data APIs">
+- **Authentication and authorisation** — API keys or OAuth, and row-level scoping if consumers should see different data.
+- **Rate limiting** per consumer, to protect the warehouse behind it.
+- **Input validation** — Pydantic models, and never string-formatted SQL. Parameterise everything.
+- **Structured logging** with a correlation ID per request.
+- **Metrics** — latency percentiles, error rate, and query cost per endpoint.
+- **Health and readiness endpoints** that check the database connection, not just that the process is alive.
+- **Timeouts** at every layer, including a statement timeout on the database.
+- **Versioning** (`/v1/`) so you can change response shapes without breaking consumers.
+- **A schema contract** — the OpenAPI spec generated from your models, published so consumers can generate clients.
+
+The database statement timeout is the one most often missing, and it's what turns a slow query into an outage.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Expose this dataset to another team."** — ask about the access pattern first. Bulk and infrequent means files in object storage with pre-signed URLs, not an API. Point lookups mean a serving store and a small API. Analytical exploration means warehouse access with a governed role, not a bespoke service.
+
+**"Your API times out on some requests."** — the query is analytical and the client isn't. Pre-aggregate, cache, paginate, and move anything genuinely long-running to a job-submission pattern. Add a database statement timeout so a runaway query fails fast rather than holding resources.
+
+**"Why is your FastAPI service slow under load despite being async?"** — almost certainly a blocking call inside an `async def` handler, freezing the event loop. Either use an async driver, offload with `to_thread`, or declare the endpoint as plain `def` so FastAPI runs it in a threadpool.
+
+**"Which framework would you pick for a new internal data service?"** — FastAPI, for type-driven validation, generated OpenAPI docs and async I/O. Say plainly that team familiarity can override this; a Flask service the team can maintain beats a FastAPI one they can't.
+
+---
+
+## Further Reading
+
+- [FastAPI documentation](https://fastapi.tiangolo.com/) — unusually good; the tutorial is worth doing end to end
+- [Flask documentation](https://flask.palletsprojects.com/)
+- [Django documentation](https://docs.djangoproject.com/)
+- [ASGI specification](https://asgi.readthedocs.io/)
+- [PEP 3333 — WSGI](https://peps.python.org/pep-3333/)
+- [aiohttp documentation](https://docs.aiohttp.org/) — mainly for the client
+- [Plotly Dash](https://dash.plotly.com/) — the dashboarding option built on Flask

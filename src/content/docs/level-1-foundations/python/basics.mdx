@@ -1,0 +1,597 @@
+---
+title: Python Basics
+description: Python fundamentals interview questions covering syntax, variables and data types, conditionals and loops, type casting, exception handling, built-in functions, and the four core collections — lists, tuples, sets and dictionaries.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Python Basics: The Parts Interviewers Actually Probe
+
+**Nobody gets asked "what is a for loop." What they get asked is why a default argument of `[]` behaves strangely, why `is` and `==` disagree on large integers, and what happens when you mutate a list while iterating it. Basics questions are really questions about Python's object model — references, mutability, and identity — and that's where the follow-ups go.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Syntax & Variables](#syntax--variables)
+- [Data Types & Casting](#data-types--casting)
+- [Conditionals & Loops](#conditionals--loops)
+- [Exceptions](#exceptions)
+- [Built-in Functions](#built-in-functions)
+- [Lists & Tuples](#lists--tuples)
+- [Sets & Dictionaries](#sets--dictionaries)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+Everything in Python is an **object**, and every variable is a **reference** to one — never a box containing a value. Assignment binds a name to an object; it never copies. That single fact explains the mutable-default-argument trap, why two lists can be `==` but not `is`, and why passing a list into a function lets the function change the caller's data.
+
+The second organising idea is **mutability**. Lists, dicts and sets can be changed in place; ints, floats, strings and tuples cannot — operations on them return new objects. Mutability determines whether something can be a dict key (it must be hashable, which mutable built-ins are not), whether it's safe as a default argument, and whether a "copy" is actually independent.
+
+---
+
+## Syntax & Variables
+
+<QuestionList topic="Syntax & Variables" storagePrefix="python-basics-syntax">
+
+<QuestionCard id="pyb-syn-01" number={1} question="How does Python delimit blocks, and what problems does that cause in practice?" difficulty="easy" topic="Syntax">
+Python uses **indentation** rather than braces or keywords. A consistent indent opens a block; dedenting closes it.
+
+The practical problems are mixing tabs and spaces (Python 3 rejects this outright with a `TabError`) and losing block structure when code is copied between editors. The fix is universal: configure 4 spaces, never tabs, and let a formatter enforce it.
+
+The upside worth naming is that indentation and logical structure can never disagree — a class of bug that exists in brace languages simply doesn't occur.
+</QuestionCard>
+
+<QuestionCard id="pyb-syn-02" number={2} question="What actually happens when you write x = [1, 2, 3]?" difficulty="medium" topic="Variables">
+Three separate things: a list object is created, the name `x` is created in the current namespace, and `x` is **bound** to that object. The name is a label, not a container.
+
+This is why assignment never copies:
+
+```python
+a = [1, 2, 3]
+b = a          # b points at the SAME list
+b.append(4)
+print(a)       # [1, 2, 3, 4]
+```
+
+To get an independent object you must copy explicitly — `b = a.copy()` or `b = list(a)` for a shallow copy, `copy.deepcopy(a)` when the list contains mutable objects you also need to separate.
+</QuestionCard>
+
+<QuestionCard id="pyb-syn-03" number={3} question="What is the difference between == and is?" difficulty="medium" topic="Variables">
+`==` compares **values** (via `__eq__`). `is` compares **identity** — whether two names point at the same object in memory.
+
+```python
+a = [1, 2]; b = [1, 2]
+a == b    # True  — same contents
+a is b    # False — two distinct objects
+```
+
+Use `is` only for singletons: `if x is None`, `is True`, `is False`. Use `==` for everything else.
+
+The confusing part is that small integers (-5 to 256) and some short strings are **interned** — cached and reused — so `a = 256; b = 256; a is b` is `True` while `a = 257; b = 257; a is b` is typically `False`. That's a CPython implementation detail, not a language guarantee, and relying on it is a bug.
+</QuestionCard>
+
+<QuestionCard id="pyb-syn-04" number={4} question="What are Python's naming conventions?" difficulty="easy" topic="Syntax">
+From PEP 8:
+
+- `snake_case` — functions, variables, methods, modules
+- `PascalCase` — classes
+- `UPPER_SNAKE_CASE` — module-level constants
+- `_leading_underscore` — internal by convention; not enforced, but "don't touch this"
+- `__double_leading` — triggers **name mangling** inside a class (`__x` becomes `_ClassName__x`), which prevents accidental override in subclasses
+- `__dunder__` — reserved for Python's own protocol methods; don't invent your own
+- `trailing_underscore_` — avoids clashing with a keyword, e.g. `class_`, `id_`
+</QuestionCard>
+
+<QuestionCard id="pyb-syn-05" number={5} question="What is the walrus operator and when is it useful?" difficulty="medium" topic="Syntax">
+`:=` assigns **and** returns a value in one expression, added in Python 3.8.
+
+```python
+# read in chunks without repeating the read call
+while (chunk := f.read(8192)):
+    process(chunk)
+
+# avoid computing an expensive value twice
+if (rows := expensive_query()) and len(rows) > 100:
+    handle(rows)
+```
+
+It's most valuable when you'd otherwise call something twice or restructure a loop around a sentinel. Use it sparingly — packing an assignment into a condition hurts readability quickly, which is why it's an expression-level tool rather than a general replacement for `=`.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Data Types & Casting
+
+<QuestionList topic="Data Types & Casting" storagePrefix="python-basics-types">
+
+<QuestionCard id="pyb-cast-01" number={1} question="What are Python's built-in data types?" difficulty="easy" topic="Data Types">
+- **Numeric** — `int` (arbitrary precision), `float` (64-bit IEEE 754), `complex`
+- **Sequence** — `list` (mutable), `tuple` (immutable), `range`
+- **Text** — `str` (immutable, Unicode)
+- **Binary** — `bytes` (immutable), `bytearray` (mutable), `memoryview`
+- **Mapping** — `dict`
+- **Set** — `set` (mutable), `frozenset` (immutable)
+- **Boolean** — `bool`, a subclass of `int` where `True == 1`
+- **None** — `NoneType`, with exactly one instance
+
+The detail that catches people: `bool` subclassing `int` means `True + True == 2` and `sum([True, False, True]) == 2` — occasionally useful for counting matches, occasionally a surprise.
+</QuestionCard>
+
+<QuestionCard id="pyb-cast-02" number={2} question="What is the difference between mutable and immutable types?" difficulty="easy" topic="Data Types">
+**Mutable** objects can be changed in place: `list`, `dict`, `set`, `bytearray`, and most custom classes. **Immutable** ones cannot: `int`, `float`, `str`, `tuple`, `frozenset`, `bytes`.
+
+Operations that look like mutation on an immutable object actually rebind the name to a new object:
+
+```python
+s = "abc"
+t = s
+s += "d"      # creates a NEW string
+print(t)      # "abc" — unaffected
+```
+
+Consequences: only immutable (hashable) objects can be dict keys or set members; immutable objects are safe to share across threads; and building a string in a loop with `+=` is O(n²) because each step allocates a new string — use `"".join(parts)` instead.
+</QuestionCard>
+
+<QuestionCard id="pyb-cast-03" number={3} question="How do you convert between types, and what goes wrong?" difficulty="easy" topic="Casting">
+```python
+int("42")          # 42
+int("42.7")        # ValueError — int() won't parse a decimal string
+int(42.7)          # 42 — truncates toward zero, does not round
+float("nan")       # valid! produces a NaN
+str(42)            # "42"
+bool("False")      # True — any non-empty string is truthy
+list("abc")        # ['a', 'b', 'c']
+```
+
+The two that bite in data pipelines: `int("42.7")` raises rather than truncating, so parsing a numeric column needs `int(float(x))`; and `bool()` on a string is truthiness, not parsing, so a CSV column containing `"False"` converts to `True`. Handle those explicitly rather than relying on the constructor.
+</QuestionCard>
+
+<QuestionCard id="pyb-cast-04" number={4} question="Why does 0.1 + 0.2 != 0.3, and what should you do about it?" difficulty="medium" topic="Data Types">
+Floats are IEEE 754 binary, and 0.1 has no exact binary representation — just as 1/3 has no exact decimal one. The stored value is very slightly off, and errors accumulate.
+
+```python
+0.1 + 0.2            # 0.30000000000000004
+```
+
+Fixes depending on need:
+- **Comparison** — `math.isclose(a, b)` rather than `==`.
+- **Money and exact decimals** — `decimal.Decimal("0.1")`, constructed **from a string**; `Decimal(0.1)` inherits the float's error.
+- **Exact ratios** — `fractions.Fraction`.
+- **Storage** — a `DECIMAL`/`NUMERIC` column, never `FLOAT`, for currency.
+
+This comes up constantly in data engineering because financial aggregations computed in floats fail reconciliation.
+</QuestionCard>
+
+<QuestionCard id="pyb-cast-05" number={5} question="What is the difference between str and bytes, and when does it matter?" difficulty="medium" topic="Data Types">
+`str` is a sequence of **Unicode code points** — text. `bytes` is a sequence of **8-bit integers** — raw binary. Python 3 refuses to mix them implicitly.
+
+```python
+text = "café"
+data = text.encode("utf-8")     # b'caf\xc3\xa9' — 5 bytes for 4 characters
+back = data.decode("utf-8")     # "café"
+```
+
+It matters whenever data crosses a boundary: files opened in binary mode, network sockets, and most compression and hashing libraries all deal in `bytes`. The classic failure is a `UnicodeDecodeError` when a file is actually latin-1 or has a BOM. Be explicit about encoding on every `open()` — never rely on the platform default, which differs between your laptop and the container.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Conditionals & Loops
+
+<QuestionList topic="Conditionals & Loops" storagePrefix="python-basics-control-flow">
+
+<QuestionCard id="pyb-cond-01" number={1} question="What is truthiness, and which values are falsy?" difficulty="easy" topic="Conditionals">
+Any object can be used in a boolean context. The falsy values are:
+
+`False`, `None`, `0`, `0.0`, `0j`, `Decimal(0)`, `""`, `[]`, `()`, `{}`, `set()`, `range(0)`, and any object whose `__bool__` returns `False` or whose `__len__` returns 0.
+
+Everything else is truthy. So `if items:` is the idiomatic empty check.
+
+The trap: `if x:` is **not** the same as `if x is not None:`. If `x` is `0` or an empty list, the first branch is skipped even though `x` was legitimately provided. For optional parameters that can validly be zero or empty, always test `is not None`.
+</QuestionCard>
+
+<QuestionCard id="pyb-cond-02" number={2} question="What does the else clause on a for or while loop do?" difficulty="medium" topic="Loops">
+The `else` block runs when the loop finishes **without hitting `break`**.
+
+```python
+for row in rows:
+    if row.id == target:
+        print("found")
+        break
+else:
+    print("not found in any row")
+```
+
+It's a clean search idiom that avoids a separate `found = False` flag. The name is genuinely confusing — read it as "no break" rather than "else" — which is why many teams avoid it despite it being useful.
+</QuestionCard>
+
+<QuestionCard id="pyb-cond-03" number={3} question="What happens if you modify a list while iterating over it?" difficulty="medium" topic="Loops">
+You silently skip elements. The loop tracks an index; removing an item shifts everything left, so the next item slides into the index just consumed.
+
+```python
+nums = [1, 2, 3, 4]
+for n in nums:
+    if n % 2 == 0:
+        nums.remove(n)
+print(nums)      # [1, 3] — but 4 was never even tested
+```
+
+Fixes: build a new list (`[n for n in nums if n % 2]`), iterate over a copy (`for n in nums[:]`), or iterate backwards by index.
+
+For dictionaries it's worse — changing size during iteration raises `RuntimeError` rather than failing quietly. Iterate over `list(d.keys())` if you need to delete while looping.
+</QuestionCard>
+
+<QuestionCard id="pyb-cond-04" number={4} question="How do enumerate and zip work, and what's the gotcha with zip?" difficulty="easy" topic="Loops">
+```python
+for i, row in enumerate(rows, start=1):     # index alongside the value
+    ...
+
+for name, value in zip(names, values):      # iterate two sequences together
+    ...
+```
+
+`enumerate` replaces manual counter variables. `zip` stops at the **shortest** input — which silently truncates if your sequences are different lengths, a real hazard when zipping column names to values from a malformed row.
+
+Python 3.10 added `zip(a, b, strict=True)`, which raises instead of truncating. Use it whenever equal length is an invariant rather than a hope. `itertools.zip_longest` pads instead, if that's what you want.
+</QuestionCard>
+
+<QuestionCard id="pyb-cond-05" number={5} question="What is structural pattern matching, and when is it better than if/elif?" difficulty="medium" topic="Conditionals">
+`match`/`case`, added in 3.10, matches on **structure**, not just equality:
+
+```python
+match event:
+    case {"type": "insert", "table": str(table), "data": data}:
+        handle_insert(table, data)
+    case {"type": "delete", "id": int(id)}:
+        handle_delete(id)
+    case _:
+        raise ValueError(f"unknown event: {event}")
+```
+
+It destructures and type-checks in one step, which is genuinely clearer than a chain of `if`s digging into nested dicts — a common shape when processing CDC events or API payloads. For simple value equality, `if`/`elif` or a dict lookup is still simpler.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Exceptions
+
+<QuestionList topic="Exceptions" storagePrefix="python-basics-exceptions">
+
+<QuestionCard id="pyb-exc-01" number={1} question="Explain try, except, else and finally." difficulty="easy" topic="Exceptions">
+```python
+try:
+    conn = connect()          # code that might raise
+except TimeoutError as e:
+    log.warning("retrying: %s", e)
+    raise
+else:
+    process(conn)             # runs only if NO exception occurred
+finally:
+    cleanup()                 # runs always, exception or not
+```
+
+`else` exists so the `try` block stays minimal — only the statement that can raise goes in it, so you don't accidentally catch an exception from unrelated code. `finally` always runs, including when the `try` block returns, which makes it the place for releasing resources.
+</QuestionCard>
+
+<QuestionCard id="pyb-exc-02" number={2} question="Why is a bare 'except:' bad?" difficulty="medium" topic="Exceptions">
+`except:` catches **everything**, including `KeyboardInterrupt` and `SystemExit`, which are not errors — they're how a process gets shut down. A bare except makes your job unkillable with Ctrl+C and swallows a `SystemExit` from a deliberate exit.
+
+It also hides bugs: a `NameError` from a typo gets caught and logged as if it were an expected failure.
+
+Catch the narrowest exception that you can actually handle. `except Exception:` is the broad-but-acceptable form — it excludes the two above. And if you catch broadly to log, re-raise afterwards:
+
+```python
+except Exception:
+    log.exception("task failed")
+    raise
+```
+</QuestionCard>
+
+<QuestionCard id="pyb-exc-03" number={3} question="What is the difference between raise, raise ... from, and a bare raise?" difficulty="medium" topic="Exceptions">
+- **`raise ValueError("bad row")`** — raise a new exception.
+- **`raise`** (bare, inside an `except`) — re-raise the current exception with its **original traceback** intact. Always prefer this to `raise e`, which resets the traceback to the current line and loses where the failure actually started.
+- **`raise ParseError(...) from e`** — explicit exception chaining. The output shows "The above exception was the direct cause of the following exception," preserving both.
+
+Chaining matters in pipelines: wrapping a driver-level `OperationalError` in a domain-level `IngestionFailed` keeps your API clean while the traceback still shows the real database error.
+</QuestionCard>
+
+<QuestionCard id="pyb-exc-04" number={4} question="How do you define and use a custom exception?" difficulty="easy" topic="Exceptions">
+```python
+class PipelineError(Exception):
+    """Base for all errors raised by this package."""
+
+class SchemaMismatch(PipelineError):
+    def __init__(self, table, expected, actual):
+        self.table, self.expected, self.actual = table, expected, actual
+        super().__init__(f"{table}: expected {expected}, got {actual}")
+```
+
+Two practices worth naming. Give the package a **single base exception** so callers can write `except PipelineError:` and catch everything you raise without catching unrelated errors. And attach **structured attributes**, not just a message string, so a handler can act on the details rather than parsing text.
+</QuestionCard>
+
+<QuestionCard id="pyb-exc-05" number={5} question="What are EAFP and LBYL, and which does Python prefer?" difficulty="medium" topic="Exceptions">
+**LBYL** — "Look Before You Leap": check first, then act.
+**EAFP** — "Easier to Ask Forgiveness than Permission": act, and handle the exception.
+
+```python
+# LBYL — has a race condition: the file can vanish between the two lines
+if os.path.exists(path):
+    data = open(path).read()
+
+# EAFP — atomic, and idiomatic Python
+try:
+    data = open(path).read()
+except FileNotFoundError:
+    data = None
+```
+
+Python prefers **EAFP**. It avoids time-of-check-to-time-of-use races with files, network resources and shared state, and it's faster in the common case since no check runs when nothing goes wrong. LBYL is still right when the check is cheap and failure is expected often, since exceptions are relatively costly.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Built-in Functions
+
+<QuestionList topic="Built-in Functions" storagePrefix="python-basics-builtins">
+
+<QuestionCard id="pyb-fn-01" number={1} question="Which built-in functions come up most in data work?" difficulty="easy" topic="Built-ins">
+- **`len`, `sum`, `min`, `max`, `abs`, `round`** — aggregation basics.
+- **`sorted`** — returns a new sorted list, works on any iterable, accepts `key` and `reverse`.
+- **`enumerate`, `zip`, `reversed`, `range`** — iteration helpers.
+- **`any`, `all`** — short-circuiting boolean reductions over an iterable.
+- **`map`, `filter`** — lazy transforms (comprehensions are usually clearer).
+- **`isinstance`, `type`, `hasattr`, `getattr`** — introspection.
+- **`open`** — file I/O.
+- **`repr`** — the debugging representation, as opposed to `str`.
+
+`any`/`all` are underused: `if all(col in row for col in required)` is a clean schema check that stops at the first miss.
+</QuestionCard>
+
+<QuestionCard id="pyb-fn-02" number={2} question="What is the difference between sorted() and .sort()?" difficulty="easy" topic="Built-ins">
+`sorted(iterable)` returns a **new list** and works on anything iterable — a set, a generator, dict keys. `list.sort()` sorts **in place**, returns `None`, and only exists on lists.
+
+```python
+rows.sort(key=lambda r: (r["date"], -r["amount"]))   # in place
+top = sorted(rows, key=itemgetter("amount"), reverse=True)[:10]
+```
+
+The classic bug is `rows = rows.sort()`, which sets `rows` to `None`.
+
+Both are **stable** — equal elements keep their relative order — which is what lets you sort by one key and then another to get a multi-level ordering.
+</QuestionCard>
+
+<QuestionCard id="pyb-fn-03" number={3} question="How does the key parameter work in sorted, min and max?" difficulty="medium" topic="Built-ins">
+`key` is a function applied to each element to produce the value actually compared. The original elements are what get returned.
+
+```python
+sorted(files, key=os.path.getsize)
+sorted(rows, key=lambda r: (r["dept"], -r["salary"]))   # dept asc, salary desc
+max(records, key=lambda r: r["timestamp"])
+sorted(words, key=str.lower)                            # case-insensitive
+```
+
+Returning a **tuple** from `key` gives multi-level sorting, and negating a number reverses just that level. `operator.itemgetter("a", "b")` and `attrgetter` are faster than an equivalent lambda because they're implemented in C.
+
+`key` is called exactly once per element, unlike the old `cmp` parameter, which is why it's efficient.
+</QuestionCard>
+
+<QuestionCard id="pyb-fn-04" number={4} question="What does isinstance do, and why prefer it to type()?" difficulty="medium" topic="Built-ins">
+`isinstance(x, C)` is `True` if `x` is an instance of `C` **or any subclass**. `type(x) is C` demands an exact match.
+
+```python
+isinstance(True, int)         # True — bool subclasses int
+type(True) is int             # False
+isinstance(x, (int, float))   # accepts a tuple of types
+```
+
+Prefer `isinstance` because it respects inheritance, which is the point of subclassing — code that rejects a subclass of the type it asked for is broken. Use `type() is` only when you genuinely need to exclude subclasses.
+
+Better still, prefer **duck typing** or a `Protocol` — checking for the behaviour you need rather than the concrete class.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Lists & Tuples
+
+<QuestionList topic="Lists & Tuples" storagePrefix="python-basics-sequences">
+
+<QuestionCard id="pyb-list-01" number={1} question="What is the difference between a list and a tuple, beyond mutability?" difficulty="easy" topic="Lists & Tuples">
+Mutability is the primary difference, and the consequences follow from it:
+
+- **Hashability** — a tuple of immutables can be a dict key or set member; a list cannot.
+- **Memory and speed** — tuples are slightly smaller and faster to construct, since they never need spare capacity for growth.
+- **Intent** — a list signals a homogeneous, variable-length collection; a tuple signals a fixed-size record where position has meaning (`(lat, lon)`).
+
+That last point is the one to lead with in an interview — it's a design signal, not just a performance one. `namedtuple` or a `dataclass` is better still when the positions have names.
+</QuestionCard>
+
+<QuestionCard id="pyb-list-02" number={2} question="How does list slicing work, including negative and step values?" difficulty="easy" topic="Lists & Tuples">
+`seq[start:stop:step]` — `start` inclusive, `stop` exclusive, all optional.
+
+```python
+xs[2:5]      # items 2, 3, 4
+xs[:3]       # first three
+xs[-3:]      # last three
+xs[::2]      # every other item
+xs[::-1]     # reversed copy
+xs[:]        # shallow copy of the whole list
+```
+
+Slicing a list always returns a **new list**, so `xs[:]` is a common shallow-copy idiom. Out-of-range slice bounds are clamped rather than raising — `xs[5:100]` on a 3-element list returns `[]` — which is convenient but can silently hide an indexing bug.
+</QuestionCard>
+
+<QuestionCard id="pyb-list-03" number={3} question="What is the time complexity of common list operations?" difficulty="medium" topic="Lists & Tuples">
+| Operation | Complexity |
+|---|---|
+| Index `xs[i]`, `len(xs)` | O(1) |
+| `append`, `pop()` from the end | O(1) amortised |
+| `insert(0, x)`, `pop(0)` | **O(n)** — shifts everything |
+| `x in xs` | O(n) |
+| `remove(x)`, `del xs[i]` | O(n) |
+| `sort()` | O(n log n) |
+| Slice `xs[a:b]` | O(b−a) |
+
+The two that matter in pipeline code: **membership testing is O(n)** — use a `set` if you check repeatedly, turning an O(n·m) loop into O(n+m) — and **inserting or popping at the front is O(n)**, so use `collections.deque` for a queue.
+</QuestionCard>
+
+<QuestionCard id="pyb-list-04" number={4} question="Why is a mutable default argument dangerous?" difficulty="hard" topic="Lists & Tuples">
+Default arguments are evaluated **once**, when the function is defined — not on each call. So one list is shared by every call that doesn't override it:
+
+```python
+def add_row(row, batch=[]):      # BUG
+    batch.append(row)
+    return batch
+
+add_row("a")     # ['a']
+add_row("b")     # ['a', 'b']  — the same list
+```
+
+The fix is a `None` sentinel:
+
+```python
+def add_row(row, batch=None):
+    if batch is None:
+        batch = []
+    batch.append(row)
+    return batch
+```
+
+It's a favourite interview question because it tests whether you understand *when* the default expression runs. The same applies to `{}`, `set()`, and any call like `datetime.now()` as a default — which freezes at import time.
+</QuestionCard>
+
+<QuestionCard id="pyb-list-05" number={5} question="What is the difference between a shallow and a deep copy?" difficulty="medium" topic="Lists & Tuples">
+A **shallow copy** (`xs.copy()`, `list(xs)`, `xs[:]`, `copy.copy`) creates a new outer object whose elements are the *same* objects as the original's.
+
+```python
+import copy
+rows = [{"a": 1}, {"b": 2}]
+shallow = rows.copy()
+shallow[0]["a"] = 99
+rows[0]                        # {'a': 99} — the inner dict is shared
+
+deep = copy.deepcopy(rows)     # fully independent, recursively
+```
+
+Shallow is fine when elements are immutable, and it's much cheaper. Deep copy is needed for nested mutable structures — but it's slow, and it fails or behaves oddly on objects holding file handles or database connections. Often the better answer is to avoid mutation entirely and build a new structure.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Sets & Dictionaries
+
+<QuestionList topic="Sets & Dictionaries" storagePrefix="python-basics-mappings">
+
+<QuestionCard id="pyb-dict-01" number={1} question="How does a dict work internally, and what does that imply?" difficulty="medium" topic="Dictionaries">
+A dict is a **hash table**. Storing a key computes `hash(key)`, uses it to pick a slot, and handles collisions by probing. That gives average **O(1)** lookup, insert and delete.
+
+Implications:
+- Keys must be **hashable**, therefore effectively immutable — `list` and `dict` can't be keys, `tuple` and `frozenset` can.
+- A key's hash must never change while it's in the dict, which is why mutating a custom object used as a key corrupts lookups.
+- Worst case is O(n) if all keys collide, but Python's hash randomisation makes that impractical to trigger accidentally.
+
+Since 3.7, dicts also **preserve insertion order** as a language guarantee — relied on heavily when column order matters.
+</QuestionCard>
+
+<QuestionCard id="pyb-dict-02" number={2} question="What are the safe ways to access and update dict entries?" difficulty="easy" topic="Dictionaries">
+```python
+d["k"]                    # KeyError if missing
+d.get("k")                # None if missing
+d.get("k", 0)             # explicit default
+d.setdefault("k", []).append(x)    # get-or-create in one step
+d.pop("k", None)          # remove, tolerating absence
+{**d1, **d2}              # merge, d2 wins
+d1 | d2                   # same, Python 3.9+
+d.update(other)           # merge in place
+```
+
+For accumulating, `collections.defaultdict(list)` is cleaner than repeated `setdefault`. For counting, `collections.Counter` beats both.
+
+Note `d.get("k")` returning `None` is indistinguishable from a key that genuinely holds `None` — use `"k" in d` when that distinction matters.
+</QuestionCard>
+
+<QuestionCard id="pyb-dict-03" number={3} question="What are dict views, and why do they matter?" difficulty="medium" topic="Dictionaries">
+`d.keys()`, `d.values()` and `d.items()` return **views** — dynamic windows onto the dict, not copies. They reflect later changes and take O(1) memory.
+
+```python
+keys = d.keys()
+d["new"] = 1
+"new" in keys        # True — the view updated
+```
+
+Two consequences. Iterating a view while changing the dict's size raises `RuntimeError`, so wrap it in `list()` when you need to mutate during iteration. And key views support **set operations** — `d1.keys() & d2.keys()` gives common keys, `-` gives the difference — which is a neat way to diff two records or find missing columns.
+</QuestionCard>
+
+<QuestionCard id="pyb-set-01" number={4} question="What are sets good for, and what are their operations?" difficulty="easy" topic="Sets">
+A set is an unordered collection of unique, hashable elements with **O(1)** membership testing.
+
+```python
+a | b     # union
+a & b     # intersection
+a - b     # difference
+a ^ b     # symmetric difference
+a <= b    # subset
+```
+
+In data work: deduplicating, and comparing schemas — `set(actual_cols) - set(expected_cols)` immediately answers "what's unexpected in this file."
+
+The main constraints are that sets are unordered (don't rely on iteration order) and elements must be hashable, so you can't put dicts in a set without converting them to something immutable first.
+</QuestionCard>
+
+<QuestionCard id="pyb-set-02" number={5} question="When should you use a set instead of a list?" difficulty="medium" topic="Sets">
+Whenever you're testing membership repeatedly or need uniqueness.
+
+```python
+# O(n * m) — checks every seen id linearly
+seen = []
+for r in rows:
+    if r.id not in seen:
+        seen.append(r.id)
+
+# O(n) — hash lookup
+seen = set()
+for r in rows:
+    if r.id not in seen:
+        seen.add(r.id)
+```
+
+On a million rows that's the difference between seconds and effectively never finishing. Stick with a list when order matters, when you need duplicates, or when elements aren't hashable. If you need both uniqueness *and* insertion order, `dict.fromkeys(items)` preserves order while deduplicating.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"What does this print?"** — a mutable default argument, or a loop that mutates the list it's iterating. Both are testing the object model, not trivia. Explain *why*, not just what.
+
+**"How would you deduplicate a million records by ID, keeping the first occurrence?"** — a `set` of seen IDs plus a list for output, or `dict.fromkeys` if the ID is the whole record. The point is recognising that `in` on a list is O(n).
+
+**"You're parsing a CSV where a numeric column sometimes contains empty strings and sometimes '1,234'. How do you handle it?"** — a parse function with explicit handling for each case, returning `None` for unparseable values rather than raising or silently coercing. Mention that `int("1,234")` raises and `bool("")` is `False` while `bool("0")` is `True`.
+
+**"Why is string concatenation in a loop slow?"** — strings are immutable, so each `+=` allocates a new string and copies, giving O(n²). Use `"".join(parts)`.
+
+---
+
+## Further Reading
+
+- [The Python Tutorial](https://docs.python.org/3/tutorial/) — the official one, and genuinely good
+- [PEP 8 — Style Guide](https://peps.python.org/pep-0008/)
+- [Python Data Model](https://docs.python.org/3/reference/datamodel.html) — why `is`, `==` and dunder methods behave as they do
+- [TimeComplexity — Python Wiki](https://wiki.python.org/moin/TimeComplexity) — the operation cost table above, in full
+- [Fluent Python](https://www.oreilly.com/library/view/fluent-python-2nd/9781492056348/) — the standard reference for going deeper
