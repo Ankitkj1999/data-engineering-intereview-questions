@@ -1,0 +1,246 @@
+---
+title: The Data Lifecycle
+description: Data lifecycle interview questions covering data generation and source systems, storage architecture, ingestion, transformation and serving — the end-to-end journey data takes through a platform.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## The Data Lifecycle: Generation to Serving
+
+**Almost every data engineering interview has a stage where you have to design something end to end, and the lifecycle is the frame that keeps that answer organised. Where does data come from, how does it land, where does it live, how is it shaped, and who consumes it — with the undercurrents of governance, quality and cost running through all five. Candidates who answer stage by stage sound structured; candidates who jump straight to "I'd use Kafka" don't.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Data Generation](#data-generation)
+- [Data Storage](#data-storage)
+- [Data Ingestion](#data-ingestion)
+- [Transformation & Serving](#transformation--serving)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The lifecycle has five stages — **generation, storage, ingestion, transformation, serving** — but storage is not really a stage. It's the substrate every other stage touches, which is why it appears in the middle of most diagrams and everywhere in practice.
+
+Running underneath are the **undercurrents**: security, data management and governance, DataOps, architecture, orchestration and software engineering. They're not phases you do once; they're concerns that apply at every stage, and the phrase is worth knowing because it comes directly from *Fundamentals of Data Engineering*, which many interviewers have read.
+
+The most useful thing this framing gives you is a **place to put trade-offs**. Latency requirements are decided at ingestion. Cost is dominated by storage and by how much data each transformation reads. Trust is established by quality checks between transformation and serving. When an interviewer asks "how would you build X", walking the stages in order surfaces the decisions rather than jumping to a tool.
+
+---
+
+## Data Generation
+
+<QuestionList topic="Data Generation" storagePrefix="data-lifecycle-generation">
+
+<QuestionCard id="dlc-gen-01" number={1} question="What are the main types of source system, and what does each imply?" difficulty="medium" topic="Generation">
+- **Transactional databases (OLTP)** — the application's own store. Authoritative and current, but you must extract without disrupting it, which pushes you toward replicas, snapshots or CDC.
+- **Application events** — emitted deliberately for analytics. High volume, schema you control, and the best source when it exists.
+- **Logs** — often semi-structured and enormous. Parsing and volume management are the work.
+- **APIs (third party)** — rate-limited, paginated, and subject to change without notice. Assume you'll need retries, incremental pulls and monitoring for silent schema changes.
+- **Files from partners** — SFTP or object drops. Irregular arrival, inconsistent formats, and the most common source of "the file didn't arrive" incidents.
+- **IoT and devices** — very high volume, out-of-order arrival, intermittent connectivity.
+
+The question to ask of any source: **who owns it, can they change it without telling you, and what happens when it's late or wrong?** That's usually more important than its technical shape.
+</QuestionCard>
+
+<QuestionCard id="dlc-gen-02" number={2} question="What is a data contract, and why does it matter?" difficulty="hard" topic="Generation">
+An explicit, versioned agreement between a data producer and its consumers covering **schema**, **semantics** (what each field actually means), **quality guarantees**, **freshness SLAs**, and a **change process**.
+
+The problem it solves is the most common cause of broken pipelines: an application team renames a column or changes a unit, ships it on a Tuesday, and discovers a week later that three dashboards were wrong. Nobody did anything malicious — there was simply no agreement that the field was an interface.
+
+In practice a contract is a schema definition in version control (Avro, Protobuf, JSON Schema, or a dbt/Soda spec), enforced in the producer's CI so a breaking change fails their build, plus runtime validation at ingestion.
+
+The organisational point matters as much as the technical one: a contract makes the producer **accountable** for the data as a product, rather than data engineering absorbing every upstream change silently.
+</QuestionCard>
+
+<QuestionCard id="dlc-gen-03" number={3} question="What is schema evolution, and how do you handle it?" difficulty="medium" topic="Generation">
+Source schemas change. The question is which changes you can absorb and which must break loudly.
+
+- **Backward compatible** — adding an optional field, widening a type. Old consumers keep working. Should flow through automatically.
+- **Forward compatible** — new consumers can read old data.
+- **Breaking** — removing a field, renaming, narrowing a type, changing units or semantics. Must be caught, not absorbed.
+
+Handling it: a **schema registry** (Confluent, Glue, or a repo of contract files) with compatibility rules enforced at publish time; **explicit schemas on read** rather than inference, so a change errors instead of silently producing nulls; a **raw landing zone** that stores data as received so you can reprocess after fixing a mapping; and **alerting on unexpected columns** rather than dropping them.
+
+The failure to name is silent coercion — a numeric column arriving as a string, being cast to null, and aggregations quietly reading low.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Data Storage
+
+<QuestionList topic="Data Storage" storagePrefix="data-lifecycle-storage">
+
+<QuestionCard id="dlc-sto-01" number={1} question="What are the storage options, and how do you choose?" difficulty="medium" topic="Storage">
+- **Object storage** (S3, GCS, ADLS) — cheap, effectively unlimited, decoupled from compute. **The default for a lake.**
+- **Data warehouse** (Snowflake, BigQuery, Redshift) — columnar, optimised for SQL analytics at high concurrency.
+- **Lakehouse** — open table formats (Iceberg, Delta, Hudi) over object storage, giving warehouse semantics without the lock-in.
+- **OLTP database** — row-oriented, for serving applications, not analytics.
+- **Key-value / wide-column** (DynamoDB, Bigtable) — millisecond lookups by key at high write throughput.
+- **Cache** (Redis) — sub-millisecond, volatile.
+- **Search** (OpenSearch) — full-text and log analytics.
+
+The choice follows the **access pattern**, not the data's size. Scan-and-aggregate wants columnar; lookup-by-key wants key-value; full-text wants an inverted index. Most platforms need two or three, and the mistake is forcing one store to serve every pattern.
+</QuestionCard>
+
+<QuestionCard id="dlc-sto-02" number={2} question="What is the difference between a data lake, a warehouse and a lakehouse?" difficulty="medium" topic="Storage">
+- **Data warehouse** — structured, schema-on-write, curated and modelled before loading. Excellent SQL performance and governance; expensive, and rigid about semi-structured or unanticipated data.
+- **Data lake** — raw files in object storage, schema-on-read. Cheap and flexible for any format; without discipline it becomes a **data swamp**, with no ACID guarantees, no reliable schema and no idea what's trustworthy.
+- **Lakehouse** — open table formats over the lake, adding **ACID transactions, schema enforcement, time travel and upserts** to cheap object storage, queryable by multiple engines.
+
+The lakehouse exists because the earlier choice was a false dilemma: teams ran a lake *and* a warehouse, copied data between them, and reconciled the two. Keeping one copy in an open format that both batch engines and SQL engines can read removes that duplication.
+
+Naming the **transaction log** as the mechanism — Delta's `_delta_log`, Iceberg's metadata tree — is what separates a real answer from a marketing one.
+</QuestionCard>
+
+<QuestionCard id="dlc-sto-03" number={3} question="Why organise a lake into zones?" difficulty="medium" topic="Storage">
+Typically three, under various names — raw/staging/curated, bronze/silver/gold, landing/conformed/consumption:
+
+- **Raw** — exactly as received, immutable, append-only. It's your ability to **reprocess** when you find a bug six months later, and your audit record of what a source actually sent.
+- **Staging / silver** — cleaned, deduplicated, typed, conformed. Quality gates live at this boundary.
+- **Curated / gold** — modelled for consumption: dimensional models, aggregates, feature tables.
+
+What the separation buys: a clear **contract about trust** (consumers know gold is safe and raw is not), the ability to rebuild everything downstream from raw, and a natural place for lifecycle policies — raw tiers to cheap storage, staging is reproducible so it can simply expire, curated stays hot.
+
+The zone people skip is raw, and it's the one that saves you.
+</QuestionCard>
+
+<QuestionCard id="dlc-sto-04" number={4} question="How do partitioning and file layout affect everything downstream?" difficulty="hard" topic="Storage">
+More than almost any code decision. Query engines prune whole partitions before reading, so layout determines how much data every downstream query touches — and on per-byte pricing, that is the bill.
+
+The principles:
+- **Partition on what queries filter by**, usually a date.
+- **Not too fine** — partitioning by hour or by user ID creates the **small files problem**: per-file request overhead, slow listing, ineffective compression and statistics, and a task per tiny file.
+- **Target 128 MB–1 GB files**, with scheduled compaction.
+- **Columnar format** (Parquet) so column pruning and predicate pushdown work.
+- **Sort or cluster within partitions** on high-cardinality filter columns.
+
+The reason this belongs in a lifecycle discussion: it's decided once during storage design and every transformation and query pays for it afterwards. Fixing layout is frequently a bigger win than any tuning of the code reading it.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Data Ingestion
+
+<QuestionList topic="Data Ingestion" storagePrefix="data-lifecycle-ingestion">
+
+<QuestionCard id="dlc-ing-01" number={1} question="What is the difference between ETL and ELT?" difficulty="easy" topic="Ingestion">
+**ETL** — extract, transform, then load the transformed result. Transformation happens in a separate engine before data reaches the warehouse. Historically necessary because warehouse compute was expensive and scarce.
+
+**ELT** — extract, load raw, then transform **inside** the destination using its compute. The modern default, because cloud warehouses have cheap elastic compute and separating storage from compute made loading raw data affordable.
+
+Why ELT usually wins now: you keep the raw data, so you can re-transform when requirements change without re-extracting from source; transformations are SQL, which more people can read and review; and tools like dbt make the transformation layer version-controlled and testable.
+
+ETL still applies when data must be **masked or filtered before landing** for compliance, when the destination can't transform efficiently, or when the source's volume needs reducing before transfer.
+</QuestionCard>
+
+<QuestionCard id="dlc-ing-02" number={2} question="How do you decide between full and incremental loads?" difficulty="medium" topic="Ingestion">
+**Full load** — replace everything each run. Simple, self-healing (a bad run is fixed by the next one), and immune to missed changes. Impractical once volume grows.
+
+**Incremental** — move only what changed, by a watermark, by CDC, or by partition. Fast and cheap, but it can miss deletes, depends on a reliable change indicator, and drifts if a run fails silently.
+
+The pragmatic combination most teams land on: **incremental daily, full weekly or monthly**, so drift is bounded and self-corrects without paying full-load cost every day.
+
+The details that decide correctness: how you capture **deletes** (a timestamp-based incremental pull can't see them — CDC or a periodic reconciliation can), whether the load is **idempotent** so a retry can't duplicate, and whether **late-arriving data** for an already-processed partition is handled.
+</QuestionCard>
+
+<QuestionCard id="dlc-ing-03" number={3} question="What makes an ingestion pipeline reliable?" difficulty="hard" topic="Ingestion">
+- **Idempotency** — re-running produces the same result. Every scheduler retries, so without this a transient failure becomes duplicated rows.
+- **Checkpointing** — record what's been processed so a restart resumes rather than repeating.
+- **Retries with backoff and jitter** on transient failures, and fail-fast on permanent ones (a 4xx is not retryable).
+- **Dead-letter handling** so one bad record can't block the stream forever.
+- **Schema validation at the boundary**, failing loudly rather than coercing silently.
+- **Monitoring on freshness and volume**, not just job success — the classic silent failure is a job that succeeds having loaded zero rows.
+- **A raw landing zone**, so reprocessing never requires going back to the source.
+
+If asked to pick one, choose **idempotency**. It's the property that makes everything else — retries, backfills, replays — safe.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Transformation & Serving
+
+<QuestionList topic="Transformation & Serving" storagePrefix="data-lifecycle-serving">
+
+<QuestionCard id="dlc-srv-01" number={1} question="What happens in the transformation stage?" difficulty="medium" topic="Transformation">
+Turning raw data into something trustworthy and useful:
+
+- **Cleaning** — types, nulls, deduplication, standardising formats and units.
+- **Conforming** — reconciling the same entity across sources, so `customer` means one thing.
+- **Enriching** — joining reference data, deriving fields, geocoding.
+- **Modelling** — dimensional models, Data Vault, or wide denormalised tables shaped for consumption.
+- **Aggregating** — pre-computing what consumers query repeatedly.
+- **Quality checks** — uniqueness, referential integrity, accepted ranges, row-count deltas.
+
+The architectural point: transformation is where **business logic lives**, so it needs the same treatment as application code — version control, review, tests and CI. That's precisely what dbt made normal, and why "transformations as reviewed code" is now the expected answer rather than a differentiator.
+</QuestionCard>
+
+<QuestionCard id="dlc-srv-02" number={2} question="Who are the consumers of a data platform, and what does each need?" difficulty="medium" topic="Serving">
+- **BI and analysts** — dimensional models, consistent metric definitions, fast interactive queries, and a semantic layer so "revenue" means one thing everywhere.
+- **Data scientists** — access to granular and raw data, reproducibility, and history rather than only current state.
+- **ML systems** — feature tables, with the **same** transformations available offline for training and online for serving, or you get training-serving skew.
+- **Applications** — low-latency lookups, which means a serving store (key-value, cache), not the warehouse.
+- **Reverse ETL to operational tools** — data pushed back into CRM, marketing and support systems.
+- **Other teams' pipelines** — stable schemas and contracts, since your output is their input.
+
+The mistake to name: serving every consumer from the same table. An analyst's dimensional model and an application's millisecond lookup have genuinely incompatible requirements.
+</QuestionCard>
+
+<QuestionCard id="dlc-srv-03" number={3} question="What are the undercurrents of the data lifecycle?" difficulty="medium" topic="Fundamentals">
+Concerns that apply at **every** stage rather than being a stage themselves — the framing from *Fundamentals of Data Engineering*:
+
+- **Security** — least privilege, encryption in transit and at rest, PII handling at each hop.
+- **Data management** — governance, cataloguing, lineage, quality, master data, privacy and retention.
+- **DataOps** — automation, observability, incident response, and treating pipelines as production systems.
+- **Data architecture** — the trade-off decisions that make the whole thing coherent.
+- **Orchestration** — dependencies, scheduling, retries and backfills across stages.
+- **Software engineering** — testing, version control, CI/CD, code review.
+
+Why it's worth naming in an interview: it demonstrates you see data engineering as a discipline rather than a set of tools, and it gives you a checklist for any design question — "and here's how governance and observability apply at each stage" is a strong closing move.
+</QuestionCard>
+
+<QuestionCard id="dlc-srv-04" number={4} question="Walk through the lifecycle for a concrete example." difficulty="hard" topic="Fundamentals">
+Say daily revenue reporting for an e-commerce business:
+
+1. **Generation** — orders in a Postgres OLTP database; clickstream events from the web app; a product catalogue from a partner via SFTP.
+2. **Ingestion** — CDC from Postgres via Debezium or DMS (captures deletes, no load on the primary); events to Kafka; the partner file triggering a job on arrival.
+3. **Storage** — all three land in object storage as raw, partitioned by date, in an open table format. Retained for reprocessing.
+4. **Transformation** — dbt models: clean and conform in staging, then a `fact_orders` and conformed dimensions in curated, with tests for uniqueness on order ID, referential integrity to customers, and non-negative amounts.
+5. **Serving** — the warehouse for BI, with a semantic layer defining "revenue"; aggregates for the executive dashboard; reverse ETL pushing customer lifetime value into the CRM.
+6. **Undercurrents throughout** — Airflow orchestrating with retries and backfill; freshness and volume monitoring per table; PII masked in non-production; lineage so an upstream schema change shows its blast radius.
+
+Answering in this order is the point — it demonstrates structure and surfaces the trade-offs at each step.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Design a data platform for [some business]."** — walk the lifecycle in order. Sources and their ownership, ingestion mode driven by latency requirements, zoned storage with a partitioning strategy, transformation as reviewed code with quality gates, then serving shaped per consumer. Close with the undercurrents.
+
+**"Where would you spend the most effort?"** — storage layout and ingestion reliability. Layout determines the cost of every query afterwards, and idempotent ingestion is what makes retries, backfills and replays safe. Both are expensive to change later.
+
+**"An upstream team changed a column and broke your pipeline. How do you prevent recurrence?"** — data contracts enforced in the producer's CI, schema validation at ingestion that fails loudly, a raw zone so you can reprocess, and lineage so the blast radius is known immediately.
+
+**"ETL or ELT?"** — ELT by default with cloud warehouses, because you keep raw data and can re-transform. ETL when compliance requires masking before landing, or when volume must be reduced before transfer.
+
+---
+
+## Further Reading
+
+- [Fundamentals of Data Engineering](https://www.oreilly.com/library/view/fundamentals-of-data/9781098108298/) — Reis & Housley; the source of the lifecycle-and-undercurrents framing
+- [The Data Warehouse Toolkit](https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/books/data-warehouse-dw-toolkit/) — Kimball, for the modelling stage
+- [Designing Data-Intensive Applications](https://dataintensive.net/) — Kleppmann, for the storage and distribution fundamentals
+- [dbt: How we structure our dbt projects](https://docs.getdbt.com/best-practices/how-we-structure/1-guide-overview)
+- [Data contracts explained](https://www.datamesh-architecture.com/) — data mesh perspective on producer accountability

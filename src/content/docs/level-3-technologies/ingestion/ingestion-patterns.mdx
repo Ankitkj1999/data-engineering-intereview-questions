@@ -1,0 +1,254 @@
+---
+title: Data Ingestion Patterns
+description: Interview questions on batch, streaming, real-time, micro-batch and hybrid ingestion patterns — including Lambda and Kappa architectures, delivery semantics, backpressure and choosing the right latency for a pipeline.
+---
+
+import QuestionCard from '../../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../../components/mdx/QuestionList.astro';
+
+## Data Ingestion Patterns: Choosing How Data Arrives
+
+**"Should this be batch or streaming?" is one of the most common design questions in a data engineering interview, and the expected answer is almost never "streaming, obviously". Streaming costs more, is harder to reason about, and is harder to debug — so the strong answer starts by asking what latency the business actually needs, and only then picks a pattern. Candidates who reach for Kafka before asking that question are giving away the wrong signal.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [Batch Ingestion](#batch-ingestion)
+- [Streaming Ingestion](#streaming-ingestion)
+- [Real-Time & Micro-Batch](#real-time--micro-batch)
+- [Hybrid Architectures](#hybrid-architectures)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+The patterns sit on a **latency spectrum**, and each step down costs money and complexity: **batch** (hours to days), **micro-batch** (seconds to minutes), **streaming** (sub-second to seconds), and **real-time** in the strict sense (guaranteed millisecond response, which is an operational-systems property rather than an analytics one).
+
+The distinction that matters technically is **bounded versus unbounded** data. A batch job knows its input is finite — it can sort, aggregate globally, and finish. A streaming job processes an unbounded sequence, so "the total" is never final, which is why streaming needs windows, watermarks and a decision about what to do with late data. That's the real source of streaming's difficulty, not the infrastructure.
+
+The practical framing for interviews: **latency requirement drives the pattern, not the other way round.** A daily report needs batch. A fraud check needs streaming. Most things in between are served well by micro-batch, which is why Spark Structured Streaming and hourly incremental loads cover so much real-world ground.
+
+---
+
+## Batch Ingestion
+
+<QuestionList topic="Batch Ingestion" storagePrefix="ingestion-batch">
+
+<QuestionCard id="ing-batch-01" number={1} question="What is batch ingestion, and when is it the right choice?" difficulty="easy" topic="Batch">
+Processing data in bounded chunks on a schedule — hourly, daily, or triggered by arrival of a complete file.
+
+It's the right choice when:
+- **Consumers don't need fresher data.** A daily executive report gains nothing from second-level latency.
+- **The source is naturally batch** — a partner's nightly file drop, a monthly billing extract.
+- **The computation needs the whole set** — global ranking, deduplication across everything, a full reconciliation.
+- **Cost matters** — batch uses ephemeral compute that scales to zero between runs, where streaming pays for always-on infrastructure.
+- **Simplicity matters** — reruns are trivial, debugging is straightforward, and backfills are just another run.
+
+The honest default: **batch unless there's a stated latency requirement that batch can't meet.** It's cheaper, simpler, easier to test and far easier to operate, and a large proportion of "we need streaming" turns out to mean "we need hourly".
+</QuestionCard>
+
+<QuestionCard id="ing-batch-02" number={2} question="What are the common batch ingestion patterns?" difficulty="medium" topic="Batch">
+- **Full snapshot** — copy everything each run and replace the target. Simple and self-healing; a bad run is corrected by the next one. Impractical past a certain volume.
+- **Incremental by watermark** — pull rows where `updated_at` exceeds the last high-water mark, then advance it after success. Cheap; **misses deletes**, and depends on the source maintaining that column honestly.
+- **Partition overwrite** — re-process and replace whole partitions (usually a date). Idempotent by construction, which is why it's the workhorse of most lakes.
+- **Append-only** — add new immutable records, never update. Ideal for event data.
+- **Snapshot plus CDC** — an initial bulk load, then change capture keeps it current.
+
+The pattern to default to is **partition overwrite**: re-running a date replaces rather than duplicates, so retries and backfills are safe without any extra machinery.
+</QuestionCard>
+
+<QuestionCard id="ing-batch-03" number={3} question="How do you handle late-arriving data in batch?" difficulty="hard" topic="Batch">
+Data for Monday can arrive on Wednesday — a partner resends a corrected file, a mobile client uploads after being offline, an upstream job reruns.
+
+The approaches:
+- **Partition by event date, not ingestion date**, and re-process the affected partition when late data appears. Correct, and the reason partition overwrite matters.
+- **A rolling reprocess window** — every run also reprocesses the last N days, so late arrivals are absorbed automatically at bounded cost.
+- **Two timestamps on every row** — `event_time` and `ingested_at` — so consumers can distinguish "when it happened" from "when we learned about it", and so a reconciliation can find rows that arrived late.
+- **Late-arrival alerting**, so a source that starts arriving days late is visible rather than silently distorting recent numbers.
+
+The failure to avoid is partitioning by **ingestion** date and reporting on it — then Monday's late data appears in Wednesday's numbers and both days are wrong, with nothing erroring.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Streaming Ingestion
+
+<QuestionList topic="Streaming Ingestion" storagePrefix="ingestion-streaming">
+
+<QuestionCard id="ing-str-01" number={1} question="What is streaming ingestion, and what does it actually require?" difficulty="medium" topic="Streaming">
+Continuous processing of an unbounded sequence of events as they arrive, typically through a durable log — Kafka, Kinesis, Pub/Sub, Event Hubs — with consumers processing and committing offsets.
+
+What it requires beyond a message bus:
+- **A decision about time** — event time versus processing time, and windows to make an unbounded stream aggregable.
+- **Watermarks and a late-data policy**, because events arrive out of order.
+- **Idempotent sinks**, because delivery is at-least-once.
+- **Checkpointing** so a restart resumes rather than replays everything.
+- **Always-on infrastructure**, monitored continuously, with on-call implications a nightly batch job doesn't have.
+
+The point worth making: the message bus is the easy part. The hard parts are **correctness under out-of-order and late data**, and the operational burden of a system that's never idle.
+</QuestionCard>
+
+<QuestionCard id="ing-str-02" number={2} question="What are the delivery semantics, and which can you actually get?" difficulty="hard" topic="Streaming">
+- **At-most-once** — send and forget. Fast, and messages can be lost. Acceptable only for disposable telemetry.
+- **At-least-once** — retry until acknowledged. **No loss, but duplicates.** The default nearly everywhere.
+- **Exactly-once** — each message affects the result once. Strictly impossible across a network in the general case.
+
+What "exactly-once" means in practice is **effectively-once**: at-least-once delivery combined with **idempotent processing**, so duplicates don't change the outcome. Mechanisms: a deterministic key with an upsert or `MERGE`, a dedup table keyed on `stream+partition+offset`, or transactional checkpointing where the offset commit and the output write are atomic (Flink checkpoints, Kafka transactions).
+
+The strong answer states plainly that you **design the sink to be idempotent** rather than trying to make delivery perfect — because retries, restarts and replays will happen regardless.
+</QuestionCard>
+
+<QuestionCard id="ing-str-03" number={3} question="What is backpressure, and how do you handle it?" difficulty="hard" topic="Streaming">
+When a downstream stage can't keep up with the rate arriving, work accumulates. Unhandled, it means growing memory, growing lag, and eventually a crash or data loss.
+
+Handling it:
+- **Pull-based consumption** — the consumer requests what it can handle, which is why Kafka and Kinesis consumers pull rather than being pushed to. This is backpressure by design.
+- **Buffering in the durable log** — the broker's retention absorbs bursts, which is a large part of why you put a log in front of processing at all.
+- **Autoscaling consumers** on lag, not CPU. Consumer lag is the correct signal.
+- **Rate limiting or load shedding** where dropping is acceptable.
+- **Framework-level backpressure** — Flink propagates it upstream automatically; Spark's `maxOffsetsPerTrigger` bounds each micro-batch.
+
+The metric to monitor is **consumer lag**, and the alert should be on lag *trend*, not absolute value — steadily growing lag means you'll never catch up, which is the real failure.
+</QuestionCard>
+
+<QuestionCard id="ing-str-04" number={4} question="When is streaming genuinely the right answer?" difficulty="medium" topic="Streaming">
+When the **value of the data decays in seconds or minutes**:
+
+- **Fraud and anomaly detection** — a decision after the transaction completes is worthless.
+- **Real-time personalisation** — recommendations reacting to the current session.
+- **Operational monitoring and alerting** on live systems.
+- **Dynamic pricing and inventory** where stale numbers cause overselling.
+- **IoT and telemetry** where the volume makes batching impractical anyway.
+- **Event-driven microservice integration**, where the stream is the integration mechanism rather than an analytics choice.
+
+And when it isn't: daily and weekly reporting, month-end finance, most ML training, and anything where a human looks at the number once a day.
+
+The question to ask an interviewer — and a genuinely good move — is **"what decision is made with this data, and how quickly?"** That converts a technology debate into a requirements one.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Real-Time & Micro-Batch
+
+<QuestionList topic="Real-Time & Micro-Batch" storagePrefix="ingestion-realtime">
+
+<QuestionCard id="ing-rt-01" number={1} question="What is micro-batch, and why is it so widely used?" difficulty="medium" topic="Micro-Batch">
+Processing small batches on a short interval — seconds to minutes — so it looks continuous while retaining batch mechanics. Spark Structured Streaming works this way by default, as do frequent incremental loads.
+
+Why it's the pragmatic middle:
+- **Batch semantics** — exactly-once through atomic commits, simple reruns, familiar debugging.
+- **Better throughput per record** than event-at-a-time, because per-record overhead is amortised.
+- **The same code and engine** as your batch pipelines, so one skill set and one codebase.
+- **Latency of seconds**, which satisfies the large majority of "real-time" requirements once you ask what they actually mean.
+
+The trade is a latency floor set by the batch interval, and slightly more end-to-end delay than a true event-at-a-time engine like Flink. For most analytics that's irrelevant, which is why micro-batch quietly covers a huge share of production "streaming".
+</QuestionCard>
+
+<QuestionCard id="ing-rt-02" number={2} question="What does 'real-time' actually mean, and how is it different from streaming?" difficulty="medium" topic="Real-Time">
+Strictly, **real-time** means a guaranteed response within a bounded time — a hard deadline, as in control systems. Missing the deadline is a failure, not a delay.
+
+In data engineering the word is used loosely to mean "fast", which causes genuine confusion in requirements gathering. Worth separating:
+
+- **Near real-time** — seconds. What most "real-time dashboards" actually need.
+- **Streaming** — continuous processing; latency is typically low but not *guaranteed*.
+- **Hard real-time** — a bounded guarantee. Analytics systems don't provide this, and shouldn't claim to.
+
+The useful interview move is to **ask what latency the decision requires** rather than accepting "real-time" as a specification. Very often "real-time" means "not tomorrow", and an hourly micro-batch satisfies it at a fraction of the cost and complexity.
+</QuestionCard>
+
+<QuestionCard id="ing-rt-03" number={3} question="How do you serve low-latency queries over streaming data?" difficulty="hard" topic="Real-Time">
+Processing fast isn't enough — the serving layer must also answer quickly, and a warehouse usually can't at single-digit milliseconds.
+
+Options:
+- **A key-value serving store** — DynamoDB, Bigtable, Redis — written by the stream processor, holding current state for point lookups.
+- **A real-time OLAP engine** — Apache Druid, Pinot, ClickHouse, or Azure Data Explorer — built for sub-second aggregation over recent high-cardinality data.
+- **Materialised views** maintained incrementally by the stream job.
+- **A hybrid**: recent data in the fast store, history in the warehouse, unioned at query time.
+
+The architectural point: **the processing pattern and the serving pattern are separate decisions.** Streaming ingestion into a warehouse that takes ten seconds to answer hasn't delivered a real-time product — you need a serving layer designed for the query latency you promised.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Hybrid Architectures
+
+<QuestionList topic="Hybrid Architectures" storagePrefix="ingestion-hybrid">
+
+<QuestionCard id="ing-hyb-01" number={1} question="What is the Lambda architecture?" difficulty="hard" topic="Hybrid">
+Two parallel paths over the same data:
+
+- **Batch layer** — reprocesses the complete historical dataset periodically, producing accurate, authoritative results.
+- **Speed layer** — processes the live stream for low-latency approximate results covering the recent window.
+- **Serving layer** — merges both, so queries get accurate history plus fresh recent data.
+
+It solved a real problem when streaming engines couldn't be trusted for correctness: the batch layer guaranteed eventual accuracy while the speed layer provided freshness.
+
+Its well-known cost is **maintaining the same business logic twice**, in two codebases and often two languages. They drift, and reconciling batch and streaming numbers that should match becomes a recurring tax. That duplication is precisely what Kappa proposed to remove — and why Lambda is now more a concept to explain than an architecture to propose.
+</QuestionCard>
+
+<QuestionCard id="ing-hyb-02" number={2} question="What is the Kappa architecture, and did it win?" difficulty="hard" topic="Hybrid">
+**One path**: everything is a stream. The durable log retains history, and "reprocessing" means replaying the log through a new version of the streaming job. No separate batch layer, no duplicated logic.
+
+It requires a log with long or infinite retention, a stream processor whose semantics you trust for correctness, and enough throughput to replay history in reasonable time.
+
+Did it win? **Partly.** The insight — don't maintain two implementations — was correct and is now standard. But few teams run pure Kappa, because replaying years of history through a streaming job is often slower and more expensive than a batch job over columnar files.
+
+What actually emerged is a **third thing**: a lakehouse where the same engine and the same code run in both batch and streaming modes over the same tables — Spark Structured Streaming or Flink writing Delta or Iceberg. You get Kappa's single codebase with batch's efficiency for reprocessing, which is the practical answer to give.
+</QuestionCard>
+
+<QuestionCard id="ing-hyb-03" number={3} question="What is a hybrid ingestion approach in practice?" difficulty="medium" topic="Hybrid">
+Most real platforms are hybrid, not by design purity but because different sources have different needs:
+
+- **CDC streaming** from operational databases for freshness on core entities.
+- **Batch file ingestion** from partners who send daily drops, because that's what they send.
+- **Event streaming** for clickstream and telemetry.
+- **Scheduled API pulls** for third-party SaaS, because their rate limits make streaming impossible.
+
+They converge on a **common landing zone** in an open table format, after which everything downstream is uniform — one transformation layer, one serving layer, regardless of how data arrived.
+
+That convergence is the design point worth articulating: **vary the ingestion pattern per source, standardise everything after it.** Trying to force every source into one pattern produces either unnecessary streaming infrastructure or unnecessarily stale core data.
+</QuestionCard>
+
+<QuestionCard id="ing-hyb-04" number={4} question="How do you decide the ingestion pattern for a new source?" difficulty="medium" topic="Hybrid">
+Work through five questions, in order:
+
+1. **What decision does this data drive, and how fast?** This sets the latency requirement, and it's the only question that genuinely determines the pattern.
+2. **What can the source actually produce?** A partner's nightly SFTP drop cannot be streamed, whatever you'd prefer.
+3. **What volume and shape?** Very high-volume telemetry may need streaming simply because batching it is impractical.
+4. **Do you need deletes and intermediate states?** That points to CDC over a timestamp-based pull.
+5. **What can the team operate?** Streaming infrastructure needs on-call coverage; a team of two may be better served by hourly batch that they can actually maintain.
+
+Then default to the **simplest pattern that meets the latency requirement**. The strong candidate reaches for streaming only when questions 1 or 3 force it, and says so explicitly.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"Should we build this as batch or streaming?"** — ask what decision the data drives and how quickly. If nobody acts on it within the hour, batch. Volunteering that streaming costs more in infrastructure, complexity and on-call is the part that signals experience.
+
+**"Design ingestion for a system with a database, a clickstream and partner files."** — hybrid by source: CDC for the database, a streaming log for clickstream, event-triggered batch for the files, all converging on one landing zone in an open table format so everything downstream is uniform.
+
+**"Your streaming numbers don't match the batch reconciliation."** — late data dropped beyond allowed lateness, processing-time windows where event-time was needed, or duplicates from at-least-once delivery into a non-idempotent sink. All three are worth checking in that order.
+
+**"Explain Lambda vs Kappa."** — Lambda duplicates logic across batch and speed layers, which is its fatal cost; Kappa unifies on a replayable log. Then note that what actually won is a lakehouse running the same code in both modes over the same tables.
+
+---
+
+## Further Reading
+
+- [Streaming 101 and 102](https://www.oreilly.com/radar/the-world-beyond-batch-streaming-101/) — Tyler Akidau; the canonical treatment of event time, windows and watermarks
+- [Questioning the Lambda Architecture](https://www.oreilly.com/radar/questioning-the-lambda-architecture/) — Jay Kreps' original Kappa argument
+- [Designing Data-Intensive Applications](https://dataintensive.net/) — Kleppmann, chapters 10–11 on batch and stream processing
+- [Kafka documentation: delivery semantics](https://kafka.apache.org/documentation/#semantics)
+- [Apache Beam programming guide](https://beam.apache.org/documentation/programming-guide/)
+- [Delta Lake streaming reads and writes](https://docs.delta.io/latest/delta-streaming.html)

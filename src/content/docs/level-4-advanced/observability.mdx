@@ -102,6 +102,118 @@ Common patterns include:
 
 ---
 
+## Metrics & Prometheus
+
+<QuestionList topic="Metrics & Prometheus" storagePrefix="observability-prometheus">
+
+<QuestionCard id="obsv-prom-01" number={1} question="What is Prometheus and how does it collect metrics?" difficulty="medium" topic="Prometheus">
+An open-source metrics database and alerting system, and the de facto standard in the Kubernetes ecosystem.
+
+Its defining choice is **pull-based scraping**: Prometheus periodically fetches a `/metrics` HTTP endpoint from each target rather than receiving pushes. Targets are found via **service discovery** (Kubernetes, Consul, cloud APIs), so a new pod is scraped automatically without configuration.
+
+Data is stored as **time series** identified by a metric name plus labels, and queried with **PromQL**.
+
+Pull has real advantages — you can tell whether a target is *down* (a failed scrape) rather than merely silent, and there's no client-side buffering to lose. For short-lived batch jobs that exit before a scrape, the **Pushgateway** exists as the exception, though it's discouraged for anything else.
+</QuestionCard>
+
+<QuestionCard id="obsv-prom-02" number={2} question="What are the Prometheus metric types?" difficulty="medium" topic="Prometheus">
+- **Counter** — monotonically increasing; resets to zero on restart. For totals: rows processed, errors, bytes written. Always query it with `rate()` or `increase()`, never raw.
+- **Gauge** — goes up and down. For current state: queue depth, memory in use, lag in seconds.
+- **Histogram** — observations bucketed by value, plus a sum and count. For latency and size distributions; quantiles are computed at query time with `histogram_quantile()`.
+- **Summary** — quantiles calculated client-side. Cheaper to query but **cannot be aggregated across instances**, which is usually disqualifying.
+
+The practical guidance: **prefer histograms to summaries** for latency, because you almost always want a p99 across the whole fleet rather than per-instance. And remember a counter's value alone is meaningless — the rate of change is the signal.
+</QuestionCard>
+
+<QuestionCard id="obsv-prom-03" number={3} question="What is cardinality, and why does it break Prometheus?" difficulty="hard" topic="Prometheus">
+Cardinality is the number of distinct time series, and each unique **combination of label values** creates one.
+
+A metric with a `user_id` label and a million users creates a million series. Prometheus holds series metadata in memory, so high cardinality causes memory exhaustion, slow queries and eventually an unusable server — the single most common way people break a Prometheus deployment.
+
+Rules that prevent it:
+- **Never label with unbounded values** — user IDs, request IDs, email addresses, full URLs, timestamps, or a raw error message.
+- **Keep labels to bounded sets** — environment, service, status code, pipeline name.
+- **Put high-cardinality detail in logs or traces**, not metrics. That's what those systems are for.
+
+The related discipline for data pipelines: label by `pipeline` and `table`, not by partition or file name.
+</QuestionCard>
+
+<QuestionCard id="obsv-prom-04" number={4} question="What would you monitor with Prometheus in a data platform?" difficulty="medium" topic="Prometheus">
+Beyond the usual CPU and memory:
+
+```text
+# ingestion throughput
+rate(pipeline_rows_processed_total[5m])
+
+# error rate as a proportion
+rate(pipeline_errors_total[5m]) / rate(pipeline_rows_processed_total[5m])
+
+# freshness — how long since a table was last written
+time() - pipeline_last_success_timestamp_seconds
+
+# consumer lag
+kafka_consumergroup_lag
+
+# p99 task duration
+histogram_quantile(0.99, rate(task_duration_seconds_bucket[10m]))
+```
+
+The **freshness** metric is the most valuable and the most often missing: exporting a `last_success_timestamp` gauge per dataset means you can alert on "orders hasn't updated in 3 hours" — which catches the silent failures a job-exit-code alert never will.
+
+Alertmanager handles routing, grouping, silencing and deduplication of the resulting alerts.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Commercial Observability Platforms
+
+<QuestionList topic="Commercial Observability Platforms" storagePrefix="observability-platforms">
+
+<QuestionCard id="obsv-plat-01" number={1} question="What is Datadog and when would you choose it over Prometheus?" difficulty="medium" topic="Datadog">
+A hosted, unified observability SaaS covering infrastructure metrics, APM and distributed tracing, log management, synthetics, RUM and security — all correlated in one UI, with 800+ integrations.
+
+Choose **Datadog** when you want breadth without operating it: metrics, logs and traces already joined, long retention handled, and no Prometheus, Thanos, Loki, Jaeger and Grafana stack to run yourself. For a small team, the operational saving is real.
+
+Choose **Prometheus + Grafana** when cost at scale matters (Datadog's per-host and per-custom-metric pricing escalates sharply), when you want no vendor lock-in, or when you're already deep in Kubernetes where Prometheus is the native fit.
+
+The honest framing: it's **cost versus operational burden**. Datadog bills are a recurring source of surprise — particularly **custom metrics**, where high-cardinality tags multiply the count and therefore the bill, the same cardinality discipline as Prometheus but with a direct financial signal.
+</QuestionCard>
+
+<QuestionCard id="obsv-plat-02" number={2} question="What is Sentry, and what does it add over logging?" difficulty="medium" topic="Sentry">
+An **error tracking** platform. Instead of errors being lines in a log, Sentry captures the exception with its stack trace, local variables, breadcrumbs leading up to it, release version and environment — then **groups identical errors into a single issue** with a count and a trend.
+
+That grouping is the point. A pipeline throwing the same `KeyError` 40,000 times is one issue with a count, not 40,000 log lines you have to notice among everything else.
+
+For data engineering it's most useful in **long-running workers and services** — a streaming consumer, an API — where you want to know about a new exception type immediately, with the context to fix it, and to see whether a deploy introduced it (Sentry associates issues with releases).
+
+It complements logs rather than replacing them: logs for the narrative, Sentry for "what's broken and how often".
+</QuestionCard>
+
+<QuestionCard id="obsv-plat-03" number={3} question="What is New Relic, and how do these platforms overlap?" difficulty="easy" topic="New Relic">
+A full-stack observability platform in the same category as Datadog — APM, infrastructure monitoring, logs, distributed tracing and dashboards, queried with **NRQL**. Its pricing is per-user plus per-GB ingested, which suits different shapes of organisation than Datadog's per-host model.
+
+The honest answer to how they overlap: **substantially.** Datadog, New Relic, Dynatrace, Grafana Cloud and Splunk Observability all sell essentially the same three pillars — metrics, logs and traces — correlated in one place. Differentiation is in pricing model, UI, integration depth and specific strengths rather than in capability.
+
+The interview-relevant point isn't which vendor, it's **what you'd instrument and why**: the four data-specific signals (freshness, volume, schema, quality) that generic APM tools don't cover unless you emit them yourself.
+</QuestionCard>
+
+<QuestionCard id="obsv-plat-04" number={4} question="What are the three pillars of observability, and what's missing for data?" difficulty="medium" topic="Fundamentals">
+The conventional three:
+- **Metrics** — numeric time series, cheap to store, good for alerting and trends. No detail about any individual event.
+- **Logs** — discrete events with full context. High detail, high volume, expensive at scale.
+- **Traces** — a request's path across services, with timing per span. Shows *where* latency comes from in a distributed call.
+
+What's missing for data pipelines is that all three describe the **system**, not the **data**. A pipeline can be green on every one of them while writing wrong numbers.
+
+So data observability adds a fourth concern: **dataset-level signals** — freshness, volume, schema and quality — plus **lineage** to establish blast radius. That's the distinction worth making in an interview, because it explains why tools like Monte Carlo, Soda and Great Expectations exist alongside Datadog rather than being replaced by it.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
 ## Common Interview Scenarios
 
 - **"Freshness on a critical table breaches SLA at 3am — walk through your triage steps."** Tests signal literacy, runbook use, and escalation instincts.

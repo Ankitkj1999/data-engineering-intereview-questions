@@ -11,49 +11,44 @@ are the way they are, so settled questions don't get re-opened as if they were b
 
 ## You are here
 
-> **Current phase: Phase 4 (Remaining breadth) — not started.** Phases 1, 1b, 2 and 3 ✅ done 2026-08-09.
+> **All 5 phases ✅ done (2026-08-09). Nothing queued — ask the user what's next.**
 > Last updated: 2026-08-09
 
-Site total: **3,830 questions** across 47 topic pages + 74 subtopic pages, and 46 roadmaps.
+Site total: **3,895 questions** across 51 topic pages + 74 subtopic pages, and 46 roadmaps.
+The master DE roadmap has **118 of 123 sub-nodes linked**; the 5 that aren't have no honest
+target yet (Java/Scala, Go, A/B Testing, Power BI, Streamlit).
 
 ---
 
-## The two gaps
+## Where things stand
 
 The master [Data Engineering roadmap](src/pages/roadmaps/data-engineering.astro) is the site's
-front door: 25 categories, 123 nodes. Measured against it, content is missing in two different
-ways — and they're not equally urgent.
+front door: 25 categories, 123 sub-nodes. **118 of them now lead to real content** (37 did at the
+start of 2026-08-09). The 5 that don't — Java/Scala, Go, A/B Testing, Power BI, Streamlit — have
+no honest target, and were left visibly incomplete rather than pointed at loosely-related pages.
 
-**Breadth — 8 categories have no content page at all.** Every node in them is a dead end.
+Every roadmap now uses the proven **roadmap-node → subtopic-page** pattern:
 
-| Category | Nodes | Interview weight |
-|---|:-:|---|
-| CS & DevOps Foundations — Git, Linux, Networking, Distributed Systems | 4 | High |
-| CI/CD — GitHub Actions, GitLab CI, ArgoCD | 3 | Medium–high |
-| Infrastructure as Code — Terraform, OpenTofu, CDK | 4 | Medium–high |
-| Monitoring — Prometheus, Datadog, Sentry, New Relic | 4 | Medium |
-| Data Lifecycle — generation, storage, ingestion, serving | 4 | Medium |
-| Types of Data Ingestion — batch, streaming, realtime, hybrid | 4 | Medium |
-| Reverse ETL | 4 | Low |
-| Machine Learning & MLOps | 2 | Low |
-
-Docker sits under Containers & Orchestration and is also unlinked — same problem, different
-category. **86 of 123 master-roadmap nodes have no `link:` at all.**
-
-**Depth — 4 topics have a rich roadmap pointing at one thin page.** Usable today, just shallow.
-Only SQL and Spark use the proven roadmap-node → subtopic-page pattern:
-
-| Roadmap | Nodes | Subtopic pages | Questions | Deep? |
+| Roadmap | Nodes | Subtopic pages | Questions | Linked |
 |---|---:|---:|---:|:--:|
 | SQL | 93 | 21 | 260 | ✅ |
 | Apache Spark | 236 | 22 | 448 | ✅ |
-| Python | 77 | 0 | 67 | ❌ |
-| AWS | 226 (65 DE) | 0 | 60 | ❌ |
-| Azure | 110 (22 DE) | 0 | 45 | ❌ |
-| GCP | 53 (18 DE) | 0 | 48 | ❌ |
+| Python | 77 | 14 | 347 | ✅ 77/77 |
+| AWS | 226 (65 DE) | 7 | 190 | ✅ 65/65 DE |
+| Azure | 110 (22 DE) | 5 | 121 | ✅ 22/22 DE |
+| GCP | 53 (18 DE) | 5 | 123 | ✅ 18/18 DE |
 
-**Breadth goes first.** A missing topic is a dead end; a thin topic still works. Closing a breadth
-gap also costs less per unit of value — one new page closes several roadmap nodes at once.
+Plus **46 roadmaps total** (was 7) covering every topic page with 12+ questions, and topic pages
+for the previously-empty categories: Git, Linux, Docker, CI/CD, IaC, Networking, Data Lifecycle,
+Ingestion Patterns, Reverse ETL, ML & MLOps.
+
+**Nothing is queued.** Ideas if more work is wanted, roughly by value:
+
+- **Content quality pass on the 33 generated roadmaps** — descriptions were extracted from answers,
+  so ~4% are neutral fallbacks and a minority read awkwardly. Labels are reliable.
+- **Fix the `ssf-01`/`ssf-02` duplicate ids** (see [Open questions](#open-questions)).
+- **The 5 unlinked nodes** — a Java/Scala-for-DE page would be the most defensible addition.
+- **Audit `sql/theory.mdx` (102 Q) against the 260 SQL subtopic questions** for duplication.
 
 ---
 
@@ -68,8 +63,8 @@ passing `npx astro build`, and logged below.
 | 1b | **Roadmap coverage** | A roadmap for every topic page with 12+ questions | 39 roadmaps | ✅ Done (2026-08-09) — 46 total, 2,005 nodes |
 | 2 | **Python depth** | 19 roadmap categories → subtopic pages, mirroring SQL | 14 | ✅ Done (2026-08-09) — 280 questions |
 | 3 | **Cloud depth** | AWS (7) → Azure (5) → GCP (5), DE-scoped services only | 17 | ✅ Done (2026-08-09) — 281 questions |
-| 4 | **Remaining breadth** | Monitoring, Data Lifecycle, Ingestion Types, Reverse ETL, MLOps | ~5 | ⬜ Not started |
-| 5 | **Wire the master roadmap** | Add `link:` to the 86 unlinked DE roadmap nodes | 0 new | ⬜ Not started |
+| 4 | **Remaining breadth** | Monitoring, Data Lifecycle, Ingestion Types, Reverse ETL, MLOps | 4 new + 1 expanded | ✅ Done (2026-08-09) — 65 questions |
+| 5 | **Wire the master roadmap** | Add `link:` to the unlinked DE roadmap nodes | 0 new | ✅ Done (2026-08-09) — 118/123 linked |
 
 Status values: `⬜ Not started` · `🟡 In progress` · `✅ Done (YYYY-MM-DD)` · `⏸️ Deferred (why)`
 
@@ -214,17 +209,40 @@ Per [D1](#d1-sidebar-and-progress-track-interview-topics-only--not-subtopic-page
 Verified: clean `npx astro build`, **123 linked roadmap nodes checked against the built HTML**
 with zero broken page or anchor targets, and no new duplicate question ids.
 
-### Phase 4 — Remaining breadth
+### Phase 4 — Remaining breadth ✅ Done 2026-08-09
 
-The lower-weight empty categories. Re-check interview relevance before writing — some may deserve
-cutting rather than filling, per [D5](#d5-cut-low-value-scope-rather-than-filling-it).
+The last empty master-roadmap categories. **4 new pages + 1 expanded, 65 questions.**
 
-Monitoring (4) · Data Lifecycle (4) · Types of Data Ingestion (4) · Reverse ETL (4) · ML & MLOps (2).
+| Page | Q | Closes |
+|---|:-:|---|
+| [Data Lifecycle](src/content/docs/level-2-core-concepts/data-lifecycle.mdx) | 14 | `Data Lifecycle` (4) + `Sources of Data` (4) |
+| [Ingestion Patterns](src/content/docs/level-3-technologies/ingestion/ingestion-patterns.mdx) | 14 | `Types of Data Ingestion` (4) |
+| [ML & MLOps](src/content/docs/level-4-advanced/mlops.mdx) | 16 | `Machine Learning & MLOps` (2) |
+| [Reverse ETL](src/content/docs/level-2-core-concepts/reverse-etl.mdx) | 13 | `Reverse ETL` (4) |
+| [Observability](src/content/docs/level-4-advanced/observability.mdx) — **expanded** 12 → 20 | +8 | `Monitoring` (4) |
 
-### Phase 5 — Wire the master roadmap
+**Monitoring was handled by expanding the existing Observability page** rather than creating a
+second one — the master roadmap's Monitoring category already pointed there, and two pages on the
+same subject would have been worse than one. All 12 original `obs-*` questions kept verbatim with
+their ids, per [D3](#d3-question-ids-are-permanent).
 
-86 of 123 nodes in `data-engineering.astro` have no `link:`. After Phases 1–4, most targets exist.
-Pure wiring — no new content.
+These are **topic** pages, not subtopic pages, so per
+[D1](#d1-sidebar-and-progress-track-interview-topics-only--not-subtopic-pages) they *do* go in the
+sidebar and the progress dashboard — added to Core Concepts, Ingestion and Advanced.
+
+### Phase 5 — Wire the master roadmap ✅ Done 2026-08-09
+
+**118 of 123 sub-nodes now carry a `link:`** (was 37 at the start of the day). Every target was
+validated against the built HTML before writing, so there are zero broken pages or anchors.
+
+Most nodes point at content created in Phases 1–4: cloud services to the new provider pages, the
+lifecycle and ingestion nodes to the Phase 4 pages, monitoring tools to the expanded Observability
+page, database fundamentals to SQL subtopic pages, and CAP/scaling to `system-design`.
+
+**5 nodes deliberately left unlinked**, because no honest target exists: `java-scala`, `go`,
+`ab-test`, `powerbi`, `streamlit`. Pointing them at loosely-related pages would be worse than
+leaving them visibly incomplete — see [D5](#d5-cut-low-value-scope-rather-than-filling-it). These
+are the natural candidates if more content is ever wanted.
 
 ---
 
@@ -430,6 +448,7 @@ Newest first. One line per working session: what was done, and what's next.
 
 | Date | What happened | Next up |
 |---|---|---|
+| 2026-08-09 | **Phases 4 and 5 done — plan complete.** Phase 4: 4 new pages + Observability expanded 12→20, **65 questions**, closing the last empty master-roadmap categories; added to sidebar and progress since these are topic pages. Phase 5: master DE roadmap wired from 37 to **118 of 123** linked sub-nodes, all validated against built HTML, 5 left deliberately unlinked for lack of an honest target. **All five phases now done — nothing queued.** | Ask the user |
 | 2026-08-09 | **Phase 3 done — Cloud depth.** 17 subtopic pages, **281 questions** (AWS 130, Azure 76, GCP 75). All **105 DE-tagged services** across the three cloud roadmaps now linked, up from zero; 123 roadmap nodes verified against built HTML. Trimmed 19 estimated pages to 17 by folding one-item categories in. Two MDX gotchas hit: a bare `<object at 0x…>` in prose, and nested `**bold**` inside a bold paragraph. | Phase 4 — Remaining breadth |
 | 2026-08-09 | **Phase 2 done — Python depth.** 14 subtopic pages, **280 questions**, taking Python from 67 questions on 2 flat pages to 347 across 16. All **77 of 77** `python.astro` roadmap nodes now linked (was zero). Applied both planned trims: 9 framework nodes → one page, 9 sub-less nodes folded into thematic pages. Per D1, these are subtopic pages — roadmap only, no sidebar or progress. Hit one MDX gotcha: an unbackticked `<object at 0x…>` in prose parses as a JSX tag and fails the build. | Phase 3 — Cloud depth |
 | 2026-08-09 | **Roadmap coverage complete — 46 roadmaps.** Generated 33 more from the content pages (categories from section headings, sub-nodes from `topic` attributes, descriptions extracted from answers). Site went 7 → 46 roadmaps, 2,005 nodes, in one day. Sidebar rebuilt as a flat 46-entry list in learning order. Caught and fixed a slug bug — Starlight renders "A & B" as `a--b`, so anchors are now read from the built HTML rather than re-derived. All 500 link targets verified. | Phase 2 — Python depth |

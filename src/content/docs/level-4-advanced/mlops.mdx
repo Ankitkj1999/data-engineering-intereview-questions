@@ -1,0 +1,294 @@
+---
+title: Machine Learning & MLOps
+description: ML and MLOps interview questions for data engineers — the ML basics you're expected to know, feature stores and training-serving skew, model deployment and monitoring, drift detection, and where the data engineer's responsibility ends.
+---
+
+import QuestionCard from '../../../components/mdx/QuestionCard.astro';
+import QuestionList from '../../../components/mdx/QuestionList.astro';
+
+## Machine Learning & MLOps for Data Engineers
+
+**You won't be asked to derive gradient descent. You will be asked how you'd build a feature pipeline that doesn't leak future data into training, why the model that scored 0.94 offline performs badly in production, and who owns the pipeline when the data scientist has moved on. MLOps is largely a data engineering problem wearing a different name — reproducibility, lineage, pipeline reliability and monitoring — which is why these questions come up even for roles with no ML in the title.**
+
+## Table of Contents
+- [Key Concepts](#key-concepts)
+- [ML Basics for Data Engineers](#ml-basics-for-data-engineers)
+- [Feature Engineering & Feature Stores](#feature-engineering--feature-stores)
+- [MLOps & the Model Lifecycle](#mlops--the-model-lifecycle)
+- [Monitoring & Drift](#monitoring--drift)
+- [Common Interview Scenarios](#common-interview-scenarios)
+- [Further Reading](#further-reading)
+
+---
+
+## Key Concepts
+
+An ML system is mostly **not model code**. The often-cited Google paper on technical debt in ML makes the point visually: the box labelled "ML code" is a tiny fraction of a diagram dominated by data collection, feature extraction, verification, serving infrastructure and monitoring. Nearly all of that is data engineering.
+
+The property that distinguishes ML pipelines from analytical ones is that **they must be reproducible in two places at once**. The features used to train a model must be computed identically when the model serves a prediction — same logic, same data, same point-in-time semantics. When they aren't, you get **training-serving skew**, which is the most common reason a model that performed well offline fails in production.
+
+The second distinguishing property is that **ML systems degrade silently**. A pipeline that breaks throws an error; a model whose input distribution has shifted keeps returning confident predictions that are increasingly wrong. That's why monitoring for **drift** is not optional, and why "the pipeline is green" says nothing about whether the model still works.
+
+---
+
+## ML Basics for Data Engineers
+
+<QuestionList topic="ML Basics for Data Engineers" storagePrefix="mlops-basics">
+
+<QuestionCard id="mlops-basic-01" number={1} question="What are the main types of machine learning?" difficulty="easy" topic="ML Basics">
+- **Supervised** — learn from labelled examples. **Classification** (churn yes/no, fraud/not) and **regression** (predict a number: demand, price, lifetime value). The overwhelming majority of production ML.
+- **Unsupervised** — find structure without labels: clustering for segmentation, dimensionality reduction, anomaly detection.
+- **Semi-supervised** — a small labelled set plus a large unlabelled one, when labelling is expensive.
+- **Reinforcement learning** — learn from reward signals through interaction. Rare outside games, robotics and some recommendation systems.
+
+What matters for a data engineer is the **data requirement each implies**. Supervised learning needs labels, and *where labels come from* is usually a pipeline problem — often derived from historical outcomes, which introduces a delay (you don't know if a customer churned until they have). That label latency shapes how often you can retrain and how you evaluate.
+</QuestionCard>
+
+<QuestionCard id="mlops-basic-02" number={2} question="What are training, validation and test sets, and why does the split matter?" difficulty="medium" topic="ML Basics">
+- **Training set** — what the model learns from.
+- **Validation set** — used to tune hyperparameters and choose between models.
+- **Test set** — held out entirely, touched **once**, to estimate real-world performance.
+
+The reason a data engineer cares: **how you split is a data problem, and getting it wrong invalidates the result.**
+
+For time-series or any data with a temporal element — which covers most business ML — a **random split leaks the future into training**. The model sees Thursday's data while predicting Wednesday, scores brilliantly, and fails in production. The correct approach is a **chronological split**: train on the past, validate and test on the future.
+
+Similarly, splitting randomly when rows are grouped (multiple rows per customer) leaks across the boundary. Split by the **entity**, not the row.
+</QuestionCard>
+
+<QuestionCard id="mlops-basic-03" number={3} question="What is data leakage, and how do you prevent it?" difficulty="hard" topic="ML Basics">
+When information that wouldn't be available at prediction time gets into the training features. The model learns from it, scores extraordinarily well offline, and collapses in production.
+
+Common forms, most of which are pipeline bugs:
+- **Target leakage** — a feature that's a proxy for the outcome. Including `cancellation_date` when predicting churn, or an `account_status` field updated *because* of the event you're predicting.
+- **Temporal leakage** — computing a feature from data after the prediction timestamp. Aggregating a customer's full-year spend to predict their behaviour in March.
+- **Train-test contamination** — scaling or imputing using statistics computed over the whole dataset, so test-set information reaches training.
+- **Duplicate rows** spanning the split.
+
+Prevention: **point-in-time correct feature computation** (as-of joins), fitting all transformations on the training set only, chronological splits, and treating a suspiciously high score as a bug to investigate rather than a success.
+</QuestionCard>
+
+<QuestionCard id="mlops-basic-04" number={4} question="What evaluation metrics should you recognise?" difficulty="medium" topic="ML Basics">
+**Classification** — accuracy is misleading on imbalanced data (99% accuracy predicting "not fraud" always). Look at **precision** (of those flagged, how many were right), **recall** (of the real cases, how many did we catch), **F1** (their harmonic mean), and **AUC-ROC** or **AUC-PR**, the latter being better for heavy imbalance.
+
+**Regression** — **RMSE** (penalises large errors), **MAE** (robust to outliers), **MAPE** (percentage, undefined at zero), **R²**.
+
+Why a data engineer should know these: the **precision/recall trade-off is a business decision with pipeline consequences.** A fraud model tuned for recall floods the review queue; tuned for precision it misses cases. That choice determines the volume your downstream systems must handle, and it's worth asking about rather than treating the model as a black box.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Feature Engineering & Feature Stores
+
+<QuestionList topic="Feature Engineering & Feature Stores" storagePrefix="mlops-features">
+
+<QuestionCard id="mlops-feat-01" number={1} question="What is training-serving skew, and how do you prevent it?" difficulty="hard" topic="Features">
+When features computed for **training** differ from those computed at **serving** time — so the model receives inputs unlike anything it learned from.
+
+How it happens:
+- **Two implementations** — features written in SQL for training and re-implemented in Python in the serving application. They drift, or were never identical.
+- **Different data sources** — training from the warehouse, serving from an operational database with different values or freshness.
+- **Time semantics** — training aggregates a full day; serving has only partial-day data.
+- **Different preprocessing** — a scaler fitted on training data isn't applied identically at serving.
+
+Prevention:
+- **One definition of each feature**, computed once and reused by both paths. This is the core argument for a feature store.
+- **Log the features actually used at serving time**, and compare their distribution against training. This catches skew you didn't anticipate.
+- **Shared transformation code** as a library, not copy-paste.
+</QuestionCard>
+
+<QuestionCard id="mlops-feat-02" number={2} question="What is a feature store, and what does it actually solve?" difficulty="hard" topic="Feature Store">
+A system for defining, computing, storing and serving features, with two coordinated stores:
+
+- **Offline store** — historical feature values (typically in the warehouse or lake) for generating training sets.
+- **Online store** — the latest value per entity in a low-latency store (Redis, DynamoDB, Bigtable) for serving predictions in milliseconds.
+
+What it solves:
+1. **Training-serving consistency** — one definition materialised to both stores.
+2. **Point-in-time correctness** — generating a training set with an **as-of join** so each label row gets the feature values as they were *at that moment*, not as they are now. Doing this correctly by hand is genuinely hard, and getting it wrong is temporal leakage.
+3. **Reuse** — teams share features instead of each rebuilding "customer 30-day spend".
+4. **Backfill** — computing history for a new feature.
+
+Examples: Feast (open source), Tecton, Databricks Feature Store, Vertex AI Feature Store, SageMaker Feature Store.
+</QuestionCard>
+
+<QuestionCard id="mlops-feat-03" number={3} question="Do you always need a feature store?" difficulty="medium" topic="Feature Store">
+No, and saying so is the stronger answer.
+
+It earns its place when you have **online serving with low-latency requirements**, **several models or teams sharing features**, or **complex point-in-time joins** across many entities.
+
+It's overhead you don't need when models are **batch-scored** (predictions computed on a schedule and written to a table — no online store required), when there's **one model and one team**, or when features are simple aggregations already in the warehouse.
+
+For batch scoring specifically, a well-tested dbt model producing a feature table, plus the same table used for training with a chronological split, gives you consistency and point-in-time correctness without new infrastructure.
+
+The mature position: adopt a feature store when the consistency problem is real and recurring, not because it appears on every MLOps reference architecture.
+</QuestionCard>
+
+<QuestionCard id="mlops-feat-04" number={4} question="What is a point-in-time correct join?" difficulty="hard" topic="Features">
+Joining feature values as they existed **at the timestamp of each training label**, rather than their current values.
+
+The naive join is wrong:
+
+```sql
+-- WRONG: attaches today's feature values to a label from six months ago
+SELECT l.*, f.total_spend
+FROM labels l JOIN features f USING (customer_id)
+```
+
+The correct form takes the most recent feature value **at or before** the label's event time:
+
+```sql
+SELECT l.*, f.total_spend
+FROM labels l
+ASOF JOIN features f
+  ON l.customer_id = f.customer_id AND f.valid_from <= l.event_ts
+```
+
+(Written as an as-of join here; in engines without one it's a window function picking the latest qualifying row.)
+
+Why it matters: the naive version leaks the future. A model trained on it learns from information that didn't exist at prediction time, looks excellent offline, and underperforms in production. **This is the single most valuable thing a feature store does**, and it's worth being able to write the query.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## MLOps & the Model Lifecycle
+
+<QuestionList topic="MLOps & the Model Lifecycle" storagePrefix="mlops-lifecycle">
+
+<QuestionCard id="mlops-lc-01" number={1} question="What is MLOps, and how does it differ from DevOps?" difficulty="medium" topic="MLOps">
+Applying engineering discipline to the ML lifecycle: versioning, testing, automated deployment, monitoring and governance for models and the data behind them.
+
+The differences from DevOps that generate the extra work:
+- **You version three things**, not one — code, **data**, and the model artefact. Reproducing a result requires all three.
+- **Behaviour depends on data**, so identical code can produce a different model. Testing must cover data properties, not just code paths.
+- **Models decay** without any change to the system, because the world shifts underneath them. Software doesn't do this.
+- **Testing is statistical** — you compare metrics against a baseline rather than asserting exact outputs.
+- **Retraining is part of operations**, so the pipeline that produces the model is itself a production system.
+
+The framing worth offering: MLOps is DevOps plus **data versioning, continuous training and continuous monitoring** — and the first and third are squarely data engineering responsibilities.
+</QuestionCard>
+
+<QuestionCard id="mlops-lc-02" number={2} question="What does a model lifecycle look like end to end?" difficulty="medium" topic="MLOps">
+1. **Problem framing** — what decision, what metric, what latency.
+2. **Data collection and labelling** — often the longest and least glamorous stage.
+3. **Feature engineering** — computed reproducibly, point-in-time correct.
+4. **Training and experimentation** — many runs, tracked with parameters, data version and metrics (MLflow, Weights & Biases).
+5. **Evaluation** — against a held-out set and against the current production model.
+6. **Registration** — the artefact stored in a **model registry** with lineage back to the exact code and data.
+7. **Deployment** — batch scoring, a real-time endpoint, or embedded in an application.
+8. **Monitoring** — performance, drift, latency, data quality.
+9. **Retraining** — scheduled or triggered by drift, and back to step 3.
+
+The data engineer typically owns 2, 3, 7's data path, 8 and 9 — which is most of it. Being clear about that boundary is a good answer to "what would your role be".
+</QuestionCard>
+
+<QuestionCard id="mlops-lc-03" number={3} question="What are the model deployment patterns?" difficulty="medium" topic="MLOps">
+- **Batch scoring** — predictions computed on a schedule and written to a table for consumers to look up. **Simplest and most common**, and sufficient whenever predictions don't need to reflect events from the last few minutes. No serving infrastructure, no latency budget, easy to reprocess.
+- **Real-time endpoint** — a service returning predictions synchronously. Needed for fraud checks and personalisation; brings latency SLAs, autoscaling, and an online feature store.
+- **Streaming scoring** — the model applied inside a stream processor as events flow.
+- **Embedded** — the model runs on-device or in the client.
+
+Release strategies mirror application deployment: **shadow mode** (run the new model alongside, compare, don't act on it), **canary** (a small traffic percentage), **A/B test** (measure business impact), and **champion-challenger**.
+
+Recommending batch first, and moving to real-time only when a latency requirement demands it, is the answer that shows judgement.
+</QuestionCard>
+
+<QuestionCard id="mlops-lc-04" number={4} question="How do you make an ML pipeline reproducible?" difficulty="hard" topic="MLOps">
+Everything that influenced the model must be recoverable:
+
+- **Code** — version controlled, with the exact commit recorded against the run.
+- **Data** — a versioned snapshot or, better, a **time-travel query** against an Iceberg or Delta table so the exact input can be reconstructed rather than copied.
+- **Features** — definitions in version control, computed by shared code.
+- **Environment** — a container image with pinned dependencies. A different NumPy version can change results.
+- **Hyperparameters and random seeds** — logged per run.
+- **The artefact** — in a model registry, linked to all of the above.
+
+The failing question to prepare for is "**a model in production is misbehaving — can you reproduce how it was trained?**" If the answer requires finding a notebook on someone's laptop, that's the gap. Delta or Iceberg time travel is a genuinely strong answer here, because it makes data versioning a query rather than a copy.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Monitoring & Drift
+
+<QuestionList topic="Monitoring & Drift" storagePrefix="mlops-monitoring">
+
+<QuestionCard id="mlops-mon-01" number={1} question="What is model drift, and what types are there?" difficulty="hard" topic="Drift">
+Degradation of a model's performance over time, without anything in the system changing.
+
+- **Data drift (covariate shift)** — the input distribution changes. A new marketing channel brings a different customer mix; the model sees inputs unlike its training data.
+- **Concept drift** — the *relationship* between inputs and target changes. What predicted churn before COVID stopped predicting it during, even with similar inputs.
+- **Label drift** — the distribution of the target changes.
+- **Upstream data changes** — a schema change, a unit change, a source system altering how it populates a field. Arguably not drift at all, but it presents identically and is the most common cause in practice.
+
+The critical property: **none of these throw an error.** The pipeline is green, the model returns confident predictions, and the business quietly makes worse decisions — which is why drift monitoring exists and why it's a data engineering responsibility.
+</QuestionCard>
+
+<QuestionCard id="mlops-mon-02" number={2} question="How do you detect drift?" difficulty="hard" topic="Drift">
+Compare current production data against the training baseline:
+
+- **Statistical distance per feature** — **PSI** (Population Stability Index), KL divergence, or a Kolmogorov-Smirnov test. PSI is the common industry choice, with rules of thumb around 0.1 for moderate and 0.25 for significant shift.
+- **Summary statistics** — mean, standard deviation, null rate, cardinality, min/max per feature, tracked over time.
+- **Prediction distribution** — if the model suddenly predicts "churn" for 40% of customers when it used to say 5%, something changed even before you have labels.
+- **Actual performance**, once labels arrive — the ground truth, but delayed by however long outcomes take to observe.
+
+The practical setup: monitor **feature distributions and prediction distributions continuously** (available immediately), and **performance metrics when labels land** (delayed but authoritative). Alert on the leading indicators, confirm with the lagging one.
+
+Tools: Evidently, WhyLabs, Arize, or the built-in monitoring in SageMaker and Vertex AI.
+</QuestionCard>
+
+<QuestionCard id="mlops-mon-03" number={3} question="When and how should you retrain a model?" difficulty="medium" topic="Monitoring">
+Three triggers:
+- **Scheduled** — weekly or monthly regardless. Simple and predictable, and either wasteful or too slow depending on how fast the domain moves.
+- **Performance-triggered** — retrain when a monitored metric crosses a threshold. Responsive, but needs labels, which arrive late.
+- **Drift-triggered** — retrain when input distributions shift materially. Fast, and can fire on a shift that doesn't actually hurt performance.
+
+Most production systems combine a **schedule as a floor with drift or performance triggers on top**.
+
+The engineering requirements matter as much as the trigger: retraining must be **automated and reproducible**, the new model must be **evaluated against the incumbent** rather than deployed blindly, deployment should be **staged** (shadow or canary), and **rollback** must be quick. A retraining pipeline that automatically promotes a worse model is worse than no automation.
+</QuestionCard>
+
+<QuestionCard id="mlops-mon-04" number={4} question="What does a data engineer own in an ML system?" difficulty="medium" topic="MLOps">
+Most of the surface area outside the modelling itself:
+
+- **Data pipelines** feeding training and serving — reliability, freshness, quality.
+- **Feature pipelines** — computed consistently for both paths, point-in-time correct.
+- **Data versioning and lineage**, so a model's training data is reconstructable.
+- **Infrastructure** for training and serving, and the pipeline that scores in batch.
+- **Monitoring** of data quality and drift.
+- **The retraining pipeline** as a production system.
+
+What typically sits with data scientists: problem framing, model selection, feature *ideas*, and evaluation methodology.
+
+The boundary worth articulating in an interview: **the data scientist decides what the feature should mean; the data engineer makes sure it's computed the same way, on time, everywhere it's needed, and notices when it stops being true.** That framing lands well because it's accurate and shows you understand the collaboration rather than either over-claiming or under-claiming.
+</QuestionCard>
+
+</QuestionList>
+
+---
+
+## Common Interview Scenarios
+
+**"The model scored 0.94 offline and performs terribly in production."** — leakage or training-serving skew. Check for target and temporal leakage first, then whether serving features are computed by the same code and from the same source. Logging serving features and comparing distributions to training is how you confirm it.
+
+**"How would you build a feature pipeline for a churn model?"** — features in the warehouse with point-in-time correct as-of joins, chronological train/test split, the same definitions materialised to an online store if serving is real-time, and monitoring on feature distributions. Batch scoring unless there's a stated latency requirement.
+
+**"A model has been in production for a year. What could go wrong?"** — drift (data, concept, and upstream schema changes), silent because nothing errors. Answer with the monitoring you'd have in place and the retraining trigger.
+
+**"Where does your responsibility end?"** — own the data and feature pipelines, reproducibility, serving data path, and monitoring; the data scientist owns problem framing, model choice and evaluation. Being clear about the seam is better than claiming all of it.
+
+---
+
+## Further Reading
+
+- [Hidden Technical Debt in Machine Learning Systems](https://papers.nips.cc/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html) — the "ML code is a small box" paper
+- [Designing Machine Learning Systems](https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/) — Chip Huyen; the best single book for this boundary
+- [Feast documentation](https://docs.feast.dev/) — open-source feature store, good for understanding the concepts
+- [MLflow documentation](https://mlflow.org/docs/latest/index.html) — experiment tracking and model registry
+- [Google: MLOps continuous delivery and automation pipelines](https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning)
+- [Evidently AI](https://docs.evidentlyai.com/) — drift detection and monitoring

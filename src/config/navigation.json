@@ -290,6 +290,14 @@
         {
           "label": "Data Governance",
           "link": "/level-2-core-concepts/data-governance/"
+        },
+        {
+          "label": "Data Lifecycle",
+          "link": "/level-2-core-concepts/data-lifecycle/"
+        },
+        {
+          "label": "Reverse ETL",
+          "link": "/level-2-core-concepts/reverse-etl/"
         }
       ]
     },
@@ -410,6 +418,10 @@
       "collapsed": false,
       "items": [
         {
+          "label": "Ingestion Patterns",
+          "link": "/level-3-technologies/ingestion/ingestion-patterns/"
+        },
+        {
           "label": "CDC",
           "link": "/level-3-technologies/ingestion/cdc/"
         },
@@ -484,6 +496,10 @@
         {
           "label": "Observability",
           "link": "/level-4-advanced/observability/"
+        },
+        {
+          "label": "ML & MLOps",
+          "link": "/level-4-advanced/mlops/"
         }
       ]
     }
