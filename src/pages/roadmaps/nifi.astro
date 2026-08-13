@@ -68,17 +68,17 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 <script>
 const ROADMAP = [
   { id:"core-concepts", label:"Core Concepts", desc:"15 interview questions covering Fundamentals, FlowFiles, Processors, Monitoring and more.", link:"/level-3-technologies/ingestion/nifi/#interview-questions", subs:[
-    { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"1 interview question on fundamentals, in the Core Concepts section.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-flowfiles", label:"FlowFiles", desc:"A FlowFile is a message, event, or piece of user data that is pushed or created in NiFi.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-processors", label:"Processors", desc:"When a processor finishes processing a FlowFile, it can result in a Failure, a Success, or another relationship.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-monitoring", label:"Monitoring", desc:"A Reporting Task is a NiFi extension point capable of reporting and analyzing NiFi's internal metrics, in order to provide that information to external…", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
+    { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"What is Apache NiFi?", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
+    { id:"core-concepts-flowfiles", label:"FlowFiles", desc:"You can certainly add attributes to your FlowFiles at any time — that's the whole point of separating metadata from the actual data.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
+    { id:"core-concepts-processors", label:"Processors", desc:"The Processor is the main component in NiFi that actually works on the FlowFile content, helping create, send, receive, transform, route, split, merge, and otherwise process FlowFiles.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
+    { id:"core-concepts-monitoring", label:"Monitoring", desc:"What is a Reporting Task? What is bulleting and how does it help in NiFi?", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
     { id:"core-concepts-extensibility", label:"Extensibility", desc:"NiFi is implemented in the Java programming language and allows extensions (processors, controller services, and reporting tasks) to be implemented in Java.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-architecture", label:"Architecture", desc:"2 interview questions on architecture, in the Core Concepts section.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
+    { id:"core-concepts-architecture", label:"Architecture", desc:"Huge volumes of data can transit through a DataFlow because, as data moves through NiFi, only a pointer to the data is passed around (referred to as a FlowFile).", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
     { id:"core-concepts-flow-control", label:"Flow Control", desc:"Sometimes a producer system is faster than the consumer system, so messages are consumed more slowly than they're produced.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
     { id:"core-concepts-templates", label:"Templates", desc:"A template is a re-usable workflow that you can import and export within the same or different NiFi instances.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-security", label:"Security", desc:"1 interview question on security, in the Core Concepts section.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-configuration", label:"Configuration", desc:"To load custom key/value pairs, you can use a custom properties registry, configured in nifi.properties: nifi.variable.registry.properties=/conf/nifi_registry…", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-clustering", label:"Clustering", desc:"No — from NiFi 1.0 onward, a zero-master philosophy is used, and every node in a NiFi cluster is the same.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
+    { id:"core-concepts-security", label:"Security", desc:"What happens if you have stored a password in a dataflow and create a template out of it?", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
+    { id:"core-concepts-configuration", label:"Configuration", desc:"What is a NiFi custom properties registry?", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
+    { id:"core-concepts-clustering", label:"Clustering", desc:"Does NiFi work as a Master-Slave architecture?", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
   ]},
 ];
 

@@ -4,7 +4,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 
 <StarlightPage
   frontmatter={{
-    title: "Amazon DynamoDB Roadmap",
+    title: "Data Lifecycle Roadmap",
     description: "",
   
   }}
@@ -13,8 +13,8 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
     <div class="rm-header">
       <div class="rm-header-left">
         <span class="rm-badge">Roadmap</span>
-        <h1 class="rm-title">Amazon DynamoDB</h1>
-        <p class="rm-subtitle">Step-by-step guide to key-value modelling and capacity</p>
+        <h1 class="rm-title">Data Lifecycle</h1>
+        <p class="rm-subtitle">Step-by-step guide to the journey data takes through a platform</p>
       </div>
       <div class="rm-header-right">
         <div class="rm-legend">
@@ -67,21 +67,19 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 
 <script>
 const ROADMAP = [
-  { id:"tables-keys-capacity-model", label:"Tables, Keys & Capacity Model", desc:"15 interview questions covering Fundamentals, Keys, Capacity, Performance.", link:"/level-3-technologies/databases/dynamodb/#tables-keys--capacity-model", subs:[
-    { id:"tables-keys-capacity-model-fundamentals", label:"Fundamentals", desc:"DynamoDB is a fully managed, serverless NoSQL database service provided by AWS that handles large-scale, high-performance distributed workloads.", link:"/level-3-technologies/databases/dynamodb/#tables-keys--capacity-model" },
-    { id:"tables-keys-capacity-model-keys", label:"Keys", desc:"The partition key (hash key) determines which physical partition stores an item, based on a hash of the key's value.", link:"/level-3-technologies/databases/dynamodb/#tables-keys--capacity-model" },
-    { id:"tables-keys-capacity-model-capacity", label:"Capacity", desc:"Throughput measures a table's read/write capacity — how many read and write operations per second the table can handle, expressed in read and write capacity units.", link:"/level-3-technologies/databases/dynamodb/#tables-keys--capacity-model" },
-    { id:"tables-keys-capacity-model-performance", label:"Performance", desc:"How do you handle hot partitions in DynamoDB?", link:"/level-3-technologies/databases/dynamodb/#tables-keys--capacity-model" },
+  { id:"data-generation", label:"Data Generation", desc:"3 interview questions covering Generation.", link:"/level-2-core-concepts/data-lifecycle/#data-generation", subs:[
+    { id:"data-generation-generation", label:"Generation", desc:"An explicit, versioned agreement between a data producer and its consumers covering schema, semantics (what each field actually means), quality guarantees, freshness SLAs, and a change process.", link:"/level-2-core-concepts/data-lifecycle/#data-generation" },
   ]},
-  { id:"indexes-queries-advanced-features", label:"Indexes, Queries & Advanced Features", desc:"15 interview questions covering Indexes, Consistency, Querying, Transactions and more.", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features", subs:[
-    { id:"indexes-queries-advanced-features-indexes", label:"Indexes", desc:"Secondary indexes let you query on non-key attributes, providing flexible access patterns beyond what the table's primary key alone supports — DynamoDB offers two kinds: Local Secondary Indexes and Global Secondary Indexes.", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
-    { id:"indexes-queries-advanced-features-consistency", label:"Consistency", desc:"What is eventual consistency in DynamoDB? What is strong consistency in DynamoDB?", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
-    { id:"indexes-queries-advanced-features-querying", label:"Querying", desc:"Use the Query API to retrieve items matching a specific partition key value, with optional sort key conditions to narrow the range — this is the efficient, key-driven way to read from DynamoDB.", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
-    { id:"indexes-queries-advanced-features-transactions", label:"Transactions", desc:"How do you handle transactions in DynamoDB?", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
-    { id:"indexes-queries-advanced-features-batch-operations", label:"Batch Operations", desc:"What is batch processing in DynamoDB?", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
-    { id:"indexes-queries-advanced-features-ttl", label:"TTL", desc:"TTL (Time To Live) automatically deletes items after a specified expiration timestamp attribute is reached, useful for managing data expiration (session data, temporary caches) without writing cleanup jobs.", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
-    { id:"indexes-queries-advanced-features-streams", label:"Streams", desc:"What is DynamoDB Streams?", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
-    { id:"indexes-queries-advanced-features-data-modeling", label:"Data Modeling", desc:"How do you design DynamoDB tables?", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
+  { id:"data-storage", label:"Data Storage", desc:"4 interview questions covering Storage.", link:"/level-2-core-concepts/data-lifecycle/#data-storage", subs:[
+    { id:"data-storage-storage", label:"Storage", desc:"What are the storage options, and how do you choose? What is the difference between a data lake, a warehouse and a lakehouse?", link:"/level-2-core-concepts/data-lifecycle/#data-storage" },
+  ]},
+  { id:"data-ingestion", label:"Data Ingestion", desc:"3 interview questions covering Ingestion.", link:"/level-2-core-concepts/data-lifecycle/#data-ingestion", subs:[
+    { id:"data-ingestion-ingestion", label:"Ingestion", desc:"What is the difference between ETL and ELT? How do you decide between full and incremental loads?", link:"/level-2-core-concepts/data-lifecycle/#data-ingestion" },
+  ]},
+  { id:"transformation-serving", label:"Transformation & Serving", desc:"4 interview questions covering Transformation, Serving, Fundamentals.", link:"/level-2-core-concepts/data-lifecycle/#transformation--serving", subs:[
+    { id:"transformation-serving-transformation", label:"Transformation", desc:"What happens in the transformation stage?", link:"/level-2-core-concepts/data-lifecycle/#transformation--serving" },
+    { id:"transformation-serving-serving", label:"Serving", desc:"BI and analysts — dimensional models, consistent metric definitions, fast interactive queries, and a semantic layer so \"revenue\" means one thing everywhere.", link:"/level-2-core-concepts/data-lifecycle/#transformation--serving" },
+    { id:"transformation-serving-fundamentals", label:"Fundamentals", desc:"Concerns that apply at every stage rather than being a stage themselves — the framing from Fundamentals of Data Engineering*.", link:"/level-2-core-concepts/data-lifecycle/#transformation--serving" },
   ]},
 ];
 
@@ -92,7 +90,7 @@ const ICON_ARROW      = `<svg width="20" height="28" viewBox="0 0 20 28" fill="n
 const ICON_CHEVRON    = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 5 7 9 11 5"/></svg>`;
 function iconFor(s: string) { return s==="done"?ICON_DONE:s==="inprogress"?ICON_INPROGRESS:ICON_PENDING; }
 
-const KEY = "dynamodb_roadmap_v1";
+const KEY = "data_lifecycle_roadmap_v1";
 function load(): Record<string,string> { try { return JSON.parse(localStorage.getItem(KEY)||"{}"); } catch { return {}; } }
 function save(s: Record<string,string>) { localStorage.setItem(KEY, JSON.stringify(s)); }
 let state = load();

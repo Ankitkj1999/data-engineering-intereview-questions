@@ -69,16 +69,25 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 const ROADMAP = [
   { id:"core-concepts", label:"Core Concepts", desc:"12 interview questions covering Fundamentals, Signals, SLAs, Logging and more.", link:"/level-4-advanced/observability/#interview-questions", subs:[
     { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"Data observability is the practice of monitoring, alerting, and diagnosing the health of data and data pipelines.", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-signals", label:"Signals", desc:"Common signals include: - Freshness — track max event/ingestion time to ensure data is arriving on schedule - Volume — monitor row counts, bytes, and…", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-slas", label:"SLAs", desc:"You define the SLA from source event time to availability in the final dataset or BI metric.", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-logging", label:"Logging", desc:"At minimum: - Inputs — source tables/partitions, offsets, watermarks - Outputs — target tables/partitions, row counts written - Runtime and resource usage —…", link:"/level-4-advanced/observability/#interview-questions" },
+    { id:"core-concepts-signals", label:"Signals", desc:"What are the key signals you monitor for data pipelines?", link:"/level-4-advanced/observability/#interview-questions" },
+    { id:"core-concepts-slas", label:"SLAs", desc:"How do you define and measure an end-to-end SLA for data?", link:"/level-4-advanced/observability/#interview-questions" },
+    { id:"core-concepts-logging", label:"Logging", desc:"What should you log for each pipeline run?", link:"/level-4-advanced/observability/#interview-questions" },
     { id:"core-concepts-failure-detection", label:"Failure Detection", desc:"Silent failures happen when the job succeeds but data is wrong (missing subset, wrong join, truncation).", link:"/level-4-advanced/observability/#interview-questions" },
     { id:"core-concepts-lineage", label:"Lineage", desc:"Lineage describes upstream/downstream dependencies between datasets, jobs, and dashboards.", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-incident-response", label:"Incident Response", desc:"You start from the metric definition and trace dependencies to the underlying tables.", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-alerting", label:"Alerting", desc:"1 interview question on alerting, in the Core Concepts section.", link:"/level-4-advanced/observability/#interview-questions" },
+    { id:"core-concepts-incident-response", label:"Incident Response", desc:"How do you monitor and debug a broken metric in BI?", link:"/level-4-advanced/observability/#interview-questions" },
+    { id:"core-concepts-alerting", label:"Alerting", desc:"How do you design alerts to avoid alert fatigue?", link:"/level-4-advanced/observability/#interview-questions" },
     { id:"core-concepts-backfills", label:"Backfills", desc:"Backfills can be expensive and risky because they rewrite history and can change metrics.", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-runbooks", label:"Runbooks", desc:"A runbook is a step-by-step guide for responding to an alert or incident.", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-incident-patterns", label:"Incident Patterns", desc:"Common patterns include: - Upstream outages — late or missing data from source systems - Schema changes — breaking transforms when columns are…", link:"/level-4-advanced/observability/#interview-questions" },
+    { id:"core-concepts-runbooks", label:"Runbooks", desc:"What is a runbook and what should it contain?", link:"/level-4-advanced/observability/#interview-questions" },
+    { id:"core-concepts-incident-patterns", label:"Incident Patterns", desc:"What are common incident patterns in data platforms?", link:"/level-4-advanced/observability/#interview-questions" },
+  ]},
+  { id:"metrics-prometheus", label:"Metrics & Prometheus", desc:"4 interview questions covering Prometheus.", link:"/level-4-advanced/observability/#metrics--prometheus", subs:[
+    { id:"metrics-prometheus-prometheus", label:"Prometheus", desc:"What is Prometheus and how does it collect metrics? What are the Prometheus metric types?", link:"/level-4-advanced/observability/#metrics--prometheus" },
+  ]},
+  { id:"commercial-observability-platforms", label:"Commercial Observability Platforms", desc:"4 interview questions covering Datadog, Sentry, New Relic, Fundamentals.", link:"/level-4-advanced/observability/#commercial-observability-platforms", subs:[
+    { id:"commercial-observability-platforms-datadog", label:"Datadog", desc:"What is Datadog and when would you choose it over Prometheus?", link:"/level-4-advanced/observability/#commercial-observability-platforms" },
+    { id:"commercial-observability-platforms-sentry", label:"Sentry", desc:"What is Sentry, and what does it add over logging?", link:"/level-4-advanced/observability/#commercial-observability-platforms" },
+    { id:"commercial-observability-platforms-new-relic", label:"New Relic", desc:"What is New Relic, and how do these platforms overlap?", link:"/level-4-advanced/observability/#commercial-observability-platforms" },
+    { id:"commercial-observability-platforms-fundamentals", label:"Fundamentals", desc:"What are the three pillars of observability, and what's missing for data?", link:"/level-4-advanced/observability/#commercial-observability-platforms" },
   ]},
 ];
 

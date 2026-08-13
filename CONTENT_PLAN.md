@@ -11,10 +11,10 @@ are the way they are, so settled questions don't get re-opened as if they were b
 
 ## You are here
 
-> **All 5 phases ✅ done (2026-08-09). Nothing queued — ask the user what's next.**
-> Last updated: 2026-08-09
+> **All 5 phases ✅ done, plus a roadmap quality pass (2026-08-13). Nothing queued — ask the user what's next.**
+> Last updated: 2026-08-13
 
-Site total: **3,895 questions** across 51 topic pages + 74 subtopic pages, and 46 roadmaps.
+Site total: **3,895 questions** across 51 topic pages + 74 subtopic pages, and **50 roadmaps**.
 The master DE roadmap has **118 of 123 sub-nodes linked**; the 5 that aren't have no honest
 target yet (Java/Scala, Go, A/B Testing, Power BI, Streamlit).
 
@@ -38,16 +38,19 @@ Every roadmap now uses the proven **roadmap-node → subtopic-page** pattern:
 | Azure | 110 (22 DE) | 5 | 121 | ✅ 22/22 DE |
 | GCP | 53 (18 DE) | 5 | 123 | ✅ 18/18 DE |
 
-Plus **46 roadmaps total** (was 7) covering every topic page with 12+ questions, and topic pages
+Plus **50 roadmaps** (was 7) covering every topic page with 12+ questions, and topic pages
 for the previously-empty categories: Git, Linux, Docker, CI/CD, IaC, Networking, Data Lifecycle,
 Ingestion Patterns, Reverse ETL, ML & MLOps.
 
 **Nothing is queued.** Ideas if more work is wanted, roughly by value:
 
-- **Content quality pass on the 33 generated roadmaps** — descriptions were extracted from answers,
-  so ~4% are neutral fallbacks and a minority read awkwardly. Labels are reliable.
+- **Improve the weak source answers on `data-warehousing.mdx`** — see
+  [D10](#d10-roadmap-descriptions-come-from-prose-when-strong-questions-otherwise). Its answers were
+  imported from a low-quality source and contain typos and off-topic content
+  ("Main Purpose of Stored Procedure for reduse the network trafic"). The roadmap now routes around
+  them, but the page itself still shows them. `hadoop.mdx` has milder versions of the same issue.
 - **Fix the `ssf-01`/`ssf-02` duplicate ids** (see [Open questions](#open-questions)).
-- **The 5 unlinked nodes** — a Java/Scala-for-DE page would be the most defensible addition.
+- **The 5 unlinked master-roadmap nodes** — a Java/Scala-for-DE page is the most defensible addition.
 - **Audit `sql/theory.mdx` (102 Q) against the 260 SQL subtopic questions** for duplication.
 
 ---
@@ -133,7 +136,8 @@ inside it, descriptions = the first usable sentence of the first answer for that
 96% of descriptions are real content; the rest fall back to a neutral
 "N interview questions on X" line where the extracted sentence didn't stand alone.
 
-**Known quality caveat:** because descriptions are extracted rather than authored, a minority read
+**Quality caveat — since fixed, see the 2026-08-13 pass below.** Because descriptions were
+extracted rather than authored, a minority read
 awkwardly — a truncated list item, or a sentence that assumed context from the question it
 answered. Node *labels* are all curated `topic` values and are reliable. Worth a cleanup pass if
 they bother you; not worth blocking on.
@@ -336,6 +340,27 @@ single-section pages (Parquet, Avro, Kubernetes, NiFi, Observability, Cost Optim
 one category, so they render as a flat checklist rather than a staged path. Both were flagged
 before building and accepted.
 
+### D10. Roadmap descriptions come from prose when strong, questions otherwise
+
+Generated roadmap node descriptions are built by a two-source rule: take the **first complete,
+self-contained sentence** from the topic's answers if it scores well (long enough, mentions the
+topic, reads definitionally); otherwise use the **question text itself**, which is short,
+self-contained and inherently descriptive of what the node covers.
+
+**Why:** the first attempt used answer prose only, truncating at 160 characters. That produced 37%
+unusable descriptions — 179 cut mid-sentence, 61 neutral fallbacks, 17 list fragments. The rewrite
+(2026-08-13) took that to **0%**, with 53% prose and 47% question-derived.
+
+**A finding worth keeping:** the scoring exists because some pages have genuinely weak *source*
+answers. `data-warehousing.mdx` in particular contains imported content with typos and off-topic
+text ("Main Purpose of Stored Procedure for reduse the network trafic", "Meta data is nothing but
+information about data"). The roadmap now routes around those by preferring the question — but
+**the underlying page still shows them to readers**, which is a content problem the roadmap pass
+did not fix.
+
+**How to apply:** if regenerating, node ids must stay stable — they are localStorage progress keys.
+The generator asserts that no previously-existing id disappears, and that assertion should be kept.
+
 ---
 
 ## Open questions
@@ -448,6 +473,7 @@ Newest first. One line per working session: what was done, and what's next.
 
 | Date | What happened | Next up |
 |---|---|---|
+| 2026-08-13 | **Roadmap quality pass + 4 new roadmaps.** Rewrote the description generator: descriptions now come from the first *complete* answer sentence when it scores well, and from the **question text** otherwise. Unusable descriptions went **37% → 0%** (was 179 truncated, 61 fallback, 17 fragments across 696). Regenerated all 33 generated roadmaps plus a stale Observability (page had grown 12→20 Q in Phase 4), and added 4 missing roadmaps for the Phase 4 pages per D9 — **50 roadmaps, 2,049 nodes**. All 694 link targets verified; **no node id changed**, so no roadmap progress was lost. Recorded as D10, including the finding that `data-warehousing.mdx` has weak *source* answers the roadmap now routes around but the page still shows. | Ask the user |
 | 2026-08-09 | **Phases 4 and 5 done — plan complete.** Phase 4: 4 new pages + Observability expanded 12→20, **65 questions**, closing the last empty master-roadmap categories; added to sidebar and progress since these are topic pages. Phase 5: master DE roadmap wired from 37 to **118 of 123** linked sub-nodes, all validated against built HTML, 5 left deliberately unlinked for lack of an honest target. **All five phases now done — nothing queued.** | Ask the user |
 | 2026-08-09 | **Phase 3 done — Cloud depth.** 17 subtopic pages, **281 questions** (AWS 130, Azure 76, GCP 75). All **105 DE-tagged services** across the three cloud roadmaps now linked, up from zero; 123 roadmap nodes verified against built HTML. Trimmed 19 estimated pages to 17 by folding one-item categories in. Two MDX gotchas hit: a bare `<object at 0x…>` in prose, and nested `**bold**` inside a bold paragraph. | Phase 4 — Remaining breadth |
 | 2026-08-09 | **Phase 2 done — Python depth.** 14 subtopic pages, **280 questions**, taking Python from 67 questions on 2 flat pages to 347 across 16. All **77 of 77** `python.astro` roadmap nodes now linked (was zero). Applied both planned trims: 9 framework nodes → one page, 9 sub-less nodes folded into thematic pages. Per D1, these are subtopic pages — roadmap only, no sidebar or progress. Hit one MDX gotcha: an unbackticked `<object at 0x…>` in prose parses as a JSX tag and fails the build. | Phase 3 — Cloud depth |

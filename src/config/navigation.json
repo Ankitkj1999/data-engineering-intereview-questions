@@ -68,6 +68,14 @@
           "link": "/roadmaps/data-governance/"
         },
         {
+          "label": "Data Lifecycle",
+          "link": "/roadmaps/data-lifecycle/"
+        },
+        {
+          "label": "Reverse ETL",
+          "link": "/roadmaps/reverse-etl/"
+        },
+        {
           "label": "Apache Spark",
           "link": "/roadmaps/apache-spark/"
         },
@@ -98,6 +106,10 @@
         {
           "label": "Change Data Capture",
           "link": "/roadmaps/cdc/"
+        },
+        {
+          "label": "Ingestion Patterns",
+          "link": "/roadmaps/ingestion-patterns/"
         },
         {
           "label": "Apache Flume",
@@ -186,6 +198,10 @@
         {
           "label": "Observability",
           "link": "/roadmaps/observability/"
+        },
+        {
+          "label": "ML & MLOps",
+          "link": "/roadmaps/mlops/"
         },
         {
           "label": "Cost Optimization",

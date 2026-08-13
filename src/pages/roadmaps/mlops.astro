@@ -4,7 +4,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 
 <StarlightPage
   frontmatter={{
-    title: "Amazon DynamoDB Roadmap",
+    title: "ML & MLOps Roadmap",
     description: "",
   
   }}
@@ -13,8 +13,8 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
     <div class="rm-header">
       <div class="rm-header-left">
         <span class="rm-badge">Roadmap</span>
-        <h1 class="rm-title">Amazon DynamoDB</h1>
-        <p class="rm-subtitle">Step-by-step guide to key-value modelling and capacity</p>
+        <h1 class="rm-title">ML & MLOps</h1>
+        <p class="rm-subtitle">Step-by-step guide to the data engineering side of machine learning</p>
       </div>
       <div class="rm-header-right">
         <div class="rm-legend">
@@ -67,21 +67,20 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 
 <script>
 const ROADMAP = [
-  { id:"tables-keys-capacity-model", label:"Tables, Keys & Capacity Model", desc:"15 interview questions covering Fundamentals, Keys, Capacity, Performance.", link:"/level-3-technologies/databases/dynamodb/#tables-keys--capacity-model", subs:[
-    { id:"tables-keys-capacity-model-fundamentals", label:"Fundamentals", desc:"DynamoDB is a fully managed, serverless NoSQL database service provided by AWS that handles large-scale, high-performance distributed workloads.", link:"/level-3-technologies/databases/dynamodb/#tables-keys--capacity-model" },
-    { id:"tables-keys-capacity-model-keys", label:"Keys", desc:"The partition key (hash key) determines which physical partition stores an item, based on a hash of the key's value.", link:"/level-3-technologies/databases/dynamodb/#tables-keys--capacity-model" },
-    { id:"tables-keys-capacity-model-capacity", label:"Capacity", desc:"Throughput measures a table's read/write capacity — how many read and write operations per second the table can handle, expressed in read and write capacity units.", link:"/level-3-technologies/databases/dynamodb/#tables-keys--capacity-model" },
-    { id:"tables-keys-capacity-model-performance", label:"Performance", desc:"How do you handle hot partitions in DynamoDB?", link:"/level-3-technologies/databases/dynamodb/#tables-keys--capacity-model" },
+  { id:"ml-basics-for-data-engineers", label:"ML Basics for Data Engineers", desc:"4 interview questions covering ML Basics.", link:"/level-4-advanced/mlops/#ml-basics-for-data-engineers", subs:[
+    { id:"ml-basics-for-data-engineers-ml-basics", label:"ML Basics", desc:"What are the main types of machine learning? What are training, validation and test sets, and why does the split matter?", link:"/level-4-advanced/mlops/#ml-basics-for-data-engineers" },
   ]},
-  { id:"indexes-queries-advanced-features", label:"Indexes, Queries & Advanced Features", desc:"15 interview questions covering Indexes, Consistency, Querying, Transactions and more.", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features", subs:[
-    { id:"indexes-queries-advanced-features-indexes", label:"Indexes", desc:"Secondary indexes let you query on non-key attributes, providing flexible access patterns beyond what the table's primary key alone supports — DynamoDB offers two kinds: Local Secondary Indexes and Global Secondary Indexes.", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
-    { id:"indexes-queries-advanced-features-consistency", label:"Consistency", desc:"What is eventual consistency in DynamoDB? What is strong consistency in DynamoDB?", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
-    { id:"indexes-queries-advanced-features-querying", label:"Querying", desc:"Use the Query API to retrieve items matching a specific partition key value, with optional sort key conditions to narrow the range — this is the efficient, key-driven way to read from DynamoDB.", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
-    { id:"indexes-queries-advanced-features-transactions", label:"Transactions", desc:"How do you handle transactions in DynamoDB?", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
-    { id:"indexes-queries-advanced-features-batch-operations", label:"Batch Operations", desc:"What is batch processing in DynamoDB?", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
-    { id:"indexes-queries-advanced-features-ttl", label:"TTL", desc:"TTL (Time To Live) automatically deletes items after a specified expiration timestamp attribute is reached, useful for managing data expiration (session data, temporary caches) without writing cleanup jobs.", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
-    { id:"indexes-queries-advanced-features-streams", label:"Streams", desc:"What is DynamoDB Streams?", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
-    { id:"indexes-queries-advanced-features-data-modeling", label:"Data Modeling", desc:"How do you design DynamoDB tables?", link:"/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features" },
+  { id:"feature-engineering-feature-stores", label:"Feature Engineering & Feature Stores", desc:"4 interview questions covering Features, Feature Store.", link:"/level-4-advanced/mlops/#feature-engineering--feature-stores", subs:[
+    { id:"feature-engineering-feature-stores-features", label:"Features", desc:"When features computed for training differ from those computed at serving time — so the model receives inputs unlike anything it learned from.", link:"/level-4-advanced/mlops/#feature-engineering--feature-stores" },
+    { id:"feature-engineering-feature-stores-feature-store", label:"Feature Store", desc:"A system for defining, computing, storing and serving features, with two coordinated stores.", link:"/level-4-advanced/mlops/#feature-engineering--feature-stores" },
+  ]},
+  { id:"mlops-the-model-lifecycle", label:"MLOps & the Model Lifecycle", desc:"4 interview questions covering MLOps.", link:"/level-4-advanced/mlops/#mlops--the-model-lifecycle", subs:[
+    { id:"mlops-the-model-lifecycle-mlops", label:"MLOps", desc:"What is MLOps, and how does it differ from DevOps? What does a model lifecycle look like end to end?", link:"/level-4-advanced/mlops/#mlops--the-model-lifecycle" },
+  ]},
+  { id:"monitoring-drift", label:"Monitoring & Drift", desc:"4 interview questions covering Drift, Monitoring, MLOps.", link:"/level-4-advanced/mlops/#monitoring--drift", subs:[
+    { id:"monitoring-drift-drift", label:"Drift", desc:"What is model drift, and what types are there? How do you detect drift?", link:"/level-4-advanced/mlops/#monitoring--drift" },
+    { id:"monitoring-drift-monitoring", label:"Monitoring", desc:"When and how should you retrain a model?", link:"/level-4-advanced/mlops/#monitoring--drift" },
+    { id:"monitoring-drift-mlops", label:"MLOps", desc:"What does a data engineer own in an ML system?", link:"/level-4-advanced/mlops/#monitoring--drift" },
   ]},
 ];
 
@@ -92,7 +91,7 @@ const ICON_ARROW      = `<svg width="20" height="28" viewBox="0 0 20 28" fill="n
 const ICON_CHEVRON    = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 5 7 9 11 5"/></svg>`;
 function iconFor(s: string) { return s==="done"?ICON_DONE:s==="inprogress"?ICON_INPROGRESS:ICON_PENDING; }
 
-const KEY = "dynamodb_roadmap_v1";
+const KEY = "mlops_roadmap_v1";
 function load(): Record<string,string> { try { return JSON.parse(localStorage.getItem(KEY)||"{}"); } catch { return {}; } }
 function save(s: Record<string,string>) { localStorage.setItem(KEY, JSON.stringify(s)); }
 let state = load();

@@ -68,16 +68,16 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 <script>
 const ROADMAP = [
   { id:"core-concepts", label:"Core Concepts", desc:"12 interview questions covering Fundamentals, Cost Drivers, Partitioning, Storage and more.", link:"/level-4-advanced/cost-optimization/#interview-questions", subs:[
-    { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"Data platforms can scale costs linearly, or worse, with data volume and usage.", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-cost-drivers", label:"Cost Drivers", desc:"Compute time — clusters, warehouses, serverless slots - Bytes scanned and shuffles — how much data queries actually touch and move - Storage growth — raw plus…", link:"/level-4-advanced/cost-optimization/#interview-questions" },
+    { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"Why is cost optimization considered a core skill for data engineers?", link:"/level-4-advanced/cost-optimization/#interview-questions" },
+    { id:"core-concepts-cost-drivers", label:"Cost Drivers", desc:"What are the main cost drivers in a data platform?", link:"/level-4-advanced/cost-optimization/#interview-questions" },
     { id:"core-concepts-partitioning", label:"Partitioning", desc:"Good partitioning reduces scanned data by enabling partition pruning, so queries only touch the data they need.", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-storage", label:"Storage", desc:"Small files increase scheduling and metadata overhead and reduce scan efficiency, since engines spend more time opening and planning files than actually processing data.", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-performance", label:"Performance", desc:"Skew happens when some partitions or keys have much more data than others, causing straggler tasks that hold up the whole job.", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-materialization", label:"Materialization", desc:"Materialize when many downstream queries reuse the same expensive computation, or when interactive BI needs low latency that a live view can't provide.", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-governance", label:"Governance", desc:"Use workload management: query timeouts, concurrency limits, resource quotas, and separate compute for heavy workloads so one bad query can't starve everyone else.", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-query-optimization", label:"Query Optimization", desc:"You optimize joins by ensuring join keys are clean and well-distributed, filtering before the join rather than after, and choosing the right join strategy —…", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-operations", label:"Operations", desc:"Estimate based on data volume, compute requirements, and expected scan and shuffle behavior.", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-finops", label:"FinOps", desc:"Common metrics include cost by team or project, cost per pipeline, bytes scanned per query, cluster utilization, storage growth by layer, and the top expensive datasets or queries.", link:"/level-4-advanced/cost-optimization/#interview-questions" },
+    { id:"core-concepts-storage", label:"Storage", desc:"What is the small files problem, and why does it hurt performance and cost? How do you choose a target file size?", link:"/level-4-advanced/cost-optimization/#interview-questions" },
+    { id:"core-concepts-performance", label:"Performance", desc:"Shuffle is the redistribution of data across executors, needed for operations like joins, group-by, and distinct.", link:"/level-4-advanced/cost-optimization/#interview-questions" },
+    { id:"core-concepts-materialization", label:"Materialization", desc:"When should you materialize a dataset vs. keep it as a view?", link:"/level-4-advanced/cost-optimization/#interview-questions" },
+    { id:"core-concepts-governance", label:"Governance", desc:"How do you protect a platform from runaway queries and costs?", link:"/level-4-advanced/cost-optimization/#interview-questions" },
+    { id:"core-concepts-query-optimization", label:"Query Optimization", desc:"You optimize joins by ensuring join keys are clean and well-distributed, filtering before the join rather than after, and choosing the right join strategy — broadcast for small tables, shuffle for large ones.", link:"/level-4-advanced/cost-optimization/#interview-questions" },
+    { id:"core-concepts-operations", label:"Operations", desc:"How do you plan and budget for a large backfill?", link:"/level-4-advanced/cost-optimization/#interview-questions" },
+    { id:"core-concepts-finops", label:"FinOps", desc:"What FinOps metrics should a data platform track?", link:"/level-4-advanced/cost-optimization/#interview-questions" },
   ]},
 ];
 

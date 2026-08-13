@@ -68,23 +68,23 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 <script>
 const ROADMAP = [
   { id:"fundamentals-architecture-operations", label:"Fundamentals, Architecture & Operations", desc:"13 interview questions covering Fundamentals, Backup & Recovery.", link:"/level-3-technologies/databases/bigtable/#fundamentals-architecture--operations", subs:[
-    { id:"fundamentals-architecture-operations-fundamentals", label:"Fundamentals", desc:"Bigtable is a distributed, highly scalable, and NoSQL database developed by Google.", link:"/level-3-technologies/databases/bigtable/#fundamentals-architecture--operations" },
+    { id:"fundamentals-architecture-operations-fundamentals", label:"Fundamentals", desc:"Bigtable is commonly used for storing and analyzing large amounts of time-series data, as well as for serving real-time applications.", link:"/level-3-technologies/databases/bigtable/#fundamentals-architecture--operations" },
     { id:"fundamentals-architecture-operations-backup-recovery", label:"Backup & Recovery", desc:"Bigtable provides built-in backup and restore functionality, allowing you to create backups and restore data to a specific point in time.", link:"/level-3-technologies/databases/bigtable/#fundamentals-architecture--operations" },
   ]},
   { id:"schema-design-data-model", label:"Schema Design & Data Model", desc:"25 interview questions covering Data Model, Schema, Partitioning.", link:"/level-3-technologies/databases/bigtable/#schema-design--data-model", subs:[
-    { id:"schema-design-data-model-data-model", label:"Data Model", desc:"Bigtable stores data in a sparse, distributed, and multi-dimensional sorted map.", link:"/level-3-technologies/databases/bigtable/#schema-design--data-model" },
+    { id:"schema-design-data-model-data-model", label:"Data Model", desc:"Bigtable stores data as byte arrays, allowing developers to interpret the data in any structured format they desire.", link:"/level-3-technologies/databases/bigtable/#schema-design--data-model" },
     { id:"schema-design-data-model-schema", label:"Schema", desc:"Bigtable is schema-less, meaning that new columns can be added to the table without affecting existing rows.", link:"/level-3-technologies/databases/bigtable/#schema-design--data-model" },
-    { id:"schema-design-data-model-partitioning", label:"Partitioning", desc:"No, Bigtable does not provide automatic data partitioning.", link:"/level-3-technologies/databases/bigtable/#schema-design--data-model" },
+    { id:"schema-design-data-model-partitioning", label:"Partitioning", desc:"Does Bigtable support automatic data partitioning?", link:"/level-3-technologies/databases/bigtable/#schema-design--data-model" },
   ]},
   { id:"performance-scaling", label:"Performance & Scaling", desc:"26 interview questions covering Performance, Compaction, Bloom Filter, Storage Internals and more.", link:"/level-3-technologies/databases/bigtable/#performance--scaling", subs:[
-    { id:"performance-scaling-performance", label:"Performance", desc:"Bigtable achieves scalability by partitioning data into tablets, which are distributed across multiple servers.", link:"/level-3-technologies/databases/bigtable/#performance--scaling" },
-    { id:"performance-scaling-compaction", label:"Compaction", desc:"Bigtable performs compaction by periodically merging smaller sorted files into larger ones, reducing storage overhead and improving read performance.", link:"/level-3-technologies/databases/bigtable/#performance--scaling" },
+    { id:"performance-scaling-performance", label:"Performance", desc:"Bigtable provides built-in support for data compression, allowing you to save storage space and improve read and write performance.", link:"/level-3-technologies/databases/bigtable/#performance--scaling" },
+    { id:"performance-scaling-compaction", label:"Compaction", desc:"Compaction is the process of merging smaller sorted files into larger ones to improve storage efficiency.", link:"/level-3-technologies/databases/bigtable/#performance--scaling" },
     { id:"performance-scaling-bloom-filter", label:"Bloom Filter", desc:"A Bloom filter is a probabilistic data structure used by Bigtable to reduce disk I/O by filtering out irrelevant data during read operations.", link:"/level-3-technologies/databases/bigtable/#performance--scaling" },
     { id:"performance-scaling-storage-internals", label:"Storage Internals", desc:"Bigtable's memstore is an in-memory data structure that temporarily holds recently written data before flushing it to disk.", link:"/level-3-technologies/databases/bigtable/#performance--scaling" },
     { id:"performance-scaling-partitioning", label:"Partitioning", desc:"Bigtable partitions data by range partitioning the row keys, and it automatically balances the distribution of tablets across tablet servers to ensure load balancing.", link:"/level-3-technologies/databases/bigtable/#performance--scaling" },
   ]},
   { id:"replication-consistency", label:"Replication & Consistency", desc:"16 interview questions covering Replication, Consistency.", link:"/level-3-technologies/databases/bigtable/#replication--consistency", subs:[
-    { id:"replication-consistency-replication", label:"Replication", desc:"Bigtable maintains multiple replicas of each tablet, ensuring data durability and availability in case of server failures.", link:"/level-3-technologies/databases/bigtable/#replication--consistency" },
+    { id:"replication-consistency-replication", label:"Replication", desc:"Bigtable provides high availability through replication and automatic failover mechanisms, ensuring continuous access to data even in case of server or region failures.", link:"/level-3-technologies/databases/bigtable/#replication--consistency" },
     { id:"replication-consistency-consistency", label:"Consistency", desc:"Bigtable provides \"eventual consistency,\" meaning that data may not be immediately consistent across all replicas but will eventually converge.", link:"/level-3-technologies/databases/bigtable/#replication--consistency" },
   ]},
   { id:"security-access-control", label:"Security & Access Control", desc:"8 interview questions covering Access Control, Encryption.", link:"/level-3-technologies/databases/bigtable/#security--access-control", subs:[
@@ -93,7 +93,7 @@ const ROADMAP = [
   ]},
   { id:"ecosystem-integrations", label:"Ecosystem & Integrations", desc:"12 interview questions covering Ecosystem, ML.", link:"/level-3-technologies/databases/bigtable/#ecosystem--integrations", subs:[
     { id:"ecosystem-integrations-ecosystem", label:"Ecosystem", desc:"Bigtable provides client libraries for different programming languages, such as Java, Python, and Go, to interact with the database.", link:"/level-3-technologies/databases/bigtable/#ecosystem--integrations" },
-    { id:"ecosystem-integrations-ml", label:"ML", desc:"Yes, Bigtable can integrate with machine learning frameworks like TensorFlow or PyTorch, allowing you to use Bigtable as a data source for training or inference.", link:"/level-3-technologies/databases/bigtable/#ecosystem--integrations" },
+    { id:"ecosystem-integrations-ml", label:"ML", desc:"Does Bigtable support integration with machine learning frameworks like TensorFlow or PyTorch?", link:"/level-3-technologies/databases/bigtable/#ecosystem--integrations" },
   ]},
 ];
 
