@@ -1,0 +1,452 @@
+{
+  "_meta": {
+    "description": "Curated interview-preparation resources — videos, playlists and articles. Seeded from data/data-engineering-interview-questions-master/interview_experience/interview_experience_videos.json (45 records) on 2026-08-13.",
+    "kinds": {
+      "experience": "A first-hand account of interviewing at a named company.",
+      "mock": "A recorded mock interview — full or partial loop, usually unbranded.",
+      "guide": "Prep strategy, question compilations, round breakdowns."
+    },
+    "checked": "2026-08-13",
+    "note": "company is set only where the source states it. Do not infer it from a creator's employer — 'Ankit Bansal (Data Engineer at Amazon)' describes the author, not the interview."
+  },
+  "companies": [
+    {
+      "slug": "amazon",
+      "name": "Amazon",
+      "rounds": [],
+      "commonTopics": [],
+      "summaryStatus": "unwritten"
+    },
+    {
+      "slug": "deloitte",
+      "name": "Deloitte",
+      "rounds": [],
+      "commonTopics": [
+        "spark"
+      ],
+      "summaryStatus": "unwritten"
+    },
+    {
+      "slug": "tiger-analytics",
+      "name": "Tiger Analytics",
+      "rounds": [],
+      "commonTopics": [
+        "spark"
+      ],
+      "summaryStatus": "unwritten"
+    },
+    {
+      "slug": "jio",
+      "name": "Jio",
+      "rounds": [],
+      "commonTopics": [],
+      "summaryStatus": "unwritten"
+    }
+  ],
+  "resources": [
+    {
+      "id": "amazon-de-guide-rounds",
+      "kind": "experience",
+      "medium": "video",
+      "title": "Guide to the Amazon Data Engineer interview: rounds, questions, prep",
+      "author": "Prepfully",
+      "url": "https://www.youtube.com/watch?v=gXvmiroO-30",
+      "company": "amazon",
+      "topics": []
+    },
+    {
+      "id": "amazon-de1-covid-bar-raiser",
+      "kind": "experience",
+      "medium": "video",
+      "title": "Data Engineer I interview experience — including the Bar Raiser round",
+      "author": "",
+      "url": "https://www.youtube.com/watch?v=iEdVOTGIRBI",
+      "company": "amazon",
+      "topics": []
+    },
+    {
+      "id": "deloitte-pyspark-question",
+      "kind": "experience",
+      "medium": "video",
+      "title": "Deloitte Data Engineer interview question (PySpark)",
+      "author": "",
+      "url": "https://www.youtube.com/watch?v=R-NY90whwOY",
+      "company": "deloitte",
+      "topics": [
+        "spark"
+      ]
+    },
+    {
+      "id": "tiger-analytics-pyspark",
+      "kind": "experience",
+      "medium": "video",
+      "title": "Tiger Analytics PySpark interview question",
+      "author": "",
+      "url": "https://www.youtube.com/watch?v=mWRGwcMjFJM",
+      "company": "tiger-analytics",
+      "topics": [
+        "spark"
+      ]
+    },
+    {
+      "id": "jio-de-questions",
+      "kind": "experience",
+      "medium": "video",
+      "title": "Jio interview questions and answers — Data Engineering",
+      "author": "MANISH KUMAR",
+      "url": "https://www.youtube.com/watch?v=ttie_kTA2lE",
+      "company": "jio",
+      "topics": []
+    },
+    {
+      "id": "bigdatashow-mock-playlist",
+      "kind": "mock",
+      "medium": "playlist",
+      "title": "Data Engineering Mock Interview",
+      "author": "The Big Data Show (Ankur Ranjan)",
+      "url": "https://www.youtube.com/playlist?list=PLiDUHlGx0KN8e7yU8tS0yP-zc3sNIPKdG",
+      "company": null,
+      "topics": [],
+      "count": 33,
+      "note": "Richest source of real mock and experience interviews in this set."
+    },
+    {
+      "id": "scaler-shashank-playlist",
+      "kind": "mock",
+      "medium": "playlist",
+      "title": "Data Engineering ft. Shashank Mishra (Staff DE @Prophecy, ex-Expedia/Amazon)",
+      "author": "Scaler",
+      "url": "https://www.youtube.com/playlist?list=PLLhBy6YSIT0AtWO_ldCwGNCQ4Id1WWov2",
+      "company": null,
+      "topics": [],
+      "count": 8
+    },
+    {
+      "id": "trendytech-mock-sql-pyspark",
+      "kind": "mock",
+      "medium": "video",
+      "title": "Data Engineer mock interview — SQL, PySpark, project and scenario rounds",
+      "author": "Sumit Mittal (TrendyTech)",
+      "url": "https://www.youtube.com/watch?v=YHszFdZw4tY",
+      "company": null,
+      "topics": [
+        "sql",
+        "spark"
+      ]
+    },
+    {
+      "id": "trendytech-mock-aws-kafka",
+      "kind": "mock",
+      "medium": "video",
+      "title": "Big Data Engineer mock interview — AWS, Kafka streaming, SQL, PySpark",
+      "author": "Sumit Mittal (TrendyTech)",
+      "url": "https://www.youtube.com/watch?v=t3_ZzPoJx_Y",
+      "company": null,
+      "topics": [
+        "aws",
+        "kafka",
+        "sql",
+        "spark"
+      ]
+    },
+    {
+      "id": "trendytech-mock-problem-solving",
+      "kind": "mock",
+      "medium": "video",
+      "title": "Big Data mock interview — problem solving, technical round",
+      "author": "Sumit Mittal (TrendyTech)",
+      "url": "https://www.youtube.com/watch?v=dqO5cdeAHF4",
+      "company": null,
+      "topics": []
+    },
+    {
+      "id": "ankit-bansal-sql-mock",
+      "kind": "guide",
+      "medium": "video",
+      "title": "Most-asked SQL JOIN question — record counts after all four join types",
+      "author": "Ankit Bansal",
+      "url": "https://www.youtube.com/watch?v=xR87ctOgpAE",
+      "company": null,
+      "topics": [
+        "sql"
+      ]
+    },
+    {
+      "id": "ankit-bansal-sql-playlist",
+      "kind": "guide",
+      "medium": "playlist",
+      "title": "Complex SQL questions for interview preparation",
+      "author": "Ankit Bansal",
+      "url": "https://www.youtube.com/playlist?list=PLBTZqjSKn0IeKBQDjLmzisazhqQy4iGkb",
+      "company": null,
+      "topics": [
+        "sql"
+      ],
+      "count": 96,
+      "note": "Largest interview-focused playlist in this set."
+    },
+    {
+      "id": "geekcoders-qa-playlist",
+      "kind": "guide",
+      "medium": "playlist",
+      "title": "Data Engineer interview question and answer series",
+      "author": "GeekCoders (Sagar Prajapati)",
+      "url": "https://www.youtube.com/playlist?list=PLOlK8ytA0Mgj4YDvzevQir35PieOswsFX",
+      "company": null,
+      "topics": []
+    },
+    {
+      "id": "trendytech-rounds-and-tips",
+      "kind": "guide",
+      "medium": "video",
+      "title": "Big Data interview rounds and tips — career as a data engineer",
+      "author": "Sumit Mittal (TrendyTech)",
+      "url": "https://www.youtube.com/watch?v=e1hKKmVfuT4",
+      "company": null,
+      "topics": []
+    },
+    {
+      "id": "trendytech-cracking-interview",
+      "kind": "guide",
+      "medium": "video",
+      "title": "Cracking the Big Data interview — how to prepare",
+      "author": "Sumit Mittal (TrendyTech)",
+      "url": "https://www.youtube.com/watch?v=0S3hJ3ksshQ",
+      "company": null,
+      "topics": []
+    },
+    {
+      "id": "trendytech-prep-tips",
+      "kind": "guide",
+      "medium": "video",
+      "title": "Tips to prepare for Big Data interviews",
+      "author": "Sumit Mittal (TrendyTech)",
+      "url": "https://www.youtube.com/watch?v=kNhDmY8svQQ",
+      "company": null,
+      "topics": []
+    },
+    {
+      "id": "trendytech-trickiest-questions",
+      "kind": "guide",
+      "medium": "video",
+      "title": "Five trickiest Big Data interview questions for beginners",
+      "author": "Sumit Mittal (TrendyTech)",
+      "url": "https://www.youtube.com/watch?v=GnsI9f1QC4U",
+      "company": null,
+      "topics": []
+    },
+    {
+      "id": "manish-salting-spark",
+      "kind": "guide",
+      "medium": "video",
+      "title": "Data engineer interview question — salting in Spark",
+      "author": "MANISH KUMAR",
+      "url": "https://www.youtube.com/watch?v=diHUuPIaMpI",
+      "company": null,
+      "topics": [
+        "spark"
+      ]
+    },
+    {
+      "id": "manish-prep-strategy",
+      "kind": "guide",
+      "medium": "video",
+      "title": "My preparation strategy — how I got multiple offers",
+      "author": "MANISH KUMAR",
+      "url": "https://www.youtube.com/watch?v=swfNxI-ZdqI",
+      "company": null,
+      "topics": []
+    },
+    {
+      "id": "manish-12-offers",
+      "kind": "guide",
+      "medium": "video",
+      "title": "Twelve offer letters — strategy and data engineer roadmap",
+      "author": "MANISH KUMAR",
+      "url": "https://www.youtube.com/watch?v=5zP_szbUULE",
+      "company": null,
+      "topics": []
+    },
+    {
+      "id": "geekcoders-qa-ep1",
+      "kind": "guide",
+      "medium": "video",
+      "title": "Data Engineer interview questions and answers (episode 1)",
+      "author": "GeekCoders (Sagar Prajapati)",
+      "url": "https://www.youtube.com/watch?v=aZ-RGSVCROI",
+      "company": null,
+      "topics": []
+    },
+    {
+      "id": "de-design-questions-playlist",
+      "kind": "guide",
+      "medium": "playlist",
+      "title": "Data engineering design interview questions",
+      "author": "",
+      "url": "https://www.youtube.com/playlist?list=PL9sbKmQTkW053-Ro7c16BRUQloJS5apeS",
+      "company": null,
+      "topics": [
+        "system-design"
+      ]
+    },
+    {
+      "id": "mock-full-interview",
+      "kind": "mock",
+      "medium": "video",
+      "title": "Data Engineer job interview — full interview",
+      "author": "",
+      "url": "https://www.youtube.com/watch?v=ObhJ0xIwIsI",
+      "company": null,
+      "topics": []
+    },
+    {
+      "id": "mock-sql-spark-aws",
+      "kind": "mock",
+      "medium": "video",
+      "title": "Mock Data Engineer interview — SQL, Spark, project and AWS",
+      "author": "",
+      "url": "https://www.youtube.com/watch?v=owkjQ9kPB_g",
+      "company": null,
+      "topics": [
+        "sql",
+        "spark",
+        "aws"
+      ]
+    },
+    {
+      "id": "mock-live-pyspark",
+      "kind": "mock",
+      "medium": "video",
+      "title": "Big Data Engineer live mock interview — PySpark",
+      "author": "",
+      "url": "https://www.youtube.com/watch?v=KmfiRCo2G3w",
+      "company": null,
+      "topics": [
+        "spark"
+      ]
+    },
+    {
+      "id": "mock-sql-dsa-pyspark",
+      "kind": "mock",
+      "medium": "video",
+      "title": "Big Data Engineer mock interview — SQL, DSA, PySpark",
+      "author": "",
+      "url": "https://www.youtube.com/watch?v=CEKC2fmUHIM",
+      "company": null,
+      "topics": [
+        "sql",
+        "spark",
+        "data-structures"
+      ]
+    },
+    {
+      "id": "guide-what-gets-you-hired",
+      "kind": "guide",
+      "medium": "video",
+      "title": "Top Data Engineer interview questions — what actually gets you hired",
+      "author": "Data & AI Guy",
+      "url": "https://www.youtube.com/watch?v=uPIzRHfYNgU",
+      "company": null,
+      "topics": []
+    },
+    {
+      "id": "guide-top-30",
+      "kind": "guide",
+      "medium": "video",
+      "title": "Top 30 Data Engineer interview questions",
+      "author": "Intellipaat",
+      "url": "https://www.youtube.com/watch?v=N-MbyH7EhoQ",
+      "company": null,
+      "topics": []
+    },
+    {
+      "id": "guide-questions-explained",
+      "kind": "guide",
+      "medium": "video",
+      "title": "Data engineering interview questions answered and explained",
+      "author": "The Data Guy",
+      "url": "https://www.youtube.com/watch?v=v9aCCn0pg2g",
+      "company": null,
+      "topics": []
+    },
+    {
+      "id": "guide-all-interviews-explained",
+      "kind": "guide",
+      "medium": "video",
+      "title": "All data engineering interviews explained",
+      "author": "",
+      "url": "https://www.youtube.com/watch?v=jdrwZfeTd-o",
+      "company": null,
+      "topics": []
+    },
+    {
+      "id": "guide-spark-prep-kit",
+      "kind": "guide",
+      "medium": "video",
+      "title": "Last-minute Spark interview prep — complete revision in two hours",
+      "author": "",
+      "url": "https://www.youtube.com/watch?v=6T8SeQuqz1s",
+      "company": null,
+      "topics": [
+        "spark"
+      ]
+    },
+    {
+      "id": "guide-careervidz-playlist",
+      "kind": "guide",
+      "medium": "playlist",
+      "title": "DATA ENGINEER interview questions and answers",
+      "author": "CareerVidz",
+      "url": "https://www.youtube.com/playlist?list=PLCcteVWYyBtvJ8SWXXx5yYVS2Je1LNSg6",
+      "company": null,
+      "topics": []
+    },
+    {
+      "id": "guide-de-questions-playlist",
+      "kind": "guide",
+      "medium": "playlist",
+      "title": "\"Data Engineer\" interview questions",
+      "author": "",
+      "url": "https://www.youtube.com/playlist?list=PLSHqKoK03lEt7RwKmwjt0yNLqNq8ZTwk0",
+      "company": null,
+      "topics": []
+    }
+  ],
+  "creators": [
+    {
+      "name": "MANISH KUMAR",
+      "url": "https://www.youtube.com/@manish_kumar_1/playlists",
+      "bio": "Data Engineer at Jio. Interview-experience and interview-question playlists."
+    },
+    {
+      "name": "Ankit Bansal",
+      "url": "https://www.youtube.com/@ankitbansal6",
+      "bio": "Data Engineer at Amazon, 13 years' experience. Strongest SQL interview content."
+    },
+    {
+      "name": "Sumit Mittal (TrendyTech)",
+      "url": "https://www.youtube.com/c/TrendytechInsights",
+      "bio": "Founder of TrendyTech; ex-Cisco, ex-VMware. Mock interviews and Big Data prep."
+    },
+    {
+      "name": "The Big Data Show (Ankur Ranjan)",
+      "url": "https://www.youtube.com/c/thebigdatashow",
+      "bio": "Data Engineer III at Walmart. Long-running mock interview series."
+    },
+    {
+      "name": "Darshil Parmar",
+      "url": "https://www.youtube.com/@DarshilParmar",
+      "bio": "Founder of DataVidhya. Interview-cracking guides and DSA/SQL round walkthroughs."
+    },
+    {
+      "name": "GeekCoders (Sagar Prajapati)",
+      "url": "https://www.youtube.com/c/sagarprajapati",
+      "bio": "Question-and-answer series aimed at data engineering interviews."
+    },
+    {
+      "name": "Data Engineering Simplified",
+      "url": "https://www.youtube.com/@DataEngineering/playlists",
+      "bio": "Snowflake and general data engineering focus."
+    }
+  ]
+}

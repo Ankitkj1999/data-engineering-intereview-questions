@@ -1,0 +1,65 @@
+{
+  "manish_kumar": [
+    {"title": "MANISH KUMAR — Channel Playlists page (Data Engineer @Jio, NIT Trichy)", "channel": "MANISH KUMAR (@manish_kumar_1)", "type": "channel", "url": "https://www.youtube.com/@manish_kumar_1/playlists", "company": "", "notes": "Central creator; his dedicated interview-experience & interview-questions playlists live here, but exact playlist IDs were not text-indexed. Open in a browser to grab list= IDs."},
+    {"title": "data engineer interview questions (salting in Spark)", "channel": "MANISH KUMAR", "type": "video", "url": "https://www.youtube.com/watch?v=diHUuPIaMpI", "company": ""},
+    {"title": "jio interview questions and answers | Data Engineering", "channel": "MANISH KUMAR", "type": "video", "url": "https://www.youtube.com/watch?v=ttie_kTA2lE", "company": "Jio"},
+    {"title": "My preparation strategy | How I bagged offers", "channel": "MANISH KUMAR", "type": "video", "url": "https://www.youtube.com/watch?v=swfNxI-ZdqI", "company": ""},
+    {"title": "12 offer letters strategy / data engineer roadmap 2023", "channel": "MANISH KUMAR", "type": "video", "url": "https://m.youtube.com/watch?v=5zP_szbUULE", "company": ""},
+    {"title": "data engineering roadmap 2024", "channel": "MANISH KUMAR", "type": "video", "url": "https://www.youtube.com/watch?v=1CrMFKK7B04", "company": ""},
+    {"title": "end to end data engineering project", "channel": "MANISH KUMAR", "type": "video", "url": "https://www.youtube.com/watch?v=ERfw7PMMzQk", "company": ""}
+  ],
+  "ankit_bansal": [
+    {"title": "Ankit Bansal — Channel (Data Engineer at Amazon, 13 yrs exp)", "channel": "Ankit Bansal (@ankitbansal6)", "type": "channel", "url": "https://www.youtube.com/@ankitbansal6", "company": ""},
+    {"title": "Complex SQL Questions for Interview Preparation", "channel": "Ankit Bansal", "type": "playlist", "url": "https://www.youtube.com/playlist?list=PLBTZqjSKn0IeKBQDjLmzisazhqQy4iGkb", "company": "", "notes": "96 videos — largest verified interview-focused playlist here"},
+    {"title": "SQL Mock Interview (all-in-one joins output)", "channel": "Ankit Bansal", "type": "video", "url": "https://youtu.be/xR87ctOgpAE", "company": ""}
+  ],
+  "trendytech_sumit_mittal": [
+    {"title": "Sumit Mittal — Channel (Founder & CEO, TrendyTech; ex-Cisco, ex-VMware)", "channel": "Sumit Mittal / TrendyTech Insights", "type": "channel", "url": "https://www.youtube.com/c/TrendytechInsights", "company": ""},
+    {"title": "Big Data Interview Rounds and Tips | Career as Data Engineer", "channel": "TrendyTech", "type": "video", "url": "https://www.youtube.com/watch?v=e1hKKmVfuT4", "company": ""},
+    {"title": "Cracking the Big Data Interview | Tips to get Prepared", "channel": "TrendyTech", "type": "video", "url": "https://www.youtube.com/watch?v=0S3hJ3ksshQ", "company": ""},
+    {"title": "Tips to prepare for Big Data Interviews", "channel": "TrendyTech", "type": "video", "url": "https://www.youtube.com/watch?v=kNhDmY8svQQ", "company": ""},
+    {"title": "5 Trickiest Big Data Interview Questions for Beginners", "channel": "TrendyTech", "type": "video", "url": "https://www.youtube.com/watch?v=GnsI9f1QC4U", "company": ""},
+    {"title": "Data Engineer Mock Interview | SQL | PySpark | Project & Scenario", "channel": "TrendyTech", "type": "video", "url": "https://www.youtube.com/watch?v=YHszFdZw4tY", "company": ""},
+    {"title": "Big Data Engineer Mock Interview | AWS | Kafka Streaming | SQL | PySpark", "channel": "TrendyTech", "type": "video", "url": "https://www.youtube.com/watch?v=t3_ZzPoJx_Y", "company": ""},
+    {"title": "Big Data Interview | Mock | Problem Solving | Technical Round", "channel": "TrendyTech", "type": "video", "url": "https://www.youtube.com/watch?v=dqO5cdeAHF4", "company": ""}
+  ],
+  "the_big_data_show": [
+    {"title": "The Big Data Show — Channel (Ankur Ranjan, Data Engineer III @Walmart)", "channel": "The Big Data Show", "type": "channel", "url": "https://www.youtube.com/c/thebigdatashow", "company": ""},
+    {"title": "Data Engineering Mock Interview", "channel": "The Big Data Show", "type": "playlist", "url": "https://www.youtube.com/playlist?list=PLiDUHlGx0KN8e7yU8tS0yP-zc3sNIPKdG", "company": "", "notes": "33 videos  — richest source of real mock/experience interviews in this set"}
+  ],
+  "scaler_shashank_mishra": [
+    {"title": "Data Engineering ft. Shashank Mishra (Staff DE @Prophecy; ex-Expedia/Amazon/PayTM/McKinsey; founder GrowDataSkills)", "channel": "SCALER", "type": "playlist", "url": "https://www.youtube.com/playlist?list=PLLhBy6YSIT0AtWO_ldCwGNCQ4Id1WWov2", "company": "", "notes": "8 videos"}
+  ],
+  "darshil_parmar": [
+    {"title": "Darshil Parmar — Channel (Founder DataVidhya; 180K+ subs)", "channel": "Darshil Parmar", "type": "channel", "url": "https://www.youtube.com/@DarshilParmar", "company": "", "notes": "Has 'Cracking Data Engineering Interview' and 'DSA + SQL Rounds' guide videos"}
+  ],
+  "geekcoders_sagar_prajapati": [
+    {"title": "GeekCoders — Channel (Sagar Prajapati, founder; Solution Engineer @Frisco Analytics)", "channel": "GeekCoders", "type": "channel", "url": "https://www.youtube.com/c/sagarprajapati", "company": ""},
+    {"title": "Data Engineer Interview Questions & Answers (playlist ep.1)", "channel": "GeekCoders", "type": "video", "url": "https://www.youtube.com/watch?v=aZ-RGSVCROI", "company": ""},
+    {"title": "Data Engineer Interview (question & answer series)", "channel": "GeekCoders", "type": "playlist", "url": "https://www.youtube.com/playlist?list=PLOlK8ytA0Mgj4YDvzevQir35PieOswsFX", "company": ""}
+  ],
+  "data_engineering_simplified": [
+    {"title": "Data Engineering Simplified — Channel Playlists (Snowflake/DE focus)", "channel": "Data Engineering Simplified", "type": "channel", "url": "https://www.youtube.com/@DataEngineering/playlists", "company": ""}
+  ],
+  "company_specific_and_compilation": [
+    {"title": "Guide to Amazon Data Engineer Interview: Rounds, Questions, Prep", "channel": "Prepfully", "type": "video", "url": "https://www.youtube.com/watch?v=gXvmiroO-30", "company": "Amazon"},
+    {"title": "Data Engineer-1 Interview Experience | In Covid Times | Bar Raiser", "channel": "(candidate account)", "type": "video", "url": "https://www.youtube.com/watch?v=iEdVOTGIRBI", "company": "Amazon"},
+    {"title": "Deloitte Data Engineer Interview Question (PySpark)", "channel": "(data engineering channel)", "type": "video", "url": "https://www.youtube.com/watch?v=R-NY90whwOY", "company": "Deloitte"},
+    {"title": "Tiger Analytics PySpark Interview Question", "channel": "(data engineering channel)", "type": "video", "url": "https://www.youtube.com/watch?v=mWRGwcMjFJM", "company": "Tiger Analytics"},
+    {"title": "Top Data Engineer Interview Questions Answered (What Actually Gets You Hired)", "channel": "Data & AI Guy", "type": "video", "url": "https://www.youtube.com/watch?v=uPIzRHfYNgU", "company": ""},
+    {"title": "Top 30 Data Engineer Interview Questions 2026", "channel": "Intellipaat", "type": "video", "url": "https://www.youtube.com/watch?v=N-MbyH7EhoQ", "company": ""},
+    {"title": "Data Engineering Interview Questions Answered and Explained", "channel": "The Data Guy", "type": "video", "url": "https://www.youtube.com/watch?v=v9aCCn0pg2g", "company": ""},
+    {"title": "All Data Engineering Interviews Explained", "channel": "(data engineering channel)", "type": "video", "url": "https://www.youtube.com/watch?v=jdrwZfeTd-o", "company": ""},
+    {"title": "Data Engineer job interview - full interview", "channel": "(data engineering channel)", "type": "video", "url": "https://www.youtube.com/watch?v=ObhJ0xIwIsI", "company": ""},
+    {"title": "Mock Data Engineer Interview: SQL, Spark, Project & AWS Answers", "channel": "(data engineering channel)", "type": "video", "url": "https://www.youtube.com/watch?v=owkjQ9kPB_g", "company": ""},
+    {"title": "Last Minute Spark Interview Prep Kit: Complete Revision in 2 Hours", "channel": "(data engineering channel)", "type": "video", "url": "https://www.youtube.com/watch?v=6T8SeQuqz1s", "company": ""},
+    {"title": "Big Data Engineer Live Mock Interview | PySpark", "channel": "(data engineering channel)", "type": "video", "url": "https://m.youtube.com/watch?v=KmfiRCo2G3w", "company": ""},
+    {"title": "Big Data Engineer Mock Interview | SQL, DSA, PySpark", "channel": "(data engineering channel)", "type": "video", "url": "https://www.youtube.com/watch?v=CEKC2fmUHIM", "company": ""},
+    {"title": "DATA ENGINEER Interview Questions & Answers!", "channel": "CareerVidz", "type": "playlist", "url": "https://www.youtube.com/playlist?list=PLCcteVWYyBtvJ8SWXXx5yYVS2Je1LNSg6", "company": "", "notes": "Re-attributed: belongs to CareerVidz, NOT an Indian DE creator"},
+    {"title": "\"DATA ENGINEER\" Interview Questions", "channel": "(compilation)", "type": "playlist", "url": "https://www.youtube.com/playlist?list=PLSHqKoK03lEt7RwKmwjt0yNLqNq8ZTwk0", "company": ""},
+    {"title": "Data Engineering Design Interview Questions", "channel": "(compilation)", "type": "playlist", "url": "https://www.youtube.com/playlist?list=PL9sbKmQTkW053-Ro7c16BRUQloJS5apeS", "company": ""},
+    {"title": "Data Engineering Roadmap", "channel": "(compilation)", "type": "playlist", "url": "https://www.youtube.com/playlist?list=PLTsNSGeIpGnGOfNC06TkaqsK5iQFmzThm", "company": ""},
+    {"title": "The Data Engineering Show", "channel": "The Data Engineering Show", "type": "playlist", "url": "https://www.youtube.com/playlist?list=PLRbJ7p43GvuqIWrhozJ7L5KpZovg9iFCs", "company": ""},
+    {"title": "Data Engineering Podcast", "channel": "(podcast)", "type": "playlist", "url": "https://www.youtube.com/playlist?list=PLA0ARPgEjqaBZUV1xY_6fYksZ0xvG9y4_", "company": ""}
+  ]
+}

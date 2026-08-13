@@ -11,8 +11,8 @@ are the way they are, so settled questions don't get re-opened as if they were b
 
 ## You are here
 
-> **All 5 phases ✅ done, plus a roadmap quality pass (2026-08-13). Nothing queued — ask the user what's next.**
-> Last updated: 2026-08-13
+> **Current phase: Phase 6 — Video Catalog. 6a shipped; 6b and 6c to do.**
+> Phases 1–5 ✅ done, plus a roadmap quality pass. Last updated: 2026-08-13
 
 Site total: **3,895 questions** across 51 topic pages + 74 subtopic pages, and **50 roadmaps**.
 The master DE roadmap has **118 of 123 sub-nodes linked**; the 5 that aren't have no honest
@@ -42,7 +42,9 @@ Plus **50 roadmaps** (was 7) covering every topic page with 12+ questions, and t
 for the previously-empty categories: Git, Linux, Docker, CI/CD, IaC, Networking, Data Lifecycle,
 Ingestion Patterns, Reverse ETL, ML & MLOps.
 
-**Nothing is queued.** Ideas if more work is wanted, roughly by value:
+**Phase 6 (Video Catalog) is planned** — see [its section below](#phase-6--video-catalog-planned).
+
+Other ideas, not queued, roughly by value:
 
 - **Improve the weak source answers on `data-warehousing.mdx`** — see
   [D10](#d10-roadmap-descriptions-come-from-prose-when-strong-questions-otherwise). Its answers were
@@ -68,6 +70,9 @@ passing `npx astro build`, and logged below.
 | 3 | **Cloud depth** | AWS (7) → Azure (5) → GCP (5), DE-scoped services only | 17 | ✅ Done (2026-08-09) — 281 questions |
 | 4 | **Remaining breadth** | Monitoring, Data Lifecycle, Ingestion Types, Reverse ETL, MLOps | 4 new + 1 expanded | ✅ Done (2026-08-09) — 65 questions |
 | 5 | **Wire the master roadmap** | Add `link:` to the unlinked DE roadmap nodes | 0 new | ✅ Done (2026-08-09) — 118/123 linked |
+| 6a | **Interview experiences** | Curated videos + articles, data layer, link checker | 1 page + data | ✅ Done (2026-08-13) — 33 resources |
+| 6b | **Concept videos in roadmaps** | Optional `videos: []` on roadmap nodes, shown in the drawer | script change | ⬜ Not started |
+| 6c | **Projects section** | Project walkthroughs tagged by the topics they exercise | 1 page + data | ⬜ Not started |
 
 Status values: `⬜ Not started` · `🟡 In progress` · `✅ Done (YYYY-MM-DD)` · `⏸️ Deferred (why)`
 
@@ -248,6 +253,130 @@ page, database fundamentals to SQL subtopic pages, and CAP/scaling to `system-de
 leaving them visibly incomplete — see [D5](#d5-cut-low-value-scope-rather-than-filling-it). These
 are the natural candidates if more content is ever wanted.
 
+### Phase 6 — Video Catalog (planned)
+
+A lot of good data engineering material is on YouTube — recorded interview experiences, concept
+explainers, and end-to-end project walkthroughs. This phase adds curated video alongside the
+written content.
+
+#### The shape: companion, not catalog
+
+The decision that drives everything else: **a standalone "videos" catalog competes with YouTube
+search and loses.** Value comes from videos being attached to the structure this site already has.
+So the three content types get three different shapes:
+
+| Type | Shape | Why |
+|---|---|---|
+| **Concept videos** | A "Watch" block **on existing topic pages** | No new information architecture. Reuses the 51 topic pages and 50 roadmaps as the taxonomy. Serves people who learn better by watching without duplicating the written Q&A. |
+| **Interview experiences** | **New browsable section** | Has no existing home on the site, and it's the most differentiated content — hard to find and organise anywhere else. |
+| **Projects** | **New section** | The site has no projects section at all. Videos are one resource type on it, not the point of it. |
+
+#### One mechanism for all three
+
+- **`src/data/videos.json`** — one record per video. Data, not MDX, so it's queryable and
+  automatically checkable.
+- **A `<VideoList>` / `<VideoCard>` component pair**, mirroring `QuestionList`/`QuestionCard`,
+  including **watched state in localStorage** so it feeds the existing progress dashboard for free.
+- **Tag to topic slugs, not roadmap nodes.** 2,049 nodes is too granular to maintain; 51 topics is
+  not.
+- **A link-rot checker in CI**, hitting YouTube's oEmbed endpoint. **Non-negotiable** — decaying
+  links are what kill link directories, and a broken catalog damages trust more than no catalog.
+- **Link, or lazy-embed with `youtube-nocookie`.** Raw iframes hurt page load and set third-party
+  cookies.
+
+Proposed record shape:
+
+```json
+{
+  "id": "diHUuPIaMpI",
+  "type": "video",
+  "title": "Salting in Spark — data engineer interview question",
+  "channel": "MANISH KUMAR",
+  "url": "https://www.youtube.com/watch?v=diHUuPIaMpI",
+  "kind": "concept",
+  "topics": ["spark"],
+  "company": null,
+  "level": "intermediate",
+  "duration_s": 780,
+  "added": "2026-08-13",
+  "checked": "2026-08-13"
+}
+```
+
+`kind` is one of `concept` | `interview` | `project`. `topics[]` must match existing topic slugs.
+
+#### 6a — Interview experiences ✅ Done 2026-08-13
+
+Shipped at [`/interview-experiences/`](src/pages/interview-experiences.astro), backed by
+[`src/data/interview-resources.json`](src/data/interview-resources.json) — **33 resources**
+(5 company experiences, 9 mock interviews, 19 guides), 4 companies, 7 creators.
+
+**Sources are grouped video-first, then articles**, per the user's call that video is the more
+engaging format.
+
+**Structure is format-primary with company as a filter — not company-primary.** This deviates from
+the original intent, on evidence: only **5 of 45** source records carry a company, and it can't be
+derived (a creator's employer is not the company they interviewed at). Company-first would have
+meant four near-empty cards. The data model already carries `company`, so promoting it to the
+primary axis later is a presentation change, not a migration.
+
+Also settled:
+
+- **Playlists are first-class entries** where the whole playlist is coherent, with their video
+  count shown (one has 96, another 33). They're also more link-rot resistant than single videos —
+  one removed video doesn't kill the entry.
+- **Channel links are not catalogue entries.** The 7 became a separate short "creators worth
+  following" list at the foot of the page.
+- **Videos do not count toward progress** — user's call, and it keeps the completion percentage
+  meaning "questions answered" rather than diluting it.
+- **Topic tags link into the site** — a resource tagged `sql` links to the SQL theory page, so the
+  section routes people into existing content rather than only out to YouTube.
+
+**Link-rot checker shipped with it**, not after:
+[`scripts/check-video-links.mjs`](scripts/check-video-links.mjs), run with `npm run check:links`.
+Uses YouTube's oEmbed endpoint (no API key, no quota), fails the build on dead links, and warns on
+title drift. First run: **40/40 live, 0 dead.**
+
+**Not done, and it's the real value:** no company has a round-by-round loop breakdown yet. That
+needs someone to watch the sources and summarise — it cannot be extracted, and inventing it would
+be fabrication. The UI degrades gracefully and says so explicitly rather than hiding the gap.
+
+#### Source data assessment
+
+[`interview_experience_videos.json`](data/data-engineering-interview-questions-master/interview_experience/interview_experience_videos.json)
+holds **45 records** grouped by creator: 28 videos, 10 playlists, 7 channels.
+
+**It's a starting point, not a catalog.** What the data actually shows:
+
+- **Company-first organisation does not survive contact with it.** Only **5 of 45** records carry a
+  company, and deriving more from titles produces false positives — "Ankit Bansal — Channel (Data
+  Engineer at Amazon)" is the *creator's employer*, not an Amazon interview. Company should be an
+  **opportunistic filter**, not the primary axis, until records are tagged by hand.
+- **The playlists are the highest-value items**, not the individual videos — one has 96 videos,
+  another 33 ("richest source of real mock/experience interviews in this set"). A handful of
+  playlist entries may be worth more than all 28 single videos.
+- **7 channel-level links are weak catalog entries** — "go browse this channel" isn't curation.
+  They probably belong in a separate short "creators worth following" list.
+- **Known data-quality flags already in the file:** one record notes playlist IDs "were not
+  text-indexed — open in a browser to grab list= IDs" (incomplete), and one is re-attributed to
+  CareerVidz rather than the originally-credited creator (provenance was already being corrected).
+- **URL normalisation needed** — a `youtu.be/…` short link and three `/c/…` channel URLs.
+
+#### Suggested order
+
+1. **Mechanism + interview experiences** — build the schema, component, and link checker, and
+   populate the interview section. Doing the new-section work first surfaces the hard problems early.
+2. **Concept videos onto existing topic pages** — cheap once the component exists.
+3. **Projects section** — the biggest scope; worth doing properly rather than as an afterthought.
+
+#### The real cost
+
+Not the code — **watching videos to decide which are good.** 30 curated beats 500 scraped, and
+curation doesn't scale by adding time. Cap the initial target deliberately (say 10 companies and
+5 topics), ship it, and see whether it actually gets used before widening.
+
+---
+
 ---
 
 ## Decisions
@@ -367,6 +496,18 @@ The generator asserts that no previously-existing id disappears, and that assert
 
 Unresolved calls. Settle before the phase that needs them; move the answer into **Decisions**.
 
+**Phase 6 (video catalog):**
+
+- **Primary axis for interview experiences** — company is the axis people search by, but only 5 of
+  45 source records have one. Tag by hand, or organise by creator/playlist first and add company
+  opportunistically?
+- **Playlists as first-class entries or expanded?** A 96-video playlist is one record but a lot of
+  content. Link the playlist, or pull out the individual videos worth watching?
+- **Channel-level links** — keep as a short "creators worth following" list, or drop them?
+- **Do videos count toward progress?** Watched-state is easy to add, but mixing "watched a video"
+  into a completion percentage that currently means "answered a question" may dilute what the
+  number means. Related to [D1](#d1-sidebar-and-progress-track-interview-topics-only--not-subtopic-pages).
+
 - **SQL theory overlap** — `sql/theory.mdx` (102 Q) may duplicate the 260 questions on SQL
   subtopic pages. Worth an audit at some point; not blocking anything.
 - **Duplicate question ids `ssf-01` / `ssf-02`** — pre-existing collision between
@@ -473,6 +614,7 @@ Newest first. One line per working session: what was done, and what's next.
 
 | Date | What happened | Next up |
 |---|---|---|
+| 2026-08-13 | **Phase 6 planned — video catalog.** Wrote up the design: companion-not-catalog shape (concept videos on existing topic pages, new sections for interview experiences and projects), one shared data file + component + mandatory link-rot checker, tagged to topic slugs. Assessed the 45-record source JSON: it's a starting point, not a catalog — **company-first organisation doesn't work** (only 5 of 45 tagged, title-derivation gives false positives), the **playlists carry more value than the single videos**, and 7 channel links aren't really catalog entries. Four open questions logged. Not started. | Phase 6 — settle open questions, then build |
 | 2026-08-13 | **Roadmap quality pass + 4 new roadmaps.** Rewrote the description generator: descriptions now come from the first *complete* answer sentence when it scores well, and from the **question text** otherwise. Unusable descriptions went **37% → 0%** (was 179 truncated, 61 fallback, 17 fragments across 696). Regenerated all 33 generated roadmaps plus a stale Observability (page had grown 12→20 Q in Phase 4), and added 4 missing roadmaps for the Phase 4 pages per D9 — **50 roadmaps, 2,049 nodes**. All 694 link targets verified; **no node id changed**, so no roadmap progress was lost. Recorded as D10, including the finding that `data-warehousing.mdx` has weak *source* answers the roadmap now routes around but the page still shows. | Ask the user |
 | 2026-08-09 | **Phases 4 and 5 done — plan complete.** Phase 4: 4 new pages + Observability expanded 12→20, **65 questions**, closing the last empty master-roadmap categories; added to sidebar and progress since these are topic pages. Phase 5: master DE roadmap wired from 37 to **118 of 123** linked sub-nodes, all validated against built HTML, 5 left deliberately unlinked for lack of an honest target. **All five phases now done — nothing queued.** | Ask the user |
 | 2026-08-09 | **Phase 3 done — Cloud depth.** 17 subtopic pages, **281 questions** (AWS 130, Azure 76, GCP 75). All **105 DE-tagged services** across the three cloud roadmaps now linked, up from zero; 123 roadmap nodes verified against built HTML. Trimmed 19 estimated pages to 17 by folding one-item categories in. Two MDX gotchas hit: a bare `<object at 0x…>` in prose, and nested `**bold**` inside a bold paragraph. | Phase 4 — Remaining breadth |
