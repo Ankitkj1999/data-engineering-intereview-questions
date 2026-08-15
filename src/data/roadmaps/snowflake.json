@@ -1,0 +1,152 @@
+[
+  {
+    "id": "architecture-storage",
+    "label": "Architecture & Storage",
+    "desc": "18 interview questions covering Fundamentals, Architecture, Storage, Compute and more.",
+    "link": "/level-3-technologies/data-warehouses/snowflake/#architecture--storage",
+    "subs": [
+      {
+        "id": "architecture-storage-fundamentals",
+        "label": "Fundamentals",
+        "desc": "Snowflake is a cloud-native, fully managed data warehouse that supports structured and semi-structured data with elastic scalability and shared infrastructure.",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#architecture--storage"
+      },
+      {
+        "id": "architecture-storage-architecture",
+        "label": "Architecture",
+        "desc": "Snowflake uses a multi-cluster, shared data architecture that separates storage, compute, and services layers.",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#architecture--storage"
+      },
+      {
+        "id": "architecture-storage-storage",
+        "label": "Storage",
+        "desc": "The cloud storage layer stores data in a compressed, columnar format on cloud object storage (S3, Azure Blob, or GCS), providing durability and high availability.",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#architecture--storage"
+      },
+      {
+        "id": "architecture-storage-compute",
+        "label": "Compute",
+        "desc": "The compute layer consists of virtual warehouses — clusters of compute resources that execute queries against data in storage — scaling independently from storage.",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#architecture--storage"
+      },
+      {
+        "id": "architecture-storage-services",
+        "label": "Services",
+        "desc": "The services layer handles SQL compilation, metadata management, access control, and query optimization.",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#architecture--storage"
+      },
+      {
+        "id": "architecture-storage-warehouses",
+        "label": "Warehouses",
+        "desc": "Virtual warehouses are compute clusters that process queries, with sizes ranging from X-Small to 6XL, sized based on concurrent users and query complexity.",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#architecture--storage"
+      },
+      {
+        "id": "architecture-storage-concurrency",
+        "label": "Concurrency",
+        "desc": "Snowflake supports high concurrency through its architecture, allowing multiple warehouses and queries to run against shared data without performance degradation, because each warehouse has isolated compute.",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#architecture--storage"
+      },
+      {
+        "id": "architecture-storage-data-loading",
+        "label": "Data Loading",
+        "desc": "Data can be loaded using the COPY INTO command from staged files, Snowpipe for continuous/automated loading, or third-party ETL/ELT tools (Fivetran, Airbyte, dbt, etc.) that connect via Snowflake's drivers and APIs.",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#architecture--storage"
+      },
+      {
+        "id": "architecture-storage-schema-design",
+        "label": "Schema Design",
+        "desc": "Snowflake supports various schema designs including star schema, snowflake schema, and normalized designs depending on use case.",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#architecture--storage"
+      },
+      {
+        "id": "architecture-storage-tables",
+        "label": "Tables",
+        "desc": "What are the differences between staging and permanent tables?",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#architecture--storage"
+      }
+    ]
+  },
+  {
+    "id": "performance-optimization",
+    "label": "Performance & Optimization",
+    "desc": "9 interview questions covering Monitoring, Optimization, Clustering, Caching and more.",
+    "link": "/level-3-technologies/data-warehouses/snowflake/#performance--optimization",
+    "subs": [
+      {
+        "id": "performance-optimization-monitoring",
+        "label": "Monitoring",
+        "desc": "What is query performance monitoring in Snowflake?",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#performance--optimization"
+      },
+      {
+        "id": "performance-optimization-optimization",
+        "label": "Optimization",
+        "desc": "How do you optimize Snowflake queries?",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#performance--optimization"
+      },
+      {
+        "id": "performance-optimization-clustering",
+        "label": "Clustering",
+        "desc": "Clustering keys define the sort order and physical layout of data across a table's micro-partitions, improving query performance for filtered queries.",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#performance--optimization"
+      },
+      {
+        "id": "performance-optimization-caching",
+        "label": "Caching",
+        "desc": "What is Snowflake result caching? What are the benefits of result caching?",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#performance--optimization"
+      },
+      {
+        "id": "performance-optimization-metadata",
+        "label": "Metadata",
+        "desc": "How does Snowflake handle metadata? What is Snowflake metadata caching?",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#performance--optimization"
+      }
+    ]
+  },
+  {
+    "id": "security-administration",
+    "label": "Security & Administration",
+    "desc": "14 interview questions covering Security, RBAC, Encryption, Compliance and more.",
+    "link": "/level-3-technologies/data-warehouses/snowflake/#security--administration",
+    "subs": [
+      {
+        "id": "security-administration-security",
+        "label": "Security",
+        "desc": "Security is implemented through authentication (password, SSO, key-pair, MFA), authorization (RBAC), encryption (at rest and in transit), network policies (IP allow-listing), and audit logging via ACCOUNT_USAGE and INFORMATION_SCHEMA views.",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#security--administration"
+      },
+      {
+        "id": "security-administration-rbac",
+        "label": "RBAC",
+        "desc": "RBAC controls user access to databases, schemas, tables, and views through roles with specific privileges.",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#security--administration"
+      },
+      {
+        "id": "security-administration-encryption",
+        "label": "Encryption",
+        "desc": "Snowflake provides encryption at rest using AES-256 and encryption in transit using TLS 1.2, applied automatically to all data — there's no opt-out, and no additional configuration is required for baseline encryption.",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#security--administration"
+      },
+      {
+        "id": "security-administration-compliance",
+        "label": "Compliance",
+        "desc": "How do you handle compliance and auditing in Snowflake?",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#security--administration"
+      },
+      {
+        "id": "security-administration-data-sharing",
+        "label": "Data Sharing",
+        "desc": "Benefits include real-time access to shared data (no batch export/import lag), reduced data movement and duplication, improved cross-organization collaboration, and simplified governance since the provider controls access centrally.",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#security--administration"
+      },
+      {
+        "id": "security-administration-data-recovery",
+        "label": "Data Recovery",
+        "desc": "Fail-safe provides a non-configurable 7-day recovery window after* time travel expires, ensuring protection against accidental or malicious data deletion.",
+        "link": "/level-3-technologies/data-warehouses/snowflake/#security--administration"
+      }
+    ]
+  }
+]

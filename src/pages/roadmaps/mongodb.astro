@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/mongodb.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,46 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/databases/mongodb/#document-model--core-concepts">Document Model &amp; Core Concepts</a></h3>
+        <p class="rm-index-desc">12 interview questions covering Fundamentals, Data Model, Aggregation, Schema Design and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#document-model--core-concepts">Fundamentals</a></span> <span class="rm-index-sub-desc">MongoDB is a document database built on a horizontal scale-out architecture that uses a flexible schema for storing data.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#document-model--core-concepts">Data Model</a></span> <span class="rm-index-sub-desc">How does MongoDB store data?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#document-model--core-concepts">Aggregation</a></span> <span class="rm-index-sub-desc">What is an aggregation pipeline in MongoDB?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#document-model--core-concepts">Schema Design</a></span> <span class="rm-index-sub-desc">How does MongoDB manage schema design and changes? What are the best practices for designing a MongoDB schema?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#document-model--core-concepts">Trade-offs</a></span> <span class="rm-index-sub-desc">What are the limitations or disadvantages of MongoDB?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#document-model--core-concepts">Migration</a></span> <span class="rm-index-sub-desc">How do you perform migrations from RDBMS to MongoDB?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#document-model--core-concepts">Geospatial</a></span> <span class="rm-index-sub-desc">MongoDB provides robust support for geographic data and geospatial queries.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/databases/mongodb/#scaling-performance--operations">Scaling, Performance &amp; Operations</a></h3>
+        <p class="rm-index-desc">17 interview questions covering Scaling, Sharding, Transactions, Indexing and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#scaling-performance--operations">Scaling</a></span> <span class="rm-index-sub-desc">MongoDB scales the same way any distributed application would: throw more resources at a single machine (vertical scaling) or distribute the data across multiple physical servers or nodes (horizontal scaling).</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#scaling-performance--operations">Sharding</a></span> <span class="rm-index-sub-desc">MongoDB supports horizontal scaling through sharding — a method for distributing data across multiple machines, used for deployments with very large datasets and high throughput.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#scaling-performance--operations">Transactions</a></span> <span class="rm-index-sub-desc">A write operation is atomic at the level of a single document, even if it modifies multiple embedded documents within that one document.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#scaling-performance--operations">Indexing</a></span> <span class="rm-index-sub-desc">Where should you use an index in MongoDB? How would you choose an indexing strategy in MongoDB, and what should you consider?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#scaling-performance--operations">Reliability</a></span> <span class="rm-index-sub-desc">How does MongoDB ensure data consistency and reliability?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#scaling-performance--operations">Backup</a></span> <span class="rm-index-sub-desc">What are MongoDB's backup and restore options?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#scaling-performance--operations">Concurrency</a></span> <span class="rm-index-sub-desc">How does MongoDB handle concurrency?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#scaling-performance--operations">Security</a></span> <span class="rm-index-sub-desc">What security features does MongoDB offer?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#scaling-performance--operations">Atlas</a></span> <span class="rm-index-sub-desc">MongoDB Atlas is the cloud-hosted database-as-a-service (DBaaS) platform for MongoDB.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#scaling-performance--operations">Monitoring</a></span> <span class="rm-index-sub-desc">How can you monitor and optimize MongoDB performance?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#scaling-performance--operations">Replication</a></span> <span class="rm-index-sub-desc">What is a replica set in MongoDB and how does it work?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#scaling-performance--operations">Data Integrity</a></span> <span class="rm-index-sub-desc">MongoDB doesn't have built-in referential integrity like relational databases, but you can maintain data integrity through.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/mongodb/#scaling-performance--operations">Consistency</a></span> <span class="rm-index-sub-desc">The CAP theorem states that a distributed system can only fully provide two of three guarantees: Consistency, Availability, and Partition tolerance.</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,32 +107,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"document-model-core-concepts", label:"Document Model & Core Concepts", desc:"12 interview questions covering Fundamentals, Data Model, Aggregation, Schema Design and more.", link:"/level-3-technologies/databases/mongodb/#document-model--core-concepts", subs:[
-    { id:"document-model-core-concepts-fundamentals", label:"Fundamentals", desc:"MongoDB is a document database built on a horizontal scale-out architecture that uses a flexible schema for storing data.", link:"/level-3-technologies/databases/mongodb/#document-model--core-concepts" },
-    { id:"document-model-core-concepts-data-model", label:"Data Model", desc:"How does MongoDB store data?", link:"/level-3-technologies/databases/mongodb/#document-model--core-concepts" },
-    { id:"document-model-core-concepts-aggregation", label:"Aggregation", desc:"What is an aggregation pipeline in MongoDB?", link:"/level-3-technologies/databases/mongodb/#document-model--core-concepts" },
-    { id:"document-model-core-concepts-schema-design", label:"Schema Design", desc:"How does MongoDB manage schema design and changes? What are the best practices for designing a MongoDB schema?", link:"/level-3-technologies/databases/mongodb/#document-model--core-concepts" },
-    { id:"document-model-core-concepts-trade-offs", label:"Trade-offs", desc:"What are the limitations or disadvantages of MongoDB?", link:"/level-3-technologies/databases/mongodb/#document-model--core-concepts" },
-    { id:"document-model-core-concepts-migration", label:"Migration", desc:"How do you perform migrations from RDBMS to MongoDB?", link:"/level-3-technologies/databases/mongodb/#document-model--core-concepts" },
-    { id:"document-model-core-concepts-geospatial", label:"Geospatial", desc:"MongoDB provides robust support for geographic data and geospatial queries.", link:"/level-3-technologies/databases/mongodb/#document-model--core-concepts" },
-  ]},
-  { id:"scaling-performance-operations", label:"Scaling, Performance & Operations", desc:"17 interview questions covering Scaling, Sharding, Transactions, Indexing and more.", link:"/level-3-technologies/databases/mongodb/#scaling-performance--operations", subs:[
-    { id:"scaling-performance-operations-scaling", label:"Scaling", desc:"MongoDB scales the same way any distributed application would: throw more resources at a single machine (vertical scaling) or distribute the data across multiple physical servers or nodes (horizontal scaling).", link:"/level-3-technologies/databases/mongodb/#scaling-performance--operations" },
-    { id:"scaling-performance-operations-sharding", label:"Sharding", desc:"MongoDB supports horizontal scaling through sharding — a method for distributing data across multiple machines, used for deployments with very large datasets and high throughput.", link:"/level-3-technologies/databases/mongodb/#scaling-performance--operations" },
-    { id:"scaling-performance-operations-transactions", label:"Transactions", desc:"A write operation is atomic at the level of a single document, even if it modifies multiple embedded documents within that one document.", link:"/level-3-technologies/databases/mongodb/#scaling-performance--operations" },
-    { id:"scaling-performance-operations-indexing", label:"Indexing", desc:"Where should you use an index in MongoDB? How would you choose an indexing strategy in MongoDB, and what should you consider?", link:"/level-3-technologies/databases/mongodb/#scaling-performance--operations" },
-    { id:"scaling-performance-operations-reliability", label:"Reliability", desc:"How does MongoDB ensure data consistency and reliability?", link:"/level-3-technologies/databases/mongodb/#scaling-performance--operations" },
-    { id:"scaling-performance-operations-backup", label:"Backup", desc:"What are MongoDB's backup and restore options?", link:"/level-3-technologies/databases/mongodb/#scaling-performance--operations" },
-    { id:"scaling-performance-operations-concurrency", label:"Concurrency", desc:"How does MongoDB handle concurrency?", link:"/level-3-technologies/databases/mongodb/#scaling-performance--operations" },
-    { id:"scaling-performance-operations-security", label:"Security", desc:"What security features does MongoDB offer?", link:"/level-3-technologies/databases/mongodb/#scaling-performance--operations" },
-    { id:"scaling-performance-operations-atlas", label:"Atlas", desc:"MongoDB Atlas is the cloud-hosted database-as-a-service (DBaaS) platform for MongoDB.", link:"/level-3-technologies/databases/mongodb/#scaling-performance--operations" },
-    { id:"scaling-performance-operations-monitoring", label:"Monitoring", desc:"How can you monitor and optimize MongoDB performance?", link:"/level-3-technologies/databases/mongodb/#scaling-performance--operations" },
-    { id:"scaling-performance-operations-replication", label:"Replication", desc:"What is a replica set in MongoDB and how does it work?", link:"/level-3-technologies/databases/mongodb/#scaling-performance--operations" },
-    { id:"scaling-performance-operations-data-integrity", label:"Data Integrity", desc:"MongoDB doesn't have built-in referential integrity like relational databases, but you can maintain data integrity through.", link:"/level-3-technologies/databases/mongodb/#scaling-performance--operations" },
-    { id:"scaling-performance-operations-consistency", label:"Consistency", desc:"The CAP theorem states that a distributed system can only fully provide two of three guarantees: Consistency, Availability, and Partition tolerance.", link:"/level-3-technologies/databases/mongodb/#scaling-performance--operations" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/azure.json";
 ---
 
 <StarlightPage
@@ -65,6 +66,194 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading">Azure Overview</h3>
+        <p class="rm-index-desc">Foundational Azure concepts, cost models, and account-level basics every cloud practitioner should know before diving into individual services.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label">Azure CAPEX vs OPEX</span> <span class="rm-index-sub-desc">Contrasts traditional capital expenditure (buying hardware upfront) with Azure's operating expenditure (pay-as-you-go) cost model that shifts IT spend from CapEx to OpEx.</span></li>
+          <li><span class="rm-index-sub-label">Azure Cloud Concepts</span> <span class="rm-index-sub-desc">Foundational cloud computing concepts — scalability, elasticity, agility, and high availability — as implemented across Azure's platform.</span></li>
+          <li><span class="rm-index-sub-label">Azure Cloud Architecture Models</span> <span class="rm-index-sub-desc">Public, private, and hybrid cloud architecture models, and how Azure supports each through services like Azure Arc and Azure Stack.</span></li>
+          <li><span class="rm-index-sub-label">Azure Cloud Service Models</span> <span class="rm-index-sub-desc">IaaS, PaaS, and SaaS service models and the corresponding Azure services (Virtual Machines, App Service, Microsoft 365) that fit each.</span></li>
+          <li><span class="rm-index-sub-label">Azure Global Infrastructure</span> <span class="rm-index-sub-desc">Regions, Availability Zones, and Region Pairs — the physical and logical structure Azure uses to deliver resilient, low-latency services worldwide.</span></li>
+          <li><span class="rm-index-sub-label">Azure User Tools</span> <span class="rm-index-sub-desc">Interfaces for interacting with Azure — the Azure Portal, Azure CLI, Azure PowerShell, and Cloud Shell — each suited to different workflows.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading">Azure Pricing</h3>
+        <p class="rm-index-desc">How Azure charges for usage and the tools available to estimate and control cloud spend.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label">Azure Pricing Cheat Sheet</span> <span class="rm-index-sub-desc">Pay-as-you-go pricing, reserved instances, and the Azure Pricing Calculator and TCO Calculator for estimating and reducing cloud spend.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/cloud/azure-compute/">Azure Compute Services</a></h3>
+        <p class="rm-index-desc">Services for running application code and containers — from fully managed PaaS to full control over virtual machines.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label">Azure App Service</span> <span class="rm-index-sub-desc">Fully managed PaaS for hosting web apps, REST APIs, and mobile back ends, with built-in auto-scaling, deployment slots, and CI/CD integration.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-compute/#azure-batch">Azure Batch</a></span> <span class="rm-index-sub-desc">Managed service for running large-scale parallel and batch compute jobs across a pool of auto-scaling virtual machines.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-compute/#container-instances--functions">Azure Container Instances</a></span> <span class="rm-index-sub-desc">Serverless container hosting that runs a single container or container group without provisioning or managing VMs.</span></li>
+          <li><span class="rm-index-sub-label">Azure Container Registry</span> <span class="rm-index-sub-desc">Private, managed Docker registry for storing and managing container images and Helm charts across your Azure deployments.</span></li>
+          <li><span class="rm-index-sub-label">Azure CycleCloud</span> <span class="rm-index-sub-desc">Tool for orchestrating and managing HPC clusters on Azure, provisioning infrastructure and scheduler software for workload-managed clusters.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-compute/#azure-kubernetes-service">Azure Kubernetes Service (AKS)</a></span> <span class="rm-index-sub-desc">Managed Kubernetes service that offloads control-plane operations, letting you deploy and scale containerized applications with native Azure integration.</span></li>
+          <li><span class="rm-index-sub-label">Azure Service Fabric</span> <span class="rm-index-sub-desc">Distributed systems platform for building and managing scalable microservices and containers across a cluster of machines.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-compute/#virtual-machines">Azure Virtual Machines</a></span> <span class="rm-index-sub-desc">On-demand, scalable IaaS compute — full control over the OS and configuration, available in a wide range of sizes and pricing tiers.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/cloud/azure-storage/">Azure Storage Services</a></h3>
+        <p class="rm-index-desc">Object, block, file, and table storage services covering every durability, access-pattern, and cost tier.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-storage/#access-tiers--lifecycle">Azure Archive Storage</a></span> <span class="rm-index-sub-desc">Lowest-cost Blob Storage access tier for rarely accessed data with hours-long retrieval latency, ideal for long-term archival.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-storage/#blob-storage--adls-gen2">Azure Blob Storage</a></span> <span class="rm-index-sub-desc">Massively scalable object storage for unstructured data — Hot, Cool, and Archive tiers trade access latency for cost.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-storage/#disk-file-queue--table-storage">Azure Disk Storage</a></span> <span class="rm-index-sub-desc">Persistent, high-performance block storage (HDD, SSD, Premium SSD, Ultra Disk) attached to Azure Virtual Machines.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-storage/#disk-file-queue--table-storage">Azure File Storage</a></span> <span class="rm-index-sub-desc">Fully managed SMB and NFS file shares in the cloud, mountable concurrently by on-premises and cloud VMs.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-storage/#disk-file-queue--table-storage">Azure Queue Storage</a></span> <span class="rm-index-sub-desc">Simple, durable message queuing service for asynchronous communication between application components.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-storage/#blob-storage--adls-gen2">Azure Storage Overview</a></span> <span class="rm-index-sub-desc">Umbrella service covering Blob, File, Queue, Table, and Disk storage, unified under a single storage account with shared redundancy options.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-storage/#disk-file-queue--table-storage">Azure Table Storage</a></span> <span class="rm-index-sub-desc">NoSQL key-value store for large amounts of structured, non-relational data, now largely superseded by Azure Cosmos DB's Table API.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading">Azure Migration Services</h3>
+        <p class="rm-index-desc">Tools for assessing and moving on-premises workloads into Azure.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label">Azure Migrate</span> <span class="rm-index-sub-desc">Centralized hub for discovering, assessing, and migrating on-premises servers, databases, and web apps to Azure.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/cloud/azure-databases/">Azure Database Services</a></h3>
+        <p class="rm-index-desc">Purpose-built managed database engines spanning relational and globally distributed NoSQL workloads.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-databases/#cosmos-db">Azure Cosmos DB</a></span> <span class="rm-index-sub-desc">Globally distributed, multi-model NoSQL database offering single-digit-millisecond latency and multiple consistency levels across regions.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-databases/#database-migration-service">Azure Database Migration Service</a></span> <span class="rm-index-sub-desc">Simplifies migrating on-premises databases to Azure with minimal downtime, supporting both homogeneous and heterogeneous migrations.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-databases/#mysql--postgresql">Azure Database for MySQL and PostgreSQL</a></span> <span class="rm-index-sub-desc">Fully managed, community-compatible relational database services for MySQL and PostgreSQL with automated patching and backups.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-databases/#azure-sql">Azure SQL</a></span> <span class="rm-index-sub-desc">Family of managed relational database services — Azure SQL Database, Managed Instance, and SQL Server on VMs — built on the SQL Server engine.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading">Azure Networking &amp; Content Delivery</h3>
+        <p class="rm-index-desc">Services for connecting, routing, and delivering content across virtual networks, on-premises networks, and the public internet.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label">Azure Application Gateway</span> <span class="rm-index-sub-desc">Layer 7 load balancer with URL-based routing, SSL termination, and integrated Web Application Firewall (WAF).</span></li>
+          <li><span class="rm-index-sub-label">Azure Content Delivery Network</span> <span class="rm-index-sub-desc">Global content delivery network that caches static content at edge nodes for low-latency delivery to end users.</span></li>
+          <li><span class="rm-index-sub-label">Azure DNS</span> <span class="rm-index-sub-desc">Fast, reliable hosting service for DNS domains, using Microsoft's global network of name servers.</span></li>
+          <li><span class="rm-index-sub-label">Azure ExpressRoute</span> <span class="rm-index-sub-desc">Dedicated private connection from on-premises networks to Azure, bypassing the public internet for consistent latency and bandwidth.</span></li>
+          <li><span class="rm-index-sub-label">Azure Front Door</span> <span class="rm-index-sub-desc">Global, application-layer load balancer and CDN combining traffic acceleration, WAF, and SSL offload at the edge.</span></li>
+          <li><span class="rm-index-sub-label">Azure Load Balancer</span> <span class="rm-index-sub-desc">Layer 4 load balancer distributing inbound traffic across healthy VM instances within a region for high availability.</span></li>
+          <li><span class="rm-index-sub-label">Azure Traffic Manager</span> <span class="rm-index-sub-desc">DNS-based traffic load balancer that distributes traffic across regions using routing methods like priority, weighted, and geographic.</span></li>
+          <li><span class="rm-index-sub-label">Azure Virtual Network (VNet)</span> <span class="rm-index-sub-desc">Logically isolated network within Azure — subnets, network security groups, and route tables for full control over network topology.</span></li>
+          <li><span class="rm-index-sub-label">Azure VPN Gateway</span> <span class="rm-index-sub-desc">Sends encrypted traffic between an Azure VNet and on-premises locations, or between VNets, over the public internet.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading">Azure Security Services</h3>
+        <p class="rm-index-desc">Identity, threat detection, encryption, and compliance services for securing accounts, workloads, and data.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label">Advanced Threat Protection (ATP)</span> <span class="rm-index-sub-desc">Cloud-based security solution that identifies, detects, and helps investigate advanced threats, compromised identities, and malicious insider actions.</span></li>
+          <li><span class="rm-index-sub-label">Azure Active Directory</span> <span class="rm-index-sub-desc">Microsoft's legacy name for its cloud identity and access management service, now rebranded as Microsoft Entra ID.</span></li>
+          <li><span class="rm-index-sub-label">Azure DDoS Protection</span> <span class="rm-index-sub-desc">Protects Azure resources from distributed denial-of-service attacks with always-on traffic monitoring and automatic mitigation.</span></li>
+          <li><span class="rm-index-sub-label">Azure Firewall</span> <span class="rm-index-sub-desc">Managed, cloud-native network firewall providing stateful traffic filtering and threat intelligence-based filtering for VNets.</span></li>
+          <li><span class="rm-index-sub-label">Azure Information Protection</span> <span class="rm-index-sub-desc">Classifies and protects documents and emails by applying labels and encryption that persist regardless of where the data travels.</span></li>
+          <li><span class="rm-index-sub-label">Azure Key Vault</span> <span class="rm-index-sub-desc">Centralized, managed store for secrets, encryption keys, and certificates, with hardware security module (HSM)-backed protection.</span></li>
+          <li><span class="rm-index-sub-label">Azure Security Center</span> <span class="rm-index-sub-desc">Legacy name for Azure's unified security posture management and threat protection service, now part of Microsoft Defender for Cloud.</span></li>
+          <li><span class="rm-index-sub-label">Microsoft Compliance Offerings</span> <span class="rm-index-sub-desc">Documentation and certifications demonstrating Microsoft cloud services meet regulatory and industry compliance standards (ISO, SOC, GDPR).</span></li>
+          <li><span class="rm-index-sub-label">Microsoft Defender XDR</span> <span class="rm-index-sub-desc">Unified extended detection and response (XDR) platform correlating signals across endpoints, identities, email, and apps.</span></li>
+          <li><span class="rm-index-sub-label">Microsoft Defender for Cloud</span> <span class="rm-index-sub-desc">Cloud security posture management and workload protection platform providing security recommendations and threat detection across Azure and hybrid resources.</span></li>
+          <li><span class="rm-index-sub-label">Microsoft Defender for Identity</span> <span class="rm-index-sub-desc">Monitors on-premises Active Directory signals to identify, detect, and investigate advanced threats and compromised identities.</span></li>
+          <li><span class="rm-index-sub-label">Microsoft Entra ID</span> <span class="rm-index-sub-desc">Microsoft's cloud-based identity and access management service — single sign-on, conditional access, and multi-factor authentication.</span></li>
+          <li><span class="rm-index-sub-label">Microsoft Sentinel</span> <span class="rm-index-sub-desc">Cloud-native SIEM and SOAR solution providing intelligent security analytics and automated threat response across an enterprise.</span></li>
+          <li><span class="rm-index-sub-label">Microsoft Defender for Endpoint</span> <span class="rm-index-sub-desc">Enterprise endpoint security platform providing threat detection, investigation, and automated response for devices.</span></li>
+          <li><span class="rm-index-sub-label">Microsoft Copilot for Security</span> <span class="rm-index-sub-desc">Generative AI assistant for security teams that summarizes incidents, analyzes scripts, and speeds up investigation and response.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading">Azure Monitoring and Management Tools</h3>
+        <p class="rm-index-desc">Tools for provisioning infrastructure as code, monitoring, governance, and operating Azure environments at scale.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label">Azure Advisor</span> <span class="rm-index-sub-desc">Personalized recommendation engine for optimizing Azure resources across cost, security, reliability, and performance.</span></li>
+          <li><span class="rm-index-sub-label">Azure Arc</span> <span class="rm-index-sub-desc">Extends Azure management and services to on-premises, multi-cloud, and edge infrastructure through a single control plane.</span></li>
+          <li><span class="rm-index-sub-label">Azure Blueprints</span> <span class="rm-index-sub-desc">Defines a repeatable set of Azure resources, policies, and role assignments that implement organizational standards for new environments.</span></li>
+          <li><span class="rm-index-sub-label">Azure Compliance Manager</span> <span class="rm-index-sub-desc">Risk assessment tool that helps track, assign, and verify compliance activities against regulatory standards.</span></li>
+          <li><span class="rm-index-sub-label">Azure Monitor</span> <span class="rm-index-sub-desc">Full-stack monitoring service collecting metrics, logs, and traces across applications, infrastructure, and networks.</span></li>
+          <li><span class="rm-index-sub-label">Azure Policy</span> <span class="rm-index-sub-desc">Enforces organizational standards and assesses compliance at scale by evaluating resources against defined policy rules.</span></li>
+          <li><span class="rm-index-sub-label">Azure Resource Manager (ARM)</span> <span class="rm-index-sub-desc">Deployment and management layer for Azure — groups resources logically and enables declarative, template-based infrastructure as code.</span></li>
+          <li><span class="rm-index-sub-label">Azure Role-Based Access Control (RBAC)</span> <span class="rm-index-sub-desc">Fine-grained access management for Azure resources, assigning roles to users, groups, and applications at different scopes.</span></li>
+          <li><span class="rm-index-sub-label">Azure Service Health</span> <span class="rm-index-sub-desc">Personalized dashboard tracking the health of Azure services and planned maintenance that could affect your resources.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/cloud/azure-data-solutions/">Azure Solutions</a></h3>
+        <p class="rm-index-desc">Higher-level platforms and reference architectures built by combining core Azure services for common business scenarios.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-data-solutions/#azure-synapse-analytics">Azure Big Data</a></span> <span class="rm-index-sub-desc">Reference architectures and services (Synapse Analytics, HDInsight, Databricks) for large-scale batch and streaming data processing on Azure.</span></li>
+          <li><span class="rm-index-sub-label">Azure DevOps</span> <span class="rm-index-sub-desc">Suite of development tools — Boards, Repos, Pipelines, Test Plans, Artifacts — for planning, building, and shipping software.</span></li>
+          <li><span class="rm-index-sub-label">Azure Internet of Things (IoT)</span> <span class="rm-index-sub-desc">Platform of services (IoT Hub, IoT Central, Digital Twins) for connecting, monitoring, and managing IoT devices at scale.</span></li>
+          <li><span class="rm-index-sub-label">Azure Machine Learning</span> <span class="rm-index-sub-desc">End-to-end platform for building, training, deploying, and managing machine learning models and MLOps pipelines.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-data-solutions/#service-bus--serverless-patterns">Azure Serverless</a></span> <span class="rm-index-sub-desc">Umbrella of event-driven, consumption-billed services — Azure Functions, Logic Apps, Event Grid — that eliminate server management.</span></li>
+          <li><span class="rm-index-sub-label">Azure Pipelines</span> <span class="rm-index-sub-desc">CI/CD service within Azure DevOps for building, testing, and deploying code to any platform or cloud.</span></li>
+          <li><span class="rm-index-sub-label">Microsoft SharePoint</span> <span class="rm-index-sub-desc">Web-based collaboration and document management platform for intranets, file storage, and team sites.</span></li>
+          <li><span class="rm-index-sub-label">Microsoft Exchange Online</span> <span class="rm-index-sub-desc">Cloud-hosted enterprise email, calendaring, and contacts service, part of the Microsoft 365 suite.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/cloud/azure-data-solutions/#service-bus--serverless-patterns">Other Azure Services</a></h3>
+        <p class="rm-index-desc">Miscellaneous Azure services covering enterprise messaging.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-data-solutions/#service-bus--serverless-patterns">Azure Service Bus</a></span> <span class="rm-index-sub-desc">Fully managed enterprise message broker supporting queues and publish/subscribe topics for decoupling distributed applications.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading">Azure AI Services</h3>
+        <p class="rm-index-desc">Managed machine learning platforms, generative AI, and pre-trained AI services for vision, language, and speech.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label">Azure Applied AI Services: Vision &amp; NLP</span> <span class="rm-index-sub-desc">Pre-built AI services combining computer vision and natural language processing for common business scenarios like document processing and form recognition.</span></li>
+          <li><span class="rm-index-sub-label">Azure Responsible AI</span> <span class="rm-index-sub-desc">Microsoft's framework and toolset for building AI responsibly — fairness, reliability, privacy, inclusiveness, transparency, and accountability.</span></li>
+          <li><span class="rm-index-sub-label">Automated Machine Learning (AutoML)</span> <span class="rm-index-sub-desc">Automates the process of selecting algorithms and tuning hyperparameters to build machine learning models with minimal manual effort.</span></li>
+          <li><span class="rm-index-sub-label">Data Concepts in Azure Machine Learning</span> <span class="rm-index-sub-desc">Datastores, datasets, and data labeling concepts that underpin how Azure Machine Learning ingests and manages training data.</span></li>
+          <li><span class="rm-index-sub-label">Azure AI Content Safety</span> <span class="rm-index-sub-desc">Detects and filters harmful user- and AI-generated content — text and images — across categories like hate, violence, and self-harm.</span></li>
+          <li><span class="rm-index-sub-label">Azure AI Document Intelligence</span> <span class="rm-index-sub-desc">Extracts text, key-value pairs, tables, and structure from documents using prebuilt and custom document analysis models.</span></li>
+          <li><span class="rm-index-sub-label">Azure AI Language</span> <span class="rm-index-sub-desc">NLP service for sentiment analysis, key phrase extraction, entity recognition, and language detection over text.</span></li>
+          <li><span class="rm-index-sub-label">Azure AI Vision</span> <span class="rm-index-sub-desc">Computer vision service for image analysis, OCR, spatial analysis, and image tagging.</span></li>
+          <li><span class="rm-index-sub-label">Azure AI Translator</span> <span class="rm-index-sub-desc">Neural machine translation service supporting real-time text translation across 100+ languages.</span></li>
+          <li><span class="rm-index-sub-label">Azure AI Search</span> <span class="rm-index-sub-desc">AI-powered search-as-a-service with vector search, semantic ranking, and integrated cognitive skills for enriching content.</span></li>
+          <li><span class="rm-index-sub-label">Azure AI Video Indexer</span> <span class="rm-index-sub-desc">Extracts insights from video and audio — transcription, face detection, object labels, and sentiment — using AI models.</span></li>
+          <li><span class="rm-index-sub-label">Azure AI Speech</span> <span class="rm-index-sub-desc">Speech-to-text, text-to-speech, and speech translation service for building voice-enabled applications.</span></li>
+          <li><span class="rm-index-sub-label">Azure AI Bot Service</span> <span class="rm-index-sub-desc">Managed platform for building, testing, and deploying conversational bots that integrate with Azure AI Language and multiple channels.</span></li>
+          <li><span class="rm-index-sub-label">Azure OpenAI</span> <span class="rm-index-sub-desc">Provides API access to OpenAI's GPT, embeddings, and DALL-E models with Azure's enterprise security, compliance, and regional availability.</span></li>
+          <li><span class="rm-index-sub-label">Microsoft 365 Copilot</span> <span class="rm-index-sub-desc">Generative AI assistant embedded across Microsoft 365 apps (Word, Excel, Teams) grounded in an organization's own data via Microsoft Graph.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/cloud/azure-comparisons/">Comparison of Azure Services</a></h3>
+        <p class="rm-index-desc">Head-to-head breakdowns of similar Azure services — the decisions that come up most often in interviews and architecture reviews.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-comparisons/#storage-comparisons">Azure Blob vs Disk vs File Storage</a></span> <span class="rm-index-sub-desc">Blob Storage suits unstructured object data accessed over HTTP; Disk Storage attaches block storage to a single VM; File Storage offers shared SMB/NFS file shares.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-comparisons/#compute-comparisons">Azure Container Instances (ACI) vs AKS</a></span> <span class="rm-index-sub-desc">Container Instances runs single containers with zero orchestration overhead; AKS provides full Kubernetes orchestration for complex, multi-container workloads.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-comparisons/#integration-comparisons">Azure Functions vs Logic Apps vs Event Grid</a></span> <span class="rm-index-sub-desc">Functions run custom code on triggers; Logic Apps build low-code workflows visually; Event Grid routes events between publishers and subscribers at scale.</span></li>
+          <li><span class="rm-index-sub-label">Load Balancer vs App Gateway vs Traffic Manager</span> <span class="rm-index-sub-desc">Load Balancer operates at Layer 4 within a region; Application Gateway adds Layer 7 routing and WAF; Traffic Manager load-balances via DNS across regions.</span></li>
+          <li><span class="rm-index-sub-label">Azure Policy vs RBAC</span> <span class="rm-index-sub-desc">Azure Policy enforces what configurations resources must have; RBAC controls who can perform which actions on those resources.</span></li>
+          <li><span class="rm-index-sub-label">Azure Scale Set vs Availability Set</span> <span class="rm-index-sub-desc">Scale Sets automatically add or remove identical VM instances based on demand; Availability Sets distribute a fixed set of VMs across fault and update domains.</span></li>
+          <li><span class="rm-index-sub-label">Security Center vs Sentinel</span> <span class="rm-index-sub-desc">Defender for Cloud (formerly Security Center) manages cloud security posture and workload protection; Sentinel is a SIEM/SOAR layer for security analytics and response across the whole enterprise.</span></li>
+          <li><span class="rm-index-sub-label">Azure Virtual Machines vs Web App</span> <span class="rm-index-sub-desc">Virtual Machines give full OS-level control as IaaS; App Service (Web App) is a managed PaaS that abstracts away the OS and server management.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/cloud/azure-comparisons/#storage-comparisons">LRS vs ZRS vs GRS</a></span> <span class="rm-index-sub-desc">LRS replicates within a single datacenter; ZRS spreads replicas across zones in a region; GRS additionally replicates asynchronously to a secondary, distant region.</span></li>
+          <li><span class="rm-index-sub-label">Network Security Group vs Application Security Group</span> <span class="rm-index-sub-desc">Network Security Groups filter traffic by IP/port at the subnet or NIC level; Application Security Groups group VMs by application role so NSG rules can reference groups instead of explicit IPs.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading">Cross-Cloud Comparisons</h3>
+        <p class="rm-index-desc">Service mappings between Azure and its major competitors, useful for translating skills or designing multi-cloud architectures.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label">AWS vs Azure Services Comparison</span> <span class="rm-index-sub-desc">Maps equivalent services between AWS and Azure — e.g., EC2↔Virtual Machines, S3↔Blob Storage, IAM↔Entra ID — for translating skills between platforms.</span></li>
+          <li><span class="rm-index-sub-label">Azure vs AWS vs GCP Service Comparison</span> <span class="rm-index-sub-desc">Three-way comparison mapping equivalent compute, storage, database, and networking services across Azure, AWS, and Google Cloud.</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -72,132 +261,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"overview", label:"Azure Overview", desc:"Foundational Azure concepts, cost models, and account-level basics every cloud practitioner should know before diving into individual services.", subs:[
-    { id:"azure-capex-vs-opex",    label:"Azure CAPEX vs OPEX",                desc:"Contrasts traditional capital expenditure (buying hardware upfront) with Azure's operating expenditure (pay-as-you-go) cost model that shifts IT spend from CapEx to OpEx." },
-    { id:"azure-cloud-concepts",   label:"Azure Cloud Concepts",               desc:"Foundational cloud computing concepts — scalability, elasticity, agility, and high availability — as implemented across Azure's platform." },
-    { id:"azure-cloud-architecture-models", label:"Azure Cloud Architecture Models", desc:"Public, private, and hybrid cloud architecture models, and how Azure supports each through services like Azure Arc and Azure Stack." },
-    { id:"azure-cloud-service-models", label:"Azure Cloud Service Models",     desc:"IaaS, PaaS, and SaaS service models and the corresponding Azure services (Virtual Machines, App Service, Microsoft 365) that fit each." },
-    { id:"azure-global-infrastructure", label:"Azure Global Infrastructure",   desc:"Regions, Availability Zones, and Region Pairs — the physical and logical structure Azure uses to deliver resilient, low-latency services worldwide." },
-    { id:"azure-user-tools",       label:"Azure User Tools",                   desc:"Interfaces for interacting with Azure — the Azure Portal, Azure CLI, Azure PowerShell, and Cloud Shell — each suited to different workflows." },
-  ]},
-  { id:"pricing", label:"Azure Pricing", desc:"How Azure charges for usage and the tools available to estimate and control cloud spend.", subs:[
-    { id:"azure-pricing-cheatsheet", label:"Azure Pricing Cheat Sheet",        desc:"Pay-as-you-go pricing, reserved instances, and the Azure Pricing Calculator and TCO Calculator for estimating and reducing cloud spend." },
-  ]},
-  { id:"compute", label:"Azure Compute Services", desc:"Services for running application code and containers — from fully managed PaaS to full control over virtual machines.", link:"/level-3-technologies/cloud/azure-compute/", subs:[
-    { id:"azure-app-service",      label:"Azure App Service",                  desc:"Fully managed PaaS for hosting web apps, REST APIs, and mobile back ends, with built-in auto-scaling, deployment slots, and CI/CD integration." },
-    { id:"azure-batch",            label:"Azure Batch",                        desc:"Managed service for running large-scale parallel and batch compute jobs across a pool of auto-scaling virtual machines.", de:true, link:"/level-3-technologies/cloud/azure-compute/#azure-batch" },
-    { id:"azure-container-instances", label:"Azure Container Instances",       desc:"Serverless container hosting that runs a single container or container group without provisioning or managing VMs.", de:true, link:"/level-3-technologies/cloud/azure-compute/#container-instances--functions" },
-    { id:"azure-container-registry", label:"Azure Container Registry",         desc:"Private, managed Docker registry for storing and managing container images and Helm charts across your Azure deployments." },
-    { id:"azure-cyclecloud",       label:"Azure CycleCloud",                   desc:"Tool for orchestrating and managing HPC clusters on Azure, provisioning infrastructure and scheduler software for workload-managed clusters." },
-    { id:"azure-aks",              label:"Azure Kubernetes Service (AKS)",     desc:"Managed Kubernetes service that offloads control-plane operations, letting you deploy and scale containerized applications with native Azure integration.", de:true, link:"/level-3-technologies/cloud/azure-compute/#azure-kubernetes-service" },
-    { id:"azure-service-fabric",   label:"Azure Service Fabric",               desc:"Distributed systems platform for building and managing scalable microservices and containers across a cluster of machines." },
-    { id:"azure-virtual-machines", label:"Azure Virtual Machines",             desc:"On-demand, scalable IaaS compute — full control over the OS and configuration, available in a wide range of sizes and pricing tiers.", de:true, link:"/level-3-technologies/cloud/azure-compute/#virtual-machines" },
-  ]},
-  { id:"storage", label:"Azure Storage Services", desc:"Object, block, file, and table storage services covering every durability, access-pattern, and cost tier.", link:"/level-3-technologies/cloud/azure-storage/", subs:[
-    { id:"azure-archive-storage",  label:"Azure Archive Storage",              desc:"Lowest-cost Blob Storage access tier for rarely accessed data with hours-long retrieval latency, ideal for long-term archival.", de:true, link:"/level-3-technologies/cloud/azure-storage/#access-tiers--lifecycle" },
-    { id:"azure-blob-storage",     label:"Azure Blob Storage",                 desc:"Massively scalable object storage for unstructured data — Hot, Cool, and Archive tiers trade access latency for cost.", de:true, link:"/level-3-technologies/cloud/azure-storage/#blob-storage--adls-gen2" },
-    { id:"azure-disk-storage",     label:"Azure Disk Storage",                 desc:"Persistent, high-performance block storage (HDD, SSD, Premium SSD, Ultra Disk) attached to Azure Virtual Machines.", de:true, link:"/level-3-technologies/cloud/azure-storage/#disk-file-queue--table-storage" },
-    { id:"azure-file-storage",     label:"Azure File Storage",                 desc:"Fully managed SMB and NFS file shares in the cloud, mountable concurrently by on-premises and cloud VMs.", de:true, link:"/level-3-technologies/cloud/azure-storage/#disk-file-queue--table-storage" },
-    { id:"azure-queue-storage",    label:"Azure Queue Storage",                desc:"Simple, durable message queuing service for asynchronous communication between application components.", de:true, link:"/level-3-technologies/cloud/azure-storage/#disk-file-queue--table-storage" },
-    { id:"azure-storage-overview", label:"Azure Storage Overview",             desc:"Umbrella service covering Blob, File, Queue, Table, and Disk storage, unified under a single storage account with shared redundancy options.", de:true, link:"/level-3-technologies/cloud/azure-storage/#blob-storage--adls-gen2" },
-    { id:"azure-table-storage",    label:"Azure Table Storage",                desc:"NoSQL key-value store for large amounts of structured, non-relational data, now largely superseded by Azure Cosmos DB's Table API.", de:true, link:"/level-3-technologies/cloud/azure-storage/#disk-file-queue--table-storage" },
-  ]},
-  { id:"migration", label:"Azure Migration Services", desc:"Tools for assessing and moving on-premises workloads into Azure.", subs:[
-    { id:"azure-migrate",          label:"Azure Migrate",                      desc:"Centralized hub for discovering, assessing, and migrating on-premises servers, databases, and web apps to Azure." },
-  ]},
-  { id:"database", label:"Azure Database Services", desc:"Purpose-built managed database engines spanning relational and globally distributed NoSQL workloads.", link:"/level-3-technologies/cloud/azure-databases/", subs:[
-    { id:"azure-cosmos-db",        label:"Azure Cosmos DB",                    desc:"Globally distributed, multi-model NoSQL database offering single-digit-millisecond latency and multiple consistency levels across regions.", de:true, link:"/level-3-technologies/cloud/azure-databases/#cosmos-db" },
-    { id:"azure-dms",              label:"Azure Database Migration Service",   desc:"Simplifies migrating on-premises databases to Azure with minimal downtime, supporting both homogeneous and heterogeneous migrations.", de:true, link:"/level-3-technologies/cloud/azure-databases/#database-migration-service" },
-    { id:"azure-mysql-postgresql", label:"Azure Database for MySQL and PostgreSQL", desc:"Fully managed, community-compatible relational database services for MySQL and PostgreSQL with automated patching and backups.", de:true, link:"/level-3-technologies/cloud/azure-databases/#mysql--postgresql" },
-    { id:"azure-sql",              label:"Azure SQL",                          desc:"Family of managed relational database services — Azure SQL Database, Managed Instance, and SQL Server on VMs — built on the SQL Server engine.", de:true, link:"/level-3-technologies/cloud/azure-databases/#azure-sql" },
-  ]},
-  { id:"networking", label:"Azure Networking & Content Delivery", desc:"Services for connecting, routing, and delivering content across virtual networks, on-premises networks, and the public internet.", subs:[
-    { id:"azure-application-gateway", label:"Azure Application Gateway",       desc:"Layer 7 load balancer with URL-based routing, SSL termination, and integrated Web Application Firewall (WAF)." },
-    { id:"azure-cdn",              label:"Azure Content Delivery Network",     desc:"Global content delivery network that caches static content at edge nodes for low-latency delivery to end users." },
-    { id:"azure-dns",              label:"Azure DNS",                          desc:"Fast, reliable hosting service for DNS domains, using Microsoft's global network of name servers." },
-    { id:"azure-expressroute",     label:"Azure ExpressRoute",                 desc:"Dedicated private connection from on-premises networks to Azure, bypassing the public internet for consistent latency and bandwidth." },
-    { id:"azure-front-door",       label:"Azure Front Door",                   desc:"Global, application-layer load balancer and CDN combining traffic acceleration, WAF, and SSL offload at the edge." },
-    { id:"azure-load-balancer",    label:"Azure Load Balancer",                desc:"Layer 4 load balancer distributing inbound traffic across healthy VM instances within a region for high availability." },
-    { id:"azure-traffic-manager",  label:"Azure Traffic Manager",              desc:"DNS-based traffic load balancer that distributes traffic across regions using routing methods like priority, weighted, and geographic." },
-    { id:"azure-vnet",             label:"Azure Virtual Network (VNet)",       desc:"Logically isolated network within Azure — subnets, network security groups, and route tables for full control over network topology." },
-    { id:"azure-vpn-gateway",      label:"Azure VPN Gateway",                  desc:"Sends encrypted traffic between an Azure VNet and on-premises locations, or between VNets, over the public internet." },
-  ]},
-  { id:"security", label:"Azure Security Services", desc:"Identity, threat detection, encryption, and compliance services for securing accounts, workloads, and data.", subs:[
-    { id:"azure-atp",              label:"Advanced Threat Protection (ATP)",   desc:"Cloud-based security solution that identifies, detects, and helps investigate advanced threats, compromised identities, and malicious insider actions." },
-    { id:"azure-active-directory", label:"Azure Active Directory",             desc:"Microsoft's legacy name for its cloud identity and access management service, now rebranded as Microsoft Entra ID." },
-    { id:"azure-ddos-protection",  label:"Azure DDoS Protection",              desc:"Protects Azure resources from distributed denial-of-service attacks with always-on traffic monitoring and automatic mitigation." },
-    { id:"azure-firewall",         label:"Azure Firewall",                     desc:"Managed, cloud-native network firewall providing stateful traffic filtering and threat intelligence-based filtering for VNets." },
-    { id:"azure-information-protection", label:"Azure Information Protection", desc:"Classifies and protects documents and emails by applying labels and encryption that persist regardless of where the data travels." },
-    { id:"azure-key-vault",        label:"Azure Key Vault",                    desc:"Centralized, managed store for secrets, encryption keys, and certificates, with hardware security module (HSM)-backed protection." },
-    { id:"azure-security-center",  label:"Azure Security Center",              desc:"Legacy name for Azure's unified security posture management and threat protection service, now part of Microsoft Defender for Cloud." },
-    { id:"microsoft-compliance-offerings", label:"Microsoft Compliance Offerings", desc:"Documentation and certifications demonstrating Microsoft cloud services meet regulatory and industry compliance standards (ISO, SOC, GDPR)." },
-    { id:"microsoft-defender-xdr", label:"Microsoft Defender XDR",             desc:"Unified extended detection and response (XDR) platform correlating signals across endpoints, identities, email, and apps." },
-    { id:"microsoft-defender-for-cloud", label:"Microsoft Defender for Cloud", desc:"Cloud security posture management and workload protection platform providing security recommendations and threat detection across Azure and hybrid resources." },
-    { id:"microsoft-defender-for-identity", label:"Microsoft Defender for Identity", desc:"Monitors on-premises Active Directory signals to identify, detect, and investigate advanced threats and compromised identities." },
-    { id:"microsoft-entra-id",     label:"Microsoft Entra ID",                 desc:"Microsoft's cloud-based identity and access management service — single sign-on, conditional access, and multi-factor authentication." },
-    { id:"microsoft-sentinel",     label:"Microsoft Sentinel",                 desc:"Cloud-native SIEM and SOAR solution providing intelligent security analytics and automated threat response across an enterprise." },
-    { id:"microsoft-defender-for-endpoint", label:"Microsoft Defender for Endpoint", desc:"Enterprise endpoint security platform providing threat detection, investigation, and automated response for devices." },
-    { id:"microsoft-copilot-for-security", label:"Microsoft Copilot for Security", desc:"Generative AI assistant for security teams that summarizes incidents, analyzes scripts, and speeds up investigation and response." },
-  ]},
-  { id:"management", label:"Azure Monitoring and Management Tools", desc:"Tools for provisioning infrastructure as code, monitoring, governance, and operating Azure environments at scale.", subs:[
-    { id:"azure-advisor",          label:"Azure Advisor",                      desc:"Personalized recommendation engine for optimizing Azure resources across cost, security, reliability, and performance." },
-    { id:"azure-arc",              label:"Azure Arc",                          desc:"Extends Azure management and services to on-premises, multi-cloud, and edge infrastructure through a single control plane." },
-    { id:"azure-blueprints",       label:"Azure Blueprints",                   desc:"Defines a repeatable set of Azure resources, policies, and role assignments that implement organizational standards for new environments." },
-    { id:"azure-compliance-manager", label:"Azure Compliance Manager",         desc:"Risk assessment tool that helps track, assign, and verify compliance activities against regulatory standards." },
-    { id:"azure-monitor",          label:"Azure Monitor",                      desc:"Full-stack monitoring service collecting metrics, logs, and traces across applications, infrastructure, and networks." },
-    { id:"azure-policy",           label:"Azure Policy",                       desc:"Enforces organizational standards and assesses compliance at scale by evaluating resources against defined policy rules." },
-    { id:"azure-arm",              label:"Azure Resource Manager (ARM)",       desc:"Deployment and management layer for Azure — groups resources logically and enables declarative, template-based infrastructure as code." },
-    { id:"azure-rbac",             label:"Azure Role-Based Access Control (RBAC)", desc:"Fine-grained access management for Azure resources, assigning roles to users, groups, and applications at different scopes." },
-    { id:"azure-service-health",   label:"Azure Service Health",               desc:"Personalized dashboard tracking the health of Azure services and planned maintenance that could affect your resources." },
-  ]},
-  { id:"solutions", label:"Azure Solutions", desc:"Higher-level platforms and reference architectures built by combining core Azure services for common business scenarios.", link:"/level-3-technologies/cloud/azure-data-solutions/", subs:[
-    { id:"azure-big-data",         label:"Azure Big Data",                     desc:"Reference architectures and services (Synapse Analytics, HDInsight, Databricks) for large-scale batch and streaming data processing on Azure.", de:true, link:"/level-3-technologies/cloud/azure-data-solutions/#azure-synapse-analytics" },
-    { id:"azure-devops",           label:"Azure DevOps",                       desc:"Suite of development tools — Boards, Repos, Pipelines, Test Plans, Artifacts — for planning, building, and shipping software." },
-    { id:"azure-iot",              label:"Azure Internet of Things (IoT)",     desc:"Platform of services (IoT Hub, IoT Central, Digital Twins) for connecting, monitoring, and managing IoT devices at scale." },
-    { id:"azure-machine-learning", label:"Azure Machine Learning",             desc:"End-to-end platform for building, training, deploying, and managing machine learning models and MLOps pipelines." },
-    { id:"azure-serverless",       label:"Azure Serverless",                   desc:"Umbrella of event-driven, consumption-billed services — Azure Functions, Logic Apps, Event Grid — that eliminate server management.", de:true, link:"/level-3-technologies/cloud/azure-data-solutions/#service-bus--serverless-patterns" },
-    { id:"azure-pipelines",        label:"Azure Pipelines",                    desc:"CI/CD service within Azure DevOps for building, testing, and deploying code to any platform or cloud." },
-    { id:"microsoft-sharepoint",   label:"Microsoft SharePoint",               desc:"Web-based collaboration and document management platform for intranets, file storage, and team sites." },
-    { id:"microsoft-exchange-online", label:"Microsoft Exchange Online",       desc:"Cloud-hosted enterprise email, calendaring, and contacts service, part of the Microsoft 365 suite." },
-  ]},
-  { id:"other", label:"Other Azure Services", desc:"Miscellaneous Azure services covering enterprise messaging.", link:"/level-3-technologies/cloud/azure-data-solutions/#service-bus--serverless-patterns", subs:[
-    { id:"azure-service-bus",      label:"Azure Service Bus",                  desc:"Fully managed enterprise message broker supporting queues and publish/subscribe topics for decoupling distributed applications.", de:true, link:"/level-3-technologies/cloud/azure-data-solutions/#service-bus--serverless-patterns" },
-  ]},
-  { id:"ai", label:"Azure AI Services", desc:"Managed machine learning platforms, generative AI, and pre-trained AI services for vision, language, and speech.", subs:[
-    { id:"azure-ai-vision-nlp",    label:"Azure Applied AI Services: Vision & NLP", desc:"Pre-built AI services combining computer vision and natural language processing for common business scenarios like document processing and form recognition." },
-    { id:"azure-responsible-ai",   label:"Azure Responsible AI",                desc:"Microsoft's framework and toolset for building AI responsibly — fairness, reliability, privacy, inclusiveness, transparency, and accountability." },
-    { id:"azure-automl",           label:"Automated Machine Learning (AutoML)", desc:"Automates the process of selecting algorithms and tuning hyperparameters to build machine learning models with minimal manual effort." },
-    { id:"azure-ml-data-concepts", label:"Data Concepts in Azure Machine Learning", desc:"Datastores, datasets, and data labeling concepts that underpin how Azure Machine Learning ingests and manages training data." },
-    { id:"azure-ai-content-safety", label:"Azure AI Content Safety",           desc:"Detects and filters harmful user- and AI-generated content — text and images — across categories like hate, violence, and self-harm." },
-    { id:"azure-ai-document-intelligence", label:"Azure AI Document Intelligence", desc:"Extracts text, key-value pairs, tables, and structure from documents using prebuilt and custom document analysis models." },
-    { id:"azure-ai-language",      label:"Azure AI Language",                  desc:"NLP service for sentiment analysis, key phrase extraction, entity recognition, and language detection over text." },
-    { id:"azure-ai-vision",        label:"Azure AI Vision",                    desc:"Computer vision service for image analysis, OCR, spatial analysis, and image tagging." },
-    { id:"azure-ai-translator",    label:"Azure AI Translator",                desc:"Neural machine translation service supporting real-time text translation across 100+ languages." },
-    { id:"azure-ai-search",        label:"Azure AI Search",                    desc:"AI-powered search-as-a-service with vector search, semantic ranking, and integrated cognitive skills for enriching content." },
-    { id:"azure-ai-video-indexer", label:"Azure AI Video Indexer",             desc:"Extracts insights from video and audio — transcription, face detection, object labels, and sentiment — using AI models." },
-    { id:"azure-ai-speech",        label:"Azure AI Speech",                    desc:"Speech-to-text, text-to-speech, and speech translation service for building voice-enabled applications." },
-    { id:"azure-ai-bot-service",   label:"Azure AI Bot Service",               desc:"Managed platform for building, testing, and deploying conversational bots that integrate with Azure AI Language and multiple channels." },
-    { id:"azure-openai",           label:"Azure OpenAI",                       desc:"Provides API access to OpenAI's GPT, embeddings, and DALL-E models with Azure's enterprise security, compliance, and regional availability." },
-    { id:"microsoft-365-copilot",  label:"Microsoft 365 Copilot",              desc:"Generative AI assistant embedded across Microsoft 365 apps (Word, Excel, Teams) grounded in an organization's own data via Microsoft Graph." },
-  ]},
-  { id:"comparisons", label:"Comparison of Azure Services", desc:"Head-to-head breakdowns of similar Azure services — the decisions that come up most often in interviews and architecture reviews.", link:"/level-3-technologies/cloud/azure-comparisons/", subs:[
-    { id:"azure-blob-vs-disk-vs-file", label:"Azure Blob vs Disk vs File Storage", desc:"Blob Storage suits unstructured object data accessed over HTTP; Disk Storage attaches block storage to a single VM; File Storage offers shared SMB/NFS file shares.", de:true, link:"/level-3-technologies/cloud/azure-comparisons/#storage-comparisons" },
-    { id:"aci-vs-aks",             label:"Azure Container Instances (ACI) vs AKS", desc:"Container Instances runs single containers with zero orchestration overhead; AKS provides full Kubernetes orchestration for complex, multi-container workloads.", de:true, link:"/level-3-technologies/cloud/azure-comparisons/#compute-comparisons" },
-    { id:"azure-functions-vs-logic-apps-vs-event-grid", label:"Azure Functions vs Logic Apps vs Event Grid", desc:"Functions run custom code on triggers; Logic Apps build low-code workflows visually; Event Grid routes events between publishers and subscribers at scale.", de:true, link:"/level-3-technologies/cloud/azure-comparisons/#integration-comparisons" },
-    { id:"azure-lb-vs-app-gateway-vs-traffic-manager", label:"Load Balancer vs App Gateway vs Traffic Manager", desc:"Load Balancer operates at Layer 4 within a region; Application Gateway adds Layer 7 routing and WAF; Traffic Manager load-balances via DNS across regions." },
-    { id:"azure-policy-vs-rbac",   label:"Azure Policy vs RBAC",               desc:"Azure Policy enforces what configurations resources must have; RBAC controls who can perform which actions on those resources." },
-    { id:"azure-scale-set-vs-availability-set", label:"Azure Scale Set vs Availability Set", desc:"Scale Sets automatically add or remove identical VM instances based on demand; Availability Sets distribute a fixed set of VMs across fault and update domains." },
-    { id:"azure-security-center-vs-sentinel", label:"Security Center vs Sentinel", desc:"Defender for Cloud (formerly Security Center) manages cloud security posture and workload protection; Sentinel is a SIEM/SOAR layer for security analytics and response across the whole enterprise." },
-    { id:"azure-vms-vs-web-app",   label:"Azure Virtual Machines vs Web App",  desc:"Virtual Machines give full OS-level control as IaaS; App Service (Web App) is a managed PaaS that abstracts away the OS and server management." },
-    { id:"lrs-vs-zrs-vs-grs",      label:"LRS vs ZRS vs GRS",                  desc:"LRS replicates within a single datacenter; ZRS spreads replicas across zones in a region; GRS additionally replicates asynchronously to a secondary, distant region.", de:true, link:"/level-3-technologies/cloud/azure-comparisons/#storage-comparisons" },
-    { id:"nsg-vs-asg",             label:"Network Security Group vs Application Security Group", desc:"Network Security Groups filter traffic by IP/port at the subnet or NIC level; Application Security Groups group VMs by application role so NSG rules can reference groups instead of explicit IPs." },
-  ]},
-  { id:"cross-cloud", label:"Cross-Cloud Comparisons", desc:"Service mappings between Azure and its major competitors, useful for translating skills or designing multi-cloud architectures.", subs:[
-    { id:"aws-vs-azure-cheatsheet", label:"AWS vs Azure Services Comparison",  desc:"Maps equivalent services between AWS and Azure — e.g., EC2↔Virtual Machines, S3↔Blob Storage, IAM↔Entra ID — for translating skills between platforms." },
-    { id:"azure-vs-aws-vs-gcp",    label:"Azure vs AWS vs GCP Service Comparison", desc:"Three-way comparison mapping equivalent compute, storage, database, and networking services across Azure, AWS, and Google Cloud." },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

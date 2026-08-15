@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/databricks.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,55 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake">Lakehouse &amp; Delta Lake</a></h3>
+        <p class="rm-index-desc">16 interview questions covering Fundamentals, Lakehouse, Delta Lake, Tables and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake">Fundamentals</a></span> <span class="rm-index-sub-desc">Databricks is a unified analytics platform that combines data warehousing, data engineering, and machine learning capabilities on top of Apache Spark, offered as a managed service across AWS, Azure, and GCP.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake">Lakehouse</a></span> <span class="rm-index-sub-desc">What is the Databricks Lakehouse?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake">Delta Lake</a></span> <span class="rm-index-sub-desc">Delta Lake is an open-source storage format that brings ACID transactions to Apache Spark, enabling reliable and efficient data storage and processing on top of Parquet files plus a transaction log.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake">Tables</a></span> <span class="rm-index-sub-desc">Tables can be created using SQL CREATE TABLE statements, the Python DataFrame API (df.write.saveAsTable(...)), or by reading external data sources and registering them in the metastore/Unity Catalog.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake">Data Formats</a></span> <span class="rm-index-sub-desc">Supported formats include Parquet, CSV, JSON, ORC, Delta Lake, and various other formats through connectors and Spark's pluggable data source API.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake">Storage</a></span> <span class="rm-index-sub-desc">How does Databricks integrate with cloud storage?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake">Maintenance</a></span> <span class="rm-index-sub-desc">What is table optimization in Databricks? What is the VACUUM command in Delta Lake?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake">CDC</a></span> <span class="rm-index-sub-desc">How do you enable change data capture in Databricks?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance">Clusters, Jobs &amp; Performance</a></h3>
+        <p class="rm-index-desc">16 interview questions covering Clusters, SQL Warehouses, Jobs, Integration and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance">Clusters</a></span> <span class="rm-index-sub-desc">A Databricks cluster is a set of computational resources and configurations on which you run data engineering, analytics, and machine learning workloads — essentially a managed Spark cluster.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance">SQL Warehouses</a></span> <span class="rm-index-sub-desc">Databricks SQL is a serverless SQL analytics engine that allows you to query your data lake using standard SQL without managing clusters directly — it runs on SQL warehouses, purpose-built for BI-style query patterns.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance">Jobs</a></span> <span class="rm-index-sub-desc">Databricks Jobs lets you orchestrate and schedule automated workflows, including Spark jobs, notebooks, and Python scripts, running on ephemeral job clusters by default.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance">Integration</a></span> <span class="rm-index-sub-desc">The Databricks REST API allows you to programmatically interact with Databricks services, including cluster management, job execution, and workspace operations — the basis for most CI/CD and infrastructure-as-code integrations.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance">Performance</a></span> <span class="rm-index-sub-desc">Databricks Photon is a high-performance, vectorized execution engine (written in C++) that accelerates Spark SQL and DataFrame queries, reducing query latency compared to the standard JVM-based Spark execution engine.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance">Monitoring</a></span> <span class="rm-index-sub-desc">Job monitoring can be done through the Databricks UI (job run history, task-level logs), the REST API, cluster logging, and cloud-native monitoring integrations like CloudWatch (AWS) or Azure Monitor.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance">Workspace</a></span> <span class="rm-index-sub-desc">The Databricks Workspace is a collaborative environment where teams can share notebooks, collaborate on projects, browse data via the catalog, and manage clusters and jobs — the main UI surface for the platform.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features">Governance, Security &amp; Advanced Features</a></h3>
+        <p class="rm-index-desc">12 interview questions covering Security, Unity Catalog, Data Quality, Notebooks and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features">Security</a></span> <span class="rm-index-sub-desc">Databricks provides encryption at rest and in transit, role-based access control, network security (VPC/VNet injection, private link), audit logging, and integration with cloud IAM systems for identity and credential management.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features">Unity Catalog</a></span> <span class="rm-index-sub-desc">Unity Catalog is a unified data governance solution that provides centralized access control, data discovery, and lineage tracking across Databricks workspaces — a single governance layer instead of per-workspace metastores.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features">Data Quality</a></span> <span class="rm-index-sub-desc">Data quality can be managed using Delta Lake constraints (CHECK, NOT NULL), Delta Live Tables expectations, third-party frameworks like Great Expectations, and general data profiling/validation pipelines.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features">Notebooks</a></span> <span class="rm-index-sub-desc">Databricks notebooks provide an interactive environment for data analysis, visualization, and collaboration, combining code, text, and visualizations in a single shareable document.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features">Languages</a></span> <span class="rm-index-sub-desc">Databricks supports Python, Scala, SQL, and R within the same notebook environment, allowing polyglot data engineering and analysis — including mixing languages across cells in a single notebook.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features">Governance</a></span> <span class="rm-index-sub-desc">How do you handle data lineage in Databricks?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features">ML</a></span> <span class="rm-index-sub-desc">The Feature Store provides centralized management of ML features, enabling version control, feature reuse across teams/models, and consistent feature engineering between training and serving.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features">Streaming</a></span> <span class="rm-index-sub-desc">Databricks supports streaming data through Structured Streaming, enabling real-time processing and continuous data pipelines that use the same DataFrame API as batch jobs.</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,37 +116,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"lakehouse-delta-lake", label:"Lakehouse & Delta Lake", desc:"16 interview questions covering Fundamentals, Lakehouse, Delta Lake, Tables and more.", link:"/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake", subs:[
-    { id:"lakehouse-delta-lake-fundamentals", label:"Fundamentals", desc:"Databricks is a unified analytics platform that combines data warehousing, data engineering, and machine learning capabilities on top of Apache Spark, offered as a managed service across AWS, Azure, and GCP.", link:"/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake" },
-    { id:"lakehouse-delta-lake-lakehouse", label:"Lakehouse", desc:"What is the Databricks Lakehouse?", link:"/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake" },
-    { id:"lakehouse-delta-lake-delta-lake", label:"Delta Lake", desc:"Delta Lake is an open-source storage format that brings ACID transactions to Apache Spark, enabling reliable and efficient data storage and processing on top of Parquet files plus a transaction log.", link:"/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake" },
-    { id:"lakehouse-delta-lake-tables", label:"Tables", desc:"Tables can be created using SQL CREATE TABLE statements, the Python DataFrame API (df.write.saveAsTable(...)), or by reading external data sources and registering them in the metastore/Unity Catalog.", link:"/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake" },
-    { id:"lakehouse-delta-lake-data-formats", label:"Data Formats", desc:"Supported formats include Parquet, CSV, JSON, ORC, Delta Lake, and various other formats through connectors and Spark's pluggable data source API.", link:"/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake" },
-    { id:"lakehouse-delta-lake-storage", label:"Storage", desc:"How does Databricks integrate with cloud storage?", link:"/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake" },
-    { id:"lakehouse-delta-lake-maintenance", label:"Maintenance", desc:"What is table optimization in Databricks? What is the VACUUM command in Delta Lake?", link:"/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake" },
-    { id:"lakehouse-delta-lake-cdc", label:"CDC", desc:"How do you enable change data capture in Databricks?", link:"/level-3-technologies/data-warehouses/databricks/#lakehouse--delta-lake" },
-  ]},
-  { id:"clusters-jobs-performance", label:"Clusters, Jobs & Performance", desc:"16 interview questions covering Clusters, SQL Warehouses, Jobs, Integration and more.", link:"/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance", subs:[
-    { id:"clusters-jobs-performance-clusters", label:"Clusters", desc:"A Databricks cluster is a set of computational resources and configurations on which you run data engineering, analytics, and machine learning workloads — essentially a managed Spark cluster.", link:"/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance" },
-    { id:"clusters-jobs-performance-sql-warehouses", label:"SQL Warehouses", desc:"Databricks SQL is a serverless SQL analytics engine that allows you to query your data lake using standard SQL without managing clusters directly — it runs on SQL warehouses, purpose-built for BI-style query patterns.", link:"/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance" },
-    { id:"clusters-jobs-performance-jobs", label:"Jobs", desc:"Databricks Jobs lets you orchestrate and schedule automated workflows, including Spark jobs, notebooks, and Python scripts, running on ephemeral job clusters by default.", link:"/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance" },
-    { id:"clusters-jobs-performance-integration", label:"Integration", desc:"The Databricks REST API allows you to programmatically interact with Databricks services, including cluster management, job execution, and workspace operations — the basis for most CI/CD and infrastructure-as-code integrations.", link:"/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance" },
-    { id:"clusters-jobs-performance-performance", label:"Performance", desc:"Databricks Photon is a high-performance, vectorized execution engine (written in C++) that accelerates Spark SQL and DataFrame queries, reducing query latency compared to the standard JVM-based Spark execution engine.", link:"/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance" },
-    { id:"clusters-jobs-performance-monitoring", label:"Monitoring", desc:"Job monitoring can be done through the Databricks UI (job run history, task-level logs), the REST API, cluster logging, and cloud-native monitoring integrations like CloudWatch (AWS) or Azure Monitor.", link:"/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance" },
-    { id:"clusters-jobs-performance-workspace", label:"Workspace", desc:"The Databricks Workspace is a collaborative environment where teams can share notebooks, collaborate on projects, browse data via the catalog, and manage clusters and jobs — the main UI surface for the platform.", link:"/level-3-technologies/data-warehouses/databricks/#clusters-jobs--performance" },
-  ]},
-  { id:"governance-security-advanced-features", label:"Governance, Security & Advanced Features", desc:"12 interview questions covering Security, Unity Catalog, Data Quality, Notebooks and more.", link:"/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features", subs:[
-    { id:"governance-security-advanced-features-security", label:"Security", desc:"Databricks provides encryption at rest and in transit, role-based access control, network security (VPC/VNet injection, private link), audit logging, and integration with cloud IAM systems for identity and credential management.", link:"/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features" },
-    { id:"governance-security-advanced-features-unity-catalog", label:"Unity Catalog", desc:"Unity Catalog is a unified data governance solution that provides centralized access control, data discovery, and lineage tracking across Databricks workspaces — a single governance layer instead of per-workspace metastores.", link:"/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features" },
-    { id:"governance-security-advanced-features-data-quality", label:"Data Quality", desc:"Data quality can be managed using Delta Lake constraints (CHECK, NOT NULL), Delta Live Tables expectations, third-party frameworks like Great Expectations, and general data profiling/validation pipelines.", link:"/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features" },
-    { id:"governance-security-advanced-features-notebooks", label:"Notebooks", desc:"Databricks notebooks provide an interactive environment for data analysis, visualization, and collaboration, combining code, text, and visualizations in a single shareable document.", link:"/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features" },
-    { id:"governance-security-advanced-features-languages", label:"Languages", desc:"Databricks supports Python, Scala, SQL, and R within the same notebook environment, allowing polyglot data engineering and analysis — including mixing languages across cells in a single notebook.", link:"/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features" },
-    { id:"governance-security-advanced-features-governance", label:"Governance", desc:"How do you handle data lineage in Databricks?", link:"/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features" },
-    { id:"governance-security-advanced-features-ml", label:"ML", desc:"The Feature Store provides centralized management of ML features, enabling version control, feature reuse across teams/models, and consistent feature engineering between training and serving.", link:"/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features" },
-    { id:"governance-security-advanced-features-streaming", label:"Streaming", desc:"Databricks supports streaming data through Structured Streaming, enabling real-time processing and continuous data pipelines that use the same DataFrame API as batch jobs.", link:"/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

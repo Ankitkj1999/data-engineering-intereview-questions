@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/hadoop.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,98 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/batch-processing/hadoop/#hdfs-fundamentals--architecture">HDFS Fundamentals &amp; Architecture</a></h3>
+        <p class="rm-index-desc">29 interview questions covering HDFS, Storage, Blocks, HDFS I/O and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#hdfs-fundamentals--architecture">HDFS</a></span> <span class="rm-index-sub-desc">HDFS is responsible for storing huge volumes of data across a cluster and is designed to run on commodity hardware.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#hdfs-fundamentals--architecture">Storage</a></span> <span class="rm-index-sub-desc">NAS (Network Attached Storage) — compute and storage are separated; storage is distributed over servers on a network.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#hdfs-fundamentals--architecture">Blocks</a></span> <span class="rm-index-sub-desc">In HDFS, data is split into blocks (typically 64MB or 128MB) distributed across the cluster, and each block is replicated multiple times (three, by default) across different nodes.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#hdfs-fundamentals--architecture">HDFS I/O</a></span> <span class="rm-index-sub-desc">Reading is done in parallel because it lets Hadoop access data faster — the whole point of distributing storage.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#hdfs-fundamentals--architecture">Big Data</a></span> <span class="rm-index-sub-desc">Traditional RDBMS is built for transactional systems — reporting and archiving data, and is useful when you want to look up a single record from a large data set.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/batch-processing/hadoop/#namenode-datanode--checkpointing">NameNode, DataNode &amp; Checkpointing</a></h3>
+        <p class="rm-index-desc">19 interview questions covering NameNode, DataNode.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#namenode-datanode--checkpointing">NameNode</a></span> <span class="rm-index-sub-desc">Heartbeat — signals that the DataNode is still alive; the NameNode relies on periodic heartbeats to decide whether to keep using a DataNode.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#namenode-datanode--checkpointing">DataNode</a></span> <span class="rm-index-sub-desc">When data is stored on a DataNode, the corresponding metadata is reported to the NameNode.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/batch-processing/hadoop/#replication-rack-awareness--fault-tolerance">Replication, Rack Awareness &amp; Fault Tolerance</a></h3>
+        <p class="rm-index-desc">15 interview questions covering Rack Awareness, Replication, Fault Tolerance.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#replication-rack-awareness--fault-tolerance">Rack Awareness</a></span> <span class="rm-index-sub-desc">Most Hadoop components — NameNode, DataNode, and others — are &quot;rack-aware,&quot; meaning they know which rack they're physically on.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#replication-rack-awareness--fault-tolerance">Replication</a></span> <span class="rm-index-sub-desc">Replication factor is the number of copies of a file HDFS maintains.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#replication-rack-awareness--fault-tolerance">Fault Tolerance</a></span> <span class="rm-index-sub-desc">A heartbeat is a signal indicating that a process is alive — a DataNode sends heartbeats to the NameNode, and a TaskTracker sends heartbeats to the JobTracker.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/batch-processing/hadoop/#mapreduce-fundamentals">MapReduce Fundamentals</a></h3>
+        <p class="rm-index-desc">29 interview questions covering MapReduce, Data Locality, InputSplit, Blocks.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#mapreduce-fundamentals">MapReduce</a></span> <span class="rm-index-sub-desc">Apache Hadoop is built on the MapReduce algorithm, in which Map and Reduce operations process very large data sets: the Map method filters and sorts data, and the Reduce method summarizes it — a concept borrowed from functional programming.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#mapreduce-fundamentals">Data Locality</a></span> <span class="rm-index-sub-desc">Data locality means processing data wherever it already resides, rather than moving it — &quot;moving computation is cheaper than moving data.&quot; This is only possible when the data is splittable, which it is by default.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#mapreduce-fundamentals">InputSplit</a></span> <span class="rm-index-sub-desc">InputSplit is the chunk of data processed by a single mapper — in other words, the logical chunk of data assigned to one mapper.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#mapreduce-fundamentals">Blocks</a></span> <span class="rm-index-sub-desc">What is the difference between block and split?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/batch-processing/hadoop/#mapper--reducer-internals">Mapper &amp; Reducer Internals</a></h3>
+        <p class="rm-index-desc">19 interview questions covering Reducer, Mapper, MapReduce.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#mapper--reducer-internals">Reducer</a></span> <span class="rm-index-sub-desc">The main task of a Reducer is to reduce a larger set of data sharing a key down to a smaller set.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#mapper--reducer-internals">Mapper</a></span> <span class="rm-index-sub-desc">A ChainMapper is a special class that lets multiple mapper classes run in a chained fashion within a single map task — one mapper's output feeds directly into the next mapper's input, letting you chain any number of mappers together.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#mapper--reducer-internals">MapReduce</a></span> <span class="rm-index-sub-desc">How do you do value-level comparison?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/batch-processing/hadoop/#combiners-partitioners--shuffle">Combiners, Partitioners &amp; Shuffle</a></h3>
+        <p class="rm-index-desc">19 interview questions covering Partitioner, Combiner, Reducer.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#combiners-partitioners--shuffle">Partitioner</a></span> <span class="rm-index-sub-desc">After the combiner and intermediate map output, the Partitioner controls the keys after sort and shuffle.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#combiners-partitioners--shuffle">Combiner</a></span> <span class="rm-index-sub-desc">A Combiner is an optional class, specified via Job.setCombinerClass(ClassName), that performs local aggregation of intermediate outputs — cutting down the amount of data transferred from the Mapper to the Reducer.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#combiners-partitioners--shuffle">Reducer</a></span> <span class="rm-index-sub-desc">The mapper's intermediate output is stored on the local file system (not HDFS) of each individual mapper node — typically a temporary directory location configured by the Hadoop administrator.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/batch-processing/hadoop/#jobtracker-tasktracker--job-execution">JobTracker, TaskTracker &amp; Job Execution</a></h3>
+        <p class="rm-index-desc">25 interview questions covering JobTracker, TaskTracker.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#jobtracker-tasktracker--job-execution">JobTracker</a></span> <span class="rm-index-sub-desc">JobTracker is a daemon service that submits and tracks MapReduce tasks across the Hadoop cluster.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#jobtracker-tasktracker--job-execution">TaskTracker</a></span> <span class="rm-index-sub-desc">A TaskTracker is a slave-node daemon that accepts tasks — Map, Reduce, and Shuffle operations — from a JobTracker.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/batch-processing/hadoop/#hadoop-ecosystem-deployment--configuration">Hadoop Ecosystem, Deployment &amp; Configuration</a></h3>
+        <p class="rm-index-desc">27 interview questions covering Ecosystem, Cluster Hardware, Config, Hadoop Modes.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#hadoop-ecosystem-deployment--configuration">Ecosystem</a></span> <span class="rm-index-sub-desc">Hadoop provides DistCP (Distributed Copy), a MapReduce-based utility for large inter- or intra-cluster copies of data.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#hadoop-ecosystem-deployment--configuration">Cluster Hardware</a></span> <span class="rm-index-sub-desc">Commodity hardware is an inexpensive system that isn't high-quality or high-availability — Hadoop can run on any average commodity hardware and doesn't need supercomputers or high-end machines.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#hadoop-ecosystem-deployment--configuration">Config</a></span> <span class="rm-index-sub-desc">What are the default port numbers on which Nodes run in Hadoop? What are the important configuration files in Hadoop?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#hadoop-ecosystem-deployment--configuration">Hadoop Modes</a></span> <span class="rm-index-sub-desc">No Hadoop daemons run, and everything runs in a single Java process — so you don't get the benefit of distributing code across a cluster.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/batch-processing/hadoop/#performance-tuning--troubleshooting">Performance, Tuning &amp; Troubleshooting</a></h3>
+        <p class="rm-index-desc">19 interview questions covering Troubleshooting, Admin, Performance, Networking.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#performance-tuning--troubleshooting">Troubleshooting</a></span> <span class="rm-index-sub-desc">Why do we use the fsck command in HDFS? Why might you get a connection-refused Java exception running Hadoop fsck?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#performance-tuning--troubleshooting">Admin</a></span> <span class="rm-index-sub-desc">Similar to formatting a drive in Windows, formatting the DFS structures data properly — but it also formats the NameNode in the process, which is generally not something you want to do casually.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#performance-tuning--troubleshooting">Performance</a></span> <span class="rm-index-sub-desc">Assuming a 64MB block size with 2 mappers and 2 reducers: 64 * 4 = 256MB of memory, and the OS needs at least 30% extra headroom, so 256 + 80 = 326MB of RAM is roughly required to process that chunk of data.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/batch-processing/hadoop/#performance-tuning--troubleshooting">Networking</a></span> <span class="rm-index-sub-desc">SSH (Secure Shell) is a secure protocol and the most common way to administer remote servers safely — relatively simple and inexpensive to implement.</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,56 +159,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"hdfs-fundamentals-architecture", label:"HDFS Fundamentals & Architecture", desc:"29 interview questions covering HDFS, Storage, Blocks, HDFS I/O and more.", link:"/level-3-technologies/batch-processing/hadoop/#hdfs-fundamentals--architecture", subs:[
-    { id:"hdfs-fundamentals-architecture-hdfs", label:"HDFS", desc:"HDFS is responsible for storing huge volumes of data across a cluster and is designed to run on commodity hardware.", link:"/level-3-technologies/batch-processing/hadoop/#hdfs-fundamentals--architecture" },
-    { id:"hdfs-fundamentals-architecture-storage", label:"Storage", desc:"NAS (Network Attached Storage) — compute and storage are separated; storage is distributed over servers on a network.", link:"/level-3-technologies/batch-processing/hadoop/#hdfs-fundamentals--architecture" },
-    { id:"hdfs-fundamentals-architecture-blocks", label:"Blocks", desc:"In HDFS, data is split into blocks (typically 64MB or 128MB) distributed across the cluster, and each block is replicated multiple times (three, by default) across different nodes.", link:"/level-3-technologies/batch-processing/hadoop/#hdfs-fundamentals--architecture" },
-    { id:"hdfs-fundamentals-architecture-hdfs-i-o", label:"HDFS I/O", desc:"Reading is done in parallel because it lets Hadoop access data faster — the whole point of distributing storage.", link:"/level-3-technologies/batch-processing/hadoop/#hdfs-fundamentals--architecture" },
-    { id:"hdfs-fundamentals-architecture-big-data", label:"Big Data", desc:"Traditional RDBMS is built for transactional systems — reporting and archiving data, and is useful when you want to look up a single record from a large data set.", link:"/level-3-technologies/batch-processing/hadoop/#hdfs-fundamentals--architecture" },
-  ]},
-  { id:"namenode-datanode-checkpointing", label:"NameNode, DataNode & Checkpointing", desc:"19 interview questions covering NameNode, DataNode.", link:"/level-3-technologies/batch-processing/hadoop/#namenode-datanode--checkpointing", subs:[
-    { id:"namenode-datanode-checkpointing-namenode", label:"NameNode", desc:"Heartbeat — signals that the DataNode is still alive; the NameNode relies on periodic heartbeats to decide whether to keep using a DataNode.", link:"/level-3-technologies/batch-processing/hadoop/#namenode-datanode--checkpointing" },
-    { id:"namenode-datanode-checkpointing-datanode", label:"DataNode", desc:"When data is stored on a DataNode, the corresponding metadata is reported to the NameNode.", link:"/level-3-technologies/batch-processing/hadoop/#namenode-datanode--checkpointing" },
-  ]},
-  { id:"replication-rack-awareness-fault-tolerance", label:"Replication, Rack Awareness & Fault Tolerance", desc:"15 interview questions covering Rack Awareness, Replication, Fault Tolerance.", link:"/level-3-technologies/batch-processing/hadoop/#replication-rack-awareness--fault-tolerance", subs:[
-    { id:"replication-rack-awareness-fault-tolerance-rack-awareness", label:"Rack Awareness", desc:"Most Hadoop components — NameNode, DataNode, and others — are \"rack-aware,\" meaning they know which rack they're physically on.", link:"/level-3-technologies/batch-processing/hadoop/#replication-rack-awareness--fault-tolerance" },
-    { id:"replication-rack-awareness-fault-tolerance-replication", label:"Replication", desc:"Replication factor is the number of copies of a file HDFS maintains.", link:"/level-3-technologies/batch-processing/hadoop/#replication-rack-awareness--fault-tolerance" },
-    { id:"replication-rack-awareness-fault-tolerance-fault-tolerance", label:"Fault Tolerance", desc:"A heartbeat is a signal indicating that a process is alive — a DataNode sends heartbeats to the NameNode, and a TaskTracker sends heartbeats to the JobTracker.", link:"/level-3-technologies/batch-processing/hadoop/#replication-rack-awareness--fault-tolerance" },
-  ]},
-  { id:"mapreduce-fundamentals", label:"MapReduce Fundamentals", desc:"29 interview questions covering MapReduce, Data Locality, InputSplit, Blocks.", link:"/level-3-technologies/batch-processing/hadoop/#mapreduce-fundamentals", subs:[
-    { id:"mapreduce-fundamentals-mapreduce", label:"MapReduce", desc:"Apache Hadoop is built on the MapReduce algorithm, in which Map and Reduce operations process very large data sets: the Map method filters and sorts data, and the Reduce method summarizes it — a concept borrowed from functional programming.", link:"/level-3-technologies/batch-processing/hadoop/#mapreduce-fundamentals" },
-    { id:"mapreduce-fundamentals-data-locality", label:"Data Locality", desc:"Data locality means processing data wherever it already resides, rather than moving it — \"moving computation is cheaper than moving data.\" This is only possible when the data is splittable, which it is by default.", link:"/level-3-technologies/batch-processing/hadoop/#mapreduce-fundamentals" },
-    { id:"mapreduce-fundamentals-inputsplit", label:"InputSplit", desc:"InputSplit is the chunk of data processed by a single mapper — in other words, the logical chunk of data assigned to one mapper.", link:"/level-3-technologies/batch-processing/hadoop/#mapreduce-fundamentals" },
-    { id:"mapreduce-fundamentals-blocks", label:"Blocks", desc:"What is the difference between block and split?", link:"/level-3-technologies/batch-processing/hadoop/#mapreduce-fundamentals" },
-  ]},
-  { id:"mapper-reducer-internals", label:"Mapper & Reducer Internals", desc:"19 interview questions covering Reducer, Mapper, MapReduce.", link:"/level-3-technologies/batch-processing/hadoop/#mapper--reducer-internals", subs:[
-    { id:"mapper-reducer-internals-reducer", label:"Reducer", desc:"The main task of a Reducer is to reduce a larger set of data sharing a key down to a smaller set.", link:"/level-3-technologies/batch-processing/hadoop/#mapper--reducer-internals" },
-    { id:"mapper-reducer-internals-mapper", label:"Mapper", desc:"A ChainMapper is a special class that lets multiple mapper classes run in a chained fashion within a single map task — one mapper's output feeds directly into the next mapper's input, letting you chain any number of mappers together.", link:"/level-3-technologies/batch-processing/hadoop/#mapper--reducer-internals" },
-    { id:"mapper-reducer-internals-mapreduce", label:"MapReduce", desc:"How do you do value-level comparison?", link:"/level-3-technologies/batch-processing/hadoop/#mapper--reducer-internals" },
-  ]},
-  { id:"combiners-partitioners-shuffle", label:"Combiners, Partitioners & Shuffle", desc:"19 interview questions covering Partitioner, Combiner, Reducer.", link:"/level-3-technologies/batch-processing/hadoop/#combiners-partitioners--shuffle", subs:[
-    { id:"combiners-partitioners-shuffle-partitioner", label:"Partitioner", desc:"After the combiner and intermediate map output, the Partitioner controls the keys after sort and shuffle.", link:"/level-3-technologies/batch-processing/hadoop/#combiners-partitioners--shuffle" },
-    { id:"combiners-partitioners-shuffle-combiner", label:"Combiner", desc:"A Combiner is an optional class, specified via Job.setCombinerClass(ClassName), that performs local aggregation of intermediate outputs — cutting down the amount of data transferred from the Mapper to the Reducer.", link:"/level-3-technologies/batch-processing/hadoop/#combiners-partitioners--shuffle" },
-    { id:"combiners-partitioners-shuffle-reducer", label:"Reducer", desc:"The mapper's intermediate output is stored on the local file system (not HDFS) of each individual mapper node — typically a temporary directory location configured by the Hadoop administrator.", link:"/level-3-technologies/batch-processing/hadoop/#combiners-partitioners--shuffle" },
-  ]},
-  { id:"jobtracker-tasktracker-job-execution", label:"JobTracker, TaskTracker & Job Execution", desc:"25 interview questions covering JobTracker, TaskTracker.", link:"/level-3-technologies/batch-processing/hadoop/#jobtracker-tasktracker--job-execution", subs:[
-    { id:"jobtracker-tasktracker-job-execution-jobtracker", label:"JobTracker", desc:"JobTracker is a daemon service that submits and tracks MapReduce tasks across the Hadoop cluster.", link:"/level-3-technologies/batch-processing/hadoop/#jobtracker-tasktracker--job-execution" },
-    { id:"jobtracker-tasktracker-job-execution-tasktracker", label:"TaskTracker", desc:"A TaskTracker is a slave-node daemon that accepts tasks — Map, Reduce, and Shuffle operations — from a JobTracker.", link:"/level-3-technologies/batch-processing/hadoop/#jobtracker-tasktracker--job-execution" },
-  ]},
-  { id:"hadoop-ecosystem-deployment-configuration", label:"Hadoop Ecosystem, Deployment & Configuration", desc:"27 interview questions covering Ecosystem, Cluster Hardware, Config, Hadoop Modes.", link:"/level-3-technologies/batch-processing/hadoop/#hadoop-ecosystem-deployment--configuration", subs:[
-    { id:"hadoop-ecosystem-deployment-configuration-ecosystem", label:"Ecosystem", desc:"Hadoop provides DistCP (Distributed Copy), a MapReduce-based utility for large inter- or intra-cluster copies of data.", link:"/level-3-technologies/batch-processing/hadoop/#hadoop-ecosystem-deployment--configuration" },
-    { id:"hadoop-ecosystem-deployment-configuration-cluster-hardware", label:"Cluster Hardware", desc:"Commodity hardware is an inexpensive system that isn't high-quality or high-availability — Hadoop can run on any average commodity hardware and doesn't need supercomputers or high-end machines.", link:"/level-3-technologies/batch-processing/hadoop/#hadoop-ecosystem-deployment--configuration" },
-    { id:"hadoop-ecosystem-deployment-configuration-config", label:"Config", desc:"What are the default port numbers on which Nodes run in Hadoop? What are the important configuration files in Hadoop?", link:"/level-3-technologies/batch-processing/hadoop/#hadoop-ecosystem-deployment--configuration" },
-    { id:"hadoop-ecosystem-deployment-configuration-hadoop-modes", label:"Hadoop Modes", desc:"No Hadoop daemons run, and everything runs in a single Java process — so you don't get the benefit of distributing code across a cluster.", link:"/level-3-technologies/batch-processing/hadoop/#hadoop-ecosystem-deployment--configuration" },
-  ]},
-  { id:"performance-tuning-troubleshooting", label:"Performance, Tuning & Troubleshooting", desc:"19 interview questions covering Troubleshooting, Admin, Performance, Networking.", link:"/level-3-technologies/batch-processing/hadoop/#performance-tuning--troubleshooting", subs:[
-    { id:"performance-tuning-troubleshooting-troubleshooting", label:"Troubleshooting", desc:"Why do we use the fsck command in HDFS? Why might you get a connection-refused Java exception running Hadoop fsck?", link:"/level-3-technologies/batch-processing/hadoop/#performance-tuning--troubleshooting" },
-    { id:"performance-tuning-troubleshooting-admin", label:"Admin", desc:"Similar to formatting a drive in Windows, formatting the DFS structures data properly — but it also formats the NameNode in the process, which is generally not something you want to do casually.", link:"/level-3-technologies/batch-processing/hadoop/#performance-tuning--troubleshooting" },
-    { id:"performance-tuning-troubleshooting-performance", label:"Performance", desc:"Assuming a 64MB block size with 2 mappers and 2 reducers: 64 * 4 = 256MB of memory, and the OS needs at least 30% extra headroom, so 256 + 80 = 326MB of RAM is roughly required to process that chunk of data.", link:"/level-3-technologies/batch-processing/hadoop/#performance-tuning--troubleshooting" },
-    { id:"performance-tuning-troubleshooting-networking", label:"Networking", desc:"SSH (Secure Shell) is a secure protocol and the most common way to administer remote servers safely — relatively simple and inexpensive to implement.", link:"/level-3-technologies/batch-processing/hadoop/#performance-tuning--troubleshooting" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

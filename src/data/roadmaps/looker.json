@@ -1,0 +1,246 @@
+[
+  {
+    "id": "fundamentals-core-concepts",
+    "label": "Fundamentals & Core Concepts",
+    "desc": "16 interview questions covering Fundamentals, LookML, Explores, Dashboards and more.",
+    "link": "/level-3-technologies/bi/looker/#fundamentals--core-concepts",
+    "subs": [
+      {
+        "id": "fundamentals-core-concepts-fundamentals",
+        "label": "Fundamentals",
+        "desc": "Looker is a business intelligence (BI) and data visualization platform that lets users explore, analyze, and share data insights, built around a modeling layer (LookML) rather than its own data engine.",
+        "link": "/level-3-technologies/bi/looker/#fundamentals--core-concepts"
+      },
+      {
+        "id": "fundamentals-core-concepts-lookml",
+        "label": "LookML",
+        "desc": "LookML's flexibility handles complex data structures by letting you explicitly define relationships, joins, and transformations across files — so even deeply nested or multi-table structures can be modeled as a coherent set of Explores.",
+        "link": "/level-3-technologies/bi/looker/#fundamentals--core-concepts"
+      },
+      {
+        "id": "fundamentals-core-concepts-explores",
+        "label": "Explores",
+        "desc": "A Looker Explore is the interface that lets users interactively explore and analyze data through a graphical, point-and-click UI, built on top of the relationships and fields defined in LookML.",
+        "link": "/level-3-technologies/bi/looker/#fundamentals--core-concepts"
+      },
+      {
+        "id": "fundamentals-core-concepts-dashboards",
+        "label": "Dashboards",
+        "desc": "A Looker dashboard is a customizable collection of visualizations and reports that gives a consolidated view of key metrics and data insights, typically built from one or more Explores.",
+        "link": "/level-3-technologies/bi/looker/#fundamentals--core-concepts"
+      },
+      {
+        "id": "fundamentals-core-concepts-ecosystem",
+        "label": "Ecosystem",
+        "desc": "Can Looker be integrated with other BI tools or data visualization platforms?",
+        "link": "/level-3-technologies/bi/looker/#fundamentals--core-concepts"
+      }
+    ]
+  },
+  {
+    "id": "lookml-pdts-development-workflow",
+    "label": "LookML, PDTs & Development Workflow",
+    "desc": "13 interview questions covering PDTs, LookML, Administration, Visualization and more.",
+    "link": "/level-3-technologies/bi/looker/#lookml-pdts--development-workflow",
+    "subs": [
+      {
+        "id": "lookml-pdts-development-workflow-pdts",
+        "label": "PDTs",
+        "desc": "PDTs are precomputed tables that Looker builds back into the connected database to improve query performance.",
+        "link": "/level-3-technologies/bi/looker/#lookml-pdts--development-workflow"
+      },
+      {
+        "id": "lookml-pdts-development-workflow-lookml",
+        "label": "LookML",
+        "desc": "What is the purpose of Looker's Liquid syntax in LookML?",
+        "link": "/level-3-technologies/bi/looker/#lookml-pdts--development-workflow"
+      },
+      {
+        "id": "lookml-pdts-development-workflow-administration",
+        "label": "Administration",
+        "desc": "Development Mode lets developers change LookML models without affecting the production environment, giving them a safe space to test changes before deploying them live.",
+        "link": "/level-3-technologies/bi/looker/#lookml-pdts--development-workflow"
+      },
+      {
+        "id": "lookml-pdts-development-workflow-visualization",
+        "label": "Visualization",
+        "desc": "Looker supports custom visualizations built with custom JavaScript or HTML — you can build your own from scratch or adapt third-party visualization libraries for cases the built-in chart types don't cover.",
+        "link": "/level-3-technologies/bi/looker/#lookml-pdts--development-workflow"
+      },
+      {
+        "id": "lookml-pdts-development-workflow-sql-runner",
+        "label": "SQL Runner",
+        "desc": "SQL Runner provides a SQL interface directly inside Looker, letting users write and execute custom SQL queries against connected data sources without going through LookML or an Explore.",
+        "link": "/level-3-technologies/bi/looker/#lookml-pdts--development-workflow"
+      },
+      {
+        "id": "lookml-pdts-development-workflow-explores",
+        "label": "Explores",
+        "desc": "Dynamic time frame filters let users select relative, time-based periods — such as \"last month\" or \"last year\" — that are evaluated dynamically based on the current date, rather than a fixed date range.",
+        "link": "/level-3-technologies/bi/looker/#lookml-pdts--development-workflow"
+      },
+      {
+        "id": "lookml-pdts-development-workflow-version-control",
+        "label": "Version Control",
+        "desc": "Looker integrates with Git (or other version control systems) so LookML models can be version-controlled like any other codebase.",
+        "link": "/level-3-technologies/bi/looker/#lookml-pdts--development-workflow"
+      },
+      {
+        "id": "lookml-pdts-development-workflow-api",
+        "label": "API",
+        "desc": "The Explore API lets developers programmatically query and retrieve data from Looker Explores, enabling integration with external applications that need Looker-modeled data without going through the UI.",
+        "link": "/level-3-technologies/bi/looker/#lookml-pdts--development-workflow"
+      },
+      {
+        "id": "lookml-pdts-development-workflow-embedding",
+        "label": "Embedding",
+        "desc": "Explore Embed lets developers embed Looker's Explore functionality directly into external applications, giving end users a full data-exploration experience inside a product they're already using rather than a separate Looker login.",
+        "link": "/level-3-technologies/bi/looker/#lookml-pdts--development-workflow"
+      }
+    ]
+  },
+  {
+    "id": "performance-scale-data-integration",
+    "label": "Performance, Scale & Data Integration",
+    "desc": "21 interview questions covering Performance, Scalability, Data Integration, Real-Time and more.",
+    "link": "/level-3-technologies/bi/looker/#performance-scale--data-integration",
+    "subs": [
+      {
+        "id": "performance-scale-data-integration-performance",
+        "label": "Performance",
+        "desc": "Looker intelligently caches query results to improve performance, and the caching strategy can be customized based on how frequently and how much the underlying data actually changes.",
+        "link": "/level-3-technologies/bi/looker/#performance-scale--data-integration"
+      },
+      {
+        "id": "performance-scale-data-integration-scalability",
+        "label": "Scalability",
+        "desc": "Yes — Looker is designed to handle large-scale data processing by leveraging the computing power and scalability of the modern data warehouse or database it's connected to, rather than processing data itself.",
+        "link": "/level-3-technologies/bi/looker/#performance-scale--data-integration"
+      },
+      {
+        "id": "performance-scale-data-integration-data-integration",
+        "label": "Data Integration",
+        "desc": "Looker relies on the underlying data infrastructure to handle incremental data loads — proper configuration and modeling on the warehouse side is required to support incremental updates cleanly.",
+        "link": "/level-3-technologies/bi/looker/#performance-scale--data-integration"
+      },
+      {
+        "id": "performance-scale-data-integration-real-time",
+        "label": "Real-Time",
+        "desc": "Looker is primarily designed for batch data processing, so it may not be well suited to strictly real-time dashboards.",
+        "link": "/level-3-technologies/bi/looker/#performance-scale--data-integration"
+      },
+      {
+        "id": "performance-scale-data-integration-etl",
+        "label": "ETL",
+        "desc": "Can Looker be used for data transformation and ETL processes? How can Looker integrate with data orchestration tools like Apache Airflow?",
+        "link": "/level-3-technologies/bi/looker/#performance-scale--data-integration"
+      },
+      {
+        "id": "performance-scale-data-integration-data-quality",
+        "label": "Data Quality",
+        "desc": "How does Looker handle data quality and cleansing?",
+        "link": "/level-3-technologies/bi/looker/#performance-scale--data-integration"
+      }
+    ]
+  },
+  {
+    "id": "governance-security-access-control",
+    "label": "Governance, Security & Access Control",
+    "desc": "13 interview questions covering Security, Compliance, Governance, Access Control and more.",
+    "link": "/level-3-technologies/bi/looker/#governance-security--access-control",
+    "subs": [
+      {
+        "id": "governance-security-access-control-security",
+        "label": "Security",
+        "desc": "Looker offers user access controls, data encryption, and integration with identity providers for authentication and authorization — layering its own permission model on top of whatever security the underlying warehouse already provides.",
+        "link": "/level-3-technologies/bi/looker/#governance-security--access-control"
+      },
+      {
+        "id": "governance-security-access-control-compliance",
+        "label": "Compliance",
+        "desc": "Looker provides data encryption, access controls, and features supporting compliance with regulations like GDPR and HIPAA, helping organizations meet industry-specific privacy requirements.",
+        "link": "/level-3-technologies/bi/looker/#governance-security--access-control"
+      },
+      {
+        "id": "governance-security-access-control-governance",
+        "label": "Governance",
+        "desc": "Looker can integrate with external data governance tools through custom scripts, APIs, or data connectors, to enforce governance policies and support compliance beyond what Looker's own controls cover.",
+        "link": "/level-3-technologies/bi/looker/#governance-security--access-control"
+      },
+      {
+        "id": "governance-security-access-control-access-control",
+        "label": "Access Control",
+        "desc": "Looker's data permissions and access controls let administrators control which users or groups can access specific data sources, tables, or fields within Looker, down to a fairly granular level.",
+        "link": "/level-3-technologies/bi/looker/#governance-security--access-control"
+      },
+      {
+        "id": "governance-security-access-control-authentication",
+        "label": "Authentication",
+        "desc": "Yes — Looker can integrate with external authentication providers such as LDAP, SAML, or OAuth to enable single sign-on (SSO) and centralized user management.",
+        "link": "/level-3-technologies/bi/looker/#governance-security--access-control"
+      },
+      {
+        "id": "governance-security-access-control-deployment",
+        "label": "Deployment",
+        "desc": "Can Looker be deployed on-premises or is it only available as a cloud-based solution?",
+        "link": "/level-3-technologies/bi/looker/#governance-security--access-control"
+      }
+    ]
+  },
+  {
+    "id": "lineage-collaboration-platform-administration",
+    "label": "Lineage, Collaboration & Platform Administration",
+    "desc": "17 interview questions covering Lineage, Administration, Collaboration, Data Actions and more.",
+    "link": "/level-3-technologies/bi/looker/#lineage-collaboration--platform-administration",
+    "subs": [
+      {
+        "id": "lineage-collaboration-platform-administration-lineage",
+        "label": "Lineage",
+        "desc": "Looker lets you document the logic and definitions of your data models directly in LookML, and provides options to track data lineage and maintain documentation within the platform itself.",
+        "link": "/level-3-technologies/bi/looker/#lineage-collaboration--platform-administration"
+      },
+      {
+        "id": "lineage-collaboration-platform-administration-administration",
+        "label": "Administration",
+        "desc": "Content validation lets users validate the accuracy of data displayed across dashboards, reports, and visualizations — catching broken references (like a renamed field) before they silently break a report.",
+        "link": "/level-3-technologies/bi/looker/#lineage-collaboration--platform-administration"
+      },
+      {
+        "id": "lineage-collaboration-platform-administration-collaboration",
+        "label": "Collaboration",
+        "desc": "Looker provides features for sharing, commenting, and collaborating on reports, dashboards, and data models, and integrates with communication tools like Slack and email to keep teams in the loop.",
+        "link": "/level-3-technologies/bi/looker/#lineage-collaboration--platform-administration"
+      },
+      {
+        "id": "lineage-collaboration-platform-administration-data-actions",
+        "label": "Data Actions",
+        "desc": "Data Actions let users take action directly from their data — updating records, creating tasks, or triggering external processes — without leaving the Looker interface.",
+        "link": "/level-3-technologies/bi/looker/#lineage-collaboration--platform-administration"
+      },
+      {
+        "id": "lineage-collaboration-platform-administration-alerting",
+        "label": "Alerting",
+        "desc": "Yes — Looker can generate alerts or notifications based on predefined conditions through its scheduling and alerting features, so users are proactively notified when a metric crosses a threshold.",
+        "link": "/level-3-technologies/bi/looker/#lineage-collaboration--platform-administration"
+      },
+      {
+        "id": "lineage-collaboration-platform-administration-visualization",
+        "label": "Visualization",
+        "desc": "Yes — Looker supports geospatial data analysis through visualization options including maps and geographic charts.",
+        "link": "/level-3-technologies/bi/looker/#lineage-collaboration--platform-administration"
+      },
+      {
+        "id": "lineage-collaboration-platform-administration-fundamentals",
+        "label": "Fundamentals",
+        "desc": "Can Looker handle data anomaly detection?",
+        "link": "/level-3-technologies/bi/looker/#lineage-collaboration--platform-administration"
+      },
+      {
+        "id": "lineage-collaboration-platform-administration-governance",
+        "label": "Governance",
+        "desc": "Yes — Looker can integrate with data cataloging tools through APIs or connectors, enabling data discovery and cataloging across the organization alongside whatever catalog system is already in use.",
+        "link": "/level-3-technologies/bi/looker/#lineage-collaboration--platform-administration"
+      }
+    ]
+  }
+]

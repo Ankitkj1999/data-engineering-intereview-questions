@@ -1,0 +1,76 @@
+[
+  {
+    "id": "ml-basics-for-data-engineers",
+    "label": "ML Basics for Data Engineers",
+    "desc": "4 interview questions covering ML Basics.",
+    "link": "/level-4-advanced/mlops/#ml-basics-for-data-engineers",
+    "subs": [
+      {
+        "id": "ml-basics-for-data-engineers-ml-basics",
+        "label": "ML Basics",
+        "desc": "What are the main types of machine learning? What are training, validation and test sets, and why does the split matter?",
+        "link": "/level-4-advanced/mlops/#ml-basics-for-data-engineers"
+      }
+    ]
+  },
+  {
+    "id": "feature-engineering-feature-stores",
+    "label": "Feature Engineering & Feature Stores",
+    "desc": "4 interview questions covering Features, Feature Store.",
+    "link": "/level-4-advanced/mlops/#feature-engineering--feature-stores",
+    "subs": [
+      {
+        "id": "feature-engineering-feature-stores-features",
+        "label": "Features",
+        "desc": "When features computed for training differ from those computed at serving time — so the model receives inputs unlike anything it learned from.",
+        "link": "/level-4-advanced/mlops/#feature-engineering--feature-stores"
+      },
+      {
+        "id": "feature-engineering-feature-stores-feature-store",
+        "label": "Feature Store",
+        "desc": "A system for defining, computing, storing and serving features, with two coordinated stores.",
+        "link": "/level-4-advanced/mlops/#feature-engineering--feature-stores"
+      }
+    ]
+  },
+  {
+    "id": "mlops-the-model-lifecycle",
+    "label": "MLOps & the Model Lifecycle",
+    "desc": "4 interview questions covering MLOps.",
+    "link": "/level-4-advanced/mlops/#mlops--the-model-lifecycle",
+    "subs": [
+      {
+        "id": "mlops-the-model-lifecycle-mlops",
+        "label": "MLOps",
+        "desc": "What is MLOps, and how does it differ from DevOps? What does a model lifecycle look like end to end?",
+        "link": "/level-4-advanced/mlops/#mlops--the-model-lifecycle"
+      }
+    ]
+  },
+  {
+    "id": "monitoring-drift",
+    "label": "Monitoring & Drift",
+    "desc": "4 interview questions covering Drift, Monitoring, MLOps.",
+    "link": "/level-4-advanced/mlops/#monitoring--drift",
+    "subs": [
+      {
+        "id": "monitoring-drift-drift",
+        "label": "Drift",
+        "desc": "What is model drift, and what types are there? How do you detect drift?",
+        "link": "/level-4-advanced/mlops/#monitoring--drift"
+      },
+      {
+        "id": "monitoring-drift-monitoring",
+        "label": "Monitoring",
+        "desc": "When and how should you retrain a model?",
+        "link": "/level-4-advanced/mlops/#monitoring--drift"
+      },
+      {
+        "id": "monitoring-drift-mlops",
+        "label": "MLOps",
+        "desc": "What does a data engineer own in an ML system?",
+        "link": "/level-4-advanced/mlops/#monitoring--drift"
+      }
+    ]
+  }
+]

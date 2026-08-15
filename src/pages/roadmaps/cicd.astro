@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/cicd.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,73 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/cicd/#cicd-fundamentals">CI/CD Fundamentals</a></h3>
+        <p class="rm-index-desc">The vocabulary and the practices — what CI actually buys you, and what makes a pipeline trusted.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#cicd-fundamentals">CI vs Delivery vs Deployment</a></span> <span class="rm-index-sub-desc">The two CDs, and the human approval gate that separates them.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#cicd-fundamentals">CI Pipeline Stages</a></span> <span class="rm-index-sub-desc">Checkout through publish, ordered fastest-and-most-likely-to-fail first.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#cicd-fundamentals">What Makes a Good Pipeline</a></span> <span class="rm-index-sub-desc">Fast, reliable, deterministic, isolated — and why flakiness kills trust.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#cicd-fundamentals">Secrets Management</a></span> <span class="rm-index-sub-desc">Scoped encrypted stores, log masking, and short-lived credentials via OIDC.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#cicd-fundamentals">Deployment Strategies</a></span> <span class="rm-index-sub-desc">Recreate, rolling, blue-green, canary and feature flags — plus the data analogue.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#cicd-fundamentals">Build Once &amp; Promote</a></span> <span class="rm-index-sub-desc">Why rebuilding per environment loses the guarantee that you tested what you shipped.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#cicd-fundamentals">Flaky Tests</a></span> <span class="rm-index-sub-desc">Common causes, and why quarantining beats an automatic retry.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/cicd/#github-actions">GitHub Actions</a></h3>
+        <p class="rm-index-desc">Workflows, jobs and steps — triggers, caching, runners, environments and matrix builds.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#github-actions">Workflow Structure</a></span> <span class="rm-index-sub-desc">workflow to jobs to steps, parallel by default, with needs and artifacts to connect them.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#github-actions">Triggers &amp; Events</a></span> <span class="rm-index-sub-desc">push, pull_request, schedule, workflow_dispatch — plus path filters for monorepos.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#github-actions">Speeding Up Workflows</a></span> <span class="rm-index-sub-desc">Dependency and layer caching, matrices, path filters and concurrency groups.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#github-actions">Hosted vs Self-Hosted Runners</a></span> <span class="rm-index-sub-desc">When you need VPC access or big machines — and why never on a public repo.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#github-actions">Secrets, Environments &amp; OIDC</a></span> <span class="rm-index-sub-desc">Environment gates, required approvals, and assuming a cloud role without stored keys.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#github-actions">Matrix Strategy</a></span> <span class="rm-index-sub-desc">Testing across Python and Spark versions, and why fail-fast: false is usually right.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/cicd/#gitlab-ci">GitLab CI</a></h3>
+        <p class="rm-index-desc">Stages and jobs in .gitlab-ci.yml, with runners, caching and conditional execution.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#gitlab-ci">.gitlab-ci.yml Structure</a></span> <span class="rm-index-sub-desc">Stages run in order, jobs within a stage in parallel, each in its own image.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#gitlab-ci">Cache vs Artifacts</a></span> <span class="rm-index-sub-desc">Regenerable speed-ups versus outputs that later stages actually depend on.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#gitlab-ci">Rules</a></span> <span class="rm-index-sub-desc">Conditional inclusion with if/changes/when — and why it replaced only/except.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#gitlab-ci">Runners &amp; Executors</a></span> <span class="rm-index-sub-desc">docker, kubernetes and shell executors, and tag-based job routing.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/cicd/#argocd--gitops">ArgoCD &amp; GitOps</a></h3>
+        <p class="rm-index-desc">Git as the source of truth for what's running, with an in-cluster agent reconciling continuously.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#argocd--gitops">GitOps Principles</a></span> <span class="rm-index-sub-desc">Declarative, versioned, pulled automatically, continuously reconciled.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#argocd--gitops">How ArgoCD Works</a></span> <span class="rm-index-sub-desc">Applications, sync status, drift detection and rollback to any previous sync.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#argocd--gitops">Push vs Pull Deployment</a></span> <span class="rm-index-sub-desc">Why an in-cluster agent means CI never needs production credentials.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#argocd--gitops">App Repo vs Config Repo</a></span> <span class="rm-index-sub-desc">Separating source from manifests, and how the image tag bump triggers a deploy.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#argocd--gitops">Secrets in GitOps</a></span> <span class="rm-index-sub-desc">Sealed Secrets, External Secrets Operator and SOPS — keeping values out of Git.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/cicd/#cicd-for-data-pipelines">CI/CD for Data Pipelines</a></h3>
+        <p class="rm-index-desc">The part that's genuinely different: external state, data-dependent correctness and delayed feedback.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#cicd-for-data-pipelines">How Data CI/CD Differs</a></span> <span class="rm-index-sub-desc">Reverting code doesn't undo rows — plus data-dependent correctness and slow feedback.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#cicd-for-data-pipelines">Tests for Data Pipelines</a></span> <span class="rm-index-sub-desc">Unit, DAG validation, integration, data quality, schema contracts and idempotency.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#cicd-for-data-pipelines">Deploying dbt</a></span> <span class="rm-index-sub-desc">PR schemas, state:modified+ with --defer, and source freshness checks.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#cicd-for-data-pipelines">Deploying Airflow DAGs</a></span> <span class="rm-index-sub-desc">git-sync, baked images or object storage — and why DAG validation is mandatory.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#cicd-for-data-pipelines">Testing at Production Scale</a></span> <span class="rm-index-sub-desc">Representative sampling, zero-copy clones, deferred builds and synthetic data.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#cicd-for-data-pipelines">Recovering from Bad Data</a></span> <span class="rm-index-sub-desc">Stop, revert, assess blast radius, communicate, restore or backfill, then cascade.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/cicd/#cicd-for-data-pipelines">Environment Strategy</a></span> <span class="rm-index-sub-desc">Separate databases or accounts, per-developer schemas, and promotion by re-tagging.</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,47 +134,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"cicd-fundamentals", label:"CI/CD Fundamentals", desc:"The vocabulary and the practices — what CI actually buys you, and what makes a pipeline trusted.", link:"/level-1-foundations/cicd/#cicd-fundamentals", subs:[
-    { id:"cicd-ci-cd-cd", label:"CI vs Delivery vs Deployment", desc:"The two CDs, and the human approval gate that separates them.", link:"/level-1-foundations/cicd/#cicd-fundamentals" },
-    { id:"cicd-stages", label:"CI Pipeline Stages", desc:"Checkout through publish, ordered fastest-and-most-likely-to-fail first.", link:"/level-1-foundations/cicd/#cicd-fundamentals" },
-    { id:"cicd-good", label:"What Makes a Good Pipeline", desc:"Fast, reliable, deterministic, isolated — and why flakiness kills trust.", link:"/level-1-foundations/cicd/#cicd-fundamentals" },
-    { id:"cicd-secrets", label:"Secrets Management", desc:"Scoped encrypted stores, log masking, and short-lived credentials via OIDC.", link:"/level-1-foundations/cicd/#cicd-fundamentals" },
-    { id:"cicd-strategies", label:"Deployment Strategies", desc:"Recreate, rolling, blue-green, canary and feature flags — plus the data analogue.", link:"/level-1-foundations/cicd/#cicd-fundamentals" },
-    { id:"cicd-artifact", label:"Build Once & Promote", desc:"Why rebuilding per environment loses the guarantee that you tested what you shipped.", link:"/level-1-foundations/cicd/#cicd-fundamentals" },
-    { id:"cicd-flaky", label:"Flaky Tests", desc:"Common causes, and why quarantining beats an automatic retry.", link:"/level-1-foundations/cicd/#cicd-fundamentals" },
-  ]},
-  { id:"cicd-gha", label:"GitHub Actions", desc:"Workflows, jobs and steps — triggers, caching, runners, environments and matrix builds.", link:"/level-1-foundations/cicd/#github-actions", subs:[
-    { id:"cicd-gha-structure", label:"Workflow Structure", desc:"workflow to jobs to steps, parallel by default, with needs and artifacts to connect them.", link:"/level-1-foundations/cicd/#github-actions" },
-    { id:"cicd-gha-triggers", label:"Triggers & Events", desc:"push, pull_request, schedule, workflow_dispatch — plus path filters for monorepos.", link:"/level-1-foundations/cicd/#github-actions" },
-    { id:"cicd-gha-speed", label:"Speeding Up Workflows", desc:"Dependency and layer caching, matrices, path filters and concurrency groups.", link:"/level-1-foundations/cicd/#github-actions" },
-    { id:"cicd-gha-runners", label:"Hosted vs Self-Hosted Runners", desc:"When you need VPC access or big machines — and why never on a public repo.", link:"/level-1-foundations/cicd/#github-actions" },
-    { id:"cicd-gha-secrets", label:"Secrets, Environments & OIDC", desc:"Environment gates, required approvals, and assuming a cloud role without stored keys.", link:"/level-1-foundations/cicd/#github-actions" },
-    { id:"cicd-gha-matrix", label:"Matrix Strategy", desc:"Testing across Python and Spark versions, and why fail-fast: false is usually right.", link:"/level-1-foundations/cicd/#github-actions" },
-  ]},
-  { id:"cicd-gitlab", label:"GitLab CI", desc:"Stages and jobs in .gitlab-ci.yml, with runners, caching and conditional execution.", link:"/level-1-foundations/cicd/#gitlab-ci", subs:[
-    { id:"cicd-gl-structure", label:".gitlab-ci.yml Structure", desc:"Stages run in order, jobs within a stage in parallel, each in its own image.", link:"/level-1-foundations/cicd/#gitlab-ci" },
-    { id:"cicd-gl-cache", label:"Cache vs Artifacts", desc:"Regenerable speed-ups versus outputs that later stages actually depend on.", link:"/level-1-foundations/cicd/#gitlab-ci" },
-    { id:"cicd-gl-rules", label:"Rules", desc:"Conditional inclusion with if/changes/when — and why it replaced only/except.", link:"/level-1-foundations/cicd/#gitlab-ci" },
-    { id:"cicd-gl-runners", label:"Runners & Executors", desc:"docker, kubernetes and shell executors, and tag-based job routing.", link:"/level-1-foundations/cicd/#gitlab-ci" },
-  ]},
-  { id:"cicd-gitops", label:"ArgoCD & GitOps", desc:"Git as the source of truth for what's running, with an in-cluster agent reconciling continuously.", link:"/level-1-foundations/cicd/#argocd--gitops", subs:[
-    { id:"cicd-gitops-principles", label:"GitOps Principles", desc:"Declarative, versioned, pulled automatically, continuously reconciled.", link:"/level-1-foundations/cicd/#argocd--gitops" },
-    { id:"cicd-argocd", label:"How ArgoCD Works", desc:"Applications, sync status, drift detection and rollback to any previous sync.", link:"/level-1-foundations/cicd/#argocd--gitops" },
-    { id:"cicd-push-pull", label:"Push vs Pull Deployment", desc:"Why an in-cluster agent means CI never needs production credentials.", link:"/level-1-foundations/cicd/#argocd--gitops" },
-    { id:"cicd-repo-split", label:"App Repo vs Config Repo", desc:"Separating source from manifests, and how the image tag bump triggers a deploy.", link:"/level-1-foundations/cicd/#argocd--gitops" },
-    { id:"cicd-gitops-secrets", label:"Secrets in GitOps", desc:"Sealed Secrets, External Secrets Operator and SOPS — keeping values out of Git.", link:"/level-1-foundations/cicd/#argocd--gitops" },
-  ]},
-  { id:"cicd-de", label:"CI/CD for Data Pipelines", desc:"The part that's genuinely different: external state, data-dependent correctness and delayed feedback.", link:"/level-1-foundations/cicd/#cicd-for-data-pipelines", subs:[
-    { id:"cicd-de-diff", label:"How Data CI/CD Differs", desc:"Reverting code doesn't undo rows — plus data-dependent correctness and slow feedback.", link:"/level-1-foundations/cicd/#cicd-for-data-pipelines" },
-    { id:"cicd-de-tests", label:"Tests for Data Pipelines", desc:"Unit, DAG validation, integration, data quality, schema contracts and idempotency.", link:"/level-1-foundations/cicd/#cicd-for-data-pipelines" },
-    { id:"cicd-de-dbt", label:"Deploying dbt", desc:"PR schemas, state:modified+ with --defer, and source freshness checks.", link:"/level-1-foundations/cicd/#cicd-for-data-pipelines" },
-    { id:"cicd-de-airflow", label:"Deploying Airflow DAGs", desc:"git-sync, baked images or object storage — and why DAG validation is mandatory.", link:"/level-1-foundations/cicd/#cicd-for-data-pipelines" },
-    { id:"cicd-de-scale", label:"Testing at Production Scale", desc:"Representative sampling, zero-copy clones, deferred builds and synthetic data.", link:"/level-1-foundations/cicd/#cicd-for-data-pipelines" },
-    { id:"cicd-de-recovery", label:"Recovering from Bad Data", desc:"Stop, revert, assess blast radius, communicate, restore or backfill, then cascade.", link:"/level-1-foundations/cicd/#cicd-for-data-pipelines" },
-    { id:"cicd-de-envs", label:"Environment Strategy", desc:"Separate databases or accounts, per-developer schemas, and promotion by re-tagging.", link:"/level-1-foundations/cicd/#cicd-for-data-pipelines" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

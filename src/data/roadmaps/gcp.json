@@ -1,0 +1,328 @@
+[
+  {
+    "id": "overview",
+    "label": "GCP Overview",
+    "desc": "Foundational Google Cloud concepts, global footprint, and pricing basics every cloud practitioner should know before diving into individual services.",
+    "subs": [
+      {
+        "id": "gcp-global-infrastructure",
+        "label": "Google Cloud Global Infrastructure",
+        "desc": "Regions, zones, and Google's private global network backbone that connects them for low-latency, high-throughput data transfer."
+      },
+      {
+        "id": "gcp-platform-overview",
+        "label": "Google Cloud Platform Overview",
+        "desc": "High-level overview of Google Cloud's service catalog spanning compute, storage, data analytics, and AI/ML."
+      },
+      {
+        "id": "gcp-pricing",
+        "label": "Google Cloud Pricing",
+        "desc": "Pay-as-you-go pricing with sustained-use and committed-use discounts, plus the Google Cloud Pricing Calculator for cost estimation."
+      }
+    ]
+  },
+  {
+    "id": "compute",
+    "label": "GCP Compute Services",
+    "desc": "Services for running application code and containers — from fully managed serverless platforms to full control over virtual machines.",
+    "link": "/level-3-technologies/cloud/gcp-compute/",
+    "subs": [
+      {
+        "id": "cloud-run",
+        "label": "Cloud Run",
+        "desc": "Fully managed serverless platform for running stateless containers, automatically scaling to zero when idle.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-compute/#cloud-run--cloud-functions"
+      },
+      {
+        "id": "google-app-engine",
+        "label": "Google App Engine",
+        "desc": "Fully managed PaaS for building and deploying web applications and APIs without managing the underlying infrastructure."
+      },
+      {
+        "id": "google-cloud-functions",
+        "label": "Google Cloud Functions",
+        "desc": "Event-driven, serverless compute for running single-purpose functions in response to cloud events.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-compute/#cloud-run--cloud-functions"
+      },
+      {
+        "id": "gce",
+        "label": "Google Compute Engine (GCE)",
+        "desc": "Customizable, scalable IaaS virtual machines with per-second billing and custom machine types.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-compute/#compute-engine"
+      },
+      {
+        "id": "gke",
+        "label": "Google Kubernetes Engine (GKE)",
+        "desc": "Managed, production-ready Kubernetes environment with Autopilot mode for hands-off node management.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-compute/#google-kubernetes-engine"
+      }
+    ]
+  },
+  {
+    "id": "storage",
+    "label": "GCP Storage Services",
+    "desc": "Object, block, and file storage services covering every durability, access-pattern, and cost tier.",
+    "link": "/level-3-technologies/cloud/gcp-storage/",
+    "subs": [
+      {
+        "id": "gcp-filestore",
+        "label": "Google Cloud Filestore",
+        "desc": "Fully managed NFS file storage for applications that require a shared, POSIX-compliant file system.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-storage/#block--file-storage"
+      },
+      {
+        "id": "gcs",
+        "label": "Google Cloud Storage (GCS)",
+        "desc": "Unified object storage with Standard, Nearline, Coldline, and Archive classes trading access frequency for cost.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-storage/#cloud-storage"
+      },
+      {
+        "id": "local-ssd",
+        "label": "Local SSD",
+        "desc": "High-performance, physically attached SSD storage for VM instances, offering the lowest latency but no data persistence beyond the VM's life.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-storage/#block--file-storage"
+      },
+      {
+        "id": "persistent-disks",
+        "label": "Persistent Disks",
+        "desc": "Durable, network-attached block storage for VM instances, available in Standard, Balanced, SSD, and Extreme performance tiers.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-storage/#block--file-storage"
+      }
+    ]
+  },
+  {
+    "id": "database",
+    "label": "GCP Database Services",
+    "desc": "Purpose-built managed database engines spanning relational, wide-column, and globally distributed workloads.",
+    "link": "/level-3-technologies/cloud/gcp-databases/",
+    "subs": [
+      {
+        "id": "google-bigquery",
+        "label": "Google BigQuery",
+        "desc": "Serverless, highly scalable data warehouse for running fast SQL analytics over petabyte-scale datasets.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-databases/#bigquery-architecture"
+      },
+      {
+        "id": "google-cloud-bigtable",
+        "label": "Google Cloud Bigtable",
+        "desc": "Fully managed, wide-column NoSQL database built for low-latency, high-throughput workloads like time series and IoT data.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-databases/#cloud-bigtable"
+      },
+      {
+        "id": "google-cloud-sql",
+        "label": "Google Cloud SQL",
+        "desc": "Fully managed relational database service supporting MySQL, PostgreSQL, and SQL Server with automated backups and replication.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-databases/#cloud-sql"
+      },
+      {
+        "id": "google-cloud-spanner",
+        "label": "Google Cloud Spanner",
+        "desc": "Globally distributed, horizontally scalable relational database offering strong consistency and SQL with virtually unlimited scale.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-databases/#cloud-spanner"
+      }
+    ]
+  },
+  {
+    "id": "networking",
+    "label": "GCP Networking & Content Delivery",
+    "desc": "Services for connecting, routing, and delivering content across virtual networks, on-premises networks, and the public internet.",
+    "subs": [
+      {
+        "id": "gcp-cdn",
+        "label": "Google Cloud CDN",
+        "desc": "Content delivery network that caches content at Google's globally distributed edge points of presence."
+      },
+      {
+        "id": "gcp-dns",
+        "label": "Google Cloud DNS",
+        "desc": "Scalable, reliable, and managed authoritative DNS service running on the same infrastructure as Google's own DNS."
+      },
+      {
+        "id": "gcp-hybrid-connectivity",
+        "label": "Google Cloud Hybrid Connectivity",
+        "desc": "Cloud VPN and Cloud Interconnect options for securely connecting on-premises networks to Google Cloud VPCs."
+      },
+      {
+        "id": "gcp-cloud-router",
+        "label": "Google Cloud Router",
+        "desc": "Dynamically exchanges routes between a VPC network and on-premises networks using BGP over VPN or Interconnect."
+      },
+      {
+        "id": "gcp-load-balancing",
+        "label": "Google Cloud Load Balancing",
+        "desc": "Fully distributed, software-defined load balancing across global and regional layers for HTTP(S), TCP/UDP, and internal traffic."
+      },
+      {
+        "id": "gcp-vpc",
+        "label": "Google Virtual Private Cloud",
+        "desc": "Global, software-defined network providing isolated, customizable networking with subnets that can span multiple regions."
+      }
+    ]
+  },
+  {
+    "id": "security",
+    "label": "GCP Security and Identity Services",
+    "desc": "Identity, threat protection, and encryption key management services for securing projects and data.",
+    "subs": [
+      {
+        "id": "gcp-cloud-armor",
+        "label": "Google Cloud Armor",
+        "desc": "Web application firewall and DDoS protection service that filters traffic at the edge of Google's network."
+      },
+      {
+        "id": "gcp-cloud-identity",
+        "label": "Google Cloud Identity",
+        "desc": "Identity-as-a-service platform for managing users, devices, and apps independent of, or alongside, Google Workspace."
+      },
+      {
+        "id": "gcp-iam",
+        "label": "Google Cloud IAM",
+        "desc": "Fine-grained access control assigning roles and permissions to members across projects, folders, and organizations."
+      },
+      {
+        "id": "gcp-kms",
+        "label": "Google Cloud Key Management",
+        "desc": "Centralized service for creating, managing, and rotating cryptographic keys used to encrypt data across Google Cloud."
+      },
+      {
+        "id": "gcp-secret-manager",
+        "label": "Google Cloud Secret Manager",
+        "desc": "Securely stores, manages, and audits access to API keys, passwords, certificates, and other sensitive configuration data."
+      }
+    ]
+  },
+  {
+    "id": "analytics",
+    "label": "GCP Data and Analytics",
+    "desc": "Services for querying, processing, and streaming data at scale — the core of Google Cloud's data engineering toolkit.",
+    "link": "/level-3-technologies/cloud/gcp-analytics/",
+    "subs": [
+      {
+        "id": "gcp-dataflow",
+        "label": "Google Cloud Dataflow",
+        "desc": "Fully managed service for executing Apache Beam batch and streaming data processing pipelines with autoscaling.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-analytics/#dataflow--apache-beam"
+      },
+      {
+        "id": "gcp-dataprep",
+        "label": "Google Cloud Dataprep",
+        "desc": "Serverless, visual data preparation service (built on Trifacta) for cleaning and transforming raw data for analysis.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-analytics/#orchestration--governance"
+      },
+      {
+        "id": "gcp-dataproc",
+        "label": "Google Cloud Dataproc",
+        "desc": "Fully managed Spark and Hadoop service for running big data processing, ML, and analytics workloads with per-second billing.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-analytics/#dataproc"
+      },
+      {
+        "id": "gcp-pubsub",
+        "label": "Google Cloud Pub/Sub",
+        "desc": "Globally scalable, asynchronous messaging service for building event-driven systems and streaming analytics pipelines.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-analytics/#pubsub"
+      }
+    ]
+  },
+  {
+    "id": "management",
+    "label": "GCP Management Tools",
+    "desc": "Tools for provisioning infrastructure as code, monitoring, billing, and operating Google Cloud environments.",
+    "subs": [
+      {
+        "id": "gcp-billing",
+        "label": "Google Cloud Billing",
+        "desc": "Tools for tracking, budgeting, and analyzing Google Cloud spend, including budgets, alerts, and detailed cost reports."
+      },
+      {
+        "id": "gcp-console",
+        "label": "Google Cloud Console",
+        "desc": "Web-based graphical interface for managing, monitoring, and configuring all Google Cloud resources and services."
+      },
+      {
+        "id": "gcp-deployment-manager",
+        "label": "Google Cloud Deployment Manager",
+        "desc": "Infrastructure-as-code service for creating and managing Google Cloud resources using declarative YAML or Python/Jinja templates."
+      },
+      {
+        "id": "gcp-logging",
+        "label": "Google Cloud Logging",
+        "desc": "Centralized, real-time log management and analysis service that ingests logs from Google Cloud, on-prem, and other clouds."
+      },
+      {
+        "id": "gcp-monitoring",
+        "label": "Google Cloud Monitoring",
+        "desc": "Collects metrics, uptime checks, and dashboards to provide visibility into the performance and health of applications and infrastructure."
+      }
+    ]
+  },
+  {
+    "id": "developer-tools",
+    "label": "GCP Developer Tools",
+    "desc": "Services for building, testing, and deploying application code and CI/CD pipelines on Google Cloud.",
+    "subs": [
+      {
+        "id": "gcp-cloud-build",
+        "label": "Google Cloud Build",
+        "desc": "Fully managed CI/CD platform that builds, tests, and deploys code across multiple environments and languages."
+      },
+      {
+        "id": "gcp-source-repositories",
+        "label": "Google Cloud Source Repositories",
+        "desc": "Fully featured, private Git repositories hosted on Google Cloud with integrated code search and Cloud Build triggers."
+      },
+      {
+        "id": "gcp-container-registry",
+        "label": "Google Container Registry",
+        "desc": "Private Docker image storage (being succeeded by Artifact Registry) integrated with Cloud Build and GKE deployments."
+      }
+    ]
+  },
+  {
+    "id": "comparisons",
+    "label": "Comparison of Google Cloud Services",
+    "desc": "Head-to-head breakdowns of similar GCP services — the decisions that come up most often in interviews and architecture reviews.",
+    "link": "/level-3-technologies/cloud/gcp-comparisons/",
+    "subs": [
+      {
+        "id": "bigquery-vs-bigtable",
+        "label": "Google BigQuery vs BigTable",
+        "desc": "BigQuery is a SQL-based analytical data warehouse for OLAP queries; Bigtable is a wide-column NoSQL store for high-throughput, low-latency operational workloads.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-comparisons/#database-comparisons"
+      },
+      {
+        "id": "gcs-vs-persistent-disk-vs-local-ssd-vs-filestore",
+        "label": "GCS vs Persistent Disks vs Local SSD vs Filestore",
+        "desc": "GCS is global object storage; Persistent Disks are durable VM-attached block storage; Local SSD is ephemeral, ultra-fast VM storage; Filestore is a shared NFS file system.",
+        "de": true,
+        "link": "/level-3-technologies/cloud/gcp-comparisons/#storage-comparisons"
+      },
+      {
+        "id": "cloud-functions-vs-app-engine-vs-cloud-run-vs-gke",
+        "label": "Cloud Functions vs App Engine vs Cloud Run vs GKE",
+        "desc": "Ordered roughly by control vs simplicity — Cloud Functions for single-purpose events, App Engine for managed apps, Cloud Run for containers with serverless scaling, GKE for full Kubernetes control."
+      },
+      {
+        "id": "gce-vs-app-engine",
+        "label": "Google Compute Engine vs App Engine",
+        "desc": "Compute Engine gives full VM-level control over the OS and runtime; App Engine abstracts infrastructure entirely so you deploy just code."
+      }
+    ]
+  }
+]

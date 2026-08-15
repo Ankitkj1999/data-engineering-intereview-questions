@@ -1,0 +1,176 @@
+[
+  {
+    "id": "fundamentals-architecture",
+    "label": "Fundamentals & Architecture",
+    "desc": "18 interview questions covering Fundamentals, Clustering.",
+    "link": "/level-3-technologies/data-warehouses/redshift/#fundamentals--architecture",
+    "subs": [
+      {
+        "id": "fundamentals-architecture-fundamentals",
+        "label": "Fundamentals",
+        "desc": "Data in Amazon Redshift is distributed across multiple slices, with each slice residing on a different node in a cluster.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#fundamentals--architecture"
+      },
+      {
+        "id": "fundamentals-architecture-clustering",
+        "label": "Clustering",
+        "desc": "The maximum size of a single Amazon Redshift cluster is 128 compute nodes for the RA3 node type as of September 2021.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#fundamentals--architecture"
+      }
+    ]
+  },
+  {
+    "id": "distribution-sort-keys-maintenance",
+    "label": "Distribution, Sort Keys & Maintenance",
+    "desc": "18 interview questions covering Keys, Maintenance, Storage, Clustering.",
+    "link": "/level-3-technologies/data-warehouses/redshift/#distribution-sort-keys--maintenance",
+    "subs": [
+      {
+        "id": "distribution-sort-keys-maintenance-keys",
+        "label": "Keys",
+        "desc": "What is a sort key in Amazon Redshift? What is a distribution key in Amazon Redshift?",
+        "link": "/level-3-technologies/data-warehouses/redshift/#distribution-sort-keys--maintenance"
+      },
+      {
+        "id": "distribution-sort-keys-maintenance-maintenance",
+        "label": "Maintenance",
+        "desc": "The VACUUM command reclaims disk space and resorts rows, while the ANALYZE command updates statistics that are used by the query optimizer to generate efficient query plans.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#distribution-sort-keys--maintenance"
+      },
+      {
+        "id": "distribution-sort-keys-maintenance-storage",
+        "label": "Storage",
+        "desc": "You can optimize storage in Amazon Redshift by choosing appropriate compression encodings for columns, using the ANALYZE command to update statistics, and using the VACUUM command to reclaim disk space.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#distribution-sort-keys--maintenance"
+      },
+      {
+        "id": "distribution-sort-keys-maintenance-clustering",
+        "label": "Clustering",
+        "desc": "When a new node is added to the Redshift cluster, the data is redistributed across the existing and new nodes based on the distribution style and distribution key defined for each table.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#distribution-sort-keys--maintenance"
+      }
+    ]
+  },
+  {
+    "id": "query-performance-optimization",
+    "label": "Query Performance & Optimization",
+    "desc": "16 interview questions covering Performance, Schema.",
+    "link": "/level-3-technologies/data-warehouses/redshift/#query-performance--optimization",
+    "subs": [
+      {
+        "id": "query-performance-optimization-performance",
+        "label": "Performance",
+        "desc": "Amazon Redshift provides various monitoring tools, including CloudWatch metrics, system tables, query logging, and performance analysis reports to monitor and optimize cluster performance.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#query-performance--optimization"
+      },
+      {
+        "id": "query-performance-optimization-schema",
+        "label": "Schema",
+        "desc": "Redshift's query optimizer is specifically designed to optimize queries on star schema data models, leveraging sort keys, distribution keys, and zone maps to accelerate query performance.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#query-performance--optimization"
+      }
+    ]
+  },
+  {
+    "id": "data-loading-export",
+    "label": "Data Loading & Export",
+    "desc": "16 interview questions covering Data Loading, Encryption.",
+    "link": "/level-3-technologies/data-warehouses/redshift/#data-loading--export",
+    "subs": [
+      {
+        "id": "data-loading-export-data-loading",
+        "label": "Data Loading",
+        "desc": "The recommended way to load large amounts of data into Redshift is by using the COPY command, which efficiently loads data in parallel from Amazon S3 or other supported sources.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#data-loading--export"
+      },
+      {
+        "id": "data-loading-export-encryption",
+        "label": "Encryption",
+        "desc": "The ENCRYPTED option in the COPY command allows you to specify that the data being loaded into Redshift is already encrypted, ensuring secure data transfer and storage.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#data-loading--export"
+      }
+    ]
+  },
+  {
+    "id": "security-backup-compliance",
+    "label": "Security, Backup & Compliance",
+    "desc": "14 interview questions covering Security, Encryption, Backup & Recovery, Replication and more.",
+    "link": "/level-3-technologies/data-warehouses/redshift/#security-backup--compliance",
+    "subs": [
+      {
+        "id": "security-backup-compliance-security",
+        "label": "Security",
+        "desc": "When a compute node fails in Amazon Redshift, the data and queries on that node are automatically redistributed to other nodes in the cluster, and the failed node is replaced.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#security-backup--compliance"
+      },
+      {
+        "id": "security-backup-compliance-encryption",
+        "label": "Encryption",
+        "desc": "Yes, you can use AWS Key Management Service (KMS) to manage encryption keys for data-at-rest encryption in Redshift, providing an additional layer of security for your data.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#security-backup--compliance"
+      },
+      {
+        "id": "security-backup-compliance-backup-recovery",
+        "label": "Backup & Recovery",
+        "desc": "A Redshift snapshot is a point-in-time copy of your cluster's data, while a Redshift cluster backup includes both the data and the cluster's metadata.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#security-backup--compliance"
+      },
+      {
+        "id": "security-backup-compliance-replication",
+        "label": "Replication",
+        "desc": "Yes, Redshift cross-region replication allows you to replicate your cluster to a different AWS region for disaster recovery purposes, ensuring data availability in the event of a region-level failure.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#security-backup--compliance"
+      },
+      {
+        "id": "security-backup-compliance-access-control",
+        "label": "Access Control",
+        "desc": "Yes, you can use IAM roles to control access to Redshift clusters, allowing you to define fine-grained permissions for managing clusters, accessing data, and executing queries.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#security-backup--compliance"
+      },
+      {
+        "id": "security-backup-compliance-aws-integration",
+        "label": "AWS Integration",
+        "desc": "Can you use Redshift with AWS CloudTrail for audit trail and compliance?",
+        "link": "/level-3-technologies/data-warehouses/redshift/#security-backup--compliance"
+      }
+    ]
+  },
+  {
+    "id": "aws-ecosystem-integrations",
+    "label": "AWS Ecosystem Integrations",
+    "desc": "18 interview questions covering Spectrum, AWS Integration, Views, Federated Queries and more.",
+    "link": "/level-3-technologies/data-warehouses/redshift/#aws-ecosystem-integrations",
+    "subs": [
+      {
+        "id": "aws-ecosystem-integrations-spectrum",
+        "label": "Spectrum",
+        "desc": "Redshift Spectrum is a feature that allows you to run SQL queries directly against data stored in Amazon S3, without the need to load the data into Redshift.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#aws-ecosystem-integrations"
+      },
+      {
+        "id": "aws-ecosystem-integrations-aws-integration",
+        "label": "AWS Integration",
+        "desc": "Yes, Redshift supports industry-standard SQL, which allows you to run queries from various third-party business intelligence (BI) tools such as Tableau, Power BI, or Looker.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#aws-ecosystem-integrations"
+      },
+      {
+        "id": "aws-ecosystem-integrations-views",
+        "label": "Views",
+        "desc": "Can you create materialized views in Amazon Redshift?",
+        "link": "/level-3-technologies/data-warehouses/redshift/#aws-ecosystem-integrations"
+      },
+      {
+        "id": "aws-ecosystem-integrations-federated-queries",
+        "label": "Federated Queries",
+        "desc": "Yes, Redshift Federated Query allows you to query data in other AWS data sources like Amazon RDS, Amazon Aurora, and Amazon DocumentDB using SQL.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#aws-ecosystem-integrations"
+      },
+      {
+        "id": "aws-ecosystem-integrations-access-control",
+        "label": "Access Control",
+        "desc": "Yes, you can integrate Redshift with AWS Lake Formation to manage data lakes, define fine-grained access control policies, and govern access to data stored in Redshift and other data sources.",
+        "link": "/level-3-technologies/data-warehouses/redshift/#aws-ecosystem-integrations"
+      }
+    ]
+  }
+]

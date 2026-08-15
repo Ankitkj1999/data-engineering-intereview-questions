@@ -1,0 +1,130 @@
+[
+  {
+    "id": "core-concepts",
+    "label": "Core Concepts",
+    "desc": "30 interview questions covering Fundamentals, Benefits, Storage, Comparison and more.",
+    "link": "/level-3-technologies/formats/parquet/#interview-questions",
+    "subs": [
+      {
+        "id": "core-concepts-fundamentals",
+        "label": "Fundamentals",
+        "desc": "What is Parquet?",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-benefits",
+        "label": "Benefits",
+        "desc": "Key benefits include efficient compression, faster query performance, reduced storage costs, excellent schema evolution support, and compatibility with multiple data processing frameworks.",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-storage",
+        "label": "Storage",
+        "desc": "Columnar storage stores data by columns instead of rows, allowing efficient compression and faster query performance when accessing specific columns.",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-comparison",
+        "label": "Comparison",
+        "desc": "How does Parquet compare to CSV? What is the difference between Parquet and ORC?",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-file-structure",
+        "label": "File Structure",
+        "desc": "A Parquet file contains: magic bytes (header), one or more row groups, metadata, and a footer with schema and statistics information.",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-compression",
+        "label": "Compression",
+        "desc": "Snappy is a fast compression algorithm that prioritizes speed over compression ratio, offering a good balance between compression and query performance.",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-schema",
+        "label": "Schema",
+        "desc": "Parquet supports adding, removing, and reordering columns, allowing schema changes without rewriting entire files.",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-reading",
+        "label": "Reading",
+        "desc": "How do you read Parquet files?",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-writing",
+        "label": "Writing",
+        "desc": "How do you write Parquet files?",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-performance",
+        "label": "Performance",
+        "desc": "Partitioning dramatically improves performance by reducing the amount of data scanned — queries only read the relevant partitions.",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-statistics",
+        "label": "Statistics",
+        "desc": "Min-max statistics store the minimum and maximum values for each column chunk, enabling the query engine to skip row groups that can't match a filter condition.",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-data-quality",
+        "label": "Data Quality",
+        "desc": "Missing values are represented as NULL and tracked in the file metadata, maintaining data integrity.",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-data-types",
+        "label": "Data Types",
+        "desc": "Parquet supports logical types that map to underlying physical types, allowing automatic conversion while maintaining data semantics.",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-nested-data",
+        "label": "Nested Data",
+        "desc": "Yes, Parquet supports nested/complex types like arrays, maps, and structs through its record shredding and assembly algorithm.",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-spark",
+        "label": "Spark",
+        "desc": "Spark uses Parquet as its default storage format, reading/writing DataFrames in Parquet with built-in optimizations and compression support.",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-data-lakes",
+        "label": "Data Lakes",
+        "desc": "Parquet is the standard format for data lakes because of its efficient storage, query performance, schema evolution support, and compatibility with a wide range of tools.",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-partitioning",
+        "label": "Partitioning",
+        "desc": "How do you partition Parquet files?",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-optimization",
+        "label": "Optimization",
+        "desc": "How do you optimize Parquet file size?",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-encoding",
+        "label": "Encoding",
+        "desc": "Dictionary encoding replaces repeated values with dictionary indices, reducing file size for low-cardinality columns.",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      },
+      {
+        "id": "core-concepts-use-cases",
+        "label": "Use Cases",
+        "desc": "What are common use cases for Parquet?",
+        "link": "/level-3-technologies/formats/parquet/#interview-questions"
+      }
+    ]
+  }
+]

@@ -1,0 +1,438 @@
+[
+  {
+    "id": "pipeline-architecture-reliability-fundamentals",
+    "label": "Pipeline Architecture & Reliability Fundamentals",
+    "desc": "11 interview questions covering Batch Design, Streaming, Reliability, Data Quality and more.",
+    "link": "/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals",
+    "subs": [
+      {
+        "id": "pipeline-architecture-reliability-fundamentals-batch-design",
+        "label": "Batch Design",
+        "desc": "How would you design a batch analytics pipeline?",
+        "link": "/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals"
+      },
+      {
+        "id": "pipeline-architecture-reliability-fundamentals-streaming",
+        "label": "Streaming",
+        "desc": "How would you design a near-real-time ingestion pipeline?",
+        "link": "/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals"
+      },
+      {
+        "id": "pipeline-architecture-reliability-fundamentals-reliability",
+        "label": "Reliability",
+        "desc": "How do you ensure idempotency in data pipelines? What reliability patterns do you use for production data pipelines?",
+        "link": "/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals"
+      },
+      {
+        "id": "pipeline-architecture-reliability-fundamentals-data-quality",
+        "label": "Data Quality",
+        "desc": "How do you handle late-arriving events and backfills?",
+        "link": "/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals"
+      },
+      {
+        "id": "pipeline-architecture-reliability-fundamentals-architecture",
+        "label": "Architecture",
+        "desc": "Streaming is chosen for low latency and continuous updates, but it adds real complexity — state management, ordering, exactly-once semantics.",
+        "link": "/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals"
+      },
+      {
+        "id": "pipeline-architecture-reliability-fundamentals-data-modeling",
+        "label": "Data Modeling",
+        "desc": "What is the raw/silver/gold layering pattern, and why use it?",
+        "link": "/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals"
+      },
+      {
+        "id": "pipeline-architecture-reliability-fundamentals-platform-design",
+        "label": "Platform Design",
+        "desc": "How do you design a multi-tenant data platform?",
+        "link": "/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals"
+      },
+      {
+        "id": "pipeline-architecture-reliability-fundamentals-schema",
+        "label": "Schema",
+        "desc": "How do you handle schema evolution in a data platform?",
+        "link": "/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals"
+      },
+      {
+        "id": "pipeline-architecture-reliability-fundamentals-observability",
+        "label": "Observability",
+        "desc": "What does platform observability look like for a data system?",
+        "link": "/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals"
+      },
+      {
+        "id": "pipeline-architecture-reliability-fundamentals-cost",
+        "label": "Cost",
+        "desc": "How do you manage cost vs. SLA trade-offs in system design?",
+        "link": "/level-4-advanced/system-design/#pipeline-architecture--reliability-fundamentals"
+      }
+    ]
+  },
+  {
+    "id": "distributed-systems-fundamentals",
+    "label": "Distributed Systems Fundamentals",
+    "desc": "8 interview questions covering CAP Theorem, Consistency Models, Replication, Partitioning and more.",
+    "link": "/level-4-advanced/system-design/#distributed-systems-fundamentals",
+    "subs": [
+      {
+        "id": "distributed-systems-fundamentals-cap-theorem",
+        "label": "CAP Theorem",
+        "desc": "What is the CAP theorem, and how does it shape data platform design?",
+        "link": "/level-4-advanced/system-design/#distributed-systems-fundamentals"
+      },
+      {
+        "id": "distributed-systems-fundamentals-consistency-models",
+        "label": "Consistency Models",
+        "desc": "Strong consistency guarantees every read sees the latest write, at the cost of latency and availability under partition — appropriate for something like a ledger balance or a feature store used for real-time decisions.",
+        "link": "/level-4-advanced/system-design/#distributed-systems-fundamentals"
+      },
+      {
+        "id": "distributed-systems-fundamentals-replication",
+        "label": "Replication",
+        "desc": "Leader-follower (single-leader) replication routes all writes through one node and fans reads out to followers — simple to reason about, but the leader is a write bottleneck and failover involves promoting a follower.",
+        "link": "/level-4-advanced/system-design/#distributed-systems-fundamentals"
+      },
+      {
+        "id": "distributed-systems-fundamentals-partitioning",
+        "label": "Partitioning",
+        "desc": "How do you partition or shard a large dataset, and what causes hot partitions?",
+        "link": "/level-4-advanced/system-design/#distributed-systems-fundamentals"
+      },
+      {
+        "id": "distributed-systems-fundamentals-consensus",
+        "label": "Consensus",
+        "desc": "At a high level, why do distributed systems need consensus algorithms like Paxos or Raft?",
+        "link": "/level-4-advanced/system-design/#distributed-systems-fundamentals"
+      },
+      {
+        "id": "distributed-systems-fundamentals-distributed-transactions",
+        "label": "Distributed Transactions",
+        "desc": "How do two-phase commit (2PC) and the Saga pattern differ for handling cross-system transactions?",
+        "link": "/level-4-advanced/system-design/#distributed-systems-fundamentals"
+      },
+      {
+        "id": "distributed-systems-fundamentals-event-ordering",
+        "label": "Event Ordering",
+        "desc": "Clocks on different machines drift and aren't perfectly synchronized even with NTP, so two events in true causal order can end up with out-of-order or identical timestamps once they cross machines.",
+        "link": "/level-4-advanced/system-design/#distributed-systems-fundamentals"
+      },
+      {
+        "id": "distributed-systems-fundamentals-quorum-systems",
+        "label": "Quorum Systems",
+        "desc": "In an N-replica system, a quorum requires W (write) and R (read) nodes to acknowledge an operation such that W + R &gt; N, guaranteeing overlap between any write set and any read set — that overlap is what lets a read see the latest write.",
+        "link": "/level-4-advanced/system-design/#distributed-systems-fundamentals"
+      }
+    ]
+  },
+  {
+    "id": "storage-database-selection",
+    "label": "Storage & Database Selection",
+    "desc": "8 interview questions covering Database Selection, Storage Architecture, OLTP vs OLAP, Storage Formats and more.",
+    "link": "/level-4-advanced/system-design/#storage--database-selection",
+    "subs": [
+      {
+        "id": "storage-database-selection-database-selection",
+        "label": "Database Selection",
+        "desc": "How do you decide between a SQL and a NoSQL database for a given system?",
+        "link": "/level-4-advanced/system-design/#storage--database-selection"
+      },
+      {
+        "id": "storage-database-selection-storage-architecture",
+        "label": "Storage Architecture",
+        "desc": "A data warehouse is the right choice when consumers are BI/analytics workloads that need fast, structured, governed SQL access and you're willing to pay for schema-on-write and warehouse compute.",
+        "link": "/level-4-advanced/system-design/#storage--database-selection"
+      },
+      {
+        "id": "storage-database-selection-oltp-vs-olap",
+        "label": "OLTP vs OLAP",
+        "desc": "OLTP systems are optimized for many small, concurrent read/write transactions against a normalized schema — a single row insert/update, sub-millisecond latency, ACID guarantees.",
+        "link": "/level-4-advanced/system-design/#storage--database-selection"
+      },
+      {
+        "id": "storage-database-selection-storage-formats",
+        "label": "Storage Formats",
+        "desc": "Row-oriented storage keeps all columns of a record together on disk, which is efficient when you read or write whole records — the OLTP pattern.",
+        "link": "/level-4-advanced/system-design/#storage--database-selection"
+      },
+      {
+        "id": "storage-database-selection-indexing",
+        "label": "Indexing",
+        "desc": "Index the columns your queries actually filter, join, or sort on — every index speeds up reads but slows down writes and costs storage, so indexing everything \"just in case\" is a common anti-pattern.",
+        "link": "/level-4-advanced/system-design/#storage--database-selection"
+      },
+      {
+        "id": "storage-database-selection-caching",
+        "label": "Caching",
+        "desc": "What are the main caching strategies, and how do you keep a cache consistent with its source of truth?",
+        "link": "/level-4-advanced/system-design/#storage--database-selection"
+      },
+      {
+        "id": "storage-database-selection-messaging-systems",
+        "label": "Messaging Systems",
+        "desc": "How do you choose between Kafka, a cloud pub/sub service, and a traditional message queue for ingestion?",
+        "link": "/level-4-advanced/system-design/#storage--database-selection"
+      },
+      {
+        "id": "storage-database-selection-time-series-design",
+        "label": "Time-Series Design",
+        "desc": "How do you design storage for high-volume time-series or IoT sensor data?",
+        "link": "/level-4-advanced/system-design/#storage--database-selection"
+      }
+    ]
+  },
+  {
+    "id": "scalability-capacity-planning",
+    "label": "Scalability & Capacity Planning",
+    "desc": "6 interview questions covering Scalability, Capacity Estimation, Hot Partitions, Backpressure and more.",
+    "link": "/level-4-advanced/system-design/#scalability--capacity-planning",
+    "subs": [
+      {
+        "id": "scalability-capacity-planning-scalability",
+        "label": "Scalability",
+        "desc": "Vertical scaling means adding more CPU/RAM/disk to a single node — simple, no distributed-systems complexity, but bounded by the biggest machine you can buy and creates a single point of failure.",
+        "link": "/level-4-advanced/system-design/#scalability--capacity-planning"
+      },
+      {
+        "id": "scalability-capacity-planning-capacity-estimation",
+        "label": "Capacity Estimation",
+        "desc": "How would you approach a back-of-the-envelope capacity estimation question in a system design interview?",
+        "link": "/level-4-advanced/system-design/#scalability--capacity-planning"
+      },
+      {
+        "id": "scalability-capacity-planning-hot-partitions",
+        "label": "Hot Partitions",
+        "desc": "How do you detect and fix a hot key or hot partition once a system is already in production?",
+        "link": "/level-4-advanced/system-design/#scalability--capacity-planning"
+      },
+      {
+        "id": "scalability-capacity-planning-backpressure",
+        "label": "Backpressure",
+        "desc": "Backpressure is what happens when a downstream consumer processes events slower than an upstream producer sends them — without handling it, the gap fills a buffer until it overflows and you either drop data or crash.",
+        "link": "/level-4-advanced/system-design/#scalability--capacity-planning"
+      },
+      {
+        "id": "scalability-capacity-planning-load-balancing",
+        "label": "Load Balancing",
+        "desc": "Round-robin is simplest and works well when requests are roughly uniform in cost, but breaks down if some requests are much more expensive than others.",
+        "link": "/level-4-advanced/system-design/#scalability--capacity-planning"
+      },
+      {
+        "id": "scalability-capacity-planning-auto-scaling",
+        "label": "Auto-Scaling",
+        "desc": "How do you design auto-scaling for variable data pipeline load, like a batch cluster or a streaming consumer group?",
+        "link": "/level-4-advanced/system-design/#scalability--capacity-planning"
+      }
+    ]
+  },
+  {
+    "id": "fault-tolerance-dr-high-availability",
+    "label": "Fault Tolerance, DR & High Availability",
+    "desc": "6 interview questions covering Disaster Recovery, Multi-Region Design, Failover Design, Backup Strategy and more.",
+    "link": "/level-4-advanced/system-design/#fault-tolerance-dr--high-availability",
+    "subs": [
+      {
+        "id": "fault-tolerance-dr-high-availability-disaster-recovery",
+        "label": "Disaster Recovery",
+        "desc": "RPO (Recovery Point Objective) is how much data you can afford to lose, measured in time — an RPO of 15 minutes means your backup/replication cadence must guarantee you never lose more than 15 minutes of data.",
+        "link": "/level-4-advanced/system-design/#fault-tolerance-dr--high-availability"
+      },
+      {
+        "id": "fault-tolerance-dr-high-availability-multi-region-design",
+        "label": "Multi-Region Design",
+        "desc": "What's the difference between active-active and active-passive multi-region architecture, and what does each cost you?",
+        "link": "/level-4-advanced/system-design/#fault-tolerance-dr--high-availability"
+      },
+      {
+        "id": "fault-tolerance-dr-high-availability-failover-design",
+        "label": "Failover Design",
+        "desc": "How do you design failover to avoid a split-brain scenario?",
+        "link": "/level-4-advanced/system-design/#fault-tolerance-dr--high-availability"
+      },
+      {
+        "id": "fault-tolerance-dr-high-availability-backup-strategy",
+        "label": "Backup Strategy",
+        "desc": "What backup strategies would you use for a data platform, and how do you validate they actually work?",
+        "link": "/level-4-advanced/system-design/#fault-tolerance-dr--high-availability"
+      },
+      {
+        "id": "fault-tolerance-dr-high-availability-graceful-degradation",
+        "label": "Graceful Degradation",
+        "desc": "How do circuit breakers and graceful degradation apply to data pipeline design?",
+        "link": "/level-4-advanced/system-design/#fault-tolerance-dr--high-availability"
+      },
+      {
+        "id": "fault-tolerance-dr-high-availability-chaos-engineering",
+        "label": "Chaos Engineering",
+        "desc": "What is chaos engineering, and how would you apply it to a data pipeline?",
+        "link": "/level-4-advanced/system-design/#fault-tolerance-dr--high-availability"
+      }
+    ]
+  },
+  {
+    "id": "data-contracts-governance-security-by-design",
+    "label": "Data Contracts, Governance & Security by Design",
+    "desc": "7 interview questions covering Access Control, PII & Masking, Data Lineage, Audit Logging and more.",
+    "link": "/level-4-advanced/system-design/#data-contracts-governance--security-by-design",
+    "subs": [
+      {
+        "id": "data-contracts-governance-security-by-design-access-control",
+        "label": "Access Control",
+        "desc": "Role-based access control (RBAC) grants permissions to roles rather than individuals, which scales better as headcount grows — you manage a handful of roles instead of per-person grants.",
+        "link": "/level-4-advanced/system-design/#data-contracts-governance--security-by-design"
+      },
+      {
+        "id": "data-contracts-governance-security-by-design-pii-masking",
+        "label": "PII & Masking",
+        "desc": "How do you design PII handling and data masking into a platform, rather than bolting it on afterward?",
+        "link": "/level-4-advanced/system-design/#data-contracts-governance--security-by-design"
+      },
+      {
+        "id": "data-contracts-governance-security-by-design-data-lineage",
+        "label": "Data Lineage",
+        "desc": "How would you design data lineage tracking into a platform?",
+        "link": "/level-4-advanced/system-design/#data-contracts-governance--security-by-design"
+      },
+      {
+        "id": "data-contracts-governance-security-by-design-audit-logging",
+        "label": "Audit Logging",
+        "desc": "How would you design audit logging for a data platform that needs to support a compliance investigation?",
+        "link": "/level-4-advanced/system-design/#data-contracts-governance--security-by-design"
+      },
+      {
+        "id": "data-contracts-governance-security-by-design-data-contracts",
+        "label": "Data Contracts",
+        "desc": "What is a data contract, and how do you design one between a producer and consumer team?",
+        "link": "/level-4-advanced/system-design/#data-contracts-governance--security-by-design"
+      },
+      {
+        "id": "data-contracts-governance-security-by-design-encryption-design",
+        "label": "Encryption Design",
+        "desc": "Encryption in transit (TLS between every service-to-service and client-to-service hop) protects data from network interception and is close to table-stakes today.",
+        "link": "/level-4-advanced/system-design/#data-contracts-governance--security-by-design"
+      },
+      {
+        "id": "data-contracts-governance-security-by-design-self-serve-platform",
+        "label": "Self-Serve Platform",
+        "desc": "How would you design a self-serve data platform that lets other teams build pipelines without your team as a bottleneck?",
+        "link": "/level-4-advanced/system-design/#data-contracts-governance--security-by-design"
+      }
+    ]
+  },
+  {
+    "id": "applied-system-design-case-studies",
+    "label": "Applied System Design Case Studies",
+    "desc": "11 interview questions covering Case Study: Analytics Dashboard, Case Study: Log Aggregation, Case Study: Ride-Sharing, Case Study: Fraud Detection and more.",
+    "link": "/level-4-advanced/system-design/#applied-system-design-case-studies",
+    "subs": [
+      {
+        "id": "applied-system-design-case-studies-case-study-analytics-dashboard",
+        "label": "Case Study: Analytics Dashboard",
+        "desc": "Events (page views, clicks) are produced from client SDKs into a durable log (Kafka/Kinesis), partitioned by a key like session or user ID so related events land on the same partition and preserve order.",
+        "link": "/level-4-advanced/system-design/#applied-system-design-case-studies"
+      },
+      {
+        "id": "applied-system-design-case-studies-case-study-log-aggregation",
+        "label": "Case Study: Log Aggregation",
+        "desc": "Design a log aggregation and search platform, similar to the ELK stack or Splunk.",
+        "link": "/level-4-advanced/system-design/#applied-system-design-case-studies"
+      },
+      {
+        "id": "applied-system-design-case-studies-case-study-ride-sharing",
+        "label": "Case Study: Ride-Sharing",
+        "desc": "Design the data pipeline for a ride-sharing platform (trip events, driver location, surge pricing).",
+        "link": "/level-4-advanced/system-design/#applied-system-design-case-studies"
+      },
+      {
+        "id": "applied-system-design-case-studies-case-study-fraud-detection",
+        "label": "Case Study: Fraud Detection",
+        "desc": "Design a real-time fraud detection pipeline for financial transactions.",
+        "link": "/level-4-advanced/system-design/#applied-system-design-case-studies"
+      },
+      {
+        "id": "applied-system-design-case-studies-case-study-recommendations",
+        "label": "Case Study: Recommendations",
+        "desc": "Design the offline/online data pipeline for a recommendation system.",
+        "link": "/level-4-advanced/system-design/#applied-system-design-case-studies"
+      },
+      {
+        "id": "applied-system-design-case-studies-case-study-feature-store",
+        "label": "Case Study: Feature Store",
+        "desc": "Design a feature store for machine learning.",
+        "link": "/level-4-advanced/system-design/#applied-system-design-case-studies"
+      },
+      {
+        "id": "applied-system-design-case-studies-case-study-notifications",
+        "label": "Case Study: Notifications",
+        "desc": "Design a notification/alert delivery pipeline that needs to reach users across email, SMS, and push.",
+        "link": "/level-4-advanced/system-design/#applied-system-design-case-studies"
+      },
+      {
+        "id": "applied-system-design-case-studies-case-study-metrics-platform",
+        "label": "Case Study: Metrics Platform",
+        "desc": "Design a metrics and monitoring platform, similar to Datadog or Prometheus, for ingesting time-series data at scale.",
+        "link": "/level-4-advanced/system-design/#applied-system-design-case-studies"
+      },
+      {
+        "id": "applied-system-design-case-studies-case-study-data-catalog",
+        "label": "Case Study: Data Catalog",
+        "desc": "Design a data catalog / metadata discovery platform for an organization with hundreds of datasets.",
+        "link": "/level-4-advanced/system-design/#applied-system-design-case-studies"
+      },
+      {
+        "id": "applied-system-design-case-studies-case-study-payments-reconciliation",
+        "label": "Case Study: Payments Reconciliation",
+        "desc": "Design a reconciliation pipeline to catch discrepancies between a payments system and its downstream ledger.",
+        "link": "/level-4-advanced/system-design/#applied-system-design-case-studies"
+      },
+      {
+        "id": "applied-system-design-case-studies-case-study-gdpr-deletion",
+        "label": "Case Study: GDPR Deletion",
+        "desc": "Design a data pipeline that can fulfill GDPR 'right to be forgotten' deletion requests across a data platform.",
+        "link": "/level-4-advanced/system-design/#applied-system-design-case-studies"
+      }
+    ]
+  },
+  {
+    "id": "slas-delivery-cost-at-scale",
+    "label": "SLAs, Delivery & Cost at Scale",
+    "desc": "6 interview questions covering SLAs & Error Budgets, Freshness Monitoring, Cost Attribution, Deployment Strategy and more.",
+    "link": "/level-4-advanced/system-design/#slas-delivery--cost-at-scale",
+    "subs": [
+      {
+        "id": "slas-delivery-cost-at-scale-slas-error-budgets",
+        "label": "SLAs & Error Budgets",
+        "desc": "An SLA is the external commitment, often with a consequence attached — \"the daily sales table is available by 8am, 99.5% of the time.\" An SLO is the internal target you actually engineer to, usually stricter than the SLA to leave margin.",
+        "link": "/level-4-advanced/system-design/#slas-delivery--cost-at-scale"
+      },
+      {
+        "id": "slas-delivery-cost-at-scale-freshness-monitoring",
+        "label": "Freshness Monitoring",
+        "desc": "How would you design end-to-end data freshness monitoring across a multi-stage pipeline?",
+        "link": "/level-4-advanced/system-design/#slas-delivery--cost-at-scale"
+      },
+      {
+        "id": "slas-delivery-cost-at-scale-cost-attribution",
+        "label": "Cost Attribution",
+        "desc": "How do you design cost attribution or chargeback for a shared, multi-tenant data platform?",
+        "link": "/level-4-advanced/system-design/#slas-delivery--cost-at-scale"
+      },
+      {
+        "id": "slas-delivery-cost-at-scale-deployment-strategy",
+        "label": "Deployment Strategy",
+        "desc": "How would you design a safe deployment strategy (blue-green or canary) for changes to a production data pipeline?",
+        "link": "/level-4-advanced/system-design/#slas-delivery--cost-at-scale"
+      },
+      {
+        "id": "slas-delivery-cost-at-scale-testing-strategy",
+        "label": "Testing Strategy",
+        "desc": "What testing strategy would you design for a data platform, beyond unit tests for transformation code?",
+        "link": "/level-4-advanced/system-design/#slas-delivery--cost-at-scale"
+      },
+      {
+        "id": "slas-delivery-cost-at-scale-internal-data-apis",
+        "label": "Internal Data APIs",
+        "desc": "How would you design an internal data API or service layer to serve derived data to other teams, instead of giving them direct table access?",
+        "link": "/level-4-advanced/system-design/#slas-delivery--cost-at-scale"
+      }
+    ]
+  }
+]

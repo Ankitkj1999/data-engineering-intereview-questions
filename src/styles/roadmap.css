@@ -686,3 +686,58 @@ h1#_top {
   .rm-progress-summary  { width: 100%; }
   .rm-panel-status-btns { flex-wrap: wrap; }
 }
+
+/* ---------------------------------------------------------------------------
+   Static topic index
+   ---------------------------------------------------------------------------
+   The interactive flow above is built client-side, so none of its node text or
+   links exist in the static HTML — invisible to crawlers, to Pagefind and to any
+   LLM reading the page. roadmap.sh has the same constraint on its diagram and
+   solves it with a hub-and-spoke model: the roadmap is the hub, every topic is a
+   separately indexable spoke.
+
+   We already have the spokes (152 content pages). This section is the missing
+   wiring: every node rendered as real text with a real link, server-side. It is
+   deliberately visible rather than hidden — hidden link farms are a spam signal,
+   and a text index of a roadmap is genuinely useful on its own.
+--------------------------------------------------------------------------- */
+.rm-index {
+	margin: 3.5rem auto 0;
+	max-width: var(--rm-max-width, 72rem);
+	padding-top: 2rem;
+	border-top: 1px solid var(--sl-color-hairline);
+}
+.rm-index-title { margin: 0 0 0.4rem; font-size: 1.25rem; }
+.rm-index-lede {
+	margin: 0 0 1.75rem;
+	color: var(--sl-color-gray-3);
+	font-size: 0.9rem;
+	max-width: 60ch;
+}
+.rm-index-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: grid;
+	gap: 1.75rem;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+.rm-index-group { break-inside: avoid; }
+.rm-index-heading { margin: 0 0 0.3rem; font-size: 1rem; line-height: 1.35; }
+.rm-index-desc {
+	margin: 0 0 0.6rem;
+	font-size: 0.83rem;
+	line-height: 1.5;
+	color: var(--sl-color-gray-3);
+}
+.rm-index-subs {
+	list-style: none;
+	padding: 0 0 0 0.85rem;
+	margin: 0;
+	border-left: 1px solid var(--sl-color-hairline);
+	display: grid;
+	gap: 0.5rem;
+}
+.rm-index-subs li { font-size: 0.85rem; line-height: 1.45; }
+.rm-index-sub-label { font-weight: 500; }
+.rm-index-sub-desc { color: var(--sl-color-gray-3); }

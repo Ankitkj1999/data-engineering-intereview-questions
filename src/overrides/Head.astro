@@ -1,0 +1,96 @@
+---
+/**
+ * Adds JSON-LD structured data on top of Starlight's default <head>.
+ *
+ * What's here and why:
+ *   - BreadcrumbList — still renders as a visible breadcrumb trail in Google results,
+ *     and gives crawlers and LLMs the tier structure (foundations → core → technologies
+ *     → advanced) that the URL path already encodes.
+ *   - TechArticle    — describes what a content page actually is. Accurate, and it
+ *     carries the description and section into machine-readable form.
+ *   - WebSite        — site identity plus the Pagefind search endpoint, on the homepage.
+ *
+ * Deliberately NOT here: FAQPage. Google fully deprecated FAQ rich results on
+ * 2026-05-07 — no site is eligible any more, including government and health domains.
+ * The schema is still valid and LLMs do read it, but it earns zero search appearance,
+ * so it isn't worth shipping on 130 pages for that reason alone. Revisit only if the
+ * goal becomes LLM ingestion specifically.
+ */
+import Default from "@astrojs/starlight/components/Head.astro";
+
+const { entry } = Astro.locals.starlightRoute;
+const site = Astro.site?.origin ?? "";
+const pathname = Astro.url.pathname;
+const isHome = pathname === "/";
+
+const TIERS: Record<string, string> = {
+  "level-1-foundations": "Foundations",
+  "level-2-core-concepts": "Core Concepts",
+  "level-3-technologies": "Technologies",
+  "level-4-advanced": "Advanced",
+  roadmaps: "Roadmaps",
+};
+
+const segments = pathname.split("/").filter(Boolean);
+const crumbs = [{ name: "Home", item: site + "/" }];
+let acc = "";
+for (const seg of segments) {
+  acc += `/${seg}`;
+  const label =
+    TIERS[seg] ??
+    seg.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  crumbs.push({ name: label, item: `${site}${acc}/` });
+}
+
+const title = entry?.data?.title ?? "";
+const description = entry?.data?.description ?? "";
+const section = segments[0] ? (TIERS[segments[0]] ?? null) : null;
+
+const graph: Record<string, unknown>[] = [];
+
+if (crumbs.length > 1) {
+  graph.push({
+    "@type": "BreadcrumbList",
+    itemListElement: crumbs.map((c, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: c.name,
+      item: c.item,
+    })),
+  });
+}
+
+if (isHome) {
+  graph.push({
+    "@type": "WebSite",
+    "@id": `${site}/#website`,
+    url: `${site}/`,
+    name: "Data Engineering Interview Questions",
+    description:
+      "Study resource for data engineering interviews: written questions and answers, interactive roadmaps, recorded interview experiences and end-to-end projects.",
+    inLanguage: "en",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: { "@type": "EntryPoint", urlTemplate: `${site}/?q={search_term_string}` },
+      "query-input": "required name=search_term_string",
+    },
+  });
+} else if (title) {
+  graph.push({
+    "@type": "TechArticle",
+    "@id": `${site}${pathname}#article`,
+    headline: title,
+    ...(description ? { description } : {}),
+    ...(section ? { articleSection: section } : {}),
+    url: `${site}${pathname}`,
+    inLanguage: "en",
+    isPartOf: { "@type": "WebSite", "@id": `${site}/#website` },
+  });
+}
+
+const jsonld = graph.length ? { "@context": "https://schema.org", "@graph": graph } : null;
+---
+
+<Default><slot /></Default>
+
+{jsonld && <script type="application/ld+json" set:html={JSON.stringify(jsonld)} />}

@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/cassandra.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,54 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/databases/cassandra/#fundamentals--use-cases">Fundamentals &amp; Use Cases</a></h3>
+        <p class="rm-index-desc">13 interview questions covering Fundamentals.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/cassandra/#fundamentals--use-cases">Fundamentals</a></span> <span class="rm-index-sub-desc">Cassandra is an open source data storage system developed at Facebook for inbox search and designed for storing and managing large amounts of data across commodity servers.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/databases/cassandra/#data-model--cql">Data Model &amp; CQL</a></h3>
+        <p class="rm-index-desc">15 interview questions covering Data Model.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/cassandra/#data-model--cql">Data Model</a></span> <span class="rm-index-sub-desc">In Cassandra, composite type allows to defined key or a column name with a concatenation of data of different type.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/databases/cassandra/#consistency-replication--cluster-topology">Consistency, Replication &amp; Cluster Topology</a></h3>
+        <p class="rm-index-desc">15 interview questions covering Consistency, Replication, Clustering.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/cassandra/#consistency-replication--cluster-topology">Consistency</a></span> <span class="rm-index-sub-desc">Tunable Consistency is a phenomenal characteristic that makes Cassandra a favored database choice of Developers, Analysts and Big data Architects.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/cassandra/#consistency-replication--cluster-topology">Replication</a></span> <span class="rm-index-sub-desc">Data replication is an electronic copying of data from a database in one computer or server to a database in another so that all users can share the same level of information.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/cassandra/#consistency-replication--cluster-topology">Clustering</a></span> <span class="rm-index-sub-desc">While a node is a single machine running Cassandra, cluster is a collection of nodes that have similar type of data grouped together.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/databases/cassandra/#write-path-storage--internals">Write Path, Storage &amp; Internals</a></h3>
+        <p class="rm-index-desc">18 interview questions covering Storage Internals, Bloom Filter, Compaction.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/cassandra/#write-path-storage--internals">Storage Internals</a></span> <span class="rm-index-sub-desc">Similar to table, memtable is in-memory/write-back cache space consisting of content in key and column format.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/cassandra/#write-path-storage--internals">Bloom Filter</a></span> <span class="rm-index-sub-desc">Associated with SSTable, Bloom filter is an off-heap (off the Java heap to native memory) data structure to check whether there is any data available in the SSTable before performing any I/O disk operation.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/cassandra/#write-path-storage--internals">Compaction</a></span> <span class="rm-index-sub-desc">Compaction refers to a maintenance process in Cassandra, in which, the SSTables are reorganized for data optimization of data structures on the disk.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/databases/cassandra/#tools--ecosystem">Tools &amp; Ecosystem</a></h3>
+        <p class="rm-index-desc">17 interview questions covering Tools, Consistency.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/cassandra/#tools--ecosystem">Tools</a></span> <span class="rm-index-sub-desc">In Cassandra, Kundera is an object-relational mapping (ORM) implementation which is written using Java annotations.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/databases/cassandra/#tools--ecosystem">Consistency</a></span> <span class="rm-index-sub-desc">Mention what does the Shell Commands capture And consistency determines?</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,28 +115,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"fundamentals-use-cases", label:"Fundamentals & Use Cases", desc:"13 interview questions covering Fundamentals.", link:"/level-3-technologies/databases/cassandra/#fundamentals--use-cases", subs:[
-    { id:"fundamentals-use-cases-fundamentals", label:"Fundamentals", desc:"Cassandra is an open source data storage system developed at Facebook for inbox search and designed for storing and managing large amounts of data across commodity servers.", link:"/level-3-technologies/databases/cassandra/#fundamentals--use-cases" },
-  ]},
-  { id:"data-model-cql", label:"Data Model & CQL", desc:"15 interview questions covering Data Model.", link:"/level-3-technologies/databases/cassandra/#data-model--cql", subs:[
-    { id:"data-model-cql-data-model", label:"Data Model", desc:"In Cassandra, composite type allows to defined key or a column name with a concatenation of data of different type.", link:"/level-3-technologies/databases/cassandra/#data-model--cql" },
-  ]},
-  { id:"consistency-replication-cluster-topology", label:"Consistency, Replication & Cluster Topology", desc:"15 interview questions covering Consistency, Replication, Clustering.", link:"/level-3-technologies/databases/cassandra/#consistency-replication--cluster-topology", subs:[
-    { id:"consistency-replication-cluster-topology-consistency", label:"Consistency", desc:"Tunable Consistency is a phenomenal characteristic that makes Cassandra a favored database choice of Developers, Analysts and Big data Architects.", link:"/level-3-technologies/databases/cassandra/#consistency-replication--cluster-topology" },
-    { id:"consistency-replication-cluster-topology-replication", label:"Replication", desc:"Data replication is an electronic copying of data from a database in one computer or server to a database in another so that all users can share the same level of information.", link:"/level-3-technologies/databases/cassandra/#consistency-replication--cluster-topology" },
-    { id:"consistency-replication-cluster-topology-clustering", label:"Clustering", desc:"While a node is a single machine running Cassandra, cluster is a collection of nodes that have similar type of data grouped together.", link:"/level-3-technologies/databases/cassandra/#consistency-replication--cluster-topology" },
-  ]},
-  { id:"write-path-storage-internals", label:"Write Path, Storage & Internals", desc:"18 interview questions covering Storage Internals, Bloom Filter, Compaction.", link:"/level-3-technologies/databases/cassandra/#write-path-storage--internals", subs:[
-    { id:"write-path-storage-internals-storage-internals", label:"Storage Internals", desc:"Similar to table, memtable is in-memory/write-back cache space consisting of content in key and column format.", link:"/level-3-technologies/databases/cassandra/#write-path-storage--internals" },
-    { id:"write-path-storage-internals-bloom-filter", label:"Bloom Filter", desc:"Associated with SSTable, Bloom filter is an off-heap (off the Java heap to native memory) data structure to check whether there is any data available in the SSTable before performing any I/O disk operation.", link:"/level-3-technologies/databases/cassandra/#write-path-storage--internals" },
-    { id:"write-path-storage-internals-compaction", label:"Compaction", desc:"Compaction refers to a maintenance process in Cassandra, in which, the SSTables are reorganized for data optimization of data structures on the disk.", link:"/level-3-technologies/databases/cassandra/#write-path-storage--internals" },
-  ]},
-  { id:"tools-ecosystem", label:"Tools & Ecosystem", desc:"17 interview questions covering Tools, Consistency.", link:"/level-3-technologies/databases/cassandra/#tools--ecosystem", subs:[
-    { id:"tools-ecosystem-tools", label:"Tools", desc:"In Cassandra, Kundera is an object-relational mapping (ORM) implementation which is written using Java annotations.", link:"/level-3-technologies/databases/cassandra/#tools--ecosystem" },
-    { id:"tools-ecosystem-consistency", label:"Consistency", desc:"Mention what does the Shell Commands capture And consistency determines?", link:"/level-3-technologies/databases/cassandra/#tools--ecosystem" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

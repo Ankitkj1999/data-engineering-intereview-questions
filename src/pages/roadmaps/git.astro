@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/git.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,89 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/git/#git-fundamentals">Git Fundamentals</a></h3>
+        <p class="rm-index-desc">How Git actually stores history — the object model, the three areas, and what a branch really is.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#git-fundamentals">Distributed vs Centralised VCS</a></span> <span class="rm-index-sub-desc">Why every clone holds the full history, and what that buys you over SVN-style tools.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#git-fundamentals">Working Directory, Staging, Repository</a></span> <span class="rm-index-sub-desc">The three places your work lives, and why the staging area lets you commit part of it.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#git-fundamentals">The Object Model</a></span> <span class="rm-index-sub-desc">Blobs, trees, commits and tags — content-addressed storage under the version control interface.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#git-fundamentals">Snapshots vs Diffs</a></span> <span class="rm-index-sub-desc">Git stores full snapshots with shared blobs; diffs are computed on demand.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#git-fundamentals">Branches as Pointers</a></span> <span class="rm-index-sub-desc">A branch is a file containing a commit hash — which is why branching is instant.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#git-fundamentals">HEAD &amp; Detached HEAD</a></span> <span class="rm-index-sub-desc">Where you currently are, and what happens when you check out a commit instead of a branch.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#git-fundamentals">fetch vs pull</a></span> <span class="rm-index-sub-desc">Fetch updates remote-tracking branches safely; pull also integrates and can conflict.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#git-fundamentals">switch, checkout &amp; restore</a></span> <span class="rm-index-sub-desc">The modern split of checkout's two unrelated jobs into switch and restore.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#git-fundamentals">.gitignore</a></span> <span class="rm-index-sub-desc">Ignoring untracked files, and why it has no effect on something already committed.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/git/#branching--merging">Branching &amp; Merging</a></h3>
+        <p class="rm-index-desc">Combining work from multiple branches, resolving conflicts, and choosing a team workflow.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#branching--merging">Fast-Forward Merge</a></span> <span class="rm-index-sub-desc">When history is a straight line and Git just moves the pointer forward.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#branching--merging">Three-Way Merge</a></span> <span class="rm-index-sub-desc">Merge base, your tip and theirs — how Git decides what conflicts.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#branching--merging">Resolving Merge Conflicts</a></span> <span class="rm-index-sub-desc">Reading conflict markers, resolving deliberately, and re-running the tests.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#branching--merging">Branching Strategies</a></span> <span class="rm-index-sub-desc">Git Flow vs GitHub Flow vs trunk-based development, and which suits data pipelines.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#branching--merging">Cherry-Pick</a></span> <span class="rm-index-sub-desc">Applying a single commit elsewhere — legitimate for hotfixes, an anti-pattern as routine.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#branching--merging">Merge vs Squash vs Rebase Merge</a></span> <span class="rm-index-sub-desc">Three ways to land a pull request, and the history each one leaves behind.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#branching--merging">Finding Bugs with git bisect</a></span> <span class="rm-index-sub-desc">Binary search over history to find the commit that introduced a regression.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/git/#rewriting-history">Rewriting History</a></h3>
+        <p class="rm-index-desc">Rebasing, amending and force-pushing — powerful, and the fastest way to ruin a colleague's afternoon.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#rewriting-history">git rebase</a></span> <span class="rm-index-sub-desc">Replaying commits onto a new base to produce linear history — with new hashes.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#rewriting-history">The Golden Rule of Rebasing</a></span> <span class="rm-index-sub-desc">Never rebase commits others have already pulled, and why it breaks their history.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#rewriting-history">Interactive Rebase</a></span> <span class="rm-index-sub-desc">Squash, reword, reorder and drop commits before opening a pull request.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#rewriting-history">commit --amend</a></span> <span class="rm-index-sub-desc">Replacing the last commit — safe locally, a force-push problem once pushed.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#rewriting-history">force-with-lease</a></span> <span class="rm-index-sub-desc">The safe force-push that refuses when someone else has pushed in the meantime.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#rewriting-history">Removing Leaked Secrets</a></span> <span class="rm-index-sub-desc">Rotate first, then purge with filter-repo — why rewriting history alone is not enough.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/git/#remotes--collaboration">Remotes &amp; Collaboration</a></h3>
+        <p class="rm-index-desc">Pull requests, forks, remote-tracking branches and the guardrails that keep main safe.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#remotes--collaboration">Pull Requests</a></span> <span class="rm-index-sub-desc">A host feature, not a Git one — the gate where review and CI attach to the workflow.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#remotes--collaboration">What Makes a Good PR</a></span> <span class="rm-index-sub-desc">Small, single-purpose, explains why, green CI — and what to include for data changes.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#remotes--collaboration">Fork vs Branch</a></span> <span class="rm-index-sub-desc">The open-source contribution model versus the normal in-team model.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#remotes--collaboration">Remote-Tracking Branches</a></span> <span class="rm-index-sub-desc">What origin/main actually is, and how it powers Git's offline story.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#remotes--collaboration">Protected Branches</a></span> <span class="rm-index-sub-desc">Required reviews, status checks and force-push blocks — quality and audit control.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#remotes--collaboration">Submodules</a></span> <span class="rm-index-sub-desc">Pinning one repo inside another, the pain it causes, and better alternatives.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/git/#undoing-mistakes">Undoing Mistakes</a></h3>
+        <p class="rm-index-desc">Reset, revert, stash and the reflog — how to get out of trouble without losing work.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#undoing-mistakes">reset --soft, --mixed, --hard</a></span> <span class="rm-index-sub-desc">Three levels of undo, and which one actually destroys uncommitted work.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#undoing-mistakes">revert vs reset</a></span> <span class="rm-index-sub-desc">Revert for public history, reset for private — the rule that avoids breaking teammates.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#undoing-mistakes">The Reflog</a></span> <span class="rm-index-sub-desc">Every HEAD movement recorded locally — the undo button for a destructive reset or rebase.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#undoing-mistakes">git stash</a></span> <span class="rm-index-sub-desc">Setting work aside temporarily, and the untracked-files gotcha.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#undoing-mistakes">Moving Commits Between Branches</a></span> <span class="rm-index-sub-desc">Committed to main by mistake — creating a branch there and rewinding.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/git/#git-for-data-engineering">Git for Data Engineering</a></h3>
+        <p class="rm-index-desc">The version control problems specific to pipelines: large files, notebooks, secrets and repo structure.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#git-for-data-engineering">Large Data Files</a></span> <span class="rm-index-sub-desc">Why data doesn't belong in Git, and what LFS, DVC and lakeFS do instead.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#git-for-data-engineering">Secrets &amp; Environment Config</a></span> <span class="rm-index-sub-desc">gitignored .env files, secrets managers, workload identity and pre-commit scanning.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#git-for-data-engineering">Notebooks in Version Control</a></span> <span class="rm-index-sub-desc">Why .ipynb diffs are unreadable, and how nbstripout and jupytext fix it.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#git-for-data-engineering">dbt &amp; SQL Workflows</a></span> <span class="rm-index-sub-desc">Transformations as reviewed code, with CI schemas and traceable metric changes.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#git-for-data-engineering">CI Checks for Data Repos</a></span> <span class="rm-index-sub-desc">DAG parsing, data quality tests, schema-change detection and secret scanning.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/git/#git-for-data-engineering">Monorepo vs Polyrepo</a></span> <span class="rm-index-sub-desc">Structuring multiple pipelines and shared libraries, and the trade-off each way.</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,59 +150,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"git-fundamentals", label:"Git Fundamentals", desc:"How Git actually stores history — the object model, the three areas, and what a branch really is.", link:"/level-1-foundations/git/#git-fundamentals", subs:[
-    { id:"git-distributed", label:"Distributed vs Centralised VCS", desc:"Why every clone holds the full history, and what that buys you over SVN-style tools.", link:"/level-1-foundations/git/#git-fundamentals" },
-    { id:"git-three-areas", label:"Working Directory, Staging, Repository", desc:"The three places your work lives, and why the staging area lets you commit part of it.", link:"/level-1-foundations/git/#git-fundamentals" },
-    { id:"git-objects", label:"The Object Model", desc:"Blobs, trees, commits and tags — content-addressed storage under the version control interface.", link:"/level-1-foundations/git/#git-fundamentals" },
-    { id:"git-snapshots", label:"Snapshots vs Diffs", desc:"Git stores full snapshots with shared blobs; diffs are computed on demand.", link:"/level-1-foundations/git/#git-fundamentals" },
-    { id:"git-branch-pointer", label:"Branches as Pointers", desc:"A branch is a file containing a commit hash — which is why branching is instant.", link:"/level-1-foundations/git/#git-fundamentals" },
-    { id:"git-head", label:"HEAD & Detached HEAD", desc:"Where you currently are, and what happens when you check out a commit instead of a branch.", link:"/level-1-foundations/git/#git-fundamentals" },
-    { id:"git-fetch-pull", label:"fetch vs pull", desc:"Fetch updates remote-tracking branches safely; pull also integrates and can conflict.", link:"/level-1-foundations/git/#git-fundamentals" },
-    { id:"git-switch-restore", label:"switch, checkout & restore", desc:"The modern split of checkout's two unrelated jobs into switch and restore.", link:"/level-1-foundations/git/#git-fundamentals" },
-    { id:"git-gitignore", label:".gitignore", desc:"Ignoring untracked files, and why it has no effect on something already committed.", link:"/level-1-foundations/git/#git-fundamentals" },
-  ]},
-  { id:"git-branching", label:"Branching & Merging", desc:"Combining work from multiple branches, resolving conflicts, and choosing a team workflow.", link:"/level-1-foundations/git/#branching--merging", subs:[
-    { id:"git-ff-merge", label:"Fast-Forward Merge", desc:"When history is a straight line and Git just moves the pointer forward.", link:"/level-1-foundations/git/#branching--merging" },
-    { id:"git-3way-merge", label:"Three-Way Merge", desc:"Merge base, your tip and theirs — how Git decides what conflicts.", link:"/level-1-foundations/git/#branching--merging" },
-    { id:"git-conflicts", label:"Resolving Merge Conflicts", desc:"Reading conflict markers, resolving deliberately, and re-running the tests.", link:"/level-1-foundations/git/#branching--merging" },
-    { id:"git-workflows", label:"Branching Strategies", desc:"Git Flow vs GitHub Flow vs trunk-based development, and which suits data pipelines.", link:"/level-1-foundations/git/#branching--merging" },
-    { id:"git-cherry-pick", label:"Cherry-Pick", desc:"Applying a single commit elsewhere — legitimate for hotfixes, an anti-pattern as routine.", link:"/level-1-foundations/git/#branching--merging" },
-    { id:"git-merge-types", label:"Merge vs Squash vs Rebase Merge", desc:"Three ways to land a pull request, and the history each one leaves behind.", link:"/level-1-foundations/git/#branching--merging" },
-    { id:"git-bisect", label:"Finding Bugs with git bisect", desc:"Binary search over history to find the commit that introduced a regression.", link:"/level-1-foundations/git/#branching--merging" },
-  ]},
-  { id:"git-history", label:"Rewriting History", desc:"Rebasing, amending and force-pushing — powerful, and the fastest way to ruin a colleague's afternoon.", link:"/level-1-foundations/git/#rewriting-history", subs:[
-    { id:"git-rebase", label:"git rebase", desc:"Replaying commits onto a new base to produce linear history — with new hashes.", link:"/level-1-foundations/git/#rewriting-history" },
-    { id:"git-golden-rule", label:"The Golden Rule of Rebasing", desc:"Never rebase commits others have already pulled, and why it breaks their history.", link:"/level-1-foundations/git/#rewriting-history" },
-    { id:"git-interactive-rebase", label:"Interactive Rebase", desc:"Squash, reword, reorder and drop commits before opening a pull request.", link:"/level-1-foundations/git/#rewriting-history" },
-    { id:"git-amend", label:"commit --amend", desc:"Replacing the last commit — safe locally, a force-push problem once pushed.", link:"/level-1-foundations/git/#rewriting-history" },
-    { id:"git-force-lease", label:"force-with-lease", desc:"The safe force-push that refuses when someone else has pushed in the meantime.", link:"/level-1-foundations/git/#rewriting-history" },
-    { id:"git-secrets", label:"Removing Leaked Secrets", desc:"Rotate first, then purge with filter-repo — why rewriting history alone is not enough.", link:"/level-1-foundations/git/#rewriting-history" },
-  ]},
-  { id:"git-collaboration", label:"Remotes & Collaboration", desc:"Pull requests, forks, remote-tracking branches and the guardrails that keep main safe.", link:"/level-1-foundations/git/#remotes--collaboration", subs:[
-    { id:"git-pr", label:"Pull Requests", desc:"A host feature, not a Git one — the gate where review and CI attach to the workflow.", link:"/level-1-foundations/git/#remotes--collaboration" },
-    { id:"git-good-pr", label:"What Makes a Good PR", desc:"Small, single-purpose, explains why, green CI — and what to include for data changes.", link:"/level-1-foundations/git/#remotes--collaboration" },
-    { id:"git-fork", label:"Fork vs Branch", desc:"The open-source contribution model versus the normal in-team model.", link:"/level-1-foundations/git/#remotes--collaboration" },
-    { id:"git-remote-tracking", label:"Remote-Tracking Branches", desc:"What origin/main actually is, and how it powers Git's offline story.", link:"/level-1-foundations/git/#remotes--collaboration" },
-    { id:"git-protected", label:"Protected Branches", desc:"Required reviews, status checks and force-push blocks — quality and audit control.", link:"/level-1-foundations/git/#remotes--collaboration" },
-    { id:"git-submodules", label:"Submodules", desc:"Pinning one repo inside another, the pain it causes, and better alternatives.", link:"/level-1-foundations/git/#remotes--collaboration" },
-  ]},
-  { id:"git-undo", label:"Undoing Mistakes", desc:"Reset, revert, stash and the reflog — how to get out of trouble without losing work.", link:"/level-1-foundations/git/#undoing-mistakes", subs:[
-    { id:"git-reset", label:"reset --soft, --mixed, --hard", desc:"Three levels of undo, and which one actually destroys uncommitted work.", link:"/level-1-foundations/git/#undoing-mistakes" },
-    { id:"git-revert", label:"revert vs reset", desc:"Revert for public history, reset for private — the rule that avoids breaking teammates.", link:"/level-1-foundations/git/#undoing-mistakes" },
-    { id:"git-reflog", label:"The Reflog", desc:"Every HEAD movement recorded locally — the undo button for a destructive reset or rebase.", link:"/level-1-foundations/git/#undoing-mistakes" },
-    { id:"git-stash", label:"git stash", desc:"Setting work aside temporarily, and the untracked-files gotcha.", link:"/level-1-foundations/git/#undoing-mistakes" },
-    { id:"git-move-commits", label:"Moving Commits Between Branches", desc:"Committed to main by mistake — creating a branch there and rewinding.", link:"/level-1-foundations/git/#undoing-mistakes" },
-  ]},
-  { id:"git-de", label:"Git for Data Engineering", desc:"The version control problems specific to pipelines: large files, notebooks, secrets and repo structure.", link:"/level-1-foundations/git/#git-for-data-engineering", subs:[
-    { id:"git-large-files", label:"Large Data Files", desc:"Why data doesn't belong in Git, and what LFS, DVC and lakeFS do instead.", link:"/level-1-foundations/git/#git-for-data-engineering" },
-    { id:"git-de-secrets", label:"Secrets & Environment Config", desc:"gitignored .env files, secrets managers, workload identity and pre-commit scanning.", link:"/level-1-foundations/git/#git-for-data-engineering" },
-    { id:"git-notebooks", label:"Notebooks in Version Control", desc:"Why .ipynb diffs are unreadable, and how nbstripout and jupytext fix it.", link:"/level-1-foundations/git/#git-for-data-engineering" },
-    { id:"git-dbt", label:"dbt & SQL Workflows", desc:"Transformations as reviewed code, with CI schemas and traceable metric changes.", link:"/level-1-foundations/git/#git-for-data-engineering" },
-    { id:"git-ci-checks", label:"CI Checks for Data Repos", desc:"DAG parsing, data quality tests, schema-change detection and secret scanning.", link:"/level-1-foundations/git/#git-for-data-engineering" },
-    { id:"git-repo-structure", label:"Monorepo vs Polyrepo", desc:"Structuring multiple pipelines and shared libraries, and the trade-off each way.", link:"/level-1-foundations/git/#git-for-data-engineering" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

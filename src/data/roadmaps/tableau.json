@@ -1,0 +1,148 @@
+[
+  {
+    "id": "fundamentals-product-landscape",
+    "label": "Fundamentals & Product Landscape",
+    "desc": "7 interview questions covering Fundamentals, Workspace, Methodology.",
+    "link": "/level-3-technologies/bi/tableau/#fundamentals--product-landscape",
+    "subs": [
+      {
+        "id": "fundamentals-product-landscape-fundamentals",
+        "label": "Fundamentals",
+        "desc": "What is data visualization in Tableau? What is the difference between traditional BI tools and Tableau?",
+        "link": "/level-3-technologies/bi/tableau/#fundamentals--product-landscape"
+      },
+      {
+        "id": "fundamentals-product-landscape-workspace",
+        "label": "Workspace",
+        "desc": "What are shelves in Tableau?",
+        "link": "/level-3-technologies/bi/tableau/#fundamentals--product-landscape"
+      },
+      {
+        "id": "fundamentals-product-landscape-methodology",
+        "label": "Methodology",
+        "desc": "DRIVE is a structured, iterative methodology for rolling out data analytics across an enterprise deployment.",
+        "link": "/level-3-technologies/bi/tableau/#fundamentals--product-landscape"
+      }
+    ]
+  },
+  {
+    "id": "data-connections-joins-files",
+    "label": "Data Connections, Joins & Files",
+    "desc": "8 interview questions covering Joins, Connections, Blending, Files.",
+    "link": "/level-3-technologies/bi/tableau/#data-connections-joins--files",
+    "subs": [
+      {
+        "id": "data-connections-joins-files-joins",
+        "label": "Joins",
+        "desc": "What are the different types of joins in Tableau?",
+        "link": "/level-3-technologies/bi/tableau/#data-connections-joins--files"
+      },
+      {
+        "id": "data-connections-joins-files-connections",
+        "label": "Connections",
+        "desc": "What are the different connection types you can make with a dataset? What is the difference between published and embedded data sources in Tableau?",
+        "link": "/level-3-technologies/bi/tableau/#data-connections-joins--files"
+      },
+      {
+        "id": "data-connections-joins-files-blending",
+        "label": "Blending",
+        "desc": "Data blending lets you view and analyze data from multiple data sources in one place.",
+        "link": "/level-3-technologies/bi/tableau/#data-connections-joins--files"
+      },
+      {
+        "id": "data-connections-joins-files-files",
+        "label": "Files",
+        "desc": "A .tde (Tableau Data Extract) file points to data pulled from an external source such as Excel, Access, or CSV files.",
+        "link": "/level-3-technologies/bi/tableau/#data-connections-joins--files"
+      }
+    ]
+  },
+  {
+    "id": "data-modeling-calculations",
+    "label": "Data Modeling & Calculations",
+    "desc": "12 interview questions covering Parameters, Data Modeling, Sets, Groups and more.",
+    "link": "/level-3-technologies/bi/tableau/#data-modeling--calculations",
+    "subs": [
+      {
+        "id": "data-modeling-calculations-parameters",
+        "label": "Parameters",
+        "desc": "A parameter is a variable — a number, string, or date — created to replace a constant value used in a calculation, filter, or reference line.",
+        "link": "/level-3-technologies/bi/tableau/#data-modeling--calculations"
+      },
+      {
+        "id": "data-modeling-calculations-data-modeling",
+        "label": "Data Modeling",
+        "desc": "When you connect a new data source, every field is mapped as either a measure or a dimension, each with a data type (integer, string, and so on) and a role (discrete dimension or continuous measure).",
+        "link": "/level-3-technologies/bi/tableau/#data-modeling--calculations"
+      },
+      {
+        "id": "data-modeling-calculations-sets",
+        "label": "Sets",
+        "desc": "Sets are custom fields that define a subset of data in your workbook.",
+        "link": "/level-3-technologies/bi/tableau/#data-modeling--calculations"
+      },
+      {
+        "id": "data-modeling-calculations-groups",
+        "label": "Groups",
+        "desc": "Groups combine related members of a dimension into a larger category for analysis.",
+        "link": "/level-3-technologies/bi/tableau/#data-modeling--calculations"
+      },
+      {
+        "id": "data-modeling-calculations-filters",
+        "label": "Filters",
+        "desc": "What are the various types of filters in Tableau?",
+        "link": "/level-3-technologies/bi/tableau/#data-modeling--calculations"
+      },
+      {
+        "id": "data-modeling-calculations-calculated-fields",
+        "label": "Calculated Fields",
+        "desc": "A calculated field is a new field derived via a formula built on top of other fields — it doesn't exist in the source data until you define it.",
+        "link": "/level-3-technologies/bi/tableau/#data-modeling--calculations"
+      },
+      {
+        "id": "data-modeling-calculations-functions",
+        "label": "Functions",
+        "desc": "What is the Rank function in Tableau?",
+        "link": "/level-3-technologies/bi/tableau/#data-modeling--calculations"
+      }
+    ]
+  },
+  {
+    "id": "visualization-dashboards-performance",
+    "label": "Visualization, Dashboards & Performance",
+    "desc": "10 interview questions covering Visualization, Dashboards, Publishing, Performance and more.",
+    "link": "/level-3-technologies/bi/tableau/#visualization-dashboards--performance",
+    "subs": [
+      {
+        "id": "visualization-dashboards-performance-visualization",
+        "label": "Visualization",
+        "desc": "What are dual axes? What is the difference between a treemap and a heat map?",
+        "link": "/level-3-technologies/bi/tableau/#visualization-dashboards--performance"
+      },
+      {
+        "id": "visualization-dashboards-performance-dashboards",
+        "label": "Dashboards",
+        "desc": "What components make up a dashboard? What is a story in Tableau?",
+        "link": "/level-3-technologies/bi/tableau/#visualization-dashboards--performance"
+      },
+      {
+        "id": "visualization-dashboards-performance-publishing",
+        "label": "Publishing",
+        "desc": "How do you embed views into webpages?",
+        "link": "/level-3-technologies/bi/tableau/#visualization-dashboards--performance"
+      },
+      {
+        "id": "visualization-dashboards-performance-performance",
+        "label": "Performance",
+        "desc": "The Tableau data engine is an analytical database that computes near-instant query responses and handles predictive analysis and integrated data.",
+        "link": "/level-3-technologies/bi/tableau/#visualization-dashboards--performance"
+      },
+      {
+        "id": "visualization-dashboards-performance-administration",
+        "label": "Administration",
+        "desc": "What are extracts and schedules in Tableau Server? How do you generally perform load testing in Tableau?",
+        "link": "/level-3-technologies/bi/tableau/#visualization-dashboards--performance"
+      }
+    ]
+  }
+]

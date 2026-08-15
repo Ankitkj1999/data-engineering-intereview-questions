@@ -1,44 +1,84 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import { getCollection } from "astro:content";
 import Button from "../components/ui/Button.astro";
+
+/* Every count on this page is derived, not written down.
+   The hardcoded ones had gone badly stale — the hero, the meta description and
+   the stat strip all advertised "300+ questions" and "30+ technologies" against
+   a site that had grown to 3,895 questions and 50 roadmaps, and Foundations was
+   labelled "3 core skills" while holding 51 pages. The homepage was describing
+   a site roughly a thirteenth the size of the real one. Counting at build time
+   is the only version of this that stays true. */
+const docs = await getCollection("docs");
+
+// Questions are rendered as <QuestionCard> in the MDX body, so the body is the
+// authoritative count — there's no frontmatter field carrying it.
+const questionsIn = (prefix: string) =>
+  docs
+    .filter((d) => d.id.startsWith(prefix))
+    .reduce((n, d) => n + (d.body?.match(/<QuestionCard/g) ?? []).length, 0);
+
+const pagesIn = (prefix: string) => docs.filter((d) => d.id.startsWith(prefix)).length;
+
+const roadmapSources = import.meta.glob("./roadmaps/*.astro", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+}) as Record<string, string>;
+
+const roadmapEntries = Object.entries(roadmapSources).filter(
+  ([path]) => !path.endsWith("/index.astro"),
+);
+const roadmapCount = roadmapEntries.length;
+const nodesIn = (slug: string) =>
+  (roadmapSources[`./roadmaps/${slug}.astro`]?.match(/\bid:\s*"/g) ?? []).length;
+
+const totalQuestions = docs.reduce(
+  (n, d) => n + (d.body?.match(/<QuestionCard/g) ?? []).length,
+  0,
+);
+const nf = new Intl.NumberFormat("en-US");
 
 const stages = [
   {
     id: "01",
     title: "Foundations",
     desc: "SQL, Python, data structures",
-    count: "3 core skills",
+    count: `${nf.format(questionsIn("level-1-foundations"))} questions`,
     href: "/level-1-foundations/sql/",
   },
   {
     id: "02",
     title: "Core Concepts",
     desc: "Modeling, warehousing, quality, governance",
-    count: "6 concepts",
+    count: `${nf.format(questionsIn("level-2-core-concepts"))} questions`,
     href: "/level-2-core-concepts/what-is-data-engineering/",
   },
   {
     id: "03",
     title: "Technologies",
     desc: "Warehouses, streaming, orchestration, cloud",
-    count: "30+ tools",
+    count: `${nf.format(questionsIn("level-3-technologies"))} questions`,
     href: "/level-3-technologies/",
   },
   {
     id: "04",
     title: "Advanced",
     desc: "System design, cost, observability",
-    count: "3 topics",
+    count: `${nf.format(questionsIn("level-4-advanced"))} questions`,
     href: "/level-4-advanced/system-design/",
   },
 ];
 
 const roadmaps = [
-  { title: "Data Engineering", desc: "The full path, end to end", count: "9 stages", href: "/roadmaps/data-engineering/" },
-  { title: "Python", desc: "Syntax to production pipelines", count: "7 stages", href: "/roadmaps/python/" },
-  { title: "SQL", desc: "Queries to query optimization", count: "6 stages", href: "/roadmaps/sql/" },
-  { title: "Apache Spark", desc: "RDDs to cluster tuning", count: "6 stages", href: "/roadmaps/apache-spark/" },
-];
+  { title: "Data Engineering", desc: "The full path, end to end", slug: "data-engineering" },
+  { title: "Python", desc: "Syntax to production pipelines", slug: "python" },
+  { title: "SQL", desc: "Queries to query optimization", slug: "sql" },
+  { title: "Apache Spark", desc: "RDDs to cluster tuning", slug: "apache-spark" },
+].map((rm) => ({ ...rm, count: `${nodesIn(rm.slug)} nodes`, href: `/roadmaps/${rm.slug}/` }));
+
+const totalPages = pagesIn("level-");
 
 const ARROW = `<svg width="20" height="28" viewBox="0 0 20 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="10" y1="0" x2="10" y2="20"/><polyline points="5 15 10 22 15 15"/></svg>`;
 const CHECK = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"/><polyline points="5.5 8.5 7 10 10.5 6"/></svg>`;
@@ -48,8 +88,7 @@ const CHEVRON = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" str
 <StarlightPage
   frontmatter={{
     title: "Data Engineering Questions",
-    description:
-      "A staged curriculum for data engineering interviews: foundations, core concepts, technologies, and advanced system design, with 300+ questions and interactive roadmaps.",
+    description: `A staged curriculum for data engineering interviews: foundations, core concepts, technologies, and advanced system design, with ${nf.format(totalQuestions)} questions across ${totalPages} pages and ${roadmapCount} interactive roadmaps.`,
   }}
 >
   <div id="home-root">
@@ -57,8 +96,8 @@ const CHEVRON = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" str
       <p class="hero-eyebrow">Data engineering &middot; interview prep</p>
       <h1 class="hero-title">Interview prep, staged like a pipeline.</h1>
       <p class="hero-sub">
-        Four stages, one path: foundations in, system design out. 300+ questions across
-        SQL, Python, warehouses, and streaming &mdash; each one mapped to where it sits
+        Four stages, one path: foundations in, system design out. {nf.format(totalQuestions)} questions
+        across SQL, Python, warehouses, and streaming &mdash; each one mapped to where it sits
         in the pipeline.
       </p>
       <div class="hero-actions">
@@ -90,11 +129,11 @@ const CHEVRON = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" str
     </section>
 
     <section class="stat-strip" aria-label="At a glance">
-      <span><strong>300+</strong> questions</span>
+      <span><strong>{nf.format(totalQuestions)}</strong> questions</span>
       <span class="stat-dot" aria-hidden="true">&middot;</span>
-      <span><strong>30+</strong> technologies</span>
+      <span><strong>{totalPages}</strong> pages</span>
       <span class="stat-dot" aria-hidden="true">&middot;</span>
-      <span><strong>4</strong> stages</span>
+      <span><strong>{roadmapCount}</strong> roadmaps</span>
       <span class="stat-dot" aria-hidden="true">&middot;</span>
       <span>asked at <strong>FAANG, Databricks, Airbnb, Uber, Stripe</strong></span>
     </section>

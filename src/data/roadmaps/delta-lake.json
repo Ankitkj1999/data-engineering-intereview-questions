@@ -1,0 +1,106 @@
+[
+  {
+    "id": "core-concepts",
+    "label": "Core Concepts",
+    "desc": "30 interview questions covering Fundamentals, Architecture, ACID, Schema and more.",
+    "link": "/level-3-technologies/formats/delta/#interview-questions",
+    "subs": [
+      {
+        "id": "core-concepts-fundamentals",
+        "label": "Fundamentals",
+        "desc": "Delta Lake is an open-source storage layer that brings ACID transactions, data versioning, and unified batch/streaming processing to data lakes built on Apache Spark.",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      },
+      {
+        "id": "core-concepts-architecture",
+        "label": "Architecture",
+        "desc": "What is the Delta Lake transaction log? What is Delta Lake's compatibility with Parquet?",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      },
+      {
+        "id": "core-concepts-acid",
+        "label": "ACID",
+        "desc": "How does Delta Lake provide ACID transactions?",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      },
+      {
+        "id": "core-concepts-schema",
+        "label": "Schema",
+        "desc": "Schema enforcement prevents accidental data corruption by rejecting writes that don't match the table's schema.",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      },
+      {
+        "id": "core-concepts-time-travel",
+        "label": "Time Travel",
+        "desc": "Time travel allows querying previous versions of a table by specifying a version number or a timestamp.",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      },
+      {
+        "id": "core-concepts-maintenance",
+        "label": "Maintenance",
+        "desc": "What is the VACUUM command in Delta Lake? What is the OPTIMIZE command in Delta Lake?",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      },
+      {
+        "id": "core-concepts-performance",
+        "label": "Performance",
+        "desc": "Z-order clustering reorganizes data on disk to maximize data-skipping efficiency, which can dramatically improve query performance for queries that filter on the clustered columns.",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      },
+      {
+        "id": "core-concepts-governance",
+        "label": "Governance",
+        "desc": "How does Delta Lake handle data lineage?",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      },
+      {
+        "id": "core-concepts-cdc",
+        "label": "CDC",
+        "desc": "What is Change Data Capture in Delta Lake? How do you enable CDC in Delta Lake?",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      },
+      {
+        "id": "core-concepts-ecosystem",
+        "label": "Ecosystem",
+        "desc": "Can you use Delta Lake with Spark? Can you use Delta Lake with other tools?",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      },
+      {
+        "id": "core-concepts-basics",
+        "label": "Basics",
+        "desc": "How do you create a Delta Lake table?",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      },
+      {
+        "id": "core-concepts-table-types",
+        "label": "Table Types",
+        "desc": "Managed tables store their data inside the warehouse's managed directory; external tables reference data at an external storage location that the warehouse doesn't own.",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      },
+      {
+        "id": "core-concepts-concurrency",
+        "label": "Concurrency",
+        "desc": "Delta Lake uses optimistic concurrency control, allowing multiple writers to operate against the same table with automatic conflict detection and resolution at commit time.",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      },
+      {
+        "id": "core-concepts-dml",
+        "label": "DML",
+        "desc": "What is the MERGE command in Delta Lake? How do you delete records in Delta Lake?",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      },
+      {
+        "id": "core-concepts-migration",
+        "label": "Migration",
+        "desc": "How do you upgrade an existing table to Delta Lake? Can you downgrade from Delta Lake?",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      },
+      {
+        "id": "core-concepts-infrastructure",
+        "label": "Infrastructure",
+        "desc": "What are the storage requirements for Delta Lake?",
+        "link": "/level-3-technologies/formats/delta/#interview-questions"
+      }
+    ]
+  }
+]

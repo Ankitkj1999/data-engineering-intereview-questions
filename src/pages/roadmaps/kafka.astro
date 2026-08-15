@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/kafka.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,54 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/streaming/kafka/#interview-questions">Core Concepts</a></h3>
+        <p class="rm-index-desc">23 interview questions covering Fundamentals, Architecture, Configuration, Consumers and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#interview-questions">Fundamentals</a></span> <span class="rm-index-sub-desc">Apache Kafka is a distributed publish-subscribe messaging system originally developed at LinkedIn and written in Java and Scala.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#interview-questions">Architecture</a></span> <span class="rm-index-sub-desc">What is the meaning of broker in Apache Kafka? What is ZooKeeper's role in Kafka's ecosystem, and can Kafka run without it?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#interview-questions">Configuration</a></span> <span class="rm-index-sub-desc">What is the maximum size of a message that Kafka can receive?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#interview-questions">Consumers</a></span> <span class="rm-index-sub-desc">How are messages consumed by a consumer in Apache Kafka? How can you improve the throughput of a remote consumer?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#interview-questions">Producers</a></span> <span class="rm-index-sub-desc">The Producer API lets applications send streams of records to one or more Kafka topics, handling the reliable and scalable distribution of that data across the cluster.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#interview-questions">Replication</a></span> <span class="rm-index-sub-desc">What is In-Sync Replicas (ISR) in Apache Kafka? How can you reduce churn (frequent changes) in the ISR?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#interview-questions">Ecosystem</a></span> <span class="rm-index-sub-desc">What is the difference between Apache Kafka, Apache Storm, and Apache Flink?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/streaming/kafka/#consumer-groups--rebalancing">Consumer Groups &amp; Rebalancing</a></h3>
+        <p class="rm-index-desc">4 interview questions covering Rebalancing, Offsets.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#consumer-groups--rebalancing">Rebalancing</a></span> <span class="rm-index-sub-desc">Rebalancing is the process of reassigning partitions among the members of a consumer group — triggered when a consumer joins, leaves (including crashing or being killed), or a subscribed topic's partition count changes.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#consumer-groups--rebalancing">Offsets</a></span> <span class="rm-index-sub-desc">What's the difference between auto-commit and manual offset commit?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/streaming/kafka/#ecosystem-connect-streams--schema-registry">Ecosystem: Connect, Streams &amp; Schema Registry</a></h3>
+        <p class="rm-index-desc">5 interview questions covering Kafka Connect, Stream Processing, Schema Registry.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#ecosystem-connect-streams--schema-registry">Kafka Connect</a></span> <span class="rm-index-sub-desc">A source connector pulls data from an external system into* a Kafka topic (a Postgres CDC connector streaming database changes in).</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#ecosystem-connect-streams--schema-registry">Stream Processing</a></span> <span class="rm-index-sub-desc">What is Kafka Streams, and how does it differ from using an external engine like Flink?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#ecosystem-connect-streams--schema-registry">Schema Registry</a></span> <span class="rm-index-sub-desc">Schema Registry is a service that stores and versions schemas (typically Avro, Protobuf, or JSON Schema) for the messages flowing through Kafka topics, and validates that producers/consumers use compatible schemas.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/streaming/kafka/#retention-compaction--security">Retention, Compaction &amp; Security</a></h3>
+        <p class="rm-index-desc">5 interview questions covering Retention, Partitioning, Security, Producers.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#retention-compaction--security">Retention</a></span> <span class="rm-index-sub-desc">Retention is controlled per topic, primarily by time (retention.ms — delete segments older than this) and size (retention.bytes — delete oldest segments once the partition exceeds this size), whichever limit is hit first.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#retention-compaction--security">Partitioning</a></span> <span class="rm-index-sub-desc">What are the trade-offs of increasing a topic's partition count?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#retention-compaction--security">Security</a></span> <span class="rm-index-sub-desc">How do you secure a Kafka cluster — authentication, authorization, and encryption?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/streaming/kafka/#retention-compaction--security">Producers</a></span> <span class="rm-index-sub-desc">What are the different producer acks settings, and what do they trade off?</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,32 +115,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"core-concepts", label:"Core Concepts", desc:"23 interview questions covering Fundamentals, Architecture, Configuration, Consumers and more.", link:"/level-3-technologies/streaming/kafka/#interview-questions", subs:[
-    { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"Apache Kafka is a distributed publish-subscribe messaging system originally developed at LinkedIn and written in Java and Scala.", link:"/level-3-technologies/streaming/kafka/#interview-questions" },
-    { id:"core-concepts-architecture", label:"Architecture", desc:"What is the meaning of broker in Apache Kafka? What is ZooKeeper's role in Kafka's ecosystem, and can Kafka run without it?", link:"/level-3-technologies/streaming/kafka/#interview-questions" },
-    { id:"core-concepts-configuration", label:"Configuration", desc:"What is the maximum size of a message that Kafka can receive?", link:"/level-3-technologies/streaming/kafka/#interview-questions" },
-    { id:"core-concepts-consumers", label:"Consumers", desc:"How are messages consumed by a consumer in Apache Kafka? How can you improve the throughput of a remote consumer?", link:"/level-3-technologies/streaming/kafka/#interview-questions" },
-    { id:"core-concepts-producers", label:"Producers", desc:"The Producer API lets applications send streams of records to one or more Kafka topics, handling the reliable and scalable distribution of that data across the cluster.", link:"/level-3-technologies/streaming/kafka/#interview-questions" },
-    { id:"core-concepts-replication", label:"Replication", desc:"What is In-Sync Replicas (ISR) in Apache Kafka? How can you reduce churn (frequent changes) in the ISR?", link:"/level-3-technologies/streaming/kafka/#interview-questions" },
-    { id:"core-concepts-ecosystem", label:"Ecosystem", desc:"What is the difference between Apache Kafka, Apache Storm, and Apache Flink?", link:"/level-3-technologies/streaming/kafka/#interview-questions" },
-  ]},
-  { id:"consumer-groups-rebalancing", label:"Consumer Groups & Rebalancing", desc:"4 interview questions covering Rebalancing, Offsets.", link:"/level-3-technologies/streaming/kafka/#consumer-groups--rebalancing", subs:[
-    { id:"consumer-groups-rebalancing-rebalancing", label:"Rebalancing", desc:"Rebalancing is the process of reassigning partitions among the members of a consumer group — triggered when a consumer joins, leaves (including crashing or being killed), or a subscribed topic's partition count changes.", link:"/level-3-technologies/streaming/kafka/#consumer-groups--rebalancing" },
-    { id:"consumer-groups-rebalancing-offsets", label:"Offsets", desc:"What's the difference between auto-commit and manual offset commit?", link:"/level-3-technologies/streaming/kafka/#consumer-groups--rebalancing" },
-  ]},
-  { id:"ecosystem-connect-streams-schema-registry", label:"Ecosystem: Connect, Streams & Schema Registry", desc:"5 interview questions covering Kafka Connect, Stream Processing, Schema Registry.", link:"/level-3-technologies/streaming/kafka/#ecosystem-connect-streams--schema-registry", subs:[
-    { id:"ecosystem-connect-streams-schema-registry-kafka-connect", label:"Kafka Connect", desc:"A source connector pulls data from an external system into* a Kafka topic (a Postgres CDC connector streaming database changes in).", link:"/level-3-technologies/streaming/kafka/#ecosystem-connect-streams--schema-registry" },
-    { id:"ecosystem-connect-streams-schema-registry-stream-processing", label:"Stream Processing", desc:"What is Kafka Streams, and how does it differ from using an external engine like Flink?", link:"/level-3-technologies/streaming/kafka/#ecosystem-connect-streams--schema-registry" },
-    { id:"ecosystem-connect-streams-schema-registry-schema-registry", label:"Schema Registry", desc:"Schema Registry is a service that stores and versions schemas (typically Avro, Protobuf, or JSON Schema) for the messages flowing through Kafka topics, and validates that producers/consumers use compatible schemas.", link:"/level-3-technologies/streaming/kafka/#ecosystem-connect-streams--schema-registry" },
-  ]},
-  { id:"retention-compaction-security", label:"Retention, Compaction & Security", desc:"5 interview questions covering Retention, Partitioning, Security, Producers.", link:"/level-3-technologies/streaming/kafka/#retention-compaction--security", subs:[
-    { id:"retention-compaction-security-retention", label:"Retention", desc:"Retention is controlled per topic, primarily by time (retention.ms — delete segments older than this) and size (retention.bytes — delete oldest segments once the partition exceeds this size), whichever limit is hit first.", link:"/level-3-technologies/streaming/kafka/#retention-compaction--security" },
-    { id:"retention-compaction-security-partitioning", label:"Partitioning", desc:"What are the trade-offs of increasing a topic's partition count?", link:"/level-3-technologies/streaming/kafka/#retention-compaction--security" },
-    { id:"retention-compaction-security-security", label:"Security", desc:"How do you secure a Kafka cluster — authentication, authorization, and encryption?", link:"/level-3-technologies/streaming/kafka/#retention-compaction--security" },
-    { id:"retention-compaction-security-producers", label:"Producers", desc:"What are the different producer acks settings, and what do they trade off?", link:"/level-3-technologies/streaming/kafka/#retention-compaction--security" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

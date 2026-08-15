@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/mlops.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,45 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-4-advanced/mlops/#ml-basics-for-data-engineers">ML Basics for Data Engineers</a></h3>
+        <p class="rm-index-desc">4 interview questions covering ML Basics.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/mlops/#ml-basics-for-data-engineers">ML Basics</a></span> <span class="rm-index-sub-desc">What are the main types of machine learning? What are training, validation and test sets, and why does the split matter?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-4-advanced/mlops/#feature-engineering--feature-stores">Feature Engineering &amp; Feature Stores</a></h3>
+        <p class="rm-index-desc">4 interview questions covering Features, Feature Store.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/mlops/#feature-engineering--feature-stores">Features</a></span> <span class="rm-index-sub-desc">When features computed for training differ from those computed at serving time — so the model receives inputs unlike anything it learned from.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/mlops/#feature-engineering--feature-stores">Feature Store</a></span> <span class="rm-index-sub-desc">A system for defining, computing, storing and serving features, with two coordinated stores.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-4-advanced/mlops/#mlops--the-model-lifecycle">MLOps &amp; the Model Lifecycle</a></h3>
+        <p class="rm-index-desc">4 interview questions covering MLOps.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/mlops/#mlops--the-model-lifecycle">MLOps</a></span> <span class="rm-index-sub-desc">What is MLOps, and how does it differ from DevOps? What does a model lifecycle look like end to end?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-4-advanced/mlops/#monitoring--drift">Monitoring &amp; Drift</a></h3>
+        <p class="rm-index-desc">4 interview questions covering Drift, Monitoring, MLOps.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/mlops/#monitoring--drift">Drift</a></span> <span class="rm-index-sub-desc">What is model drift, and what types are there? How do you detect drift?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/mlops/#monitoring--drift">Monitoring</a></span> <span class="rm-index-sub-desc">When and how should you retrain a model?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/mlops/#monitoring--drift">MLOps</a></span> <span class="rm-index-sub-desc">What does a data engineer own in an ML system?</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,23 +106,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"ml-basics-for-data-engineers", label:"ML Basics for Data Engineers", desc:"4 interview questions covering ML Basics.", link:"/level-4-advanced/mlops/#ml-basics-for-data-engineers", subs:[
-    { id:"ml-basics-for-data-engineers-ml-basics", label:"ML Basics", desc:"What are the main types of machine learning? What are training, validation and test sets, and why does the split matter?", link:"/level-4-advanced/mlops/#ml-basics-for-data-engineers" },
-  ]},
-  { id:"feature-engineering-feature-stores", label:"Feature Engineering & Feature Stores", desc:"4 interview questions covering Features, Feature Store.", link:"/level-4-advanced/mlops/#feature-engineering--feature-stores", subs:[
-    { id:"feature-engineering-feature-stores-features", label:"Features", desc:"When features computed for training differ from those computed at serving time — so the model receives inputs unlike anything it learned from.", link:"/level-4-advanced/mlops/#feature-engineering--feature-stores" },
-    { id:"feature-engineering-feature-stores-feature-store", label:"Feature Store", desc:"A system for defining, computing, storing and serving features, with two coordinated stores.", link:"/level-4-advanced/mlops/#feature-engineering--feature-stores" },
-  ]},
-  { id:"mlops-the-model-lifecycle", label:"MLOps & the Model Lifecycle", desc:"4 interview questions covering MLOps.", link:"/level-4-advanced/mlops/#mlops--the-model-lifecycle", subs:[
-    { id:"mlops-the-model-lifecycle-mlops", label:"MLOps", desc:"What is MLOps, and how does it differ from DevOps? What does a model lifecycle look like end to end?", link:"/level-4-advanced/mlops/#mlops--the-model-lifecycle" },
-  ]},
-  { id:"monitoring-drift", label:"Monitoring & Drift", desc:"4 interview questions covering Drift, Monitoring, MLOps.", link:"/level-4-advanced/mlops/#monitoring--drift", subs:[
-    { id:"monitoring-drift-drift", label:"Drift", desc:"What is model drift, and what types are there? How do you detect drift?", link:"/level-4-advanced/mlops/#monitoring--drift" },
-    { id:"monitoring-drift-monitoring", label:"Monitoring", desc:"When and how should you retrain a model?", link:"/level-4-advanced/mlops/#monitoring--drift" },
-    { id:"monitoring-drift-mlops", label:"MLOps", desc:"What does a data engineer own in an ML system?", link:"/level-4-advanced/mlops/#monitoring--drift" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

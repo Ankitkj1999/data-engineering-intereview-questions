@@ -1,0 +1,138 @@
+[
+  {
+    "id": "document-model-core-concepts",
+    "label": "Document Model & Core Concepts",
+    "desc": "12 interview questions covering Fundamentals, Data Model, Aggregation, Schema Design and more.",
+    "link": "/level-3-technologies/databases/mongodb/#document-model--core-concepts",
+    "subs": [
+      {
+        "id": "document-model-core-concepts-fundamentals",
+        "label": "Fundamentals",
+        "desc": "MongoDB is a document database built on a horizontal scale-out architecture that uses a flexible schema for storing data.",
+        "link": "/level-3-technologies/databases/mongodb/#document-model--core-concepts"
+      },
+      {
+        "id": "document-model-core-concepts-data-model",
+        "label": "Data Model",
+        "desc": "How does MongoDB store data?",
+        "link": "/level-3-technologies/databases/mongodb/#document-model--core-concepts"
+      },
+      {
+        "id": "document-model-core-concepts-aggregation",
+        "label": "Aggregation",
+        "desc": "What is an aggregation pipeline in MongoDB?",
+        "link": "/level-3-technologies/databases/mongodb/#document-model--core-concepts"
+      },
+      {
+        "id": "document-model-core-concepts-schema-design",
+        "label": "Schema Design",
+        "desc": "How does MongoDB manage schema design and changes? What are the best practices for designing a MongoDB schema?",
+        "link": "/level-3-technologies/databases/mongodb/#document-model--core-concepts"
+      },
+      {
+        "id": "document-model-core-concepts-trade-offs",
+        "label": "Trade-offs",
+        "desc": "What are the limitations or disadvantages of MongoDB?",
+        "link": "/level-3-technologies/databases/mongodb/#document-model--core-concepts"
+      },
+      {
+        "id": "document-model-core-concepts-migration",
+        "label": "Migration",
+        "desc": "How do you perform migrations from RDBMS to MongoDB?",
+        "link": "/level-3-technologies/databases/mongodb/#document-model--core-concepts"
+      },
+      {
+        "id": "document-model-core-concepts-geospatial",
+        "label": "Geospatial",
+        "desc": "MongoDB provides robust support for geographic data and geospatial queries.",
+        "link": "/level-3-technologies/databases/mongodb/#document-model--core-concepts"
+      }
+    ]
+  },
+  {
+    "id": "scaling-performance-operations",
+    "label": "Scaling, Performance & Operations",
+    "desc": "17 interview questions covering Scaling, Sharding, Transactions, Indexing and more.",
+    "link": "/level-3-technologies/databases/mongodb/#scaling-performance--operations",
+    "subs": [
+      {
+        "id": "scaling-performance-operations-scaling",
+        "label": "Scaling",
+        "desc": "MongoDB scales the same way any distributed application would: throw more resources at a single machine (vertical scaling) or distribute the data across multiple physical servers or nodes (horizontal scaling).",
+        "link": "/level-3-technologies/databases/mongodb/#scaling-performance--operations"
+      },
+      {
+        "id": "scaling-performance-operations-sharding",
+        "label": "Sharding",
+        "desc": "MongoDB supports horizontal scaling through sharding — a method for distributing data across multiple machines, used for deployments with very large datasets and high throughput.",
+        "link": "/level-3-technologies/databases/mongodb/#scaling-performance--operations"
+      },
+      {
+        "id": "scaling-performance-operations-transactions",
+        "label": "Transactions",
+        "desc": "A write operation is atomic at the level of a single document, even if it modifies multiple embedded documents within that one document.",
+        "link": "/level-3-technologies/databases/mongodb/#scaling-performance--operations"
+      },
+      {
+        "id": "scaling-performance-operations-indexing",
+        "label": "Indexing",
+        "desc": "Where should you use an index in MongoDB? How would you choose an indexing strategy in MongoDB, and what should you consider?",
+        "link": "/level-3-technologies/databases/mongodb/#scaling-performance--operations"
+      },
+      {
+        "id": "scaling-performance-operations-reliability",
+        "label": "Reliability",
+        "desc": "How does MongoDB ensure data consistency and reliability?",
+        "link": "/level-3-technologies/databases/mongodb/#scaling-performance--operations"
+      },
+      {
+        "id": "scaling-performance-operations-backup",
+        "label": "Backup",
+        "desc": "What are MongoDB's backup and restore options?",
+        "link": "/level-3-technologies/databases/mongodb/#scaling-performance--operations"
+      },
+      {
+        "id": "scaling-performance-operations-concurrency",
+        "label": "Concurrency",
+        "desc": "How does MongoDB handle concurrency?",
+        "link": "/level-3-technologies/databases/mongodb/#scaling-performance--operations"
+      },
+      {
+        "id": "scaling-performance-operations-security",
+        "label": "Security",
+        "desc": "What security features does MongoDB offer?",
+        "link": "/level-3-technologies/databases/mongodb/#scaling-performance--operations"
+      },
+      {
+        "id": "scaling-performance-operations-atlas",
+        "label": "Atlas",
+        "desc": "MongoDB Atlas is the cloud-hosted database-as-a-service (DBaaS) platform for MongoDB.",
+        "link": "/level-3-technologies/databases/mongodb/#scaling-performance--operations"
+      },
+      {
+        "id": "scaling-performance-operations-monitoring",
+        "label": "Monitoring",
+        "desc": "How can you monitor and optimize MongoDB performance?",
+        "link": "/level-3-technologies/databases/mongodb/#scaling-performance--operations"
+      },
+      {
+        "id": "scaling-performance-operations-replication",
+        "label": "Replication",
+        "desc": "What is a replica set in MongoDB and how does it work?",
+        "link": "/level-3-technologies/databases/mongodb/#scaling-performance--operations"
+      },
+      {
+        "id": "scaling-performance-operations-data-integrity",
+        "label": "Data Integrity",
+        "desc": "MongoDB doesn't have built-in referential integrity like relational databases, but you can maintain data integrity through.",
+        "link": "/level-3-technologies/databases/mongodb/#scaling-performance--operations"
+      },
+      {
+        "id": "scaling-performance-operations-consistency",
+        "label": "Consistency",
+        "desc": "The CAP theorem states that a distributed system can only fully provide two of three guarantees: Consistency, Availability, and Partition tolerance.",
+        "link": "/level-3-technologies/databases/mongodb/#scaling-performance--operations"
+      }
+    ]
+  }
+]

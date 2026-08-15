@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/superset.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,62 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/bi/superset/#fundamentals-architecture--connectivity">Fundamentals, Architecture &amp; Connectivity</a></h3>
+        <p class="rm-index-desc">18 interview questions covering Fundamentals, Architecture, Connectivity, Installation and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#fundamentals-architecture--connectivity">Fundamentals</a></span> <span class="rm-index-sub-desc">Apache Superset is an open-source business intelligence (BI) and data visualization tool that lets users explore and analyze large datasets through interactive visualizations, dashboards, and SQL-based queries.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#fundamentals-architecture--connectivity">Architecture</a></span> <span class="rm-index-sub-desc">The web server, the database backend for the data being visualized, the metadata database that stores Superset's own dashboards/charts/connections, and the visualization engine that renders charts.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#fundamentals-architecture--connectivity">Connectivity</a></span> <span class="rm-index-sub-desc">What databases does Superset support? Can you explain the process of connecting a database to Superset?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#fundamentals-architecture--connectivity">Installation</a></span> <span class="rm-index-sub-desc">The simplest path is pip install apache-superset, though production deployments typically use Docker or Docker Compose for a more reproducible setup.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#fundamentals-architecture--connectivity">Ecosystem</a></span> <span class="rm-index-sub-desc">Can you integrate Superset with other BI tools or data platforms? Can you integrate Superset with version control systems?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/bi/superset/#sql-lab--query-engine">SQL Lab &amp; Query Engine</a></h3>
+        <p class="rm-index-desc">11 interview questions covering SQL Lab, Streaming.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#sql-lab--query-engine">SQL Lab</a></span> <span class="rm-index-sub-desc">SQL Lab is Superset's built-in feature for writing and executing SQL queries directly against connected databases — a full-featured SQL IDE inside the BI tool.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#sql-lab--query-engine">Streaming</a></span> <span class="rm-index-sub-desc">Superset's support here is limited — while it can connect to streaming platforms like Apache Kafka, its exploration capabilities are typically focused on visualizing historical snapshots rather than true real-time analysis.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/bi/superset/#visualization-dashboards--reporting">Visualization, Dashboards &amp; Reporting</a></h3>
+        <p class="rm-index-desc">19 interview questions covering Visualization, Dashboards, Data Modeling, Reporting.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#visualization-dashboards--reporting">Visualization</a></span> <span class="rm-index-sub-desc">Yes — Superset lets you build custom visualizations using the rich set of visualization libraries available in the Python/JavaScript ecosystem, beyond the built-in chart types.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#visualization-dashboards--reporting">Dashboards</a></span> <span class="rm-index-sub-desc">Yes — Superset provides embed codes or URLs that can be integrated into web pages or portals, letting dashboards live inside another application's UI.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#visualization-dashboards--reporting">Data Modeling</a></span> <span class="rm-index-sub-desc">Yes — Superset lets you define metrics (aggregations) and dimensions (groupings) at the dataset level to build complex analytical queries and visualizations without rewriting SQL each time.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#visualization-dashboards--reporting">Reporting</a></span> <span class="rm-index-sub-desc">Can you schedule and automate reports in Superset?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/bi/superset/#performance-caching--scale">Performance, Caching &amp; Scale</a></h3>
+        <p class="rm-index-desc">9 interview questions covering Performance, Caching, Deployment, Alerting.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#performance-caching--scale">Performance</a></span> <span class="rm-index-sub-desc">Using monitoring agents, log analyzers, and performance tracking tools — analyzing server logs, watching resource usage, and tracking query performance to identify and resolve bottlenecks.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#performance-caching--scale">Caching</a></span> <span class="rm-index-sub-desc">Superset caches query results to improve performance and reduce load on the underlying databases — subsequent identical requests are served from the cache instead of re-executing the query.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#performance-caching--scale">Deployment</a></span> <span class="rm-index-sub-desc">Yes — Superset supports multi-tenancy by letting you configure and manage multiple instances or workspaces within a single deployment, each with its own users, databases, and resources.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#performance-caching--scale">Alerting</a></span> <span class="rm-index-sub-desc">What are Superset's alerting capabilities?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/bi/superset/#security-governance--lineage">Security, Governance &amp; Lineage</a></h3>
+        <p class="rm-index-desc">15 interview questions covering Security, Governance, Ecosystem.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#security-governance--lineage">Security</a></span> <span class="rm-index-sub-desc">Superset provides access control through role-based permissions — you define roles and assign them specific permissions governing who can access and modify datasets, slices, dashboards, and other resources.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#security-governance--lineage">Governance</a></span> <span class="rm-index-sub-desc">Yes — by capturing and displaying metadata information, Superset lets users trace the origin and transformations of data used across multiple dashboards and slices, not just within a single one.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/bi/superset/#security-governance--lineage">Ecosystem</a></span> <span class="rm-index-sub-desc">What is Superset's integration with Apache Airflow? How can you extend Superset's functionality?</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,36 +123,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"fundamentals-architecture-connectivity", label:"Fundamentals, Architecture & Connectivity", desc:"18 interview questions covering Fundamentals, Architecture, Connectivity, Installation and more.", link:"/level-3-technologies/bi/superset/#fundamentals-architecture--connectivity", subs:[
-    { id:"fundamentals-architecture-connectivity-fundamentals", label:"Fundamentals", desc:"Apache Superset is an open-source business intelligence (BI) and data visualization tool that lets users explore and analyze large datasets through interactive visualizations, dashboards, and SQL-based queries.", link:"/level-3-technologies/bi/superset/#fundamentals-architecture--connectivity" },
-    { id:"fundamentals-architecture-connectivity-architecture", label:"Architecture", desc:"The web server, the database backend for the data being visualized, the metadata database that stores Superset's own dashboards/charts/connections, and the visualization engine that renders charts.", link:"/level-3-technologies/bi/superset/#fundamentals-architecture--connectivity" },
-    { id:"fundamentals-architecture-connectivity-connectivity", label:"Connectivity", desc:"What databases does Superset support? Can you explain the process of connecting a database to Superset?", link:"/level-3-technologies/bi/superset/#fundamentals-architecture--connectivity" },
-    { id:"fundamentals-architecture-connectivity-installation", label:"Installation", desc:"The simplest path is pip install apache-superset, though production deployments typically use Docker or Docker Compose for a more reproducible setup.", link:"/level-3-technologies/bi/superset/#fundamentals-architecture--connectivity" },
-    { id:"fundamentals-architecture-connectivity-ecosystem", label:"Ecosystem", desc:"Can you integrate Superset with other BI tools or data platforms? Can you integrate Superset with version control systems?", link:"/level-3-technologies/bi/superset/#fundamentals-architecture--connectivity" },
-  ]},
-  { id:"sql-lab-query-engine", label:"SQL Lab & Query Engine", desc:"11 interview questions covering SQL Lab, Streaming.", link:"/level-3-technologies/bi/superset/#sql-lab--query-engine", subs:[
-    { id:"sql-lab-query-engine-sql-lab", label:"SQL Lab", desc:"SQL Lab is Superset's built-in feature for writing and executing SQL queries directly against connected databases — a full-featured SQL IDE inside the BI tool.", link:"/level-3-technologies/bi/superset/#sql-lab--query-engine" },
-    { id:"sql-lab-query-engine-streaming", label:"Streaming", desc:"Superset's support here is limited — while it can connect to streaming platforms like Apache Kafka, its exploration capabilities are typically focused on visualizing historical snapshots rather than true real-time analysis.", link:"/level-3-technologies/bi/superset/#sql-lab--query-engine" },
-  ]},
-  { id:"visualization-dashboards-reporting", label:"Visualization, Dashboards & Reporting", desc:"19 interview questions covering Visualization, Dashboards, Data Modeling, Reporting.", link:"/level-3-technologies/bi/superset/#visualization-dashboards--reporting", subs:[
-    { id:"visualization-dashboards-reporting-visualization", label:"Visualization", desc:"Yes — Superset lets you build custom visualizations using the rich set of visualization libraries available in the Python/JavaScript ecosystem, beyond the built-in chart types.", link:"/level-3-technologies/bi/superset/#visualization-dashboards--reporting" },
-    { id:"visualization-dashboards-reporting-dashboards", label:"Dashboards", desc:"Yes — Superset provides embed codes or URLs that can be integrated into web pages or portals, letting dashboards live inside another application's UI.", link:"/level-3-technologies/bi/superset/#visualization-dashboards--reporting" },
-    { id:"visualization-dashboards-reporting-data-modeling", label:"Data Modeling", desc:"Yes — Superset lets you define metrics (aggregations) and dimensions (groupings) at the dataset level to build complex analytical queries and visualizations without rewriting SQL each time.", link:"/level-3-technologies/bi/superset/#visualization-dashboards--reporting" },
-    { id:"visualization-dashboards-reporting-reporting", label:"Reporting", desc:"Can you schedule and automate reports in Superset?", link:"/level-3-technologies/bi/superset/#visualization-dashboards--reporting" },
-  ]},
-  { id:"performance-caching-scale", label:"Performance, Caching & Scale", desc:"9 interview questions covering Performance, Caching, Deployment, Alerting.", link:"/level-3-technologies/bi/superset/#performance-caching--scale", subs:[
-    { id:"performance-caching-scale-performance", label:"Performance", desc:"Using monitoring agents, log analyzers, and performance tracking tools — analyzing server logs, watching resource usage, and tracking query performance to identify and resolve bottlenecks.", link:"/level-3-technologies/bi/superset/#performance-caching--scale" },
-    { id:"performance-caching-scale-caching", label:"Caching", desc:"Superset caches query results to improve performance and reduce load on the underlying databases — subsequent identical requests are served from the cache instead of re-executing the query.", link:"/level-3-technologies/bi/superset/#performance-caching--scale" },
-    { id:"performance-caching-scale-deployment", label:"Deployment", desc:"Yes — Superset supports multi-tenancy by letting you configure and manage multiple instances or workspaces within a single deployment, each with its own users, databases, and resources.", link:"/level-3-technologies/bi/superset/#performance-caching--scale" },
-    { id:"performance-caching-scale-alerting", label:"Alerting", desc:"What are Superset's alerting capabilities?", link:"/level-3-technologies/bi/superset/#performance-caching--scale" },
-  ]},
-  { id:"security-governance-lineage", label:"Security, Governance & Lineage", desc:"15 interview questions covering Security, Governance, Ecosystem.", link:"/level-3-technologies/bi/superset/#security-governance--lineage", subs:[
-    { id:"security-governance-lineage-security", label:"Security", desc:"Superset provides access control through role-based permissions — you define roles and assign them specific permissions governing who can access and modify datasets, slices, dashboards, and other resources.", link:"/level-3-technologies/bi/superset/#security-governance--lineage" },
-    { id:"security-governance-lineage-governance", label:"Governance", desc:"Yes — by capturing and displaying metadata information, Superset lets users trace the origin and transformations of data used across multiple dashboards and slices, not just within a single one.", link:"/level-3-technologies/bi/superset/#security-governance--lineage" },
-    { id:"security-governance-lineage-ecosystem", label:"Ecosystem", desc:"What is Superset's integration with Apache Airflow? How can you extend Superset's functionality?", link:"/level-3-technologies/bi/superset/#security-governance--lineage" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

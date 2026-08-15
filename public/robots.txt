@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Search-result and utility pages have no standalone value in an index.
+Disallow: /404
+
+Sitemap: https://data-engineering-intereview-questions.ankit-k-j1999.workers.dev/sitemap-index.xml

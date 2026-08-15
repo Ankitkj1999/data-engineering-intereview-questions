@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/avro.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,29 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/formats/avro/#interview-questions">Core Concepts</a></h3>
+        <p class="rm-index-desc">24 interview questions covering Fundamentals, Schemas, Comparison, Workflow and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/avro/#interview-questions">Fundamentals</a></span> <span class="rm-index-sub-desc">Apache Avro is an open-source project that offers data serialization as well as data exchange services for Apache Hadoop.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/avro/#interview-questions">Schemas</a></span> <span class="rm-index-sub-desc">Avro schemas are created in the &quot;lightweight text-based data interchange&quot; format, JSON (JavaScript Object Notation).</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/avro/#interview-questions">Comparison</a></span> <span class="rm-index-sub-desc">How does Avro compare to Thrift and Protocol Buffers? What is the advantage of Hadoop's Writable serialization over Java serialization?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/avro/#interview-questions">Workflow</a></span> <span class="rm-index-sub-desc">The typical workflow: first create schemas, then read those schemas into your program — which is possible in two ways, either by generating a class corresponding to the schema or by using the parser library directly.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/avro/#interview-questions">Data Types</a></span> <span class="rm-index-sub-desc">What primitive data types does Avro support? What complex data types does Avro support?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/avro/#interview-questions">Trade-offs</a></span> <span class="rm-index-sub-desc">What are the advantages of Avro? What are the disadvantages of Avro?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/avro/#interview-questions">Security</a></span> <span class="rm-index-sub-desc">SASL (Simple Authentication and Security Layer) offers a framework for authentication and security of network protocols.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/avro/#interview-questions">APIs</a></span> <span class="rm-index-sub-desc">Name some Avro reference APIs.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/avro/#interview-questions">Use Cases</a></span> <span class="rm-index-sub-desc">When should you use Avro?</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,19 +90,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"core-concepts", label:"Core Concepts", desc:"24 interview questions covering Fundamentals, Schemas, Comparison, Workflow and more.", link:"/level-3-technologies/formats/avro/#interview-questions", subs:[
-    { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"Apache Avro is an open-source project that offers data serialization as well as data exchange services for Apache Hadoop.", link:"/level-3-technologies/formats/avro/#interview-questions" },
-    { id:"core-concepts-schemas", label:"Schemas", desc:"Avro schemas are created in the \"lightweight text-based data interchange\" format, JSON (JavaScript Object Notation).", link:"/level-3-technologies/formats/avro/#interview-questions" },
-    { id:"core-concepts-comparison", label:"Comparison", desc:"How does Avro compare to Thrift and Protocol Buffers? What is the advantage of Hadoop's Writable serialization over Java serialization?", link:"/level-3-technologies/formats/avro/#interview-questions" },
-    { id:"core-concepts-workflow", label:"Workflow", desc:"The typical workflow: first create schemas, then read those schemas into your program — which is possible in two ways, either by generating a class corresponding to the schema or by using the parser library directly.", link:"/level-3-technologies/formats/avro/#interview-questions" },
-    { id:"core-concepts-data-types", label:"Data Types", desc:"What primitive data types does Avro support? What complex data types does Avro support?", link:"/level-3-technologies/formats/avro/#interview-questions" },
-    { id:"core-concepts-trade-offs", label:"Trade-offs", desc:"What are the advantages of Avro? What are the disadvantages of Avro?", link:"/level-3-technologies/formats/avro/#interview-questions" },
-    { id:"core-concepts-security", label:"Security", desc:"SASL (Simple Authentication and Security Layer) offers a framework for authentication and security of network protocols.", link:"/level-3-technologies/formats/avro/#interview-questions" },
-    { id:"core-concepts-apis", label:"APIs", desc:"Name some Avro reference APIs.", link:"/level-3-technologies/formats/avro/#interview-questions" },
-    { id:"core-concepts-use-cases", label:"Use Cases", desc:"When should you use Avro?", link:"/level-3-technologies/formats/avro/#interview-questions" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

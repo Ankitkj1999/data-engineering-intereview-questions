@@ -1,0 +1,242 @@
+[
+  {
+    "id": "iac-fundamentals",
+    "label": "IaC Fundamentals",
+    "desc": "Declarative desired state, idempotency and drift — the ideas the tools are built around.",
+    "link": "/level-1-foundations/iac/#iac-fundamentals",
+    "subs": [
+      {
+        "id": "iac-what",
+        "label": "What IaC Solves",
+        "desc": "Reproducibility, version control, consistency, auditability and disaster recovery.",
+        "link": "/level-1-foundations/iac/#iac-fundamentals"
+      },
+      {
+        "id": "iac-declarative",
+        "label": "Declarative vs Imperative",
+        "desc": "Describing the end state versus the steps, and why declarative wins for infrastructure.",
+        "link": "/level-1-foundations/iac/#iac-fundamentals"
+      },
+      {
+        "id": "iac-idempotency",
+        "label": "Idempotency",
+        "desc": "Why applying twice changes nothing, and what makes automation safe.",
+        "link": "/level-1-foundations/iac/#iac-fundamentals"
+      },
+      {
+        "id": "iac-drift",
+        "label": "Configuration Drift",
+        "desc": "Detecting divergence with a scheduled plan, and deciding which side is right.",
+        "link": "/level-1-foundations/iac/#iac-fundamentals"
+      },
+      {
+        "id": "iac-tools",
+        "label": "Tool Comparison",
+        "desc": "Terraform, CloudFormation, Pulumi and Ansible — provisioning versus configuration.",
+        "link": "/level-1-foundations/iac/#iac-fundamentals"
+      }
+    ]
+  },
+  {
+    "id": "iac-terraform",
+    "label": "Terraform Core",
+    "desc": "The workflow, the language and the meta-arguments that control how resources are created.",
+    "link": "/level-1-foundations/iac/#terraform-core",
+    "subs": [
+      {
+        "id": "iac-workflow",
+        "label": "The Core Workflow",
+        "desc": "init, fmt, validate, plan, apply — and saving the plan file in automation.",
+        "link": "/level-1-foundations/iac/#terraform-core"
+      },
+      {
+        "id": "iac-blocks",
+        "label": "Block Types",
+        "desc": "terraform, provider, resource, data, variable, output, locals and module.",
+        "link": "/level-1-foundations/iac/#terraform-core"
+      },
+      {
+        "id": "iac-count-foreach",
+        "label": "count vs for_each",
+        "desc": "Numeric indices shift on removal; for_each keys by identity and doesn't.",
+        "link": "/level-1-foundations/iac/#terraform-core"
+      },
+      {
+        "id": "iac-provisioners",
+        "label": "Provisioners",
+        "desc": "Why local-exec and remote-exec are a last resort, and what to use instead.",
+        "link": "/level-1-foundations/iac/#terraform-core"
+      },
+      {
+        "id": "iac-versions",
+        "label": "Version Constraints & Lockfile",
+        "desc": "Pessimistic constraints, and why .terraform.lock.hcl must be committed.",
+        "link": "/level-1-foundations/iac/#terraform-core"
+      },
+      {
+        "id": "iac-lifecycle",
+        "label": "Lifecycle Meta-Arguments",
+        "desc": "prevent_destroy, create_before_destroy, ignore_changes and replace_triggered_by.",
+        "link": "/level-1-foundations/iac/#terraform-core"
+      }
+    ]
+  },
+  {
+    "id": "iac-state-mgmt",
+    "label": "State Management",
+    "desc": "Where most hard Terraform questions actually live — the mapping between config and reality.",
+    "link": "/level-1-foundations/iac/#state-management",
+    "subs": [
+      {
+        "id": "iac-what-state",
+        "label": "What State Is",
+        "desc": "The map from configuration to real cloud objects, and why losing it is serious.",
+        "link": "/level-1-foundations/iac/#state-management"
+      },
+      {
+        "id": "iac-backends",
+        "label": "Remote Backends",
+        "desc": "Versioning, encryption, restricted access and locking as non-negotiables.",
+        "link": "/level-1-foundations/iac/#state-management"
+      },
+      {
+        "id": "iac-locking",
+        "label": "State Locking",
+        "desc": "Preventing concurrent applies, and the care needed before force-unlock.",
+        "link": "/level-1-foundations/iac/#state-management"
+      },
+      {
+        "id": "iac-import",
+        "label": "Importing Resources",
+        "desc": "Bringing a manually created resource under management with import blocks.",
+        "link": "/level-1-foundations/iac/#state-management"
+      },
+      {
+        "id": "iac-moved",
+        "label": "moved Blocks",
+        "desc": "Renaming or re-homing a resource without Terraform destroying and recreating it.",
+        "link": "/level-1-foundations/iac/#state-management"
+      },
+      {
+        "id": "iac-state-secrets",
+        "label": "State & Secrets",
+        "desc": "Why state holds plaintext credentials, and why it must never reach Git.",
+        "link": "/level-1-foundations/iac/#state-management"
+      },
+      {
+        "id": "iac-split-state",
+        "label": "Splitting State",
+        "desc": "Separating by blast radius and change frequency, and sharing values between stacks.",
+        "link": "/level-1-foundations/iac/#state-management"
+      }
+    ]
+  },
+  {
+    "id": "iac-modules-envs",
+    "label": "Modules & Environments",
+    "desc": "Reusable building blocks, environment separation, testing and running Terraform from CI.",
+    "link": "/level-1-foundations/iac/#modules--environments",
+    "subs": [
+      {
+        "id": "iac-modules",
+        "label": "Writing Modules",
+        "desc": "When a group of resources earns a module — and the over-parameterisation trap.",
+        "link": "/level-1-foundations/iac/#modules--environments"
+      },
+      {
+        "id": "iac-root-child",
+        "label": "Root vs Child Modules",
+        "desc": "Where the backend and providers belong, and why child modules shouldn't declare them.",
+        "link": "/level-1-foundations/iac/#modules--environments"
+      },
+      {
+        "id": "iac-envs",
+        "label": "Environment Strategies",
+        "desc": "Directory per environment versus workspaces versus Terragrunt.",
+        "link": "/level-1-foundations/iac/#modules--environments"
+      },
+      {
+        "id": "iac-testing",
+        "label": "Testing IaC",
+        "desc": "fmt, validate, tflint, tfsec, policy-as-code, terraform test and Terratest.",
+        "link": "/level-1-foundations/iac/#modules--environments"
+      },
+      {
+        "id": "iac-pipeline",
+        "label": "Terraform in CI/CD",
+        "desc": "Read-only plan on the PR, posted as a comment, then applying the saved plan on merge.",
+        "link": "/level-1-foundations/iac/#modules--environments"
+      }
+    ]
+  },
+  {
+    "id": "iac-alternatives",
+    "label": "OpenTofu & AWS CDK",
+    "desc": "The alternatives to Terraform's HCL — a licensing fork, and infrastructure in a real language.",
+    "link": "/level-1-foundations/iac/#opentofu--aws-cdk",
+    "subs": [
+      {
+        "id": "iac-opentofu",
+        "label": "What OpenTofu Is",
+        "desc": "The BSL relicensing fork, now Linux Foundation governed and slowly diverging.",
+        "link": "/level-1-foundations/iac/#opentofu--aws-cdk"
+      },
+      {
+        "id": "iac-tf-vs-tofu",
+        "label": "Terraform vs OpenTofu",
+        "desc": "Licence, governance, ecosystem and feature divergence — mostly not a technical call.",
+        "link": "/level-1-foundations/iac/#opentofu--aws-cdk"
+      },
+      {
+        "id": "iac-cdk",
+        "label": "AWS CDK",
+        "desc": "Real languages synthesising CloudFormation, with constructs and managed state.",
+        "link": "/level-1-foundations/iac/#opentofu--aws-cdk"
+      },
+      {
+        "id": "iac-hcl-vs-lang",
+        "label": "HCL vs a General-Purpose Language",
+        "desc": "When abstraction helps, and when it makes infrastructure unreviewable.",
+        "link": "/level-1-foundations/iac/#opentofu--aws-cdk"
+      }
+    ]
+  },
+  {
+    "id": "iac-de",
+    "label": "IaC for Data Platforms",
+    "desc": "What to manage, where the boundary with app deployment sits, and the stateful-resource risk.",
+    "link": "/level-1-foundations/iac/#iac-for-data-platforms",
+    "subs": [
+      {
+        "id": "iac-de-what",
+        "label": "What to Manage with IaC",
+        "desc": "Storage, warehouses, processing, streaming, orchestration, catalog, IAM, networking.",
+        "link": "/level-1-foundations/iac/#iac-for-data-platforms"
+      },
+      {
+        "id": "iac-de-boundary",
+        "label": "IaC vs App Deployment",
+        "desc": "Terraform provisions the long-lived container; pipelines deploy what changes often.",
+        "link": "/level-1-foundations/iac/#iac-for-data-platforms"
+      },
+      {
+        "id": "iac-de-iam",
+        "label": "IAM for Pipelines",
+        "desc": "Role per pipeline, prefix-scoped policies, workload identity, and no static keys.",
+        "link": "/level-1-foundations/iac/#iac-for-data-platforms"
+      },
+      {
+        "id": "iac-de-risk",
+        "label": "Risks with Stateful Resources",
+        "desc": "Replacement plans that destroy data, and the layers of protection against them.",
+        "link": "/level-1-foundations/iac/#iac-for-data-platforms"
+      },
+      {
+        "id": "iac-de-product",
+        "label": "Provisioning a Data Product",
+        "desc": "Composing modules so a new data product is a small, standard pull request.",
+        "link": "/level-1-foundations/iac/#iac-for-data-platforms"
+      }
+    ]
+  }
+]

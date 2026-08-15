@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/python.json";
 ---
 
 <StarlightPage
@@ -63,6 +64,168 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/basics/">Learn the Basics</a></h3>
+        <p class="rm-index-desc">The foundation of Python — syntax, data types, control flow, and built-in structures.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/basics/#syntax--variables">Basic Syntax</a></span> <span class="rm-index-sub-desc">Indentation rules, comments, print statements, and the Python REPL.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/basics/#data-types--casting">Variables &amp; Data Types</a></span> <span class="rm-index-sub-desc">int, float, str, bool, None — and dynamic typing in Python.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/basics/#conditionals--loops">Conditionals</a></span> <span class="rm-index-sub-desc">if / elif / else, ternary expressions, and truthy/falsy values.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/basics/#conditionals--loops">Loops</a></span> <span class="rm-index-sub-desc">for loops, while loops, break, continue, and range().</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/basics/#data-types--casting">Type Casting</a></span> <span class="rm-index-sub-desc">Converting between types: int(), str(), float(), list(), etc.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/basics/#exceptions">Exceptions</a></span> <span class="rm-index-sub-desc">try/except/finally, raising exceptions, and custom exception classes.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/basics/#built-in-functions">Functions &amp; Builtins</a></span> <span class="rm-index-sub-desc">Defining functions, *args, **kwargs, and useful builtins like map(), filter(), zip().</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/basics/#lists--tuples">Lists</a></span> <span class="rm-index-sub-desc">Mutable ordered sequences — indexing, slicing, list methods.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/basics/#lists--tuples">Tuples</a></span> <span class="rm-index-sub-desc">Immutable sequences — packing, unpacking, named tuples.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/basics/#sets--dictionaries">Sets</a></span> <span class="rm-index-sub-desc">Unordered unique collections — set operations, frozenset.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/basics/#sets--dictionaries">Dictionaries</a></span> <span class="rm-index-sub-desc">Key-value stores — dict comprehensions, .get(), .items(), .update().</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/data-structures-algorithms/">Data Structures &amp; Algorithms</a></h3>
+        <p class="rm-index-desc">Classic CS concepts implemented in Python — essential for technical interviews.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/data-structures-algorithms/#arrays--linked-lists">Arrays and Linked Lists</a></span> <span class="rm-index-sub-desc">Python lists as arrays, implementing singly/doubly linked lists.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/data-structures-algorithms/#hash-tables">Hash Tables</a></span> <span class="rm-index-sub-desc">Dictionaries under the hood — hashing and collision handling.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/data-structures-algorithms/#heaps--priority-queues">Heaps, Stacks &amp; Queues</a></span> <span class="rm-index-sub-desc">heapq module, collections.deque, and stack patterns with lists.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/data-structures-algorithms/#trees--binary-search">Binary Search Tree</a></span> <span class="rm-index-sub-desc">BST properties, insertion, search, and traversal algorithms.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/data-structures-algorithms/#recursion">Recursion</a></span> <span class="rm-index-sub-desc">Base cases, call stacks, memoization, and tail recursion patterns.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/data-structures-algorithms/#sorting--searching">Sorting Algorithms</a></span> <span class="rm-index-sub-desc">Built-in sort(), Timsort, and implementing merge/quick sort.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/modules-packaging/">Modules</a></h3>
+        <p class="rm-index-desc">Organising code with modules, packages, and the Python import system.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/modules-packaging/#modules--imports">Builtin Modules</a></span> <span class="rm-index-sub-desc">os, sys, math, datetime, json, pathlib, collections, itertools.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/modules-packaging/#packages">Custom Modules</a></span> <span class="rm-index-sub-desc">Creating __init__.py, relative vs absolute imports, __all__.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/functions/#lambdas">Lambdas</a></h3>
+        <p class="rm-index-desc">Anonymous functions with lambda — usage with map(), filter(), sorted(), and functional patterns.</p>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/decorators-context-managers/#decorator-fundamentals">Decorators</a></h3>
+        <p class="rm-index-desc">Higher-order functions that wrap other functions — functools.wraps, class decorators, stacking decorators.</p>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/comprehensions-generators/#the-iterator-protocol">Iterators</a></h3>
+        <p class="rm-index-desc">__iter__ and __next__ protocols, itertools module, lazy evaluation.</p>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/regular-expressions/">Regular Expressions</a></h3>
+        <p class="rm-index-desc">Pattern matching with the re module — compile, match, search, findall, groups.</p>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/oop/">Object Oriented Programming</a></h3>
+        <p class="rm-index-desc">Python's OOP model — classes, inheritance, magic methods, and encapsulation.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/oop/#classes--instances">Classes</a></span> <span class="rm-index-sub-desc">__init__, instance vs class attributes, @classmethod, @staticmethod, @property.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/oop/#inheritance">Inheritance</a></span> <span class="rm-index-sub-desc">Single/multiple inheritance, super(), MRO (Method Resolution Order).</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/oop/#dunder-methods">Methods &amp; Dunder</a></span> <span class="rm-index-sub-desc">__str__, __repr__, __len__, __eq__, __hash__, and operator overloading.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/modules-packaging/#package-managers">Package Managers</a></h3>
+        <p class="rm-index-desc">Tools for installing, managing, and isolating Python dependencies.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/modules-packaging/#package-managers">pip</a></span> <span class="rm-index-sub-desc">The standard Python package installer — pip install, requirements.txt, pip freeze.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/modules-packaging/#package-managers">PyPI</a></span> <span class="rm-index-sub-desc">The Python Package Index — finding, publishing, and versioning packages.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/modules-packaging/#package-managers">Poetry</a></span> <span class="rm-index-sub-desc">Modern dependency management with pyproject.toml, lock files, and virtual envs.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/modules-packaging/#virtual-environments">Conda</a></span> <span class="rm-index-sub-desc">Package and environment manager from Anaconda — great for data science.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/modules-packaging/#package-managers">uv</a></span> <span class="rm-index-sub-desc">Ultra-fast Python package and project manager written in Rust.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/modules-packaging/#package-managers">Pipenv</a></span> <span class="rm-index-sub-desc">Combines pip and virtualenv — Pipfile and Pipfile.lock.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/modules-packaging/#virtual-environments">virtualenv</a></span> <span class="rm-index-sub-desc">Creating isolated Python environments.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/modules-packaging/#virtual-environments">pyenv</a></span> <span class="rm-index-sub-desc">Managing multiple Python versions on the same machine.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/modules-packaging/#package-managers">pyproject.toml</a></span> <span class="rm-index-sub-desc">The modern Python project configuration standard (PEP 517/518).</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/comprehensions-generators/#comprehensions">List Comprehensions</a></h3>
+        <p class="rm-index-desc">Concise syntax for building lists — [expr for x in iterable if condition].</p>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/comprehensions-generators/#generators">Generator Expressions</a></h3>
+        <p class="rm-index-desc">Lazy evaluation with (expr for x in iterable) — memory-efficient alternative to list comprehensions.</p>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/functions/#functional-programming">Paradigms</a></h3>
+        <p class="rm-index-desc">Python as a multi-paradigm language — functional, procedural, and OOP patterns.</p>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/decorators-context-managers/#context-manager-fundamentals">Context Manager</a></h3>
+        <p class="rm-index-desc">The with statement, __enter__/__exit__, contextlib, and resource management patterns.</p>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/web-frameworks/">Learn a Framework</a></h3>
+        <p class="rm-index-desc">Web and async frameworks for building APIs, dashboards, and services with Python.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/web-frameworks/#fastapi">FastAPI</a></span> <span class="rm-index-sub-desc">Modern, high-performance web API framework with automatic docs and type hints.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/web-frameworks/#framework-comparison">Django</a></span> <span class="rm-index-sub-desc">Batteries-included web framework — ORM, admin, auth, templates.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/web-frameworks/#framework-comparison">Flask</a></span> <span class="rm-index-sub-desc">Lightweight WSGI microframework — great for small APIs and services.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/web-frameworks/#framework-comparison">aiohttp</a></span> <span class="rm-index-sub-desc">Async HTTP client/server framework built on asyncio.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/web-frameworks/#framework-comparison">Tornado</a></span> <span class="rm-index-sub-desc">Non-blocking network I/O and web framework.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/web-frameworks/#framework-comparison">Sanic</a></span> <span class="rm-index-sub-desc">Fast async web server and framework, built for speed.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/web-frameworks/#framework-comparison">Plotly Dash</a></span> <span class="rm-index-sub-desc">Build interactive analytical web apps in pure Python.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/web-frameworks/#framework-comparison">Pyramid</a></span> <span class="rm-index-sub-desc">Flexible web framework — scales from simple to complex apps.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/web-frameworks/#framework-comparison">gevent</a></span> <span class="rm-index-sub-desc">Coroutine-based networking library using greenlets.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/concurrency/">Concurrency</a></h3>
+        <p class="rm-index-desc">Running tasks simultaneously in Python — threads, processes, and async.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/concurrency/#the-gil">GIL</a></span> <span class="rm-index-sub-desc">The Global Interpreter Lock — what it is, why it exists, and its impact on threading.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/concurrency/#threading">Threading</a></span> <span class="rm-index-sub-desc">Thread-based parallelism with the threading module — I/O-bound tasks.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/concurrency/#multiprocessing">Multiprocessing</a></span> <span class="rm-index-sub-desc">Process-based parallelism — bypassing the GIL for CPU-bound tasks.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/concurrency/#asyncio">Asynchrony (asyncio)</a></span> <span class="rm-index-sub-desc">Cooperative multitasking with async/await, event loops, and coroutines.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/static-typing/">Static Typing</a></h3>
+        <p class="rm-index-desc">Adding type annotations to Python — improving code quality and IDE support.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/static-typing/#the-typing-module">typing module</a></span> <span class="rm-index-sub-desc">List, Dict, Optional, Union, Callable, TypeVar, and Protocol.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/static-typing/#pydantic--runtime-validation">Pydantic</a></span> <span class="rm-index-sub-desc">Data validation using Python type hints — widely used in FastAPI.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/static-typing/#type-checkers">mypy</a></span> <span class="rm-index-sub-desc">Static type checker for Python — catches type errors before runtime.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/static-typing/#type-checkers">pyright</a></span> <span class="rm-index-sub-desc">Fast type checker from Microsoft — powers Pylance in VS Code.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/static-typing/#type-checkers">pyre</a></span> <span class="rm-index-sub-desc">Type checker from Meta — designed for large codebases.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/code-quality/">Code Formatting</a></h3>
+        <p class="rm-index-desc">Keeping Python code consistent, readable, and style-guide compliant.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/code-quality/#formatting">ruff</a></span> <span class="rm-index-sub-desc">Extremely fast Python linter and formatter written in Rust — replaces flake8 + isort.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/code-quality/#formatting">black</a></span> <span class="rm-index-sub-desc">The uncompromising code formatter — opinionated, zero-config formatting.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/code-quality/#formatting">yapf</a></span> <span class="rm-index-sub-desc">Yet Another Python Formatter from Google — highly configurable.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/code-quality/#documentation">Sphinx</a></span> <span class="rm-index-sub-desc">Documentation generator — reStructuredText, autodoc, and Read the Docs.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/data-libraries/">Common Packages</a></h3>
+        <p class="rm-index-desc">Essential Python packages for data engineering: NumPy, Pandas, requests, SQLAlchemy, and more.</p>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/python/testing/">Testing</a></h3>
+        <p class="rm-index-desc">Writing tests to verify correctness — unit, integration, and property-based testing.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/testing/#pytest-fundamentals">pytest</a></span> <span class="rm-index-sub-desc">The most popular Python testing framework — fixtures, parametrize, plugins.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/testing/#other-testing-tools">unittest / pyUnit</a></span> <span class="rm-index-sub-desc">Python's built-in testing framework based on xUnit patterns.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/testing/#other-testing-tools">doctest</a></span> <span class="rm-index-sub-desc">Tests embedded in docstrings — simple and self-documenting.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/testing/#other-testing-tools">tox</a></span> <span class="rm-index-sub-desc">Automate testing across multiple Python versions and environments.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/python/testing/#other-testing-tools">nose</a></span> <span class="rm-index-sub-desc">Test runner extending unittest — largely superseded by pytest.</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -70,95 +233,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"learn-basics", label:"Learn the Basics", desc:"The foundation of Python — syntax, data types, control flow, and built-in structures.", link:"/level-1-foundations/python/basics/", subs:[
-    { id:"basic-syntax",      label:"Basic Syntax",             desc:"Indentation rules, comments, print statements, and the Python REPL.", link:"/level-1-foundations/python/basics/#syntax--variables" },
-    { id:"vars-datatypes",    label:"Variables & Data Types",   desc:"int, float, str, bool, None — and dynamic typing in Python.", link:"/level-1-foundations/python/basics/#data-types--casting" },
-    { id:"conditionals",      label:"Conditionals",             desc:"if / elif / else, ternary expressions, and truthy/falsy values.", link:"/level-1-foundations/python/basics/#conditionals--loops" },
-    { id:"loops",             label:"Loops",                    desc:"for loops, while loops, break, continue, and range().", link:"/level-1-foundations/python/basics/#conditionals--loops" },
-    { id:"type-casting",      label:"Type Casting",             desc:"Converting between types: int(), str(), float(), list(), etc.", link:"/level-1-foundations/python/basics/#data-types--casting" },
-    { id:"exceptions",        label:"Exceptions",               desc:"try/except/finally, raising exceptions, and custom exception classes.", link:"/level-1-foundations/python/basics/#exceptions" },
-    { id:"functions",         label:"Functions & Builtins",     desc:"Defining functions, *args, **kwargs, and useful builtins like map(), filter(), zip().", link:"/level-1-foundations/python/basics/#built-in-functions" },
-    { id:"lists",             label:"Lists",                    desc:"Mutable ordered sequences — indexing, slicing, list methods.", link:"/level-1-foundations/python/basics/#lists--tuples" },
-    { id:"tuples",            label:"Tuples",                   desc:"Immutable sequences — packing, unpacking, named tuples.", link:"/level-1-foundations/python/basics/#lists--tuples" },
-    { id:"sets",              label:"Sets",                     desc:"Unordered unique collections — set operations, frozenset.", link:"/level-1-foundations/python/basics/#sets--dictionaries" },
-    { id:"dicts",             label:"Dictionaries",             desc:"Key-value stores — dict comprehensions, .get(), .items(), .update().", link:"/level-1-foundations/python/basics/#sets--dictionaries" },
-  ]},
-  { id:"data-structures", label:"Data Structures & Algorithms", desc:"Classic CS concepts implemented in Python — essential for technical interviews.", link:"/level-1-foundations/python/data-structures-algorithms/", subs:[
-    { id:"arrays-ll",         label:"Arrays and Linked Lists",  desc:"Python lists as arrays, implementing singly/doubly linked lists.", link:"/level-1-foundations/python/data-structures-algorithms/#arrays--linked-lists" },
-    { id:"hash-tables",       label:"Hash Tables",              desc:"Dictionaries under the hood — hashing and collision handling.", link:"/level-1-foundations/python/data-structures-algorithms/#hash-tables" },
-    { id:"heaps-stacks",      label:"Heaps, Stacks & Queues",   desc:"heapq module, collections.deque, and stack patterns with lists.", link:"/level-1-foundations/python/data-structures-algorithms/#heaps--priority-queues" },
-    { id:"bst",               label:"Binary Search Tree",       desc:"BST properties, insertion, search, and traversal algorithms.", link:"/level-1-foundations/python/data-structures-algorithms/#trees--binary-search" },
-    { id:"recursion",         label:"Recursion",                desc:"Base cases, call stacks, memoization, and tail recursion patterns.", link:"/level-1-foundations/python/data-structures-algorithms/#recursion" },
-    { id:"sorting",           label:"Sorting Algorithms",       desc:"Built-in sort(), Timsort, and implementing merge/quick sort.", link:"/level-1-foundations/python/data-structures-algorithms/#sorting--searching" },
-  ]},
-  { id:"modules", label:"Modules", desc:"Organising code with modules, packages, and the Python import system.", link:"/level-1-foundations/python/modules-packaging/", subs:[
-    { id:"builtin-modules",   label:"Builtin Modules",          desc:"os, sys, math, datetime, json, pathlib, collections, itertools.", link:"/level-1-foundations/python/modules-packaging/#modules--imports" },
-    { id:"custom-modules",    label:"Custom Modules",           desc:"Creating __init__.py, relative vs absolute imports, __all__.", link:"/level-1-foundations/python/modules-packaging/#packages" },
-  ]},
-  { id:"lambdas",          label:"Lambdas",                  desc:"Anonymous functions with lambda — usage with map(), filter(), sorted(), and functional patterns.", link:"/level-1-foundations/python/functions/#lambdas", subs:[] },
-  { id:"decorators",       label:"Decorators",               desc:"Higher-order functions that wrap other functions — functools.wraps, class decorators, stacking decorators.", link:"/level-1-foundations/python/decorators-context-managers/#decorator-fundamentals", subs:[] },
-  { id:"iterators",        label:"Iterators",                desc:"__iter__ and __next__ protocols, itertools module, lazy evaluation.", link:"/level-1-foundations/python/comprehensions-generators/#the-iterator-protocol", subs:[] },
-  { id:"regex",            label:"Regular Expressions",      desc:"Pattern matching with the re module — compile, match, search, findall, groups.", link:"/level-1-foundations/python/regular-expressions/", subs:[] },
-  { id:"oop", label:"Object Oriented Programming", desc:"Python's OOP model — classes, inheritance, magic methods, and encapsulation.", link:"/level-1-foundations/python/oop/", subs:[
-    { id:"classes",           label:"Classes",                  desc:"__init__, instance vs class attributes, @classmethod, @staticmethod, @property.", link:"/level-1-foundations/python/oop/#classes--instances" },
-    { id:"inheritance",       label:"Inheritance",              desc:"Single/multiple inheritance, super(), MRO (Method Resolution Order).", link:"/level-1-foundations/python/oop/#inheritance" },
-    { id:"dunder",            label:"Methods & Dunder",         desc:"__str__, __repr__, __len__, __eq__, __hash__, and operator overloading.", link:"/level-1-foundations/python/oop/#dunder-methods" },
-  ]},
-  { id:"pkg-managers", label:"Package Managers", desc:"Tools for installing, managing, and isolating Python dependencies.", link:"/level-1-foundations/python/modules-packaging/#package-managers", subs:[
-    { id:"pip",               label:"pip",                      desc:"The standard Python package installer — pip install, requirements.txt, pip freeze.", link:"/level-1-foundations/python/modules-packaging/#package-managers" },
-    { id:"pypi",              label:"PyPI",                     desc:"The Python Package Index — finding, publishing, and versioning packages.", link:"/level-1-foundations/python/modules-packaging/#package-managers" },
-    { id:"poetry",            label:"Poetry",                   desc:"Modern dependency management with pyproject.toml, lock files, and virtual envs.", link:"/level-1-foundations/python/modules-packaging/#package-managers" },
-    { id:"conda",             label:"Conda",                    desc:"Package and environment manager from Anaconda — great for data science.", link:"/level-1-foundations/python/modules-packaging/#virtual-environments" },
-    { id:"uv",                label:"uv",                       desc:"Ultra-fast Python package and project manager written in Rust.", link:"/level-1-foundations/python/modules-packaging/#package-managers" },
-    { id:"pipenv",            label:"Pipenv",                   desc:"Combines pip and virtualenv — Pipfile and Pipfile.lock.", link:"/level-1-foundations/python/modules-packaging/#package-managers" },
-    { id:"virtualenv",        label:"virtualenv",               desc:"Creating isolated Python environments.", link:"/level-1-foundations/python/modules-packaging/#virtual-environments" },
-    { id:"pyenv",             label:"pyenv",                    desc:"Managing multiple Python versions on the same machine.", link:"/level-1-foundations/python/modules-packaging/#virtual-environments" },
-    { id:"pyproject",         label:"pyproject.toml",           desc:"The modern Python project configuration standard (PEP 517/518).", link:"/level-1-foundations/python/modules-packaging/#package-managers" },
-  ]},
-  { id:"list-comp",        label:"List Comprehensions",      desc:"Concise syntax for building lists — [expr for x in iterable if condition].", link:"/level-1-foundations/python/comprehensions-generators/#comprehensions", subs:[] },
-  { id:"gen-expr",         label:"Generator Expressions",    desc:"Lazy evaluation with (expr for x in iterable) — memory-efficient alternative to list comprehensions.", link:"/level-1-foundations/python/comprehensions-generators/#generators", subs:[] },
-  { id:"paradigms",        label:"Paradigms",                desc:"Python as a multi-paradigm language — functional, procedural, and OOP patterns.", link:"/level-1-foundations/python/functions/#functional-programming", subs:[] },
-  { id:"context-mgr",     label:"Context Manager",          desc:"The with statement, __enter__/__exit__, contextlib, and resource management patterns.", link:"/level-1-foundations/python/decorators-context-managers/#context-manager-fundamentals", subs:[] },
-  { id:"frameworks", label:"Learn a Framework", desc:"Web and async frameworks for building APIs, dashboards, and services with Python.", link:"/level-1-foundations/python/web-frameworks/", subs:[
-    { id:"fastapi",           label:"FastAPI",                  desc:"Modern, high-performance web API framework with automatic docs and type hints.", link:"/level-1-foundations/python/web-frameworks/#fastapi" },
-    { id:"django",            label:"Django",                   desc:"Batteries-included web framework — ORM, admin, auth, templates.", link:"/level-1-foundations/python/web-frameworks/#framework-comparison" },
-    { id:"flask",             label:"Flask",                    desc:"Lightweight WSGI microframework — great for small APIs and services.", link:"/level-1-foundations/python/web-frameworks/#framework-comparison" },
-    { id:"aiohttp",           label:"aiohttp",                  desc:"Async HTTP client/server framework built on asyncio.", link:"/level-1-foundations/python/web-frameworks/#framework-comparison" },
-    { id:"tornado",           label:"Tornado",                  desc:"Non-blocking network I/O and web framework.", link:"/level-1-foundations/python/web-frameworks/#framework-comparison" },
-    { id:"sanic",             label:"Sanic",                    desc:"Fast async web server and framework, built for speed.", link:"/level-1-foundations/python/web-frameworks/#framework-comparison" },
-    { id:"dash",              label:"Plotly Dash",              desc:"Build interactive analytical web apps in pure Python.", link:"/level-1-foundations/python/web-frameworks/#framework-comparison" },
-    { id:"pyramid",           label:"Pyramid",                  desc:"Flexible web framework — scales from simple to complex apps.", link:"/level-1-foundations/python/web-frameworks/#framework-comparison" },
-    { id:"gevent",            label:"gevent",                   desc:"Coroutine-based networking library using greenlets.", link:"/level-1-foundations/python/web-frameworks/#framework-comparison" },
-  ]},
-  { id:"concurrency", label:"Concurrency", desc:"Running tasks simultaneously in Python — threads, processes, and async.", link:"/level-1-foundations/python/concurrency/", subs:[
-    { id:"gil",               label:"GIL",                      desc:"The Global Interpreter Lock — what it is, why it exists, and its impact on threading.", link:"/level-1-foundations/python/concurrency/#the-gil" },
-    { id:"threading",         label:"Threading",                desc:"Thread-based parallelism with the threading module — I/O-bound tasks.", link:"/level-1-foundations/python/concurrency/#threading" },
-    { id:"multiprocessing",   label:"Multiprocessing",          desc:"Process-based parallelism — bypassing the GIL for CPU-bound tasks.", link:"/level-1-foundations/python/concurrency/#multiprocessing" },
-    { id:"asyncio",           label:"Asynchrony (asyncio)",     desc:"Cooperative multitasking with async/await, event loops, and coroutines.", link:"/level-1-foundations/python/concurrency/#asyncio" },
-  ]},
-  { id:"static-typing", label:"Static Typing", desc:"Adding type annotations to Python — improving code quality and IDE support.", link:"/level-1-foundations/python/static-typing/", subs:[
-    { id:"typing-mod",        label:"typing module",            desc:"List, Dict, Optional, Union, Callable, TypeVar, and Protocol.", link:"/level-1-foundations/python/static-typing/#the-typing-module" },
-    { id:"pydantic",          label:"Pydantic",                 desc:"Data validation using Python type hints — widely used in FastAPI.", link:"/level-1-foundations/python/static-typing/#pydantic--runtime-validation" },
-    { id:"mypy",              label:"mypy",                     desc:"Static type checker for Python — catches type errors before runtime.", link:"/level-1-foundations/python/static-typing/#type-checkers" },
-    { id:"pyright",           label:"pyright",                  desc:"Fast type checker from Microsoft — powers Pylance in VS Code.", link:"/level-1-foundations/python/static-typing/#type-checkers" },
-    { id:"pyre",              label:"pyre",                     desc:"Type checker from Meta — designed for large codebases.", link:"/level-1-foundations/python/static-typing/#type-checkers" },
-  ]},
-  { id:"code-fmt", label:"Code Formatting", desc:"Keeping Python code consistent, readable, and style-guide compliant.", link:"/level-1-foundations/python/code-quality/", subs:[
-    { id:"ruff",              label:"ruff",                     desc:"Extremely fast Python linter and formatter written in Rust — replaces flake8 + isort.", link:"/level-1-foundations/python/code-quality/#formatting" },
-    { id:"black",             label:"black",                    desc:"The uncompromising code formatter — opinionated, zero-config formatting.", link:"/level-1-foundations/python/code-quality/#formatting" },
-    { id:"yapf",              label:"yapf",                     desc:"Yet Another Python Formatter from Google — highly configurable.", link:"/level-1-foundations/python/code-quality/#formatting" },
-    { id:"sphinx",            label:"Sphinx",                   desc:"Documentation generator — reStructuredText, autodoc, and Read the Docs.", link:"/level-1-foundations/python/code-quality/#documentation" },
-  ]},
-  { id:"common-pkgs",      label:"Common Packages",          desc:"Essential Python packages for data engineering: NumPy, Pandas, requests, SQLAlchemy, and more.", link:"/level-1-foundations/python/data-libraries/", subs:[] },
-  { id:"testing", label:"Testing", desc:"Writing tests to verify correctness — unit, integration, and property-based testing.", link:"/level-1-foundations/python/testing/", subs:[
-    { id:"pytest",            label:"pytest",                   desc:"The most popular Python testing framework — fixtures, parametrize, plugins.", link:"/level-1-foundations/python/testing/#pytest-fundamentals" },
-    { id:"unittest",          label:"unittest / pyUnit",        desc:"Python's built-in testing framework based on xUnit patterns.", link:"/level-1-foundations/python/testing/#other-testing-tools" },
-    { id:"doctest",           label:"doctest",                  desc:"Tests embedded in docstrings — simple and self-documenting.", link:"/level-1-foundations/python/testing/#other-testing-tools" },
-    { id:"tox",               label:"tox",                      desc:"Automate testing across multiple Python versions and environments.", link:"/level-1-foundations/python/testing/#other-testing-tools" },
-    { id:"nose",              label:"nose",                     desc:"Test runner extending unittest — largely superseded by pytest.", link:"/level-1-foundations/python/testing/#other-testing-tools" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/></svg>`;

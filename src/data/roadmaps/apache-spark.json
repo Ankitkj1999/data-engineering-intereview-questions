@@ -1,0 +1,1416 @@
+[
+  {
+    "id": "distributed-computing-fundamentals",
+    "label": "Distributed Computing Fundamentals",
+    "desc": "The core building blocks of how Spark distributes work across a cluster.",
+    "link": "/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/",
+    "subs": [
+      {
+        "id": "driver-node-responsibilities",
+        "label": "Driver node responsibilities",
+        "desc": "The process that runs main(), builds the DAG, negotiates resources with the cluster manager, and schedules tasks onto executors.",
+        "link": "/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/#driver-node-responsibilities"
+      },
+      {
+        "id": "worker-node-architecture",
+        "label": "Worker node architecture",
+        "desc": "Physical or virtual machines that host executor processes, providing the CPU, memory, and disk resources tasks run on.",
+        "link": "/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/#worker-node-architecture"
+      },
+      {
+        "id": "executor-processes-and-task-slots",
+        "label": "Executor processes and task slots",
+        "desc": "JVM processes launched per application on worker nodes that run tasks in parallel across configurable core-based slots and cache data in memory.",
+        "link": "/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/#executor-processes-and-task-slots"
+      },
+      {
+        "id": "cluster-manager-concepts",
+        "label": "Cluster manager concepts (YARN, Mesos, Standalone, Kubernetes)",
+        "desc": "Pluggable systems that allocate cluster resources and launch executors on Spark's behalf.",
+        "link": "/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/#cluster-manager-concepts"
+      },
+      {
+        "id": "spark-master-and-worker-roles",
+        "label": "Spark master and worker roles",
+        "desc": "In Standalone mode, the master arbitrates resources across applications while workers register with it and spawn executors on request.",
+        "link": "/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/#spark-master-and-worker-roles"
+      },
+      {
+        "id": "resource-allocation-strategies",
+        "label": "Resource allocation strategies",
+        "desc": "Static allocation reserves a fixed set of executors up front, while dynamic and per-job configuration trade flexibility for predictability.",
+        "link": "/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/#resource-allocation-strategies"
+      },
+      {
+        "id": "dynamic-resource-allocation",
+        "label": "Dynamic resource allocation",
+        "desc": "Lets Spark scale executors up and down at runtime based on pending task backlog, releasing idle capacity back to the cluster.",
+        "link": "/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/#dynamic-resource-allocation"
+      },
+      {
+        "id": "node-heartbeats-and-health-checks",
+        "label": "Node heartbeats and health checks",
+        "desc": "Periodic signals executors send the driver to report liveness and block status; missed heartbeats trigger executor loss handling.",
+        "link": "/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/#node-heartbeats-and-health-checks"
+      }
+    ]
+  },
+  {
+    "id": "execution-lifecycle",
+    "label": "Cluster Architecture & Execution Lifecycle",
+    "desc": "How a Spark application is broken down, scheduled, and executed.",
+    "link": "/level-3-technologies/batch-processing/spark-execution-lifecycle/",
+    "subs": [
+      {
+        "id": "job-stage-task-hierarchy",
+        "label": "Job, stage, and task hierarchy",
+        "desc": "An action triggers a job, which the DAG scheduler splits into stages at shuffle boundaries, each stage made up of parallel tasks.",
+        "link": "/level-3-technologies/batch-processing/spark-execution-lifecycle/#job-stage-and-task-hierarchy"
+      },
+      {
+        "id": "dag-scheduler-flow",
+        "label": "DAG scheduler flow",
+        "desc": "Translates the logical execution plan into a physical DAG of stages, tracking dependencies and resubmitting failed stages as needed.",
+        "link": "/level-3-technologies/batch-processing/spark-execution-lifecycle/#dag-scheduler-flow"
+      },
+      {
+        "id": "narrow-vs-wide-dependencies",
+        "label": "Narrow versus wide dependencies",
+        "desc": "Narrow dependencies (map, filter) require no shuffle and can pipeline within a stage; wide dependencies (groupBy, join) force a shuffle and new stage.",
+        "link": "/level-3-technologies/batch-processing/spark-execution-lifecycle/#narrow-versus-wide-dependencies"
+      },
+      {
+        "id": "task-scheduling-and-parallelism",
+        "label": "Task scheduling and parallelism",
+        "desc": "The task scheduler assigns tasks to executor cores based on locality preferences, queueing tasks when slots aren't yet available.",
+        "link": "/level-3-technologies/batch-processing/spark-execution-lifecycle/#task-scheduling-and-parallelism"
+      },
+      {
+        "id": "data-locality-awareness",
+        "label": "Data locality awareness",
+        "desc": "Prefers scheduling tasks on nodes that already hold the relevant data (PROCESS_LOCAL to NO_PREF/ANY) to minimize network I/O.",
+        "link": "/level-3-technologies/batch-processing/spark-execution-lifecycle/#data-locality-awareness"
+      },
+      {
+        "id": "threading-models-within-executors",
+        "label": "Threading models within executors",
+        "desc": "Executors run multiple tasks concurrently as threads within a single JVM, sharing memory but isolated per-task via thread-local state.",
+        "link": "/level-3-technologies/batch-processing/spark-execution-lifecycle/#threading-models-within-executors"
+      },
+      {
+        "id": "shuffle-phases-and-mechanics",
+        "label": "Shuffle phases and mechanics",
+        "desc": "Splits into a map (write) side that partitions and spills output, and a reduce (read) side that fetches and merges shuffle blocks.",
+        "link": "/level-3-technologies/batch-processing/spark-execution-lifecycle/#shuffle-phases-and-mechanics"
+      },
+      {
+        "id": "data-serialization-during-shuffle",
+        "label": "Data serialization during shuffle",
+        "desc": "Data written to shuffle files must be serialized (Java or Kryo) and deserialized on read, making format choice a major performance lever.",
+        "link": "/level-3-technologies/batch-processing/spark-execution-lifecycle/#data-serialization-during-shuffle"
+      }
+    ]
+  },
+  {
+    "id": "spark-core-fundamentals",
+    "label": "Spark Core Fundamentals",
+    "desc": "Getting a Spark application up, configured, and observable.",
+    "link": "/level-3-technologies/batch-processing/spark-core-fundamentals/",
+    "subs": [
+      {
+        "id": "sparksession-sparkcontext-sqlcontext",
+        "label": "SparkSession, SparkContext, and legacy SQLContext/HiveContext",
+        "desc": "SparkSession is the unified entry point since 2.0, wrapping the lower-level SparkContext and superseding the legacy SQLContext/HiveContext APIs.",
+        "link": "/level-3-technologies/batch-processing/spark-core-fundamentals/#sparksession-sparkcontext-and-legacy-sqlcontexthivecontext"
+      },
+      {
+        "id": "spark-submit-flags-master-url",
+        "label": "spark-submit flags and master URL formats",
+        "desc": "The CLI for launching applications — flags for driver/executor memory and cores, deploy mode, and master URLs (local, yarn, k8s://, spark://).",
+        "link": "/level-3-technologies/batch-processing/spark-core-fundamentals/#spark-submit-flags-and-master-url-formats"
+      },
+      {
+        "id": "spark-configuration-env-variables",
+        "label": "Spark configuration and environment variables",
+        "desc": "Settings layered via SparkConf, spark-defaults.conf, spark-submit flags, and environment variables like SPARK_HOME and JAVA_HOME, in increasing precedence.",
+        "link": "/level-3-technologies/batch-processing/spark-core-fundamentals/#spark-configuration-and-environment-variables"
+      },
+      {
+        "id": "logging-level-configuration",
+        "label": "Logging level configuration",
+        "desc": "Controlled via log4j2 properties files to tune verbosity per package, separating driver and executor log output for debugging.",
+        "link": "/level-3-technologies/batch-processing/spark-core-fundamentals/#logging-level-configuration"
+      },
+      {
+        "id": "spark-ui-monitoring-basics",
+        "label": "Spark UI monitoring basics",
+        "desc": "The web UI (default port 4040) exposing Jobs, Stages, Storage, Environment, Executors, and SQL tabs for live application inspection.",
+        "link": "/level-3-technologies/batch-processing/spark-core-fundamentals/#spark-ui-monitoring-basics"
+      },
+      {
+        "id": "spark-connect-client-server",
+        "label": "Spark Connect client-server architecture",
+        "desc": "Decouples client applications from the cluster via a gRPC protocol, letting thin clients submit DataFrame plans without a local Spark install.",
+        "link": "/level-3-technologies/batch-processing/spark-core-fundamentals/#spark-connect-client-server-architecture"
+      }
+    ]
+  },
+  {
+    "id": "rdd-api",
+    "label": "Resilient Distributed Datasets (RDDs)",
+    "desc": "The low-level, fault-tolerant distributed collection API underlying all of Spark.",
+    "link": "/level-3-technologies/batch-processing/spark-rdd-api/",
+    "subs": [
+      {
+        "id": "rdd-creation-methods",
+        "label": "RDD creation methods",
+        "desc": "RDDs are created by parallelizing a driver-side collection, reading external storage, or transforming an existing RDD.",
+        "link": "/level-3-technologies/batch-processing/spark-rdd-api/#rdd-creation-methods"
+      },
+      {
+        "id": "transformation-operations",
+        "label": "Transformation operations",
+        "desc": "Lazy operations like map, filter, and flatMap that return a new RDD without triggering computation until an action runs.",
+        "link": "/level-3-technologies/batch-processing/spark-rdd-api/#transformation-operations"
+      },
+      {
+        "id": "action-operations",
+        "label": "Action operations",
+        "desc": "Operations like collect, count, and reduce that trigger execution of the RDD's lineage and return a result to the driver.",
+        "link": "/level-3-technologies/batch-processing/spark-rdd-api/#action-operations"
+      },
+      {
+        "id": "lazy-evaluation-model",
+        "label": "Lazy evaluation model",
+        "desc": "Transformations build up a lineage graph without executing; Spark only computes when an action forces evaluation, enabling optimization.",
+        "link": "/level-3-technologies/batch-processing/spark-rdd-api/#lazy-evaluation-model"
+      },
+      {
+        "id": "dependency-graphs-and-lineage",
+        "label": "Dependency graphs and lineage",
+        "desc": "Each RDD tracks its parent RDDs and the transformation that produced it, forming the lineage graph used for fault recovery.",
+        "link": "/level-3-technologies/batch-processing/spark-rdd-api/#dependency-graphs-and-lineage"
+      },
+      {
+        "id": "persistence-and-storage-levels",
+        "label": "Persistence and storage levels",
+        "desc": "cache()/persist() with storage levels (MEMORY_ONLY, MEMORY_AND_DISK, off-heap, replicated) that trade memory pressure against recomputation cost.",
+        "link": "/level-3-technologies/batch-processing/spark-rdd-api/#persistence-and-storage-levels"
+      },
+      {
+        "id": "rdd-checkpointing-and-lineage-truncation",
+        "label": "RDD checkpointing and lineage truncation",
+        "desc": "Writes an RDD to reliable storage and truncates its lineage, preventing stack overflows and excessive recomputation on very long chains.",
+        "link": "/level-3-technologies/batch-processing/spark-rdd-api/#rdd-checkpointing-and-lineage-truncation"
+      },
+      {
+        "id": "recovering-failed-tasks-executor-loss",
+        "label": "Recovering failed tasks and executor loss mitigation",
+        "desc": "Lost partitions are recomputed from lineage on healthy executors; a lost executor triggers reassignment of its in-flight and cached tasks.",
+        "link": "/level-3-technologies/batch-processing/spark-rdd-api/#recovering-failed-tasks-and-executor-loss-mitigation"
+      },
+      {
+        "id": "broadcast-variables",
+        "label": "Broadcast variables",
+        "desc": "Read-only variables cached once per executor rather than shipped with every task, used to efficiently share lookup tables or join keys.",
+        "link": "/level-3-technologies/batch-processing/spark-rdd-api/#broadcast-variables"
+      },
+      {
+        "id": "accumulator-usage-patterns",
+        "label": "Accumulator usage patterns",
+        "desc": "Write-only variables that aggregate values across tasks back to the driver, commonly used for counters and debugging metrics.",
+        "link": "/level-3-technologies/batch-processing/spark-rdd-api/#accumulator-usage-patterns"
+      },
+      {
+        "id": "custom-partitioning-hash-range",
+        "label": "Custom partitioning (hash and range)",
+        "desc": "HashPartitioner distributes keys by hash for even spread; RangePartitioner sorts keys into ordered ranges, both usable via custom subclasses.",
+        "link": "/level-3-technologies/batch-processing/spark-rdd-api/#custom-partitioning-hash-and-range"
+      }
+    ]
+  },
+  {
+    "id": "structured-apis",
+    "label": "DataFrame & Dataset APIs",
+    "desc": "The structured, higher-level APIs used for most modern Spark development.",
+    "link": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/",
+    "subs": [
+      {
+        "id": "dataframe-creation-patterns",
+        "label": "DataFrame creation patterns",
+        "desc": "DataFrames are built from RDDs, structured files, JDBC sources, Hive tables, or in-memory collections via createDataFrame.",
+        "link": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/#dataframe-creation-patterns"
+      },
+      {
+        "id": "column-expressions-and-operations",
+        "label": "Column expressions and operations",
+        "desc": "The Column API (col(), expr(), withColumn) for building typed transformations and arithmetic, string, and conditional expressions.",
+        "link": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/#column-expressions-and-operations"
+      },
+      {
+        "id": "row-manipulation-functions",
+        "label": "Row manipulation functions",
+        "desc": "Functions like withColumn, drop, select, and struct-building operations for reshaping individual Row values within a DataFrame.",
+        "link": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/#row-manipulation-functions"
+      },
+      {
+        "id": "schema-definition-and-inference",
+        "label": "Schema definition and inference",
+        "desc": "Schemas can be inferred from data (at a scan cost) or defined explicitly via StructType/StructField for stability and performance.",
+        "link": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/#schema-definition-and-inference"
+      },
+      {
+        "id": "null-handling-strategies",
+        "label": "Null handling strategies",
+        "desc": "na.drop, na.fill, coalesce, and isNull/isNotNull predicates for detecting and resolving missing values in a DataFrame.",
+        "link": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/#null-handling-strategies"
+      },
+      {
+        "id": "column-type-casting",
+        "label": "Column type casting",
+        "desc": "Explicit type conversion via cast() or astype(), important for avoiding silent precision loss or failed comparisons across mismatched types.",
+        "link": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/#column-type-casting"
+      },
+      {
+        "id": "dataset-api-type-safety",
+        "label": "Dataset API and type safety (Scala/Java)",
+        "desc": "Scala/Java-only typed API layered over DataFrames, catching schema mismatches at compile time instead of at runtime.",
+        "link": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/#dataset-api-and-type-safety"
+      },
+      {
+        "id": "encoders-and-compile-time-checks",
+        "label": "Encoders and compile-time checks",
+        "desc": "Encoders convert between JVM objects and Spark's internal binary row format, enabling Dataset type safety and efficient serialization.",
+        "link": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/#encoders-and-compile-time-checks"
+      },
+      {
+        "id": "filtering-sorting-selection-logic",
+        "label": "Filtering, sorting, and selection logic",
+        "desc": "filter/where, orderBy/sort, and select/selectExpr — the core relational operators for narrowing and reordering DataFrame rows and columns.",
+        "link": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/#filtering-sorting-and-selection-logic"
+      },
+      {
+        "id": "pandas-api-on-spark",
+        "label": "Pandas API on Spark (formerly Koalas)",
+        "desc": "A pandas-compatible API (formerly Koalas) that runs on distributed Spark DataFrames, easing migration of single-node pandas code.",
+        "link": "/level-3-technologies/batch-processing/spark-dataframe-dataset-apis/#pandas-api-on-spark"
+      }
+    ]
+  },
+  {
+    "id": "window-functions",
+    "label": "Window Functions",
+    "desc": "Ranking, aggregate, and analytic functions computed over row windows.",
+    "link": "/level-3-technologies/batch-processing/spark-window-functions/",
+    "subs": [
+      {
+        "id": "window-specification-definitions",
+        "label": "Window specification definitions",
+        "desc": "WindowSpec defines the partitioning, ordering, and frame boundaries a window function is evaluated over, built via Window.partitionBy/orderBy.",
+        "link": "/level-3-technologies/batch-processing/spark-window-functions/#window-specification-definitions"
+      },
+      {
+        "id": "ranking-functions",
+        "label": "Ranking functions (rank, dense_rank, row_number)",
+        "desc": "rank() leaves gaps after ties, dense_rank() doesn't, and row_number() assigns a strictly unique sequential number within each partition.",
+        "link": "/level-3-technologies/batch-processing/spark-window-functions/#ranking-functions"
+      },
+      {
+        "id": "aggregate-window-functions",
+        "label": "Aggregate window functions",
+        "desc": "Standard aggregates like sum, avg, and max computed over a window frame instead of collapsing rows, preserving row-level granularity.",
+        "link": "/level-3-technologies/batch-processing/spark-window-functions/#aggregate-window-functions"
+      },
+      {
+        "id": "lead-and-lag-operations",
+        "label": "Lead and lag operations",
+        "desc": "Access a column's value from a following (lead) or preceding (lag) row within the same partition, for period-over-period comparisons.",
+        "link": "/level-3-technologies/batch-processing/spark-window-functions/#lead-and-lag-operations"
+      },
+      {
+        "id": "range-vs-row-frames",
+        "label": "Range versus row frames",
+        "desc": "ROWS frames count physical rows before/after the current row; RANGE frames include all rows with the same order-by value.",
+        "link": "/level-3-technologies/batch-processing/spark-window-functions/#range-versus-row-frames"
+      },
+      {
+        "id": "partitioning-within-windows",
+        "label": "Partitioning within windows",
+        "desc": "partitionBy splits rows into independent groups the window function is computed separately within, analogous to GROUP BY without collapsing rows.",
+        "link": "/level-3-technologies/batch-processing/spark-window-functions/#partitioning-within-windows"
+      },
+      {
+        "id": "cumulative-and-running-calculations",
+        "label": "Cumulative and running calculations",
+        "desc": "Running totals and moving averages built with an unbounded preceding-to-current-row frame combined with sum/avg window functions.",
+        "link": "/level-3-technologies/batch-processing/spark-window-functions/#cumulative-and-running-calculations"
+      }
+    ]
+  },
+  {
+    "id": "joins",
+    "label": "Joins & Relational Operations",
+    "desc": "How Spark combines datasets, and the strategies it picks between.",
+    "link": "/level-3-technologies/batch-processing/spark-joins/",
+    "subs": [
+      {
+        "id": "inner-outer-semi-anti-joins",
+        "label": "Inner, outer, semi, and anti joins",
+        "desc": "Inner keeps matching rows only; outer variants keep unmatched rows from one or both sides; semi/anti filter one side by match existence without duplicating columns.",
+        "link": "/level-3-technologies/batch-processing/spark-joins/#inner-outer-semi-and-anti-joins"
+      },
+      {
+        "id": "cross-joins-cartesian-products",
+        "label": "Cross joins and Cartesian products",
+        "desc": "Every row of one DataFrame paired with every row of the other; expensive and usually accidental unless explicitly required.",
+        "link": "/level-3-technologies/batch-processing/spark-joins/#cross-joins-and-cartesian-products"
+      },
+      {
+        "id": "shuffle-hash-join",
+        "label": "Shuffle hash join",
+        "desc": "Both sides are shuffled and hash-partitioned by join key, then joined by building an in-memory hash table on the smaller partition.",
+        "link": "/level-3-technologies/batch-processing/spark-joins/#shuffle-hash-join"
+      },
+      {
+        "id": "sort-merge-join",
+        "label": "Sort-merge join",
+        "desc": "Both sides are shuffled and sorted by join key, then merged in a single linear pass — Spark SQL's default strategy for large-large joins.",
+        "link": "/level-3-technologies/batch-processing/spark-joins/#sort-merge-join"
+      },
+      {
+        "id": "broadcast-hash-join",
+        "label": "Broadcast hash join",
+        "desc": "Ships an entire small table to every executor to avoid shuffling the large table, controlled by spark.sql.autoBroadcastJoinThreshold.",
+        "link": "/level-3-technologies/batch-processing/spark-joins/#broadcast-hash-join"
+      },
+      {
+        "id": "join-strategy-selection-and-hints",
+        "label": "Join strategy selection and hints",
+        "desc": "The optimizer picks a join strategy from size estimates and config thresholds, overridable with hints like broadcast(), merge(), or shuffle_hash().",
+        "link": "/level-3-technologies/batch-processing/spark-joins/#join-strategy-selection-and-hints"
+      },
+      {
+        "id": "handling-data-skew-in-joins",
+        "label": "Handling data skew in joins",
+        "desc": "Skewed key distributions overload a few tasks; mitigated with salting, AQE's automatic skew join optimization, or isolating hot keys.",
+        "link": "/level-3-technologies/batch-processing/spark-joins/#handling-data-skew-in-joins"
+      }
+    ]
+  },
+  {
+    "id": "advanced-transformations",
+    "label": "Advanced RDD & DataFrame Transformations",
+    "desc": "Less common but important transformation patterns.",
+    "link": "/level-3-technologies/batch-processing/spark-advanced-transformations/",
+    "subs": [
+      {
+        "id": "mappartitions-and-mappartitionswithindex",
+        "label": "mapPartitions and mapPartitionsWithIndex",
+        "desc": "Apply a function once per partition rather than per row, amortizing expensive setup (e.g. connection creation) across all rows in that partition.",
+        "link": "/level-3-technologies/batch-processing/spark-advanced-transformations/#mappartitions-and-mappartitionswithindex"
+      },
+      {
+        "id": "filter-and-predicate-pushdown",
+        "label": "Filter and predicate pushdown",
+        "desc": "Filter conditions pushed down into the data source scan (e.g. Parquet row groups) so unmatched data is never read into Spark at all.",
+        "link": "/level-3-technologies/batch-processing/spark-advanced-transformations/#filter-and-predicate-pushdown"
+      },
+      {
+        "id": "set-based-operations",
+        "label": "Set-based operations (union, intersect, except)",
+        "desc": "union combines rows from two DataFrames with matching schemas; intersect keeps common rows; except returns rows in one but not the other.",
+        "link": "/level-3-technologies/batch-processing/spark-advanced-transformations/#set-based-operations"
+      },
+      {
+        "id": "pivoting-and-unpivoting-data",
+        "label": "Pivoting and unpivoting data",
+        "desc": "pivot() turns distinct row values into columns for cross-tab style aggregation; the reverse (unpivot/stack) turns columns back into rows.",
+        "link": "/level-3-technologies/batch-processing/spark-advanced-transformations/#pivoting-and-unpivoting-data"
+      },
+      {
+        "id": "sampling-and-data-splitting",
+        "label": "Sampling and data splitting",
+        "desc": "sample() draws a random fraction of rows with or without replacement; randomSplit() partitions a DataFrame into weighted subsets (e.g. train/test).",
+        "link": "/level-3-technologies/batch-processing/spark-advanced-transformations/#sampling-and-data-splitting"
+      },
+      {
+        "id": "exploding-flattening-nested-arrays",
+        "label": "Exploding and flattening nested/array structures",
+        "desc": "explode()/explode_outer() turn array or map column elements into separate rows; flattening nested structs unpacks them into top-level columns.",
+        "link": "/level-3-technologies/batch-processing/spark-advanced-transformations/#exploding-and-flattening-nestedarray-structures"
+      }
+    ]
+  },
+  {
+    "id": "udfs",
+    "label": "User Defined Functions (UDFs)",
+    "desc": "Extending Spark SQL with custom logic, and its performance implications.",
+    "link": "/level-3-technologies/batch-processing/spark-udfs/",
+    "subs": [
+      {
+        "id": "scalar-udf-implementation",
+        "label": "Scalar UDF implementation",
+        "desc": "Row-at-a-time custom functions registered via udf() or spark.udf.register, applied to columns like any built-in Spark SQL function.",
+        "link": "/level-3-technologies/batch-processing/spark-udfs/#scalar-udf-implementation"
+      },
+      {
+        "id": "user-defined-aggregate-functions",
+        "label": "User-defined aggregate functions (UDAFs)",
+        "desc": "Custom aggregations implemented via the Aggregator API (typed) or legacy UserDefinedAggregateFunction, extending groupBy beyond built-in aggregates.",
+        "link": "/level-3-technologies/batch-processing/spark-udfs/#user-defined-aggregate-functions-udafs"
+      },
+      {
+        "id": "pandas-vectorized-udfs",
+        "label": "Pandas (vectorized) UDFs",
+        "desc": "Operate on pandas Series/DataFrame batches instead of single rows, using Arrow to avoid per-row Python serialization overhead.",
+        "link": "/level-3-technologies/batch-processing/spark-udfs/#pandas-vectorized-udfs"
+      },
+      {
+        "id": "arrow-based-data-transfer-udfs",
+        "label": "Arrow-based data transfer for UDFs",
+        "desc": "Apache Arrow's columnar in-memory format moves batches between the JVM and Python process for vectorized UDFs, cutting serialization cost sharply.",
+        "link": "/level-3-technologies/batch-processing/spark-udfs/#arrow-based-data-transfer-for-udfs"
+      },
+      {
+        "id": "python-vs-jvm-execution-overhead",
+        "label": "Python versus JVM execution overhead",
+        "desc": "Python UDFs pay a serialization and process-boundary tax per row that native Scala/Java or Pandas UDFs largely avoid.",
+        "link": "/level-3-technologies/batch-processing/spark-udfs/#python-versus-jvm-execution-overhead"
+      },
+      {
+        "id": "builtin-vs-custom-udf-performance",
+        "label": "Built-in functions versus custom UDFs (performance tradeoffs)",
+        "desc": "Built-in functions run inside Catalyst's optimized, whole-stage-codegen path; UDFs are opaque black boxes the optimizer can't see into or push down through.",
+        "link": "/level-3-technologies/batch-processing/spark-udfs/#built-in-functions-versus-custom-udfs"
+      },
+      {
+        "id": "higher-order-functions-array-map",
+        "label": "Higher-order functions for array/map columns",
+        "desc": "transform, filter, exists, and aggregate operate on array/map columns directly in SQL, avoiding a UDF or explode/collect round-trip.",
+        "link": "/level-3-technologies/batch-processing/spark-udfs/#higher-order-functions-for-arraymap-columns"
+      },
+      {
+        "id": "dependency-isolation-udf-environments",
+        "label": "Dependency isolation for UDF environments",
+        "desc": "Python UDF environments are isolated via virtualenv/conda archives or container images shipped with the job to avoid version conflicts across executors.",
+        "link": "/level-3-technologies/batch-processing/spark-udfs/#dependency-isolation-for-udf-environments"
+      }
+    ]
+  },
+  {
+    "id": "spark-sql-catalyst",
+    "label": "Spark SQL Engine & Catalyst Optimizer",
+    "desc": "The query planner and optimizer at the heart of Spark SQL.",
+    "link": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/",
+    "subs": [
+      {
+        "id": "logical-plan-analysis-validation",
+        "label": "Logical plan analysis and validation",
+        "desc": "The Analyzer resolves column and table references against the catalog and checks types, turning an unresolved plan into a validated logical plan.",
+        "link": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/#logical-plan-analysis-and-validation"
+      },
+      {
+        "id": "rule-based-logical-plan-optimization",
+        "label": "Rule-based logical plan optimization",
+        "desc": "Catalyst applies a fixed set of rules — predicate pushdown, constant folding, column pruning — to rewrite the logical plan into an equivalent, cheaper one.",
+        "link": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/#rule-based-logical-plan-optimization"
+      },
+      {
+        "id": "physical-plan-generation-and-selection",
+        "label": "Physical plan generation and selection",
+        "desc": "The optimized logical plan is turned into one or more physical plans (e.g. join strategies), and the planner picks the cheapest by cost.",
+        "link": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/#physical-plan-generation-and-selection"
+      },
+      {
+        "id": "cost-based-optimization-cbo",
+        "label": "Cost-based optimization (CBO)",
+        "desc": "Uses collected table and column statistics to estimate operator costs and choose better join orders and strategies than rule-based heuristics alone.",
+        "link": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/#cost-based-optimization-cbo"
+      },
+      {
+        "id": "whole-stage-code-generation",
+        "label": "Whole-stage code generation",
+        "desc": "Fuses multiple physical operators into a single generated Java function per stage, eliminating virtual function call overhead row by row.",
+        "link": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/#whole-stage-code-generation"
+      },
+      {
+        "id": "vectorized-execution",
+        "label": "Vectorized execution",
+        "desc": "Processes columnar batches of rows at once (e.g. for Parquet scans) instead of row-at-a-time, exploiting CPU cache and SIMD better.",
+        "link": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/#vectorized-execution"
+      },
+      {
+        "id": "adaptive-query-execution-aqe",
+        "label": "Adaptive Query Execution (AQE)",
+        "desc": "Re-optimizes the physical plan at runtime using actual shuffle statistics — switching join strategies, coalescing partitions, and handling skew after seeing real data sizes.",
+        "link": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/#adaptive-query-execution-aqe"
+      },
+      {
+        "id": "dynamic-partition-coalescing",
+        "label": "Dynamic partition coalescing",
+        "desc": "AQE merges small post-shuffle partitions into larger ones at runtime, avoiding the overhead of many tiny tasks from a static partition count.",
+        "link": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/#dynamic-partition-coalescing"
+      },
+      {
+        "id": "dynamic-join-strategy-switching",
+        "label": "Dynamic join strategy switching",
+        "desc": "AQE can downgrade a sort-merge join to a broadcast join at runtime once actual shuffle output size is known to be small enough.",
+        "link": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/#dynamic-join-strategy-switching"
+      },
+      {
+        "id": "skew-join-optimization",
+        "label": "Skew join optimization",
+        "desc": "AQE detects disproportionately large shuffle partitions and splits them into smaller sub-partitions joined separately, avoiding a single straggler task.",
+        "link": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/#skew-join-optimization"
+      },
+      {
+        "id": "plan-caching",
+        "label": "Plan caching",
+        "desc": "Spark caches parsed and analyzed logical plans for repeated query shapes to avoid re-running the parser and analyzer on every execution.",
+        "link": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/#plan-caching"
+      },
+      {
+        "id": "reading-interpreting-explain-plans",
+        "label": "Reading and interpreting explain plans",
+        "desc": "explain() and its formatted/cost variants show parsed, analyzed, optimized, and physical plans — essential for diagnosing join strategy and shuffle behavior.",
+        "link": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/#reading-and-interpreting-explain-plans"
+      },
+      {
+        "id": "spark-thrift-server",
+        "label": "Spark Thrift Server (JDBC/ODBC access for BI tools)",
+        "desc": "A long-running JDBC/ODBC server exposing Spark SQL to BI tools like Tableau, sharing a SparkContext across concurrent client connections.",
+        "link": "/level-3-technologies/batch-processing/spark-sql-catalyst-optimizer/#spark-thrift-server"
+      }
+    ]
+  },
+  {
+    "id": "file-formats",
+    "label": "File Formats & Storage Optimization",
+    "desc": "Choosing and tuning the on-disk formats Spark reads and writes.",
+    "link": "/level-3-technologies/batch-processing/spark-file-formats-storage/",
+    "subs": [
+      {
+        "id": "parquet-storage-format-optimization",
+        "label": "Parquet storage format and optimization",
+        "desc": "Columnar, self-describing binary format with per-column encoding and stats — Spark's default and best-optimized format for analytical scans.",
+        "link": "/level-3-technologies/formats/parquet/"
+      },
+      {
+        "id": "orc-file-structure-and-benefits",
+        "label": "ORC file structure and benefits",
+        "desc": "Columnar format with built-in indexes and lightweight compression, popular in the Hive ecosystem, with strong predicate pushdown support.",
+        "link": "/level-3-technologies/batch-processing/spark-file-formats-storage/#orc-file-structure-and-benefits"
+      },
+      {
+        "id": "avro-serialization-and-schema",
+        "label": "Avro serialization and schema",
+        "desc": "Row-based format with schema embedded in every file, favored for streaming and schema-registry-driven pipelines over columnar analytics.",
+        "link": "/level-3-technologies/formats/avro/"
+      },
+      {
+        "id": "schema-evolution-across-formats",
+        "label": "Schema evolution across formats",
+        "desc": "Parquet and Avro support adding/removing/renaming columns across file versions differently — Avro via writer/reader schema resolution, Parquet via schema merging.",
+        "link": "/level-3-technologies/batch-processing/spark-file-formats-storage/#schema-evolution-across-formats"
+      },
+      {
+        "id": "columnar-projection-and-column-pruning",
+        "label": "Columnar projection and column pruning",
+        "desc": "Only the columns referenced by the query are read off disk, skipping unused column chunks entirely in columnar formats like Parquet and ORC.",
+        "link": "/level-3-technologies/formats/parquet/"
+      },
+      {
+        "id": "dictionary-encoding-mechanics",
+        "label": "Dictionary encoding mechanics",
+        "desc": "Low-cardinality columns are stored as small integer codes plus a lookup dictionary, shrinking file size and speeding up filters and joins.",
+        "link": "/level-3-technologies/formats/parquet/"
+      },
+      {
+        "id": "compression-codec-selection",
+        "label": "Compression codec selection (Snappy, Zstd, GZIP)",
+        "desc": "Snappy favors decompression speed for interactive queries; Zstd offers better ratios at moderate CPU cost; GZIP maximizes compression at the cost of speed.",
+        "link": "/level-3-technologies/formats/parquet/"
+      },
+      {
+        "id": "small-file-problem-and-compaction",
+        "label": "Small file problem and compaction strategies",
+        "desc": "Many tiny files overload the driver's file-listing and task-scheduling overhead; fixed by coalescing/repartitioning writes or periodic compaction jobs.",
+        "link": "/level-3-technologies/batch-processing/spark-file-formats-storage/#small-file-problem-and-compaction-strategies"
+      },
+      {
+        "id": "predicate-and-partition-pushdown",
+        "label": "Predicate and partition pushdown",
+        "desc": "Filters are pushed into the file scan (row-group/stripe skipping) and into partition directory pruning so entire files or partitions are skipped unread.",
+        "link": "/level-3-technologies/formats/parquet/"
+      },
+      {
+        "id": "metadata-and-footer-caching",
+        "label": "Metadata and footer caching strategies",
+        "desc": "Parquet/ORC footers holding schema and column statistics are cached across tasks to avoid re-reading them for every file on every query.",
+        "link": "/level-3-technologies/batch-processing/spark-file-formats-storage/#metadata-and-footer-caching-strategies"
+      }
+    ]
+  },
+  {
+    "id": "cloud-db-connectors",
+    "label": "Cloud Storage & Database Connectors",
+    "desc": "Reading from and writing to object stores and relational databases.",
+    "link": "/level-3-technologies/batch-processing/spark-cloud-db-connectors/",
+    "subs": [
+      {
+        "id": "s3-gcs-adls-integration",
+        "label": "S3, GCS, and ADLS integration",
+        "desc": "Cloud object stores are accessed through Hadoop-compatible filesystem connectors (S3A, GCS connector, ABFS) using s3a://, gs://, and abfss:// URI schemes.",
+        "link": "/level-3-technologies/batch-processing/spark-cloud-db-connectors/#s3-gcs-and-adls-integration"
+      },
+      {
+        "id": "s3a-implementation-and-file-paths",
+        "label": "S3A implementation and file path patterns",
+        "desc": "The S3A connector emulates a filesystem over S3's flat object namespace, with tunable settings for multipart upload, committers, and consistency.",
+        "link": "/level-3-technologies/batch-processing/spark-cloud-db-connectors/#s3a-implementation-and-file-path-patterns"
+      },
+      {
+        "id": "partitioned-directory-reading",
+        "label": "Partitioned directory reading",
+        "desc": "Reading Hive-style partitioned paths (key=value directories) lets Spark infer partition columns and prune entire directories via filter pushdown.",
+        "link": "/level-3-technologies/batch-processing/spark-cloud-db-connectors/#partitioned-directory-reading"
+      },
+      {
+        "id": "jdbc-drivers-and-connection-pooling",
+        "label": "JDBC drivers and connection pooling",
+        "desc": "spark.read.jdbc requires a driver JAR on the classpath and benefits from numPartitions/fetchsize tuning; connections aren't pooled across tasks by default.",
+        "link": "/level-3-technologies/batch-processing/spark-cloud-db-connectors/#jdbc-drivers-and-connection-pooling"
+      },
+      {
+        "id": "predicate-pushdown-database-queries",
+        "label": "Predicate pushdown for database queries",
+        "desc": "Supported filter predicates are translated into the source database's WHERE clause so filtering happens in the database, not after the full table lands in Spark.",
+        "link": "/level-3-technologies/batch-processing/spark-cloud-db-connectors/#predicate-pushdown-for-database-queries"
+      },
+      {
+        "id": "partitioned-database-reads-write-batching",
+        "label": "Partitioned database reads and write batching",
+        "desc": "Parallel JDBC reads split a table by a partition column/bounds into concurrent range queries; writes use batchsize to control rows per JDBC batch insert.",
+        "link": "/level-3-technologies/batch-processing/spark-cloud-db-connectors/#partitioned-database-reads-and-write-batching"
+      },
+      {
+        "id": "credential-secrets-management-connectors",
+        "label": "Credential and secrets management for connectors",
+        "desc": "Cloud and DB credentials are supplied via IAM roles/instance profiles, secret managers, or Hadoop Credential Providers rather than hardcoded in configs.",
+        "link": "/level-3-technologies/batch-processing/spark-cloud-db-connectors/#credential-and-secrets-management-for-connectors"
+      },
+      {
+        "id": "kafka-rest-apis-batch-sources",
+        "label": "Kafka and REST APIs as batch data sources",
+        "desc": "Kafka topics can be read as a bounded batch (not just a stream) via startingOffsets/endingOffsets; REST APIs are pulled via custom or third-party connectors.",
+        "link": "/level-3-technologies/batch-processing/spark-cloud-db-connectors/#kafka-and-rest-apis-as-batch-data-sources"
+      },
+      {
+        "id": "hadoop-filesystem-hdfs-interaction",
+        "label": "Hadoop file system (HDFS) interaction",
+        "desc": "Spark reads/writes HDFS natively via the hdfs:// scheme, inheriting data locality benefits and replication from the underlying Hadoop cluster.",
+        "link": "/level-3-technologies/batch-processing/spark-cloud-db-connectors/#hadoop-file-system-hdfs-interaction"
+      }
+    ]
+  },
+  {
+    "id": "nosql-integration",
+    "label": "NoSQL Database Integration",
+    "desc": "Connecting Spark to Cassandra, MongoDB, and similar stores.",
+    "link": "/level-3-technologies/batch-processing/spark-nosql-integration/",
+    "subs": [
+      {
+        "id": "cassandra-connector-setup",
+        "label": "Cassandra connector setup and configuration",
+        "desc": "The Spark Cassandra Connector registers Cassandra as a data source, configured via spark.cassandra.connection.host and keyspace/table options.",
+        "link": "/level-3-technologies/batch-processing/spark-nosql-integration/#cassandra-connector-setup-and-configuration"
+      },
+      {
+        "id": "cassandra-aware-data-partitioning",
+        "label": "Cassandra-aware data partitioning",
+        "desc": "The connector creates Spark partitions aligned to Cassandra's token ranges, so each task reads from a single set of co-located replicas.",
+        "link": "/level-3-technologies/batch-processing/spark-nosql-integration/#cassandra-aware-data-partitioning"
+      },
+      {
+        "id": "cassandra-write-consistency-levels",
+        "label": "Cassandra write consistency levels",
+        "desc": "Controls how many replicas must acknowledge a write (ONE, QUORUM, ALL) before it's considered successful, trading latency against durability.",
+        "link": "/level-3-technologies/batch-processing/spark-nosql-integration/#cassandra-write-consistency-levels"
+      },
+      {
+        "id": "cluster-aware-read-optimization-cassandra",
+        "label": "Cluster-aware read optimization for Cassandra",
+        "desc": "Reads are routed to the replica nodes holding each token range, minimizing cross-node network hops during a full-table scan.",
+        "link": "/level-3-technologies/batch-processing/spark-nosql-integration/#cluster-aware-read-optimization-for-cassandra"
+      },
+      {
+        "id": "mongodb-bson-format-handling",
+        "label": "MongoDB BSON format handling",
+        "desc": "The MongoDB Spark Connector converts BSON documents to Spark's Row/schema representation, inferring or accepting an explicit schema for nested fields.",
+        "link": "/level-3-technologies/batch-processing/spark-nosql-integration/#mongodb-bson-format-handling"
+      },
+      {
+        "id": "mongodb-aggregation-pipeline-integration",
+        "label": "MongoDB aggregation pipeline integration",
+        "desc": "Aggregation pipeline stages can be pushed down to MongoDB before data reaches Spark, reducing the volume pulled across the wire.",
+        "link": "/level-3-technologies/batch-processing/spark-nosql-integration/#mongodb-aggregation-pipeline-integration"
+      },
+      {
+        "id": "mongodb-write-concern-management",
+        "label": "MongoDB write concern management",
+        "desc": "Controls acknowledgment level for writes back to MongoDB (e.g. w:1, majority), balancing write latency against durability guarantees.",
+        "link": "/level-3-technologies/batch-processing/spark-nosql-integration/#mongodb-write-concern-management"
+      },
+      {
+        "id": "schema-type-conversion-nosql",
+        "label": "Schema and type conversion across NoSQL stores",
+        "desc": "Flexible NoSQL document/wide-column types must be reconciled with Spark's strict schema — handling type mismatches, missing fields, and nested structures.",
+        "link": "/level-3-technologies/batch-processing/spark-nosql-integration/#schema-and-type-conversion-across-nosql-stores"
+      }
+    ]
+  },
+  {
+    "id": "metastore",
+    "label": "Metastore & Catalog Management",
+    "desc": "Tracking table metadata and schemas across a data platform.",
+    "link": "/level-3-technologies/batch-processing/spark-metastore-catalog/",
+    "subs": [
+      {
+        "id": "hive-metastore-integration",
+        "label": "Hive Metastore integration",
+        "desc": "Spark can read/write Hive's metastore for table/partition metadata, enabling SQL access to tables via database.table names without re-specifying paths.",
+        "link": "/level-3-technologies/batch-processing/spark-metastore-catalog/#hive-metastore-integration"
+      },
+      {
+        "id": "aws-glue-data-catalog-usage",
+        "label": "AWS Glue Data Catalog usage",
+        "desc": "A managed, Hive-metastore-compatible catalog on AWS shared across Spark, Athena, and Redshift Spectrum for a single source of table metadata.",
+        "link": "/level-3-technologies/batch-processing/spark-metastore-catalog/#aws-glue-data-catalog-usage"
+      },
+      {
+        "id": "unity-catalog-implementation",
+        "label": "Unity Catalog implementation",
+        "desc": "Databricks' unified governance layer providing a single metadata and access-control plane across workspaces, covering tables, files, ML models, and more.",
+        "link": "/level-3-technologies/data-warehouses/databricks/#governance-security--advanced-features"
+      },
+      {
+        "id": "external-schema-registries",
+        "label": "External schema registries (for streaming/Avro)",
+        "desc": "Confluent/AWS Glue Schema Registry stores Avro/Protobuf schemas centrally so streaming producers and Spark consumers can validate and evolve schemas independently.",
+        "link": "/level-3-technologies/batch-processing/spark-metastore-catalog/#external-schema-registries"
+      },
+      {
+        "id": "catalog-namespace-isolation",
+        "label": "Catalog namespace isolation",
+        "desc": "Multiple catalogs/databases isolate table namespaces (catalog.database.table) so different teams or environments don't collide on table names.",
+        "link": "/level-3-technologies/batch-processing/spark-metastore-catalog/#catalog-namespace-isolation"
+      },
+      {
+        "id": "table-discovery-and-metadata-sync",
+        "label": "Table discovery and metadata sync",
+        "desc": "Crawlers (e.g. Glue Crawler) or MSCK REPAIR TABLE scan storage to detect new partitions/files and sync metastore metadata with what's actually on disk.",
+        "link": "/level-3-technologies/batch-processing/spark-metastore-catalog/#table-discovery-and-metadata-sync"
+      }
+    ]
+  },
+  {
+    "id": "lakehouse",
+    "label": "Lakehouse Table Formats",
+    "desc": "ACID transactional layers on top of data lake storage.",
+    "link": "/level-3-technologies/batch-processing/spark-lakehouse-formats/",
+    "subs": [
+      {
+        "id": "delta-lake-acid-transactions",
+        "label": "Delta Lake ACID transactions and transaction log",
+        "desc": "Delta's _delta_log records every commit as an ordered JSON/Parquet checkpoint sequence, giving ACID guarantees and optimistic concurrency over plain object storage.",
+        "link": "/level-3-technologies/formats/delta/"
+      },
+      {
+        "id": "apache-iceberg-architecture-partition-evolution",
+        "label": "Apache Iceberg architecture and partition evolution",
+        "desc": "Iceberg tracks table state via a metadata/manifest hierarchy independent of physical layout, letting partition schemes change without rewriting existing data.",
+        "link": "/level-3-technologies/formats/iceberg/"
+      },
+      {
+        "id": "apache-hudi-upsert-incremental-processing",
+        "label": "Apache Hudi upsert and incremental processing semantics",
+        "desc": "Hudi's Copy-on-Write and Merge-on-Read table types support row-level upserts/deletes and expose changed records for efficient incremental pipelines.",
+        "link": "/level-3-technologies/formats/hudi/"
+      },
+      {
+        "id": "time-travel-query-capabilities",
+        "label": "Time travel query capabilities",
+        "desc": "Querying a table as of a past version or timestamp, using the transaction log/snapshot history that Delta, Iceberg, and Hudi each maintain.",
+        "link": "/level-3-technologies/batch-processing/spark-lakehouse-formats/#time-travel-query-capabilities"
+      },
+      {
+        "id": "schema-evolution-strategies-lakehouse",
+        "label": "Schema evolution strategies",
+        "desc": "Adding, renaming, or widening columns safely on existing tables, with format-specific rules for what's automatic versus what requires explicit migration.",
+        "link": "/level-3-technologies/batch-processing/spark-lakehouse-formats/#schema-evolution-strategies"
+      },
+      {
+        "id": "merge-into-syntax-upsert-patterns",
+        "label": "MERGE INTO syntax and upsert patterns",
+        "desc": "SQL MERGE INTO expresses conditional insert/update/delete logic against a target table in one atomic statement — the standard upsert pattern on lakehouse tables.",
+        "link": "/level-3-technologies/batch-processing/spark-lakehouse-formats/#merge-into-syntax-and-upsert-patterns"
+      },
+      {
+        "id": "table-maintenance-compaction-vacuum-zorder",
+        "label": "Table maintenance (compaction, vacuum, Z-ordering/optimize)",
+        "desc": "Compaction merges small files, vacuum removes stale unreferenced files past a retention window, and Z-ordering/OPTIMIZE co-locates related data for faster filtering.",
+        "link": "/level-3-technologies/batch-processing/spark-lakehouse-formats/#table-maintenance"
+      }
+    ]
+  },
+  {
+    "id": "structured-streaming",
+    "label": "Structured Streaming",
+    "desc": "Processing unbounded data with the same DataFrame API as batch.",
+    "link": "/level-3-technologies/batch-processing/spark-structured-streaming/",
+    "subs": [
+      {
+        "id": "micro-batch-processing-model",
+        "label": "Micro-batch processing model",
+        "desc": "Structured Streaming's default engine treats a stream as a sequence of small batch jobs, achieving latencies in the ~100ms range with strong exactly-once guarantees.",
+        "link": "/level-3-technologies/batch-processing/spark-structured-streaming/#micro-batch-processing-model"
+      },
+      {
+        "id": "continuous-low-latency-processing-mode",
+        "label": "Continuous (low-latency) processing mode",
+        "desc": "An experimental engine that processes records as they arrive rather than in micro-batches, targeting ~1ms latency at the cost of weaker guarantees and API support.",
+        "link": "/level-3-technologies/batch-processing/spark-structured-streaming/#continuous-low-latency-processing-mode"
+      },
+      {
+        "id": "streaming-sources-and-sinks",
+        "label": "Streaming sources and sinks",
+        "desc": "Sources (Kafka, files, sockets) and sinks (files, Kafka, console, foreach, memory) plug into the same DataFrame API used for batch.",
+        "link": "/level-3-technologies/batch-processing/spark-structured-streaming/#streaming-sources-and-sinks"
+      },
+      {
+        "id": "kafka-source-integration-offset-management",
+        "label": "Kafka source integration and offset management",
+        "desc": "Reads Kafka topics as a DataFrame of key/value/offset columns; offsets are tracked in the checkpoint rather than committed back to Kafka by default.",
+        "link": "/level-3-technologies/batch-processing/spark-structured-streaming/#kafka-source-integration-and-offset-management"
+      },
+      {
+        "id": "event-time-watermarking",
+        "label": "Event-time watermarking",
+        "desc": "Declares how late data is allowed to arrive relative to event time, letting Spark bound state size by dropping data older than the watermark.",
+        "link": "/level-3-technologies/batch-processing/spark-structured-streaming/#event-time-watermarking"
+      },
+      {
+        "id": "stateful-stream-processing-state-stores",
+        "label": "Stateful stream processing and state stores",
+        "desc": "Operations like aggregations and mapGroupsWithState keep running state in a versioned, checkpointed state store (RocksDB or in-memory) across micro-batches.",
+        "link": "/level-3-technologies/batch-processing/spark-structured-streaming/#stateful-stream-processing-and-state-stores"
+      },
+      {
+        "id": "late-data-handling",
+        "label": "Late data handling",
+        "desc": "Records arriving after the watermark threshold for their event-time window are dropped from windowed aggregations to keep state bounded.",
+        "link": "/level-3-technologies/batch-processing/spark-structured-streaming/#late-data-handling"
+      },
+      {
+        "id": "output-modes-append-update-complete",
+        "label": "Output modes (append, update, complete)",
+        "desc": "Append emits only new rows since the last trigger, update emits changed rows, and complete re-emits the entire result table each trigger.",
+        "link": "/level-3-technologies/batch-processing/spark-structured-streaming/#output-modes"
+      },
+      {
+        "id": "checkpointing-and-fault-recovery",
+        "label": "Checkpointing and fault recovery",
+        "desc": "Persists offsets and operator state to durable storage so a failed streaming query can resume exactly where it left off.",
+        "link": "/level-3-technologies/batch-processing/spark-structured-streaming/#checkpointing-and-fault-recovery"
+      },
+      {
+        "id": "stream-stream-and-stream-static-joins",
+        "label": "Stream-stream and stream-static joins",
+        "desc": "Stream-static joins re-scan the static side each micro-batch; stream-stream joins require watermarks on both sides to bound buffered unmatched state.",
+        "link": "/level-3-technologies/batch-processing/spark-structured-streaming/#stream-stream-and-stream-static-joins"
+      }
+    ]
+  },
+  {
+    "id": "data-quality",
+    "label": "Data Quality Engineering",
+    "desc": "Validating, testing, and monitoring the correctness of data itself.",
+    "link": "/level-3-technologies/batch-processing/spark-data-quality/",
+    "subs": [
+      {
+        "id": "deequ-constraint-based-testing",
+        "label": "Deequ constraint-based testing",
+        "desc": "Amazon's library for defining declarative data quality constraints (completeness, uniqueness, ranges) computed as scalable Spark aggregations over a dataset.",
+        "link": "/level-3-technologies/batch-processing/spark-data-quality/#deequ-constraint-based-testing"
+      },
+      {
+        "id": "great-expectations-integration",
+        "label": "Great Expectations integration",
+        "desc": "An open-source framework for defining, running, and documenting data quality expectations against Spark DataFrames as part of a validation suite.",
+        "link": "/level-3-technologies/batch-processing/spark-data-quality/#great-expectations-integration"
+      },
+      {
+        "id": "statistical-anomaly-detection",
+        "label": "Statistical anomaly detection",
+        "desc": "Flags rows or batches whose distributions (mean, stddev, null rate) deviate significantly from a learned baseline, often computed incrementally per run.",
+        "link": "/level-3-technologies/batch-processing/spark-data-quality/#statistical-anomaly-detection"
+      },
+      {
+        "id": "schema-enforcement-and-evolution-policies",
+        "label": "Schema enforcement and evolution policies",
+        "desc": "Rejecting or auto-adapting to unexpected incoming schema changes — controlled per table via mode settings like failOnSchemaMismatch or mergeSchema.",
+        "link": "/level-3-technologies/batch-processing/spark-data-quality/#schema-enforcement-and-evolution-policies"
+      },
+      {
+        "id": "data-lineage-verification",
+        "label": "Data lineage verification",
+        "desc": "Tracking which upstream sources and transformations produced a given dataset, used to trace root causes when downstream data quality issues appear.",
+        "link": "/level-3-technologies/batch-processing/spark-data-quality/#data-lineage-verification"
+      },
+      {
+        "id": "pipeline-alerting-on-quality-metrics",
+        "label": "Pipeline alerting on quality metrics",
+        "desc": "Wiring quality check failures (from Deequ, Great Expectations, or custom checks) into alerting systems so pipelines fail loudly instead of shipping bad data silently.",
+        "link": "/level-3-technologies/batch-processing/spark-data-quality/#pipeline-alerting-on-quality-metrics"
+      }
+    ]
+  },
+  {
+    "id": "ml-graph-section",
+    "label": "Machine Learning & Graph Processing",
+    "desc": "MLlib and GraphFrames for analytics beyond ETL.",
+    "link": "/level-3-technologies/batch-processing/spark-ml-graph/",
+    "subs": [
+      {
+        "id": "mllib-pipeline-api",
+        "label": "MLlib Pipeline API (Estimators and Transformers)",
+        "desc": "Chains Transformers (stateless feature transforms) and Estimators (fit-producing algorithms) into a single reusable, serializable Pipeline object.",
+        "link": "/level-3-technologies/batch-processing/spark-ml-graph/#mllib-pipeline-api"
+      },
+      {
+        "id": "feature-engineering-at-scale",
+        "label": "Feature engineering at scale (VectorAssembler, StringIndexer, etc.)",
+        "desc": "VectorAssembler combines columns into a feature vector, StringIndexer/OneHotEncoder encode categoricals — all as distributed, Pipeline-composable stages.",
+        "link": "/level-3-technologies/batch-processing/spark-ml-graph/#feature-engineering-at-scale"
+      },
+      {
+        "id": "model-training-hyperparameter-tuning",
+        "label": "Model training and hyperparameter tuning (CrossValidator)",
+        "desc": "CrossValidator and TrainValidationSplit search a parameter grid across folds, running many model fits in parallel across the cluster.",
+        "link": "/level-3-technologies/batch-processing/spark-ml-graph/#model-training-and-hyperparameter-tuning"
+      },
+      {
+        "id": "model-persistence-and-serving",
+        "label": "Model persistence and serving",
+        "desc": "Trained Pipelines are saved via MLWriter/MLReader for reuse; serving typically means loading the model back into Spark or exporting it to a lighter runtime for low-latency inference.",
+        "link": "/level-3-technologies/batch-processing/spark-ml-graph/#model-persistence-and-serving"
+      },
+      {
+        "id": "graphframes-for-graph-processing",
+        "label": "GraphFrames for graph processing",
+        "desc": "A DataFrame-based graph API layered on GraphX, representing vertices and edges as DataFrames so graph and relational operations can mix freely.",
+        "link": "/level-3-technologies/batch-processing/spark-ml-graph/#graphframes-for-graph-processing"
+      },
+      {
+        "id": "graph-algorithms-pagerank-etc",
+        "label": "Graph algorithms (PageRank, connected components, shortest paths)",
+        "desc": "Built-in distributed implementations of PageRank, connected components, and shortest paths that operate directly on GraphFrames at scale.",
+        "link": "/level-3-technologies/batch-processing/spark-ml-graph/#graph-algorithms"
+      }
+    ]
+  },
+  {
+    "id": "performance-tuning",
+    "label": "Performance Tuning & Memory Management",
+    "desc": "Diagnosing and fixing slow, unstable, or expensive Spark jobs.",
+    "link": "/level-3-technologies/batch-processing/spark-performance-tuning/",
+    "subs": [
+      {
+        "id": "execution-vs-storage-memory",
+        "label": "Execution memory versus storage memory (unified memory model)",
+        "desc": "The unified memory manager lets execution (shuffles, joins, sorts) and storage (cached data) share one region, with execution able to evict cached blocks under pressure.",
+        "link": "/level-3-technologies/batch-processing/spark-performance-tuning/#execution-memory-versus-storage-memory"
+      },
+      {
+        "id": "gc-tuning-g1gc-vs-parallel",
+        "label": "Garbage collection tuning (G1GC vs. Parallel GC)",
+        "desc": "G1GC targets predictable pause times on large heaps and is the modern default; Parallel GC maximizes throughput at the cost of longer stop-the-world pauses.",
+        "link": "/level-3-technologies/batch-processing/spark-performance-tuning/#garbage-collection-tuning"
+      },
+      {
+        "id": "off-heap-memory-allocation",
+        "label": "Off-heap memory allocation",
+        "desc": "spark.memory.offHeap moves some data storage outside the JVM heap, reducing GC pressure at the cost of manual memory management.",
+        "link": "/level-3-technologies/batch-processing/spark-performance-tuning/#off-heap-memory-allocation"
+      },
+      {
+        "id": "memory-overhead-limits-oom-troubleshooting",
+        "label": "Memory overhead limits and OOM troubleshooting",
+        "desc": "spark.executor.memoryOverhead reserves space for JVM overhead, off-heap allocations, and native libraries — undersizing it is a common cause of container-killed OOM errors.",
+        "link": "/level-3-technologies/batch-processing/spark-performance-tuning/#memory-overhead-limits-and-oom-troubleshooting"
+      },
+      {
+        "id": "serialization-format-java-vs-kryo",
+        "label": "Serialization format comparison (Java vs. Kryo)",
+        "desc": "Java serialization is default but slow and verbose; Kryo is faster and more compact but requires registering custom classes for full benefit.",
+        "link": "/level-3-technologies/batch-processing/spark-execution-lifecycle/#data-serialization-during-shuffle"
+      },
+      {
+        "id": "shuffle-partition-sizing",
+        "label": "Shuffle partition sizing",
+        "desc": "spark.sql.shuffle.partitions sets post-shuffle parallelism; too few creates huge partitions and OOMs, too many creates scheduling overhead from tiny tasks.",
+        "link": "/level-3-technologies/batch-processing/spark-performance-tuning/#shuffle-partition-sizing"
+      },
+      {
+        "id": "data-skew-mitigation-salting",
+        "label": "Data skew mitigation and salting techniques",
+        "desc": "Adding a random salt to skewed join/group keys spreads them across more partitions, at the cost of an extra aggregation step to combine results.",
+        "link": "/level-3-technologies/batch-processing/spark-performance-tuning/#data-skew-mitigation-and-salting-techniques"
+      },
+      {
+        "id": "speculative-execution",
+        "label": "Speculative execution",
+        "desc": "Launches duplicate copies of unusually slow tasks on other executors and keeps whichever finishes first, mitigating stragglers from slow or failing nodes.",
+        "link": "/level-3-technologies/batch-processing/spark-performance-tuning/#speculative-execution"
+      },
+      {
+        "id": "task-concurrency-core-allocation-tuning",
+        "label": "Task concurrency and core allocation tuning",
+        "desc": "Balancing executor count, cores per executor, and memory per executor to maximize cluster utilization without oversubscribing CPU or triggering excessive GC.",
+        "link": "/level-3-technologies/batch-processing/spark-performance-tuning/#task-concurrency-and-core-allocation-tuning"
+      },
+      {
+        "id": "compression-codec-tradeoffs",
+        "label": "Compression codec tradeoffs",
+        "desc": "Shuffle and storage compression codecs (lz4, snappy, zstd) trade CPU cost for reduced I/O and network transfer volume differently under different workloads.",
+        "link": "/level-3-technologies/batch-processing/spark-performance-tuning/#compression-codec-tradeoffs"
+      },
+      {
+        "id": "network-and-shuffle-io-optimization",
+        "label": "Network and shuffle I/O optimization",
+        "desc": "Tuning shuffle service settings and buffer sizes, and using the external shuffle service, to reduce network round-trips and avoid re-computing shuffle output on executor loss.",
+        "link": "/level-3-technologies/batch-processing/spark-performance-tuning/#network-and-shuffle-io-optimization"
+      },
+      {
+        "id": "broadcast-join-threshold-tuning",
+        "label": "Broadcast join threshold tuning",
+        "desc": "spark.sql.autoBroadcastJoinThreshold sets the max table size the optimizer will automatically broadcast; raising or disabling it changes which joins get broadcast versus shuffled.",
+        "link": "/level-3-technologies/batch-processing/spark-joins/#broadcast-hash-join"
+      }
+    ]
+  },
+  {
+    "id": "cluster-deployment",
+    "label": "Cluster Deployment & Environment Setup",
+    "desc": "Running Spark on different cluster managers and packaging it to ship.",
+    "link": "/level-3-technologies/batch-processing/spark-cluster-deployment/",
+    "subs": [
+      {
+        "id": "standalone-mode-setup",
+        "label": "Standalone mode setup",
+        "desc": "Spark's own built-in cluster manager — a lightweight master/worker setup with no external dependency, suited to dedicated Spark-only clusters.",
+        "link": "/level-3-technologies/batch-processing/spark-cluster-deployment/#standalone-mode-setup"
+      },
+      {
+        "id": "yarn-deployment-and-queue-management",
+        "label": "YARN deployment and queue management",
+        "desc": "Runs Spark as a YARN application, sharing cluster resources with other Hadoop workloads via capacity or fair scheduler queues.",
+        "link": "/level-3-technologies/batch-processing/spark-cluster-deployment/#yarn-deployment-and-queue-management"
+      },
+      {
+        "id": "kubernetes-operator-native-scheduling",
+        "label": "Kubernetes operator and native scheduling",
+        "desc": "Spark submits directly as native Kubernetes pods (or via the Spark Operator CRD), integrating with k8s scheduling, namespaces, and autoscaling.",
+        "link": "/level-3-technologies/batch-processing/spark-cluster-deployment/#kubernetes-operator-and-native-scheduling"
+      },
+      {
+        "id": "client-mode-vs-cluster-mode",
+        "label": "Client mode versus cluster mode",
+        "desc": "Client mode runs the driver on the submitting machine (useful for interactive shells); cluster mode runs the driver inside the cluster itself.",
+        "link": "/level-3-technologies/batch-processing/spark-distributed-computing-fundamentals/#cluster-manager-concepts"
+      },
+      {
+        "id": "containerization-with-docker",
+        "label": "Containerization with Docker",
+        "desc": "Packaging Spark applications and dependencies into container images for consistent, reproducible execution across Kubernetes or containerized YARN environments.",
+        "link": "/level-3-technologies/batch-processing/spark-cluster-deployment/#containerization-with-docker"
+      },
+      {
+        "id": "legacy-mesos-integration",
+        "label": "Legacy Mesos integration",
+        "desc": "Apache Mesos as a general-purpose cluster manager Spark could run on; deprecated and removed from recent Spark releases in favor of Kubernetes.",
+        "link": "/level-3-technologies/batch-processing/spark/#cluster-management--deployment"
+      },
+      {
+        "id": "multi-tenancy-resource-queue-isolation",
+        "label": "Multi-tenancy and resource queue isolation",
+        "desc": "Isolating different teams' or applications' resource usage via YARN queues, Kubernetes namespaces/quotas, or dedicated Standalone clusters to prevent noisy-neighbor contention.",
+        "link": "/level-3-technologies/batch-processing/spark-cluster-deployment/#multi-tenancy-and-resource-queue-isolation"
+      }
+    ]
+  },
+  {
+    "id": "cloud-platforms",
+    "label": "Cloud & Managed Platforms",
+    "desc": "Running Spark on managed services instead of self-hosted clusters.",
+    "link": "/level-3-technologies/batch-processing/spark-cloud-platforms/",
+    "subs": [
+      {
+        "id": "databricks-runtime-photon",
+        "label": "Databricks runtime and Photon execution engine",
+        "desc": "Databricks' optimized Spark distribution plus Photon, a native vectorized C++ execution engine that accelerates SQL and DataFrame workloads transparently.",
+        "link": "/level-3-technologies/data-warehouses/databricks/"
+      },
+      {
+        "id": "aws-emr-clusters",
+        "label": "AWS EMR clusters",
+        "desc": "AWS's managed Hadoop/Spark platform provisioning EC2-backed clusters with S3 integration, EMRFS, and support for spot instances to cut cost.",
+        "link": "/level-3-technologies/batch-processing/spark-cloud-platforms/#aws-emr-clusters"
+      },
+      {
+        "id": "google-cloud-dataproc",
+        "label": "Google Cloud Dataproc",
+        "desc": "GCP's managed Spark/Hadoop service with fast cluster startup, GCS integration, and ephemeral cluster patterns for per-job cost efficiency.",
+        "link": "/level-3-technologies/batch-processing/spark-cloud-platforms/#google-cloud-dataproc"
+      },
+      {
+        "id": "azure-synapse-spark-pools",
+        "label": "Azure Synapse Spark pools",
+        "desc": "On-demand, autoscaling Spark pools inside Azure Synapse Analytics, integrated with the Synapse workspace's notebooks and pipelines.",
+        "link": "/level-3-technologies/batch-processing/spark-cloud-platforms/#azure-synapse-spark-pools"
+      },
+      {
+        "id": "managed-service-autoscaling",
+        "label": "Managed service autoscaling",
+        "desc": "Cloud-managed Spark platforms automatically add/remove worker nodes based on load, reducing manual capacity planning versus self-hosted clusters.",
+        "link": "/level-3-technologies/batch-processing/spark-cloud-platforms/#managed-service-autoscaling"
+      },
+      {
+        "id": "instance-type-selection-spot-preemptible",
+        "label": "Instance type selection and spot/preemptible instances",
+        "desc": "Choosing compute-optimized, memory-optimized, or storage-optimized instance families, and using spot/preemptible capacity for interruptible, cost-sensitive workloads.",
+        "link": "/level-3-technologies/batch-processing/spark-cloud-platforms/#instance-type-selection-and-spotpreemptible-instances"
+      }
+    ]
+  },
+  {
+    "id": "testing-devops",
+    "label": "Application Testing & Development Practices",
+    "desc": "Treating Spark jobs like proper software with tests and pipelines.",
+    "link": "/level-3-technologies/batch-processing/spark-testing-devops/",
+    "subs": [
+      {
+        "id": "shared-sparksession-test-fixtures",
+        "label": "Shared SparkSession test fixtures",
+        "desc": "A single local-mode SparkSession reused across a test suite avoids the overhead of starting a new session per test.",
+        "link": "/level-3-technologies/batch-processing/spark-testing-devops/#shared-sparksession-test-fixtures"
+      },
+      {
+        "id": "unit-testing-transformation-logic",
+        "label": "Unit testing transformation logic",
+        "desc": "Testing individual DataFrame transformation functions against small in-memory fixture DataFrames, asserting on schema and row-level output.",
+        "link": "/level-3-technologies/batch-processing/spark-testing-devops/#unit-testing-transformation-logic"
+      },
+      {
+        "id": "integration-testing-for-pipelines",
+        "label": "Integration testing for pipelines",
+        "desc": "Running an end-to-end pipeline against realistic (often sampled) data and real or emulated sources/sinks to catch issues unit tests miss.",
+        "link": "/level-3-technologies/batch-processing/spark-testing-devops/#integration-testing-for-pipelines"
+      },
+      {
+        "id": "mocking-data-source-inputs",
+        "label": "Mocking data source inputs",
+        "desc": "Substituting real external sources (S3, Kafka, JDBC) with in-memory or local fixture data so tests run fast and deterministically.",
+        "link": "/level-3-technologies/batch-processing/spark-testing-devops/#mocking-data-source-inputs"
+      },
+      {
+        "id": "performance-regression-scalability-benchmarking",
+        "label": "Performance regression and scalability benchmarking",
+        "desc": "Tracking job runtime and resource usage over time against a baseline to catch regressions introduced by code or data volume changes.",
+        "link": "/level-3-technologies/batch-processing/spark-testing-devops/#performance-regression-and-scalability-benchmarking"
+      },
+      {
+        "id": "cicd-pipeline-automation-spark-jobs",
+        "label": "CI/CD pipeline automation for Spark jobs",
+        "desc": "Automated build, test, and deployment pipelines that package Spark jobs, run test suites, and promote artifacts across environments on merge.",
+        "link": "/level-3-technologies/batch-processing/spark-testing-devops/#cicd-pipeline-automation-for-spark-jobs"
+      },
+      {
+        "id": "notebook-development-environments",
+        "label": "Notebook development environments (Jupyter, Zeppelin)",
+        "desc": "Jupyter and Zeppelin provide interactive, cell-based development against a live SparkSession, popular for exploration ahead of productionizing as jobs.",
+        "link": "/level-3-technologies/batch-processing/spark-testing-devops/#notebook-development-environments"
+      },
+      {
+        "id": "packaging-dependencies-jars-wheels",
+        "label": "Packaging dependencies (JARs, wheels, fat jars)",
+        "desc": "Bundling application code and dependencies as fat/uber JARs (Scala/Java) or wheel files plus --py-files (Python) for submission to a cluster.",
+        "link": "/level-3-technologies/batch-processing/spark-testing-devops/#packaging-dependencies"
+      },
+      {
+        "id": "configuration-management-across-environments",
+        "label": "Configuration management across environments (dev/staging/prod)",
+        "desc": "Externalizing environment-specific settings (paths, credentials, cluster sizing) so the same job code runs unmodified across dev, staging, and prod.",
+        "link": "/level-3-technologies/batch-processing/spark-testing-devops/#configuration-management-across-environments"
+      }
+    ]
+  },
+  {
+    "id": "monitoring",
+    "label": "Production Monitoring & Observability",
+    "desc": "Knowing what your Spark jobs are doing once they're live.",
+    "subs": [
+      {
+        "id": "spark-ui-analysis",
+        "label": "Spark UI analysis (jobs, stages, SQL tab)",
+        "desc": "The Jobs, Stages, and SQL tabs expose DAG visualizations, task timelines, and query plans used to diagnose slow or failing stages."
+      },
+      {
+        "id": "stage-task-latency-tracking",
+        "label": "Stage and task latency tracking",
+        "desc": "Identifying straggler tasks and slow stages by comparing per-task duration distributions, often surfacing skew or locality problems."
+      },
+      {
+        "id": "executor-usage-utilization-metrics",
+        "label": "Executor usage and utilization metrics",
+        "desc": "Per-executor CPU, memory, and task-slot utilization surfaced in the UI and metrics system to spot underused or overloaded executors."
+      },
+      {
+        "id": "event-log-parsing-history-server",
+        "label": "Event log parsing and history server",
+        "desc": "Spark writes structured JSON event logs that the History Server replays into a Spark UI for completed applications, enabling post-mortem analysis."
+      },
+      {
+        "id": "health-check-alerts",
+        "label": "Health check alerts",
+        "desc": "Automated alerts on executor loss, driver OOM, or stalled progress, tied into cluster manager or orchestration-layer monitoring."
+      },
+      {
+        "id": "resource-utilization-monitoring",
+        "label": "Resource utilization monitoring (CPU, memory, I/O)",
+        "desc": "Tracking cluster-wide CPU, memory, and disk/network I/O to right-size executor counts and catch resource contention across concurrent jobs."
+      },
+      {
+        "id": "third-party-observability-integration",
+        "label": "Third-party observability integration (Prometheus, Grafana, Datadog)",
+        "desc": "Exposing Spark's metrics system (JMX, Graphite sink) to Prometheus, visualized in Grafana or shipped to Datadog for centralized, cross-system dashboards."
+      }
+    ]
+  },
+  {
+    "id": "orchestration",
+    "label": "Workflow Orchestration",
+    "desc": "Scheduling and sequencing Spark jobs as part of larger pipelines.",
+    "subs": [
+      {
+        "id": "workflow-scheduling-concepts",
+        "label": "Workflow scheduling concepts (Airflow, Dagster, etc.)",
+        "desc": "Tools like Airflow and Dagster schedule and trigger Spark jobs as part of larger DAG-based workflows, external to Spark itself."
+      },
+      {
+        "id": "task-dependency-management-dags",
+        "label": "Task dependency management (DAGs of jobs)",
+        "desc": "Expressing upstream/downstream dependencies between Spark jobs and other tasks as a DAG so each step runs only after its prerequisites succeed."
+      },
+      {
+        "id": "pipeline-retries-failure-recovery",
+        "label": "Pipeline retries and failure recovery strategies",
+        "desc": "Configuring automatic retries with backoff at the orchestrator level, distinct from Spark's own task-level retry handling within a single job."
+      },
+      {
+        "id": "job-logging-and-traceability",
+        "label": "Job logging and traceability",
+        "desc": "Correlating orchestrator run IDs with Spark application IDs and driver logs so a failed pipeline step can be traced back to root cause."
+      },
+      {
+        "id": "alerting-systems-pipeline-failures",
+        "label": "Alerting systems for pipeline failures",
+        "desc": "Wiring orchestrator task failures into paging/notification systems (Slack, PagerDuty, email) so failed Spark jobs are caught quickly."
+      },
+      {
+        "id": "orchestrating-multi-engine-pipelines",
+        "label": "Orchestrating multi-engine pipelines (Spark + dbt + others)",
+        "desc": "Sequencing Spark alongside dbt, other query engines, or ML steps within a single orchestrated DAG spanning multiple processing engines."
+      }
+    ]
+  },
+  {
+    "id": "security",
+    "label": "Security Hardening & Governance",
+    "desc": "Protecting data and controlling access across a Spark platform.",
+    "subs": [
+      {
+        "id": "kerberos-authentication",
+        "label": "Kerberos authentication",
+        "desc": "Ticket-based authentication used to secure Spark's access to Kerberized Hadoop/YARN and Hive clusters, requiring keytabs and principal configuration."
+      },
+      {
+        "id": "ssl-tls-encryption-in-transit",
+        "label": "SSL/TLS encryption for data in transit",
+        "desc": "Encrypts RPC communication between driver and executors, and the shuffle/UI endpoints, protecting data moving across the network."
+      },
+      {
+        "id": "role-based-access-control-rbac",
+        "label": "Role-based access control (RBAC)",
+        "desc": "Access to tables, catalogs, or clusters is granted via roles rather than individual grants, typically enforced by a catalog layer like Unity Catalog or Ranger."
+      },
+      {
+        "id": "secret-and-credential-management",
+        "label": "Secret and credential management",
+        "desc": "Storing API keys, passwords, and tokens in a secrets manager or scope rather than in plaintext configs or notebook code."
+      },
+      {
+        "id": "network-security-firewalls-vpc-isolation",
+        "label": "Network security (firewalls, VPC/VNet isolation)",
+        "desc": "Restricting cluster network exposure via security groups, VPC/VNet subnetting, and firewall rules to limit which hosts can reach Spark's ports."
+      },
+      {
+        "id": "data-encryption-at-rest",
+        "label": "Data encryption at rest",
+        "desc": "Encrypting data on disk (shuffle files, cached blocks, output files) using platform-native encryption (e.g. S3 SSE, EBS encryption) or Spark's own I/O encryption."
+      },
+      {
+        "id": "row-column-level-security-data-masking",
+        "label": "Row/column-level security and data masking",
+        "desc": "Restricting or redacting specific rows/columns per user or role — typically enforced by a governance layer (Unity Catalog, Ranger) rather than Spark core."
+      }
+    ]
+  },
+  {
+    "id": "maintenance",
+    "label": "Maintenance & Administration",
+    "desc": "The ongoing operational work of keeping a Spark platform healthy.",
+    "subs": [
+      {
+        "id": "spark-version-upgrade-planning",
+        "label": "Spark version upgrade planning",
+        "desc": "Testing breaking API/behavior changes between major Spark versions against existing jobs before rolling an upgrade out to production clusters."
+      },
+      {
+        "id": "dependency-library-version-management",
+        "label": "Dependency and library version management",
+        "desc": "Managing compatible versions across Spark, Scala, connectors, and third-party libraries to avoid classpath conflicts across a cluster."
+      },
+      {
+        "id": "configuration-audits",
+        "label": "Configuration audits",
+        "desc": "Periodically reviewing cluster and job-level Spark configs against current best practices as workloads, data volumes, and Spark versions evolve."
+      },
+      {
+        "id": "cluster-capacity-planning",
+        "label": "Cluster capacity planning",
+        "desc": "Forecasting compute and storage needs from workload growth trends to size clusters ahead of demand rather than reactively."
+      },
+      {
+        "id": "log-rotation-policies",
+        "label": "Log rotation policies",
+        "desc": "Configuring retention and rotation for driver/executor logs and event logs to prevent unbounded disk growth on long-running clusters."
+      },
+      {
+        "id": "backup-and-disaster-recovery-procedures",
+        "label": "Backup and disaster recovery procedures",
+        "desc": "Backing up metastore metadata, checkpoint directories, and critical tables, with a tested recovery plan for cluster or region-level failure."
+      }
+    ]
+  }
+]

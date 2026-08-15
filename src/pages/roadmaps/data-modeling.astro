@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/data-modeling.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,60 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-2-core-concepts/data-modeling/#interview-questions">Core Concepts</a></h3>
+        <p class="rm-index-desc">15 interview questions covering Fundamentals, Star Schema, Fact Tables, Keys and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#interview-questions">Fundamentals</a></span> <span class="rm-index-sub-desc">Data modeling in analytics is the process of structuring data so it can be queried reliably and efficiently for business questions.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#interview-questions">Star Schema</a></span> <span class="rm-index-sub-desc">What is the difference between fact and dimension tables? What is a star schema and what are its benefits?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#interview-questions">Fact Tables</a></span> <span class="rm-index-sub-desc">What are the main types of fact tables? What is a factless fact table?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#interview-questions">Keys</a></span> <span class="rm-index-sub-desc">What is a surrogate key and when should you use it?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#interview-questions">Dimensions</a></span> <span class="rm-index-sub-desc">Degenerate dimensions are identifiers stored directly in the fact table without a separate dimension table, such as order_id or invoice_number.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#interview-questions">SCD</a></span> <span class="rm-index-sub-desc">SCD describes how you handle changes in dimension attributes over time (for example, a user changing address).</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#interview-questions">Data Quality</a></span> <span class="rm-index-sub-desc">How do you prevent double counting in analytical models? How do you validate a data model after changes?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-2-core-concepts/data-modeling/#data-vault-modeling">Data Vault Modeling</a></h3>
+        <p class="rm-index-desc">5 interview questions covering Data Vault.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#data-vault-modeling">Data Vault</a></span> <span class="rm-index-sub-desc">Data Vault is a modeling methodology designed for auditability, scalability, and flexibility when integrating many source systems, especially where schemas and sources change often.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-2-core-concepts/data-modeling/#nosql--modern-analytics-engineering-modeling">NoSQL &amp; Modern Analytics-Engineering Modeling</a></h3>
+        <p class="rm-index-desc">8 interview questions covering NoSQL, Analytics Engineering.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#nosql--modern-analytics-engineering-modeling">NoSQL</a></span> <span class="rm-index-sub-desc">Relational modeling starts from the data's structure and normalizes to avoid redundancy; NoSQL modeling starts from your application's access patterns and denormalizes deliberately so the most common queries need no joins.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#nosql--modern-analytics-engineering-modeling">Analytics Engineering</a></span> <span class="rm-index-sub-desc">What are dbt's staging, intermediate, and marts layers, and why keep them separate? What is the medallion architecture (bronze/silver/gold), and how does it relate to data modeling?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-2-core-concepts/data-modeling/#advanced-dimension-patterns">Advanced Dimension Patterns</a></h3>
+        <p class="rm-index-desc">6 interview questions covering Dimensions, Hierarchies, SCD.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#advanced-dimension-patterns">Dimensions</a></span> <span class="rm-index-sub-desc">A role-playing dimension is a single physical dimension table used multiple times in the same fact table through different foreign keys and views, representing different roles it plays.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#advanced-dimension-patterns">Hierarchies</a></span> <span class="rm-index-sub-desc">A ragged hierarchy is one where branches have different depths — an org chart where some employees report directly to the CEO and others sit five levels down.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#advanced-dimension-patterns">SCD</a></span> <span class="rm-index-sub-desc">SCD Type 4 splits a dimension into a current-values table and a separate history table, rather than keeping both current and historical rows in one table with effective dates like Type 2.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-2-core-concepts/data-modeling/#schema-evolution-contracts--relationships">Schema Evolution, Contracts &amp; Relationships</a></h3>
+        <p class="rm-index-desc">7 interview questions covering Schema Evolution, Relationships, Fact Tables.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#schema-evolution-contracts--relationships">Schema Evolution</a></span> <span class="rm-index-sub-desc">Schema evolution is how a table's structure changes over time — new columns, renamed fields, changed types.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#schema-evolution-contracts--relationships">Relationships</a></span> <span class="rm-index-sub-desc">Cardinality describes how many instances of one entity relate to instances of another — one-to-one, one-to-many, or many-to-many.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-2-core-concepts/data-modeling/#schema-evolution-contracts--relationships">Fact Tables</a></span> <span class="rm-index-sub-desc">What questions should you ask before modeling a new fact table for a new business domain?</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,34 +121,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"core-concepts", label:"Core Concepts", desc:"15 interview questions covering Fundamentals, Star Schema, Fact Tables, Keys and more.", link:"/level-2-core-concepts/data-modeling/#interview-questions", subs:[
-    { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"Data modeling in analytics is the process of structuring data so it can be queried reliably and efficiently for business questions.", link:"/level-2-core-concepts/data-modeling/#interview-questions" },
-    { id:"core-concepts-star-schema", label:"Star Schema", desc:"What is the difference between fact and dimension tables? What is a star schema and what are its benefits?", link:"/level-2-core-concepts/data-modeling/#interview-questions" },
-    { id:"core-concepts-fact-tables", label:"Fact Tables", desc:"What are the main types of fact tables? What is a factless fact table?", link:"/level-2-core-concepts/data-modeling/#interview-questions" },
-    { id:"core-concepts-keys", label:"Keys", desc:"What is a surrogate key and when should you use it?", link:"/level-2-core-concepts/data-modeling/#interview-questions" },
-    { id:"core-concepts-dimensions", label:"Dimensions", desc:"Degenerate dimensions are identifiers stored directly in the fact table without a separate dimension table, such as order_id or invoice_number.", link:"/level-2-core-concepts/data-modeling/#interview-questions" },
-    { id:"core-concepts-scd", label:"SCD", desc:"SCD describes how you handle changes in dimension attributes over time (for example, a user changing address).", link:"/level-2-core-concepts/data-modeling/#interview-questions" },
-    { id:"core-concepts-data-quality", label:"Data Quality", desc:"How do you prevent double counting in analytical models? How do you validate a data model after changes?", link:"/level-2-core-concepts/data-modeling/#interview-questions" },
-  ]},
-  { id:"data-vault-modeling", label:"Data Vault Modeling", desc:"5 interview questions covering Data Vault.", link:"/level-2-core-concepts/data-modeling/#data-vault-modeling", subs:[
-    { id:"data-vault-modeling-data-vault", label:"Data Vault", desc:"Data Vault is a modeling methodology designed for auditability, scalability, and flexibility when integrating many source systems, especially where schemas and sources change often.", link:"/level-2-core-concepts/data-modeling/#data-vault-modeling" },
-  ]},
-  { id:"nosql-modern-analytics-engineering-modeling", label:"NoSQL & Modern Analytics-Engineering Modeling", desc:"8 interview questions covering NoSQL, Analytics Engineering.", link:"/level-2-core-concepts/data-modeling/#nosql--modern-analytics-engineering-modeling", subs:[
-    { id:"nosql-modern-analytics-engineering-modeling-nosql", label:"NoSQL", desc:"Relational modeling starts from the data's structure and normalizes to avoid redundancy; NoSQL modeling starts from your application's access patterns and denormalizes deliberately so the most common queries need no joins.", link:"/level-2-core-concepts/data-modeling/#nosql--modern-analytics-engineering-modeling" },
-    { id:"nosql-modern-analytics-engineering-modeling-analytics-engineering", label:"Analytics Engineering", desc:"What are dbt's staging, intermediate, and marts layers, and why keep them separate? What is the medallion architecture (bronze/silver/gold), and how does it relate to data modeling?", link:"/level-2-core-concepts/data-modeling/#nosql--modern-analytics-engineering-modeling" },
-  ]},
-  { id:"advanced-dimension-patterns", label:"Advanced Dimension Patterns", desc:"6 interview questions covering Dimensions, Hierarchies, SCD.", link:"/level-2-core-concepts/data-modeling/#advanced-dimension-patterns", subs:[
-    { id:"advanced-dimension-patterns-dimensions", label:"Dimensions", desc:"A role-playing dimension is a single physical dimension table used multiple times in the same fact table through different foreign keys and views, representing different roles it plays.", link:"/level-2-core-concepts/data-modeling/#advanced-dimension-patterns" },
-    { id:"advanced-dimension-patterns-hierarchies", label:"Hierarchies", desc:"A ragged hierarchy is one where branches have different depths — an org chart where some employees report directly to the CEO and others sit five levels down.", link:"/level-2-core-concepts/data-modeling/#advanced-dimension-patterns" },
-    { id:"advanced-dimension-patterns-scd", label:"SCD", desc:"SCD Type 4 splits a dimension into a current-values table and a separate history table, rather than keeping both current and historical rows in one table with effective dates like Type 2.", link:"/level-2-core-concepts/data-modeling/#advanced-dimension-patterns" },
-  ]},
-  { id:"schema-evolution-contracts-relationships", label:"Schema Evolution, Contracts & Relationships", desc:"7 interview questions covering Schema Evolution, Relationships, Fact Tables.", link:"/level-2-core-concepts/data-modeling/#schema-evolution-contracts--relationships", subs:[
-    { id:"schema-evolution-contracts-relationships-schema-evolution", label:"Schema Evolution", desc:"Schema evolution is how a table's structure changes over time — new columns, renamed fields, changed types.", link:"/level-2-core-concepts/data-modeling/#schema-evolution-contracts--relationships" },
-    { id:"schema-evolution-contracts-relationships-relationships", label:"Relationships", desc:"Cardinality describes how many instances of one entity relate to instances of another — one-to-one, one-to-many, or many-to-many.", link:"/level-2-core-concepts/data-modeling/#schema-evolution-contracts--relationships" },
-    { id:"schema-evolution-contracts-relationships-fact-tables", label:"Fact Tables", desc:"What questions should you ask before modeling a new fact table for a new business domain?", link:"/level-2-core-concepts/data-modeling/#schema-evolution-contracts--relationships" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

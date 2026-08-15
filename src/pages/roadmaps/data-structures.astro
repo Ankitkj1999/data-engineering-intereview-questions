@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/data-structures.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,30 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/data-structure/#interview-questions">Core Concepts</a></h3>
+        <p class="rm-index-desc">24 interview questions covering Fundamentals, ADTs, Stacks &amp; Arrays, Recursion and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/data-structure/#interview-questions">Fundamentals</a></span> <span class="rm-index-sub-desc">What is a data structure? What are the goals of a data structure?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/data-structure/#interview-questions">ADTs</a></span> <span class="rm-index-sub-desc">What does abstract data type mean?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/data-structure/#interview-questions">Stacks &amp; Arrays</a></span> <span class="rm-index-sub-desc">Stack: an ordered collection whose size changes dynamically as items are pushed/popped, may hold mixed types conceptually, and is typically implemented as a structure containing an array plus an integer tracking the current top.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/data-structure/#interview-questions">Recursion</a></span> <span class="rm-index-sub-desc">What do you mean by recursive definition?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/data-structure/#interview-questions">Searching</a></span> <span class="rm-index-sub-desc">What is sequential search?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/data-structure/#interview-questions">Functions</a></span> <span class="rm-index-sub-desc">The return address is retrieved, the function's data area is freed, and execution branches back to the return address.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/data-structure/#interview-questions">Linked Lists</a></span> <span class="rm-index-sub-desc">Arrays are expensive to insert into or delete from, and can't be resized without reallocating a new memory block.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/data-structure/#interview-questions">Memory Management</a></span> <span class="rm-index-sub-desc">A list of unused memory cells, maintained with its own pointer, from which new nodes are allocated.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/data-structure/#interview-questions">Queues</a></span> <span class="rm-index-sub-desc">An ordered collection where items are inserted at the rear and removed from the front — FIFO (first in, first out) — with no inherent limit on the number of elements.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/data-structure/#interview-questions">Arrays</a></span> <span class="rm-index-sub-desc">A fixed amount of storage stays allocated even when the structure holds fewer elements, and once that fixed allocation is exhausted, overflow occurs.</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,20 +91,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"core-concepts", label:"Core Concepts", desc:"24 interview questions covering Fundamentals, ADTs, Stacks & Arrays, Recursion and more.", link:"/level-1-foundations/data-structure/#interview-questions", subs:[
-    { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"What is a data structure? What are the goals of a data structure?", link:"/level-1-foundations/data-structure/#interview-questions" },
-    { id:"core-concepts-adts", label:"ADTs", desc:"What does abstract data type mean?", link:"/level-1-foundations/data-structure/#interview-questions" },
-    { id:"core-concepts-stacks-arrays", label:"Stacks & Arrays", desc:"Stack: an ordered collection whose size changes dynamically as items are pushed/popped, may hold mixed types conceptually, and is typically implemented as a structure containing an array plus an integer tracking the current top.", link:"/level-1-foundations/data-structure/#interview-questions" },
-    { id:"core-concepts-recursion", label:"Recursion", desc:"What do you mean by recursive definition?", link:"/level-1-foundations/data-structure/#interview-questions" },
-    { id:"core-concepts-searching", label:"Searching", desc:"What is sequential search?", link:"/level-1-foundations/data-structure/#interview-questions" },
-    { id:"core-concepts-functions", label:"Functions", desc:"The return address is retrieved, the function's data area is freed, and execution branches back to the return address.", link:"/level-1-foundations/data-structure/#interview-questions" },
-    { id:"core-concepts-linked-lists", label:"Linked Lists", desc:"Arrays are expensive to insert into or delete from, and can't be resized without reallocating a new memory block.", link:"/level-1-foundations/data-structure/#interview-questions" },
-    { id:"core-concepts-memory-management", label:"Memory Management", desc:"A list of unused memory cells, maintained with its own pointer, from which new nodes are allocated.", link:"/level-1-foundations/data-structure/#interview-questions" },
-    { id:"core-concepts-queues", label:"Queues", desc:"An ordered collection where items are inserted at the rear and removed from the front — FIFO (first in, first out) — with no inherent limit on the number of elements.", link:"/level-1-foundations/data-structure/#interview-questions" },
-    { id:"core-concepts-arrays", label:"Arrays", desc:"A fixed amount of storage stays allocated even when the structure holds fewer elements, and once that fixed allocation is exhausted, overflow occurs.", link:"/level-1-foundations/data-structure/#interview-questions" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

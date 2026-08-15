@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/bigquery.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,73 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/data-warehouses/bigquery/#fundamentals--architecture">Fundamentals &amp; Architecture</a></h3>
+        <p class="rm-index-desc">17 interview questions covering Fundamentals, Federated Queries, Views, Backup &amp; Recovery and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#fundamentals--architecture">Fundamentals</a></span> <span class="rm-index-sub-desc">BigQuery is a cloud-based, columnar data warehouse, whereas traditional relational databases are usually on-premises and row-based.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#fundamentals--architecture">Federated Queries</a></span> <span class="rm-index-sub-desc">Federated queries allow users to query data stored outside of BigQuery, such as in Google Sheets or Cloud SQL, directly from within BigQuery.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#fundamentals--architecture">Views</a></span> <span class="rm-index-sub-desc">A table in BigQuery represents a structured collection of data, whereas a view is a virtual table derived from a query.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#fundamentals--architecture">Backup &amp; Recovery</a></span> <span class="rm-index-sub-desc">A table decorator in BigQuery allows you to query a specific point in time within a table's history, based on a timestamp or an expression.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#fundamentals--architecture">Schema</a></span> <span class="rm-index-sub-desc">The INFORMATION_SCHEMA in BigQuery is a virtual database schema that provides access to metadata about datasets, tables, views, columns, and other database objects.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#fundamentals--architecture">Consistency</a></span> <span class="rm-index-sub-desc">BigQuery is designed for eventual consistency in distributed queries, meaning that query results may not reflect the latest changes in the underlying data immediately.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/data-warehouses/bigquery/#data-ingestion--loading">Data Ingestion &amp; Loading</a></h3>
+        <p class="rm-index-desc">15 interview questions covering Data Loading, Ingestion, Streaming.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#data-ingestion--loading">Data Loading</a></span> <span class="rm-index-sub-desc">How do you load data into BigQuery?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#data-ingestion--loading">Ingestion</a></span> <span class="rm-index-sub-desc">BigQuery provides several data ingestion options, including batch loading using the BigQuery web UI, command-line tools like bq, or API calls.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#data-ingestion--loading">Streaming</a></span> <span class="rm-index-sub-desc">Streaming inserts in BigQuery enable near real-time data ingestion by allowing you to push individual records or small batches of data directly into BigQuery through the streaming API.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/data-warehouses/bigquery/#storage-partitioning--clustering">Storage, Partitioning &amp; Clustering</a></h3>
+        <p class="rm-index-desc">11 interview questions covering Partitioning, Clustering, Storage, Schema and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#storage-partitioning--clustering">Partitioning</a></span> <span class="rm-index-sub-desc">Partitioning in BigQuery involves dividing tables into smaller, more manageable parts based on specific criteria, such as a time range or key value.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#storage-partitioning--clustering">Clustering</a></span> <span class="rm-index-sub-desc">Clustering keys in BigQuery determine how data is physically organized within partitions.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#storage-partitioning--clustering">Storage</a></span> <span class="rm-index-sub-desc">Can you explain the concept of data sharding in BigQuery? What are the best practices for data modeling in BigQuery?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#storage-partitioning--clustering">Schema</a></span> <span class="rm-index-sub-desc">Modifying the schema of large tables in BigQuery can be time-consuming, as it requires rewriting the entire table.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#storage-partitioning--clustering">Cost</a></span> <span class="rm-index-sub-desc">To optimize data storage costs in BigQuery, you can consider partitioning and clustering tables, compressing data using appropriate compression types, and regularly reviewing and archiving or deleting unused or outdated data.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/data-warehouses/bigquery/#query-performance--optimization">Query Performance &amp; Optimization</a></h3>
+        <p class="rm-index-desc">14 interview questions covering Performance, Slots, Views.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#query-performance--optimization">Performance</a></span> <span class="rm-index-sub-desc">BigQuery reservations allow you to allocate a specific number of slots to your project, ensuring that the slots are available when needed and providing more predictable and cost-effective query execution.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#query-performance--optimization">Slots</a></span> <span class="rm-index-sub-desc">Slot reservations in BigQuery allow you to reserve a specific number of query execution slots for your project.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#query-performance--optimization">Views</a></span> <span class="rm-index-sub-desc">Materialized views in BigQuery are precomputed results of queries that are stored as physical tables.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/data-warehouses/bigquery/#security-cost--governance">Security, Cost &amp; Governance</a></h3>
+        <p class="rm-index-desc">12 interview questions covering Governance, Cost, Encryption, Backup &amp; Recovery.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#security-cost--governance">Governance</a></span> <span class="rm-index-sub-desc">Service accounts in BigQuery are used to authenticate and authorize applications and processes to access and interact with BigQuery resources.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#security-cost--governance">Cost</a></span> <span class="rm-index-sub-desc">Billing export in BigQuery allows you to export detailed billing data to Google Cloud Storage or BigQuery tables.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#security-cost--governance">Encryption</a></span> <span class="rm-index-sub-desc">BigQuery provides encryption at rest, where data stored in BigQuery is automatically encrypted using Google's default encryption keys.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#security-cost--governance">Backup &amp; Recovery</a></span> <span class="rm-index-sub-desc">How does BigQuery handle data backup and recovery?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/data-warehouses/bigquery/#automation-ml--ecosystem">Automation, ML &amp; Ecosystem</a></h3>
+        <p class="rm-index-desc">11 interview questions covering Automation, ML.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#automation-ml--ecosystem">Automation</a></span> <span class="rm-index-sub-desc">BigQuery Omni is an extension of BigQuery that allows you to analyze data across multiple clouds, including Google Cloud, AWS, and Azure, using a unified interface.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/bigquery/#automation-ml--ecosystem">ML</a></span> <span class="rm-index-sub-desc">BigQuery ML is a service within BigQuery that allows you to build and execute machine learning models using SQL queries.</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,43 +134,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"fundamentals-architecture", label:"Fundamentals & Architecture", desc:"17 interview questions covering Fundamentals, Federated Queries, Views, Backup & Recovery and more.", link:"/level-3-technologies/data-warehouses/bigquery/#fundamentals--architecture", subs:[
-    { id:"fundamentals-architecture-fundamentals", label:"Fundamentals", desc:"BigQuery is a cloud-based, columnar data warehouse, whereas traditional relational databases are usually on-premises and row-based.", link:"/level-3-technologies/data-warehouses/bigquery/#fundamentals--architecture" },
-    { id:"fundamentals-architecture-federated-queries", label:"Federated Queries", desc:"Federated queries allow users to query data stored outside of BigQuery, such as in Google Sheets or Cloud SQL, directly from within BigQuery.", link:"/level-3-technologies/data-warehouses/bigquery/#fundamentals--architecture" },
-    { id:"fundamentals-architecture-views", label:"Views", desc:"A table in BigQuery represents a structured collection of data, whereas a view is a virtual table derived from a query.", link:"/level-3-technologies/data-warehouses/bigquery/#fundamentals--architecture" },
-    { id:"fundamentals-architecture-backup-recovery", label:"Backup & Recovery", desc:"A table decorator in BigQuery allows you to query a specific point in time within a table's history, based on a timestamp or an expression.", link:"/level-3-technologies/data-warehouses/bigquery/#fundamentals--architecture" },
-    { id:"fundamentals-architecture-schema", label:"Schema", desc:"The INFORMATION_SCHEMA in BigQuery is a virtual database schema that provides access to metadata about datasets, tables, views, columns, and other database objects.", link:"/level-3-technologies/data-warehouses/bigquery/#fundamentals--architecture" },
-    { id:"fundamentals-architecture-consistency", label:"Consistency", desc:"BigQuery is designed for eventual consistency in distributed queries, meaning that query results may not reflect the latest changes in the underlying data immediately.", link:"/level-3-technologies/data-warehouses/bigquery/#fundamentals--architecture" },
-  ]},
-  { id:"data-ingestion-loading", label:"Data Ingestion & Loading", desc:"15 interview questions covering Data Loading, Ingestion, Streaming.", link:"/level-3-technologies/data-warehouses/bigquery/#data-ingestion--loading", subs:[
-    { id:"data-ingestion-loading-data-loading", label:"Data Loading", desc:"How do you load data into BigQuery?", link:"/level-3-technologies/data-warehouses/bigquery/#data-ingestion--loading" },
-    { id:"data-ingestion-loading-ingestion", label:"Ingestion", desc:"BigQuery provides several data ingestion options, including batch loading using the BigQuery web UI, command-line tools like bq, or API calls.", link:"/level-3-technologies/data-warehouses/bigquery/#data-ingestion--loading" },
-    { id:"data-ingestion-loading-streaming", label:"Streaming", desc:"Streaming inserts in BigQuery enable near real-time data ingestion by allowing you to push individual records or small batches of data directly into BigQuery through the streaming API.", link:"/level-3-technologies/data-warehouses/bigquery/#data-ingestion--loading" },
-  ]},
-  { id:"storage-partitioning-clustering", label:"Storage, Partitioning & Clustering", desc:"11 interview questions covering Partitioning, Clustering, Storage, Schema and more.", link:"/level-3-technologies/data-warehouses/bigquery/#storage-partitioning--clustering", subs:[
-    { id:"storage-partitioning-clustering-partitioning", label:"Partitioning", desc:"Partitioning in BigQuery involves dividing tables into smaller, more manageable parts based on specific criteria, such as a time range or key value.", link:"/level-3-technologies/data-warehouses/bigquery/#storage-partitioning--clustering" },
-    { id:"storage-partitioning-clustering-clustering", label:"Clustering", desc:"Clustering keys in BigQuery determine how data is physically organized within partitions.", link:"/level-3-technologies/data-warehouses/bigquery/#storage-partitioning--clustering" },
-    { id:"storage-partitioning-clustering-storage", label:"Storage", desc:"Can you explain the concept of data sharding in BigQuery? What are the best practices for data modeling in BigQuery?", link:"/level-3-technologies/data-warehouses/bigquery/#storage-partitioning--clustering" },
-    { id:"storage-partitioning-clustering-schema", label:"Schema", desc:"Modifying the schema of large tables in BigQuery can be time-consuming, as it requires rewriting the entire table.", link:"/level-3-technologies/data-warehouses/bigquery/#storage-partitioning--clustering" },
-    { id:"storage-partitioning-clustering-cost", label:"Cost", desc:"To optimize data storage costs in BigQuery, you can consider partitioning and clustering tables, compressing data using appropriate compression types, and regularly reviewing and archiving or deleting unused or outdated data.", link:"/level-3-technologies/data-warehouses/bigquery/#storage-partitioning--clustering" },
-  ]},
-  { id:"query-performance-optimization", label:"Query Performance & Optimization", desc:"14 interview questions covering Performance, Slots, Views.", link:"/level-3-technologies/data-warehouses/bigquery/#query-performance--optimization", subs:[
-    { id:"query-performance-optimization-performance", label:"Performance", desc:"BigQuery reservations allow you to allocate a specific number of slots to your project, ensuring that the slots are available when needed and providing more predictable and cost-effective query execution.", link:"/level-3-technologies/data-warehouses/bigquery/#query-performance--optimization" },
-    { id:"query-performance-optimization-slots", label:"Slots", desc:"Slot reservations in BigQuery allow you to reserve a specific number of query execution slots for your project.", link:"/level-3-technologies/data-warehouses/bigquery/#query-performance--optimization" },
-    { id:"query-performance-optimization-views", label:"Views", desc:"Materialized views in BigQuery are precomputed results of queries that are stored as physical tables.", link:"/level-3-technologies/data-warehouses/bigquery/#query-performance--optimization" },
-  ]},
-  { id:"security-cost-governance", label:"Security, Cost & Governance", desc:"12 interview questions covering Governance, Cost, Encryption, Backup & Recovery.", link:"/level-3-technologies/data-warehouses/bigquery/#security-cost--governance", subs:[
-    { id:"security-cost-governance-governance", label:"Governance", desc:"Service accounts in BigQuery are used to authenticate and authorize applications and processes to access and interact with BigQuery resources.", link:"/level-3-technologies/data-warehouses/bigquery/#security-cost--governance" },
-    { id:"security-cost-governance-cost", label:"Cost", desc:"Billing export in BigQuery allows you to export detailed billing data to Google Cloud Storage or BigQuery tables.", link:"/level-3-technologies/data-warehouses/bigquery/#security-cost--governance" },
-    { id:"security-cost-governance-encryption", label:"Encryption", desc:"BigQuery provides encryption at rest, where data stored in BigQuery is automatically encrypted using Google's default encryption keys.", link:"/level-3-technologies/data-warehouses/bigquery/#security-cost--governance" },
-    { id:"security-cost-governance-backup-recovery", label:"Backup & Recovery", desc:"How does BigQuery handle data backup and recovery?", link:"/level-3-technologies/data-warehouses/bigquery/#security-cost--governance" },
-  ]},
-  { id:"automation-ml-ecosystem", label:"Automation, ML & Ecosystem", desc:"11 interview questions covering Automation, ML.", link:"/level-3-technologies/data-warehouses/bigquery/#automation-ml--ecosystem", subs:[
-    { id:"automation-ml-ecosystem-automation", label:"Automation", desc:"BigQuery Omni is an extension of BigQuery that allows you to analyze data across multiple clouds, including Google Cloud, AWS, and Azure, using a unified interface.", link:"/level-3-technologies/data-warehouses/bigquery/#automation-ml--ecosystem" },
-    { id:"automation-ml-ecosystem-ml", label:"ML", desc:"BigQuery ML is a service within BigQuery that allows you to build and execute machine learning models using SQL queries.", link:"/level-3-technologies/data-warehouses/bigquery/#automation-ml--ecosystem" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

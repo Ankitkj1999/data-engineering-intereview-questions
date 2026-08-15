@@ -7,7 +7,10 @@ import navigationConfig from "./src/config/navigation.json";
 
 // https://astro.build/config
 export default defineConfig({
-	site: "https://example.com",
+	// Canonical origin. Every canonical tag and every sitemap URL is built from this,
+	// so a placeholder here tells search engines the real content lives elsewhere.
+	// Change this one line when a custom domain is attached.
+	site: "https://data-engineering-intereview-questions.ankit-k-j1999.workers.dev",
 	integrations: [
 		starlight({
 			title: "Data Engineering Questions",
@@ -76,6 +79,7 @@ export default defineConfig({
 			sidebar: navigationConfig.sidebar,
 			customCss: ["./src/styles/theme.css", "./src/styles/primitives.css"],
 			components: {
+				Head: "./src/overrides/Head.astro",
 				Header: "./src/overrides/Header.astro",
 				PageFrame: "./src/overrides/PageFrame.astro",
 				Sidebar: "./src/overrides/Sidebar.astro",

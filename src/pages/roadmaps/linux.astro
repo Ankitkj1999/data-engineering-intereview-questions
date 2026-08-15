@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/linux.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,96 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/linux/#filesystem--navigation">Filesystem &amp; Navigation</a></h3>
+        <p class="rm-index-desc">Where things live on a Linux box, and how to find them when a job fails at 3am.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#filesystem--navigation">Directory Layout</a></span> <span class="rm-index-sub-desc">What /etc, /var, /tmp, /proc and /opt are for — and which ones fill up first.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#filesystem--navigation">Hard vs Symbolic Links</a></span> <span class="rm-index-sub-desc">Two names for one inode versus a path pointer, and why deploys use symlinks.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#filesystem--navigation">Finding Files</a></span> <span class="rm-index-sub-desc">find, locate and which — walking the tree versus querying a prebuilt index.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#filesystem--navigation">Disk Usage &amp; Inodes</a></span> <span class="rm-index-sub-desc">df vs du, why they disagree, and running out of inodes rather than bytes.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#filesystem--navigation">Reading Large Logs</a></span> <span class="rm-index-sub-desc">tail -f, less and zcat — inspecting a 40 GB file without loading it.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/linux/#permissions--ownership">Permissions &amp; Ownership</a></h3>
+        <p class="rm-index-desc">Who can read, write and execute what — and why a shared pipeline directory needs setgid.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#permissions--ownership">Permission Bits</a></span> <span class="rm-index-sub-desc">rwx for owner, group and others — and what those bits mean on a directory.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#permissions--ownership">chmod 755 &amp; 644</a></span> <span class="rm-index-sub-desc">Numeric and symbolic modes, and why SSH refuses a group-readable key.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#permissions--ownership">chown &amp; chgrp</a></span> <span class="rm-index-sub-desc">Changing the owning user and group, and why it usually needs sudo.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#permissions--ownership">umask</a></span> <span class="rm-index-sub-desc">The bits withheld from new files, and how it breaks cross-account pipeline handoffs.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#permissions--ownership">setuid, setgid &amp; Sticky Bit</a></span> <span class="rm-index-sub-desc">Privilege escalation risk, group inheritance for shared directories, and /tmp.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#permissions--ownership">sudo</a></span> <span class="rm-index-sub-desc">Per-command privilege with an audit trail, versus a shared root login.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/linux/#processes--signals">Processes &amp; Signals</a></h3>
+        <p class="rm-index-desc">Inspecting what's running, and stopping it cleanly rather than with kill -9.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#processes--signals">Inspecting Processes</a></span> <span class="rm-index-sub-desc">ps, top, htop and pgrep — and which columns matter when triaging.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#processes--signals">SIGTERM vs SIGKILL</a></span> <span class="rm-index-sub-desc">The polite request the process can handle, versus the one it cannot.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#processes--signals">Other Signals</a></span> <span class="rm-index-sub-desc">SIGHUP, SIGINT, SIGSTOP, SIGQUIT for JVM thread dumps, and SIGPIPE.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#processes--signals">Zombie Processes</a></span> <span class="rm-index-sub-desc">Why you can't kill something already dead, and why containers need an init.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#processes--signals">Surviving a Disconnect</a></span> <span class="rm-index-sub-desc">nohup and tmux — and why production should use a supervisor instead.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#processes--signals">nice &amp; ionice</a></span> <span class="rm-index-sub-desc">Deprioritising a backfill so it doesn't starve interactive queries.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/linux/#text-processing">Text Processing</a></h3>
+        <p class="rm-index-desc">grep, awk and sed — inspecting and transforming data from the shell before you write any code.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#text-processing">grep</a></span> <span class="rm-index-sub-desc">Options that matter in production, especially -A/-B/-C for stack traces.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#text-processing">awk</a></span> <span class="rm-index-sub-desc">Columns plus logic — filtering, aggregating and sampling a multi-gigabyte CSV.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#text-processing">sed</a></span> <span class="rm-index-sub-desc">Stream substitution, in-place edits with a backup, and printing line ranges.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#text-processing">sort, uniq &amp; cut</a></span> <span class="rm-index-sub-desc">The canonical frequency-count idiom, and why uniq needs sorted input.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#text-processing">Inspecting a Large CSV</a></span> <span class="rm-index-sub-desc">Row counts, column names, malformed rows and null counts from the shell.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#text-processing">Pipes &amp; Redirection</a></span> <span class="rm-index-sub-desc">stdin/stdout/stderr, and why the order of &gt; out.txt 2&gt;&amp;1 matters.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/linux/#shell-scripting">Shell Scripting</a></h3>
+        <p class="rm-index-desc">Writing scripts that fail loudly, clean up after themselves, and are safe to schedule.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#shell-scripting">Shebang</a></span> <span class="rm-index-sub-desc">Choosing the interpreter, and why /usr/bin/env python3 respects a virtualenv.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#shell-scripting">set -euo pipefail</a></span> <span class="rm-index-sub-desc">The four-word line that turns silent failure into a visible one.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#shell-scripting">Quoting Variables</a></span> <span class="rm-index-sub-desc">Word splitting and glob expansion — the bug class ShellCheck exists to catch.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#shell-scripting">Exit Codes</a></span> <span class="rm-index-sub-desc">How schedulers decide success, and why exiting 0 after an error hides breakage.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#shell-scripting">trap &amp; Cleanup</a></span> <span class="rm-index-sub-desc">Removing temp files on exit, error or SIGTERM — however the script ends.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#shell-scripting">flock &amp; Concurrency</a></span> <span class="rm-index-sub-desc">Stopping an overrunning cron job from overlapping itself and duplicating output.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/linux/#cron--scheduling">Cron &amp; Scheduling</a></h3>
+        <p class="rm-index-desc">Time-based scheduling on a single host, its limits, and when to move to a real orchestrator.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#cron--scheduling">Cron Syntax</a></span> <span class="rm-index-sub-desc">The five fields, common expressions, and the day-of-month/day-of-week trap.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#cron--scheduling">The Cron Environment Problem</a></span> <span class="rm-index-sub-desc">Why a script that works in your shell fails under cron — and how to fix it.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#cron--scheduling">Managing Crontabs</a></span> <span class="rm-index-sub-desc">crontab -l/-e, system-wide cron directories, and where the logs are.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#cron--scheduling">Cron's Limits for Pipelines</a></span> <span class="rm-index-sub-desc">No dependencies, retries, backfills, alerting or visibility — hence Airflow.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#cron--scheduling">systemd Timers</a></span> <span class="rm-index-sub-desc">Journald logging, Persistent=true for missed runs, and resource limits.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/linux/#troubleshooting--performance">Troubleshooting &amp; Performance</a></h3>
+        <p class="rm-index-desc">Diagnosing a slow or broken box — CPU, memory, disk and the process that's stuck.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#troubleshooting--performance">Diagnosing a Slow Server</a></span> <span class="rm-index-sub-desc">Working through load, memory, disk and network in a repeatable order.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#troubleshooting--performance">Load Average</a></span> <span class="rm-index-sub-desc">Reading the three numbers against core count, and why I/O wait counts on Linux.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#troubleshooting--performance">Reading free -h</a></span> <span class="rm-index-sub-desc">Why 'free' is misleadingly small, what 'available' means, and when swap matters.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#troubleshooting--performance">The OOM Killer</a></span> <span class="rm-index-sub-desc">A job killed with no error in its logs, and how to confirm it from dmesg.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#troubleshooting--performance">lsof &amp; ss</a></span> <span class="rm-index-sub-desc">Finding what holds a port, a deleted file, or a busy mount point.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/linux/#troubleshooting--performance">Finding a Stuck Process</a></span> <span class="rm-index-sub-desc">strace, jstack and py-spy — locating where a hung job is actually blocked.</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,62 +157,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"lnx-filesystem", label:"Filesystem & Navigation", desc:"Where things live on a Linux box, and how to find them when a job fails at 3am.", link:"/level-1-foundations/linux/#filesystem--navigation", subs:[
-    { id:"lnx-fhs", label:"Directory Layout", desc:"What /etc, /var, /tmp, /proc and /opt are for — and which ones fill up first.", link:"/level-1-foundations/linux/#filesystem--navigation" },
-    { id:"lnx-links", label:"Hard vs Symbolic Links", desc:"Two names for one inode versus a path pointer, and why deploys use symlinks.", link:"/level-1-foundations/linux/#filesystem--navigation" },
-    { id:"lnx-find", label:"Finding Files", desc:"find, locate and which — walking the tree versus querying a prebuilt index.", link:"/level-1-foundations/linux/#filesystem--navigation" },
-    { id:"lnx-disk", label:"Disk Usage & Inodes", desc:"df vs du, why they disagree, and running out of inodes rather than bytes.", link:"/level-1-foundations/linux/#filesystem--navigation" },
-    { id:"lnx-logs", label:"Reading Large Logs", desc:"tail -f, less and zcat — inspecting a 40 GB file without loading it.", link:"/level-1-foundations/linux/#filesystem--navigation" },
-  ]},
-  { id:"lnx-permissions", label:"Permissions & Ownership", desc:"Who can read, write and execute what — and why a shared pipeline directory needs setgid.", link:"/level-1-foundations/linux/#permissions--ownership", subs:[
-    { id:"lnx-bits", label:"Permission Bits", desc:"rwx for owner, group and others — and what those bits mean on a directory.", link:"/level-1-foundations/linux/#permissions--ownership" },
-    { id:"lnx-chmod", label:"chmod 755 & 644", desc:"Numeric and symbolic modes, and why SSH refuses a group-readable key.", link:"/level-1-foundations/linux/#permissions--ownership" },
-    { id:"lnx-chown", label:"chown & chgrp", desc:"Changing the owning user and group, and why it usually needs sudo.", link:"/level-1-foundations/linux/#permissions--ownership" },
-    { id:"lnx-umask", label:"umask", desc:"The bits withheld from new files, and how it breaks cross-account pipeline handoffs.", link:"/level-1-foundations/linux/#permissions--ownership" },
-    { id:"lnx-special-bits", label:"setuid, setgid & Sticky Bit", desc:"Privilege escalation risk, group inheritance for shared directories, and /tmp.", link:"/level-1-foundations/linux/#permissions--ownership" },
-    { id:"lnx-sudo", label:"sudo", desc:"Per-command privilege with an audit trail, versus a shared root login.", link:"/level-1-foundations/linux/#permissions--ownership" },
-  ]},
-  { id:"lnx-processes", label:"Processes & Signals", desc:"Inspecting what's running, and stopping it cleanly rather than with kill -9.", link:"/level-1-foundations/linux/#processes--signals", subs:[
-    { id:"lnx-ps", label:"Inspecting Processes", desc:"ps, top, htop and pgrep — and which columns matter when triaging.", link:"/level-1-foundations/linux/#processes--signals" },
-    { id:"lnx-signals-term", label:"SIGTERM vs SIGKILL", desc:"The polite request the process can handle, versus the one it cannot.", link:"/level-1-foundations/linux/#processes--signals" },
-    { id:"lnx-signals-other", label:"Other Signals", desc:"SIGHUP, SIGINT, SIGSTOP, SIGQUIT for JVM thread dumps, and SIGPIPE.", link:"/level-1-foundations/linux/#processes--signals" },
-    { id:"lnx-zombie", label:"Zombie Processes", desc:"Why you can't kill something already dead, and why containers need an init.", link:"/level-1-foundations/linux/#processes--signals" },
-    { id:"lnx-nohup", label:"Surviving a Disconnect", desc:"nohup and tmux — and why production should use a supervisor instead.", link:"/level-1-foundations/linux/#processes--signals" },
-    { id:"lnx-nice", label:"nice & ionice", desc:"Deprioritising a backfill so it doesn't starve interactive queries.", link:"/level-1-foundations/linux/#processes--signals" },
-  ]},
-  { id:"lnx-text", label:"Text Processing", desc:"grep, awk and sed — inspecting and transforming data from the shell before you write any code.", link:"/level-1-foundations/linux/#text-processing", subs:[
-    { id:"lnx-grep", label:"grep", desc:"Options that matter in production, especially -A/-B/-C for stack traces.", link:"/level-1-foundations/linux/#text-processing" },
-    { id:"lnx-awk", label:"awk", desc:"Columns plus logic — filtering, aggregating and sampling a multi-gigabyte CSV.", link:"/level-1-foundations/linux/#text-processing" },
-    { id:"lnx-sed", label:"sed", desc:"Stream substitution, in-place edits with a backup, and printing line ranges.", link:"/level-1-foundations/linux/#text-processing" },
-    { id:"lnx-sort-uniq", label:"sort, uniq & cut", desc:"The canonical frequency-count idiom, and why uniq needs sorted input.", link:"/level-1-foundations/linux/#text-processing" },
-    { id:"lnx-csv", label:"Inspecting a Large CSV", desc:"Row counts, column names, malformed rows and null counts from the shell.", link:"/level-1-foundations/linux/#text-processing" },
-    { id:"lnx-redirection", label:"Pipes & Redirection", desc:"stdin/stdout/stderr, and why the order of > out.txt 2>&1 matters.", link:"/level-1-foundations/linux/#text-processing" },
-  ]},
-  { id:"lnx-shell", label:"Shell Scripting", desc:"Writing scripts that fail loudly, clean up after themselves, and are safe to schedule.", link:"/level-1-foundations/linux/#shell-scripting", subs:[
-    { id:"lnx-shebang", label:"Shebang", desc:"Choosing the interpreter, and why /usr/bin/env python3 respects a virtualenv.", link:"/level-1-foundations/linux/#shell-scripting" },
-    { id:"lnx-strict", label:"set -euo pipefail", desc:"The four-word line that turns silent failure into a visible one.", link:"/level-1-foundations/linux/#shell-scripting" },
-    { id:"lnx-quoting", label:"Quoting Variables", desc:"Word splitting and glob expansion — the bug class ShellCheck exists to catch.", link:"/level-1-foundations/linux/#shell-scripting" },
-    { id:"lnx-exit-codes", label:"Exit Codes", desc:"How schedulers decide success, and why exiting 0 after an error hides breakage.", link:"/level-1-foundations/linux/#shell-scripting" },
-    { id:"lnx-trap", label:"trap & Cleanup", desc:"Removing temp files on exit, error or SIGTERM — however the script ends.", link:"/level-1-foundations/linux/#shell-scripting" },
-    { id:"lnx-flock", label:"flock & Concurrency", desc:"Stopping an overrunning cron job from overlapping itself and duplicating output.", link:"/level-1-foundations/linux/#shell-scripting" },
-  ]},
-  { id:"lnx-cron", label:"Cron & Scheduling", desc:"Time-based scheduling on a single host, its limits, and when to move to a real orchestrator.", link:"/level-1-foundations/linux/#cron--scheduling", subs:[
-    { id:"lnx-cron-syntax", label:"Cron Syntax", desc:"The five fields, common expressions, and the day-of-month/day-of-week trap.", link:"/level-1-foundations/linux/#cron--scheduling" },
-    { id:"lnx-cron-env", label:"The Cron Environment Problem", desc:"Why a script that works in your shell fails under cron — and how to fix it.", link:"/level-1-foundations/linux/#cron--scheduling" },
-    { id:"lnx-crontab", label:"Managing Crontabs", desc:"crontab -l/-e, system-wide cron directories, and where the logs are.", link:"/level-1-foundations/linux/#cron--scheduling" },
-    { id:"lnx-cron-limits", label:"Cron's Limits for Pipelines", desc:"No dependencies, retries, backfills, alerting or visibility — hence Airflow.", link:"/level-1-foundations/linux/#cron--scheduling" },
-    { id:"lnx-systemd", label:"systemd Timers", desc:"Journald logging, Persistent=true for missed runs, and resource limits.", link:"/level-1-foundations/linux/#cron--scheduling" },
-  ]},
-  { id:"lnx-diag", label:"Troubleshooting & Performance", desc:"Diagnosing a slow or broken box — CPU, memory, disk and the process that's stuck.", link:"/level-1-foundations/linux/#troubleshooting--performance", subs:[
-    { id:"lnx-slow-server", label:"Diagnosing a Slow Server", desc:"Working through load, memory, disk and network in a repeatable order.", link:"/level-1-foundations/linux/#troubleshooting--performance" },
-    { id:"lnx-load", label:"Load Average", desc:"Reading the three numbers against core count, and why I/O wait counts on Linux.", link:"/level-1-foundations/linux/#troubleshooting--performance" },
-    { id:"lnx-memory", label:"Reading free -h", desc:"Why 'free' is misleadingly small, what 'available' means, and when swap matters.", link:"/level-1-foundations/linux/#troubleshooting--performance" },
-    { id:"lnx-oom", label:"The OOM Killer", desc:"A job killed with no error in its logs, and how to confirm it from dmesg.", link:"/level-1-foundations/linux/#troubleshooting--performance" },
-    { id:"lnx-lsof", label:"lsof & ss", desc:"Finding what holds a port, a deleted file, or a busy mount point.", link:"/level-1-foundations/linux/#troubleshooting--performance" },
-    { id:"lnx-stuck", label:"Finding a Stuck Process", desc:"strace, jstack and py-spy — locating where a hung job is actually blocked.", link:"/level-1-foundations/linux/#troubleshooting--performance" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

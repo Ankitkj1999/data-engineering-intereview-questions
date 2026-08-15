@@ -1,0 +1,64 @@
+[
+  {
+    "id": "batch-ingestion",
+    "label": "Batch Ingestion",
+    "desc": "3 interview questions covering Batch.",
+    "link": "/level-3-technologies/ingestion/ingestion-patterns/#batch-ingestion",
+    "subs": [
+      {
+        "id": "batch-ingestion-batch",
+        "label": "Batch",
+        "desc": "What is batch ingestion, and when is it the right choice? What are the common batch ingestion patterns?",
+        "link": "/level-3-technologies/ingestion/ingestion-patterns/#batch-ingestion"
+      }
+    ]
+  },
+  {
+    "id": "streaming-ingestion",
+    "label": "Streaming Ingestion",
+    "desc": "4 interview questions covering Streaming.",
+    "link": "/level-3-technologies/ingestion/ingestion-patterns/#streaming-ingestion",
+    "subs": [
+      {
+        "id": "streaming-ingestion-streaming",
+        "label": "Streaming",
+        "desc": "What is streaming ingestion, and what does it actually require? What are the delivery semantics, and which can you actually get?",
+        "link": "/level-3-technologies/ingestion/ingestion-patterns/#streaming-ingestion"
+      }
+    ]
+  },
+  {
+    "id": "real-time-micro-batch",
+    "label": "Real-Time & Micro-Batch",
+    "desc": "3 interview questions covering Micro-Batch, Real-Time.",
+    "link": "/level-3-technologies/ingestion/ingestion-patterns/#real-time--micro-batch",
+    "subs": [
+      {
+        "id": "real-time-micro-batch-micro-batch",
+        "label": "Micro-Batch",
+        "desc": "What is micro-batch, and why is it so widely used?",
+        "link": "/level-3-technologies/ingestion/ingestion-patterns/#real-time--micro-batch"
+      },
+      {
+        "id": "real-time-micro-batch-real-time",
+        "label": "Real-Time",
+        "desc": "Strictly, real-time means a guaranteed response within a bounded time — a hard deadline, as in control systems.",
+        "link": "/level-3-technologies/ingestion/ingestion-patterns/#real-time--micro-batch"
+      }
+    ]
+  },
+  {
+    "id": "hybrid-architectures",
+    "label": "Hybrid Architectures",
+    "desc": "4 interview questions covering Hybrid.",
+    "link": "/level-3-technologies/ingestion/ingestion-patterns/#hybrid-architectures",
+    "subs": [
+      {
+        "id": "hybrid-architectures-hybrid",
+        "label": "Hybrid",
+        "desc": "Most real platforms are hybrid, not by design purity but because different sources have different needs.",
+        "link": "/level-3-technologies/ingestion/ingestion-patterns/#hybrid-architectures"
+      }
+    ]
+  }
+]

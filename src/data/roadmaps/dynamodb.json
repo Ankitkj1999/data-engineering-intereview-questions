@@ -1,0 +1,90 @@
+[
+  {
+    "id": "tables-keys-capacity-model",
+    "label": "Tables, Keys & Capacity Model",
+    "desc": "15 interview questions covering Fundamentals, Keys, Capacity, Performance.",
+    "link": "/level-3-technologies/databases/dynamodb/#tables-keys--capacity-model",
+    "subs": [
+      {
+        "id": "tables-keys-capacity-model-fundamentals",
+        "label": "Fundamentals",
+        "desc": "DynamoDB is a fully managed, serverless NoSQL database service provided by AWS that handles large-scale, high-performance distributed workloads.",
+        "link": "/level-3-technologies/databases/dynamodb/#tables-keys--capacity-model"
+      },
+      {
+        "id": "tables-keys-capacity-model-keys",
+        "label": "Keys",
+        "desc": "The partition key (hash key) determines which physical partition stores an item, based on a hash of the key's value.",
+        "link": "/level-3-technologies/databases/dynamodb/#tables-keys--capacity-model"
+      },
+      {
+        "id": "tables-keys-capacity-model-capacity",
+        "label": "Capacity",
+        "desc": "Throughput measures a table's read/write capacity — how many read and write operations per second the table can handle, expressed in read and write capacity units.",
+        "link": "/level-3-technologies/databases/dynamodb/#tables-keys--capacity-model"
+      },
+      {
+        "id": "tables-keys-capacity-model-performance",
+        "label": "Performance",
+        "desc": "How do you handle hot partitions in DynamoDB?",
+        "link": "/level-3-technologies/databases/dynamodb/#tables-keys--capacity-model"
+      }
+    ]
+  },
+  {
+    "id": "indexes-queries-advanced-features",
+    "label": "Indexes, Queries & Advanced Features",
+    "desc": "15 interview questions covering Indexes, Consistency, Querying, Transactions and more.",
+    "link": "/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features",
+    "subs": [
+      {
+        "id": "indexes-queries-advanced-features-indexes",
+        "label": "Indexes",
+        "desc": "Secondary indexes let you query on non-key attributes, providing flexible access patterns beyond what the table's primary key alone supports — DynamoDB offers two kinds: Local Secondary Indexes and Global Secondary Indexes.",
+        "link": "/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features"
+      },
+      {
+        "id": "indexes-queries-advanced-features-consistency",
+        "label": "Consistency",
+        "desc": "What is eventual consistency in DynamoDB? What is strong consistency in DynamoDB?",
+        "link": "/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features"
+      },
+      {
+        "id": "indexes-queries-advanced-features-querying",
+        "label": "Querying",
+        "desc": "Use the Query API to retrieve items matching a specific partition key value, with optional sort key conditions to narrow the range — this is the efficient, key-driven way to read from DynamoDB.",
+        "link": "/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features"
+      },
+      {
+        "id": "indexes-queries-advanced-features-transactions",
+        "label": "Transactions",
+        "desc": "How do you handle transactions in DynamoDB?",
+        "link": "/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features"
+      },
+      {
+        "id": "indexes-queries-advanced-features-batch-operations",
+        "label": "Batch Operations",
+        "desc": "What is batch processing in DynamoDB?",
+        "link": "/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features"
+      },
+      {
+        "id": "indexes-queries-advanced-features-ttl",
+        "label": "TTL",
+        "desc": "TTL (Time To Live) automatically deletes items after a specified expiration timestamp attribute is reached, useful for managing data expiration (session data, temporary caches) without writing cleanup jobs.",
+        "link": "/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features"
+      },
+      {
+        "id": "indexes-queries-advanced-features-streams",
+        "label": "Streams",
+        "desc": "What is DynamoDB Streams?",
+        "link": "/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features"
+      },
+      {
+        "id": "indexes-queries-advanced-features-data-modeling",
+        "label": "Data Modeling",
+        "desc": "How do you design DynamoDB tables?",
+        "link": "/level-3-technologies/databases/dynamodb/#indexes-queries--advanced-features"
+      }
+    ]
+  }
+]

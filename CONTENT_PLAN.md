@@ -75,16 +75,62 @@ precision and restraint, monkeytype for the eventual theme switcher.
 |:-:|---|---|---|
 | D1 | **Navigation & layout shell** | Header nav + section panels, rails scoped per route, widths re-cut, `/roadmaps/` index | ✅ Done (2026-08-15) |
 | D2 | **Design tokens** | Type scale (28 ad-hoc sizes → one scale), elevation, colour role reassignment | ⬜ Not started |
-| D3 | **Homepage** | Rebuild as the "here is everything" entry point, on top of D1+D2 | ⬜ Not started |
-| D4 | **SEO + LLM surface** | Real `site` URL, JSON-LD, `llms.txt`, canonicals — see below | ⬜ Not started |
+| D3 | **Homepage + `/questions/` index** | Crossroads homepage (see below) plus the missing questions directory | ⬜ Not started |
+| D4 | **SEO + LLM surface** | Real `site` URL, JSON-LD, `llms.txt`, canonicals, crawlable roadmaps | ✅ Done (2026-08-13) — see [D12](#d12-structured-data-breadcrumblist--techarticle-deliberately-no-faqpage), [D13](#d13-roadmaps-render-a-static-topic-index-hub-and-spoke) |
 | D5 | **Theme picker** | Ships the contract D2 establishes | ⬜ Not started |
 
-**D4 detail.** `astro.config.mjs` still has `site: "https://example.com"`, so every canonical and
-every URL in the generated sitemap is wrong. There's no `robots.txt`, no JSON-LD and no
-`llms.txt`. With 3,895 questions across 153 docs, `FAQPage`/`Course` structured data plus a
-generated `llms.txt` is the concrete version of the "get referred by LLMs" goal. The sitewide
-`noindex` in `astro.config.mjs` head is **deliberate** and stays until launch — it's orthogonal to
-all of the above, which can be built behind it.
+**D3 detail — settled 2026-08-15 after looking at roadmap.sh.** Their homepage *is* their
+directory: ~116 items across five list sections, all free, auth prompts only in a community block
+at the very bottom. **Don't copy that shape.** It works because roadmaps are their only product;
+we have five content types, and our differentiator is the 3,895 questions — the one thing their
+layout has no slot for. Copying it would foreground our least-differentiated content and leave our
+strongest as a statistic. It would also duplicate `/roadmaps/`, which already is the grouped
+all-50 page.
+
+The homepage is a **crossroads**, the directories carry the depth, and no section is exhaustive in
+two places:
+
+```
+Hero                real numbers, and a thesis
+The four stages     keep the pipeline — it IS a genuine sequence
+Questions by topic  ~51 topics grouped by level, with counts   <- the big add
+Roadmaps            curated ~12 + "all 50 ->"        deep: /roadmaps/
+Projects            curated ~6  + "all 18 ->"        deep: /projects/
+Interviews          curated ~6  + "all 33 ->"        deep: /interview-experiences/
+Track your prep     the progress instrument — nobody else has this
+```
+
+That puts ~80 internal links with descriptive anchor text on the homepage, which is the concrete
+version of the SEO/LLM goal. It needs one new page: **`/questions/`**, mirroring `/roadmaps/` —
+questions are the only content type with no directory of their own, and it's the page that should
+rank for "data engineering interview questions".
+
+Done already, ahead of the phase: **every count on the homepage is now derived at build time**
+(`getCollection("docs")` + an `import.meta.glob` over the roadmap sources). The hardcoded ones had
+gone stale by an order of magnitude — hero, meta description and stat strip all said "300+
+questions" and "30+ technologies" against 3,895 questions and 50 roadmaps, and Foundations was
+labelled "3 core skills" while holding 51 pages. Don't reintroduce a written-down count here.
+
+**D4 detail — done 2026-08-13.** `site` now points at the live workers.dev origin (was
+`example.com`, which made every canonical and all 208 sitemap URLs claim the content lived on a
+domain we don't own). Added `public/robots.txt`, `public/llms.txt`, and JSON-LD on 208/208 pages.
+
+Two findings changed the plan as written here:
+
+- **`FAQPage` was rejected, not shipped.** Google fully deprecated FAQ rich results on 2026-05-07 —
+  no site is eligible any more. It earns zero search appearance, so it isn't worth 130 pages of
+  markup on SEO grounds. Shipped `BreadcrumbList` + `TechArticle` + `WebSite` instead. See
+  [D12](#d12-structured-data-breadcrumblist--techarticle-deliberately-no-faqpage).
+- **The roadmaps were the real gap**, not structured data. They rendered zero links and zero node
+  text into static HTML. Fixed with a hub-and-spoke static index — 1,730 crawlable links, 39,832
+  words now indexed. See [D13](#d13-roadmaps-render-a-static-topic-index-hub-and-spoke).
+
+The sitewide `noindex, nofollow` in `astro.config.mjs` is **deliberate and untouched** — all of the
+above is built behind it and takes effect when that one line is removed at launch. Note `nofollow`
+also suppresses the new roadmap link graph until then, which is expected.
+
+When a custom domain is attached, **three files** carry the origin: `astro.config.mjs`,
+`public/robots.txt` and `public/llms.txt`.
 
 ---
 
@@ -585,6 +631,64 @@ up the shared page-title fix.
 
 **How to apply:** adjust spacing here, not in individual pages or components. If a page needs
 different rhythm, that's a signal it should own its layout like the custom `.astro` pages do.
+
+### D12. Structured data: BreadcrumbList + TechArticle, deliberately no FAQPage
+
+Shipped 2026-08-13 via a [`Head` override](src/overrides/Head.astro), on **208 of 208 pages**:
+
+- **BreadcrumbList** — still renders a visible breadcrumb trail in Google results, and encodes the
+  tier structure (foundations → core → technologies → advanced) machine-readably.
+- **TechArticle** — what a content page actually is, carrying its description and section.
+- **WebSite** + `SearchAction` — homepage only.
+
+**FAQPage was considered and deliberately rejected.** Google **fully deprecated FAQ rich results on
+2026-05-07** — no site is eligible any more, not even the government and health domains that kept
+it after the 2023 restriction. The schema is still valid and LLMs do read it, but it earns zero
+search appearance, so it isn't worth shipping across 130 pages on SEO grounds. Revisit only if LLM
+ingestion becomes an explicit goal in its own right.
+
+**Also fixed the same day:** `astro.config.mjs` had `site: "https://example.com"`, so every
+canonical tag and all 208 sitemap URLs pointed at a domain we don't own — which tells search
+engines the real content lives elsewhere. Now set to the live workers.dev origin; **it is one line
+to change when a custom domain is attached**, and `public/robots.txt` and `public/llms.txt`
+hardcode the same origin, so update all three together.
+
+**This gap is now fixed — see [D13](#d13-roadmaps-render-a-static-topic-index-hub-and-spoke).**
+
+### D13. Roadmaps render a static topic index (hub-and-spoke)
+
+Roadmap node text used to live only in an inline `ROADMAP` array evaluated client-side, so a
+crawler landing on `/roadmaps/kafka/` found **zero links and zero node text** — the entire
+hub→spoke link graph was invisible.
+
+**Reference: roadmap.sh.** Their diagram is also client-rendered — checking the live page confirmed
+its nodes are absent from static HTML too. Their indexing comes from a **hub-and-spoke** model
+instead: the roadmap is the hub, and every topic is a separately indexable spoke page that links
+back. We already had 152 spoke pages; only the wiring was missing.
+
+Fixed 2026-08-13:
+
+1. Each roadmap's `ROADMAP` array moved out of the client script into
+   [`src/data/roadmaps/<slug>.json`](src/data/roadmaps/), imported in frontmatter.
+2. Every page renders a visible **"All topics"** section listing all nodes as real text with real
+   links, server-side.
+3. The client script reads the data from an embedded `<script type="application/json" id="rm-data">`
+   rather than carrying its own copy — so there is one source of truth, and node ids (the
+   localStorage progress keys) are untouched.
+
+| | Before | After |
+|---|---:|---:|
+| Crawlable links across roadmaps | 0 | **1,730** |
+| Node text in static HTML | 0 | **2,049 nodes** |
+| Words indexed by Pagefind | ~1,400 | **39,832** |
+
+**Two implementation notes worth keeping:**
+
+- The section is a `<section>`, **not a `<nav>`** — Pagefind excludes `nav` by default, which is
+  why the first attempt indexed only 26 words per roadmap. It's an index of content, not site
+  navigation, so `section` is also the more accurate element.
+- It is **visible, not hidden**. A hidden block of 200 links is a spam signal; a text index of a
+  roadmap is genuinely useful and honest.
 
 ---
 

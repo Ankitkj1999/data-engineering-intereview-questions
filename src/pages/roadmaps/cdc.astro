@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/cdc.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,61 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/ingestion/cdc/#interview-questions">Core Concepts</a></h3>
+        <p class="rm-index-desc">15 interview questions covering Fundamentals, Sources, Snapshotting, Semantics and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#interview-questions">Fundamentals</a></span> <span class="rm-index-sub-desc">CDC is a technique to capture row-level changes (inserts, updates, deletes) from a source system and stream them downstream.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#interview-questions">Sources</a></span> <span class="rm-index-sub-desc">What are common CDC sources (WAL/binlog/triggers) and their trade-offs?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#interview-questions">Snapshotting</a></span> <span class="rm-index-sub-desc">What is the difference between snapshot and incremental CDC?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#interview-questions">Semantics</a></span> <span class="rm-index-sub-desc">What delivery semantics exist (at-most-once/at-least-once/exactly-once)?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#interview-questions">Idempotency</a></span> <span class="rm-index-sub-desc">How do you make CDC ingestion idempotent?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#interview-questions">Deletes</a></span> <span class="rm-index-sub-desc">Deletes may appear as explicit delete events, tombstones, or a &quot;before image&quot; without an &quot;after image.&quot; Downstream you can.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#interview-questions">Updates</a></span> <span class="rm-index-sub-desc">If updates are partial (only changed columns), you often need to reconstruct the full row by joining against previous state.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#interview-questions">Ordering</a></span> <span class="rm-index-sub-desc">Ordering means applying changes in the same order they happened in the source.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#interview-questions">Offsets</a></span> <span class="rm-index-sub-desc">What is a watermark/offset and where should it be stored?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#interview-questions">Schema Evolution</a></span> <span class="rm-index-sub-desc">How do you handle schema evolution with CDC?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#interview-questions">Patterns</a></span> <span class="rm-index-sub-desc">What is the outbox pattern and why is it useful?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#interview-questions">Monitoring</a></span> <span class="rm-index-sub-desc">How do you monitor CDC lag and where can lag come from?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#interview-questions">Backfill</a></span> <span class="rm-index-sub-desc">How do you design a safe backfill/reprocessing strategy for CDC?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#interview-questions">Reliability</a></span> <span class="rm-index-sub-desc">What are the most common failure modes in CDC pipelines?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/ingestion/cdc/#cdc-tools-in-practice">CDC Tools in Practice</a></h3>
+        <p class="rm-index-desc">5 interview questions covering Tooling, Snapshotting, Reliability, Schema Evolution.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#cdc-tools-in-practice">Tooling</a></span> <span class="rm-index-sub-desc">What is Debezium, and how does it fit with Kafka Connect? What's the difference between a self-hosted tool like Debezium and a managed service like AWS DMS or Fivetran?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#cdc-tools-in-practice">Snapshotting</a></span> <span class="rm-index-sub-desc">How does Debezium take an initial snapshot without locking the source table for the whole duration?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#cdc-tools-in-practice">Reliability</a></span> <span class="rm-index-sub-desc">A heartbeat is a synthetic, periodic write the connector makes (or asks to be made) purely so its position in the log keeps advancing even when the actual tables it cares about see no real changes for a while.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#cdc-tools-in-practice">Schema Evolution</a></span> <span class="rm-index-sub-desc">Log-based CDC tools typically parse DDL statements from the log alongside row changes and can emit schema-change events (often to a separate schema history topic) so downstream consumers know a column was added, dropped, or retyped.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/ingestion/cdc/#cdc-beyond-relational-databases">CDC Beyond Relational Databases</a></h3>
+        <p class="rm-index-desc">3 interview questions covering NoSQL CDC.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#cdc-beyond-relational-databases">NoSQL CDC</a></span> <span class="rm-index-sub-desc">How does CDC work for MongoDB, using change streams? How does CDC work for DynamoDB, using DynamoDB Streams?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/ingestion/cdc/#operational-patterns--trade-offs">Operational Patterns &amp; Trade-offs</a></h3>
+        <p class="rm-index-desc">4 interview questions covering Consistency, Reliability, Compaction, Trade-offs.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#operational-patterns--trade-offs">Consistency</a></span> <span class="rm-index-sub-desc">How do you coordinate CDC across multiple tables that need to stay transactionally consistent downstream?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#operational-patterns--trade-offs">Reliability</a></span> <span class="rm-index-sub-desc">How do you achieve high availability for a CDC connector so a single instance failure doesn't stop the pipeline?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#operational-patterns--trade-offs">Compaction</a></span> <span class="rm-index-sub-desc">How do you compact a stream of CDC events into a single current-state table efficiently?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/cdc/#operational-patterns--trade-offs">Trade-offs</a></span> <span class="rm-index-sub-desc">How do you decide between CDC and simpler periodic batch replication for a given source?</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,39 +122,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"core-concepts", label:"Core Concepts", desc:"15 interview questions covering Fundamentals, Sources, Snapshotting, Semantics and more.", link:"/level-3-technologies/ingestion/cdc/#interview-questions", subs:[
-    { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"CDC is a technique to capture row-level changes (inserts, updates, deletes) from a source system and stream them downstream.", link:"/level-3-technologies/ingestion/cdc/#interview-questions" },
-    { id:"core-concepts-sources", label:"Sources", desc:"What are common CDC sources (WAL/binlog/triggers) and their trade-offs?", link:"/level-3-technologies/ingestion/cdc/#interview-questions" },
-    { id:"core-concepts-snapshotting", label:"Snapshotting", desc:"What is the difference between snapshot and incremental CDC?", link:"/level-3-technologies/ingestion/cdc/#interview-questions" },
-    { id:"core-concepts-semantics", label:"Semantics", desc:"What delivery semantics exist (at-most-once/at-least-once/exactly-once)?", link:"/level-3-technologies/ingestion/cdc/#interview-questions" },
-    { id:"core-concepts-idempotency", label:"Idempotency", desc:"How do you make CDC ingestion idempotent?", link:"/level-3-technologies/ingestion/cdc/#interview-questions" },
-    { id:"core-concepts-deletes", label:"Deletes", desc:"Deletes may appear as explicit delete events, tombstones, or a \"before image\" without an \"after image.\" Downstream you can.", link:"/level-3-technologies/ingestion/cdc/#interview-questions" },
-    { id:"core-concepts-updates", label:"Updates", desc:"If updates are partial (only changed columns), you often need to reconstruct the full row by joining against previous state.", link:"/level-3-technologies/ingestion/cdc/#interview-questions" },
-    { id:"core-concepts-ordering", label:"Ordering", desc:"Ordering means applying changes in the same order they happened in the source.", link:"/level-3-technologies/ingestion/cdc/#interview-questions" },
-    { id:"core-concepts-offsets", label:"Offsets", desc:"What is a watermark/offset and where should it be stored?", link:"/level-3-technologies/ingestion/cdc/#interview-questions" },
-    { id:"core-concepts-schema-evolution", label:"Schema Evolution", desc:"How do you handle schema evolution with CDC?", link:"/level-3-technologies/ingestion/cdc/#interview-questions" },
-    { id:"core-concepts-patterns", label:"Patterns", desc:"What is the outbox pattern and why is it useful?", link:"/level-3-technologies/ingestion/cdc/#interview-questions" },
-    { id:"core-concepts-monitoring", label:"Monitoring", desc:"How do you monitor CDC lag and where can lag come from?", link:"/level-3-technologies/ingestion/cdc/#interview-questions" },
-    { id:"core-concepts-backfill", label:"Backfill", desc:"How do you design a safe backfill/reprocessing strategy for CDC?", link:"/level-3-technologies/ingestion/cdc/#interview-questions" },
-    { id:"core-concepts-reliability", label:"Reliability", desc:"What are the most common failure modes in CDC pipelines?", link:"/level-3-technologies/ingestion/cdc/#interview-questions" },
-  ]},
-  { id:"cdc-tools-in-practice", label:"CDC Tools in Practice", desc:"5 interview questions covering Tooling, Snapshotting, Reliability, Schema Evolution.", link:"/level-3-technologies/ingestion/cdc/#cdc-tools-in-practice", subs:[
-    { id:"cdc-tools-in-practice-tooling", label:"Tooling", desc:"What is Debezium, and how does it fit with Kafka Connect? What's the difference between a self-hosted tool like Debezium and a managed service like AWS DMS or Fivetran?", link:"/level-3-technologies/ingestion/cdc/#cdc-tools-in-practice" },
-    { id:"cdc-tools-in-practice-snapshotting", label:"Snapshotting", desc:"How does Debezium take an initial snapshot without locking the source table for the whole duration?", link:"/level-3-technologies/ingestion/cdc/#cdc-tools-in-practice" },
-    { id:"cdc-tools-in-practice-reliability", label:"Reliability", desc:"A heartbeat is a synthetic, periodic write the connector makes (or asks to be made) purely so its position in the log keeps advancing even when the actual tables it cares about see no real changes for a while.", link:"/level-3-technologies/ingestion/cdc/#cdc-tools-in-practice" },
-    { id:"cdc-tools-in-practice-schema-evolution", label:"Schema Evolution", desc:"Log-based CDC tools typically parse DDL statements from the log alongside row changes and can emit schema-change events (often to a separate schema history topic) so downstream consumers know a column was added, dropped, or retyped.", link:"/level-3-technologies/ingestion/cdc/#cdc-tools-in-practice" },
-  ]},
-  { id:"cdc-beyond-relational-databases", label:"CDC Beyond Relational Databases", desc:"3 interview questions covering NoSQL CDC.", link:"/level-3-technologies/ingestion/cdc/#cdc-beyond-relational-databases", subs:[
-    { id:"cdc-beyond-relational-databases-nosql-cdc", label:"NoSQL CDC", desc:"How does CDC work for MongoDB, using change streams? How does CDC work for DynamoDB, using DynamoDB Streams?", link:"/level-3-technologies/ingestion/cdc/#cdc-beyond-relational-databases" },
-  ]},
-  { id:"operational-patterns-trade-offs", label:"Operational Patterns & Trade-offs", desc:"4 interview questions covering Consistency, Reliability, Compaction, Trade-offs.", link:"/level-3-technologies/ingestion/cdc/#operational-patterns--trade-offs", subs:[
-    { id:"operational-patterns-trade-offs-consistency", label:"Consistency", desc:"How do you coordinate CDC across multiple tables that need to stay transactionally consistent downstream?", link:"/level-3-technologies/ingestion/cdc/#operational-patterns--trade-offs" },
-    { id:"operational-patterns-trade-offs-reliability", label:"Reliability", desc:"How do you achieve high availability for a CDC connector so a single instance failure doesn't stop the pipeline?", link:"/level-3-technologies/ingestion/cdc/#operational-patterns--trade-offs" },
-    { id:"operational-patterns-trade-offs-compaction", label:"Compaction", desc:"How do you compact a stream of CDC events into a single current-state table efficiently?", link:"/level-3-technologies/ingestion/cdc/#operational-patterns--trade-offs" },
-    { id:"operational-patterns-trade-offs-trade-offs", label:"Trade-offs", desc:"How do you decide between CDC and simpler periodic batch replication for a given source?", link:"/level-3-technologies/ingestion/cdc/#operational-patterns--trade-offs" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

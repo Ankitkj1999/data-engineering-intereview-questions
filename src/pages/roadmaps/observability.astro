@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/observability.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,48 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-4-advanced/observability/#interview-questions">Core Concepts</a></h3>
+        <p class="rm-index-desc">12 interview questions covering Fundamentals, Signals, SLAs, Logging and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#interview-questions">Fundamentals</a></span> <span class="rm-index-sub-desc">Data observability is the practice of monitoring, alerting, and diagnosing the health of data and data pipelines.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#interview-questions">Signals</a></span> <span class="rm-index-sub-desc">What are the key signals you monitor for data pipelines?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#interview-questions">SLAs</a></span> <span class="rm-index-sub-desc">How do you define and measure an end-to-end SLA for data?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#interview-questions">Logging</a></span> <span class="rm-index-sub-desc">What should you log for each pipeline run?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#interview-questions">Failure Detection</a></span> <span class="rm-index-sub-desc">Silent failures happen when the job succeeds but data is wrong (missing subset, wrong join, truncation).</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#interview-questions">Lineage</a></span> <span class="rm-index-sub-desc">Lineage describes upstream/downstream dependencies between datasets, jobs, and dashboards.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#interview-questions">Incident Response</a></span> <span class="rm-index-sub-desc">How do you monitor and debug a broken metric in BI?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#interview-questions">Alerting</a></span> <span class="rm-index-sub-desc">How do you design alerts to avoid alert fatigue?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#interview-questions">Backfills</a></span> <span class="rm-index-sub-desc">Backfills can be expensive and risky because they rewrite history and can change metrics.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#interview-questions">Runbooks</a></span> <span class="rm-index-sub-desc">What is a runbook and what should it contain?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#interview-questions">Incident Patterns</a></span> <span class="rm-index-sub-desc">What are common incident patterns in data platforms?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-4-advanced/observability/#metrics--prometheus">Metrics &amp; Prometheus</a></h3>
+        <p class="rm-index-desc">4 interview questions covering Prometheus.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#metrics--prometheus">Prometheus</a></span> <span class="rm-index-sub-desc">What is Prometheus and how does it collect metrics? What are the Prometheus metric types?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-4-advanced/observability/#commercial-observability-platforms">Commercial Observability Platforms</a></h3>
+        <p class="rm-index-desc">4 interview questions covering Datadog, Sentry, New Relic, Fundamentals.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#commercial-observability-platforms">Datadog</a></span> <span class="rm-index-sub-desc">What is Datadog and when would you choose it over Prometheus?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#commercial-observability-platforms">Sentry</a></span> <span class="rm-index-sub-desc">What is Sentry, and what does it add over logging?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#commercial-observability-platforms">New Relic</a></span> <span class="rm-index-sub-desc">What is New Relic, and how do these platforms overlap?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/observability/#commercial-observability-platforms">Fundamentals</a></span> <span class="rm-index-sub-desc">What are the three pillars of observability, and what's missing for data?</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,30 +109,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"core-concepts", label:"Core Concepts", desc:"12 interview questions covering Fundamentals, Signals, SLAs, Logging and more.", link:"/level-4-advanced/observability/#interview-questions", subs:[
-    { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"Data observability is the practice of monitoring, alerting, and diagnosing the health of data and data pipelines.", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-signals", label:"Signals", desc:"What are the key signals you monitor for data pipelines?", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-slas", label:"SLAs", desc:"How do you define and measure an end-to-end SLA for data?", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-logging", label:"Logging", desc:"What should you log for each pipeline run?", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-failure-detection", label:"Failure Detection", desc:"Silent failures happen when the job succeeds but data is wrong (missing subset, wrong join, truncation).", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-lineage", label:"Lineage", desc:"Lineage describes upstream/downstream dependencies between datasets, jobs, and dashboards.", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-incident-response", label:"Incident Response", desc:"How do you monitor and debug a broken metric in BI?", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-alerting", label:"Alerting", desc:"How do you design alerts to avoid alert fatigue?", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-backfills", label:"Backfills", desc:"Backfills can be expensive and risky because they rewrite history and can change metrics.", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-runbooks", label:"Runbooks", desc:"What is a runbook and what should it contain?", link:"/level-4-advanced/observability/#interview-questions" },
-    { id:"core-concepts-incident-patterns", label:"Incident Patterns", desc:"What are common incident patterns in data platforms?", link:"/level-4-advanced/observability/#interview-questions" },
-  ]},
-  { id:"metrics-prometheus", label:"Metrics & Prometheus", desc:"4 interview questions covering Prometheus.", link:"/level-4-advanced/observability/#metrics--prometheus", subs:[
-    { id:"metrics-prometheus-prometheus", label:"Prometheus", desc:"What is Prometheus and how does it collect metrics? What are the Prometheus metric types?", link:"/level-4-advanced/observability/#metrics--prometheus" },
-  ]},
-  { id:"commercial-observability-platforms", label:"Commercial Observability Platforms", desc:"4 interview questions covering Datadog, Sentry, New Relic, Fundamentals.", link:"/level-4-advanced/observability/#commercial-observability-platforms", subs:[
-    { id:"commercial-observability-platforms-datadog", label:"Datadog", desc:"What is Datadog and when would you choose it over Prometheus?", link:"/level-4-advanced/observability/#commercial-observability-platforms" },
-    { id:"commercial-observability-platforms-sentry", label:"Sentry", desc:"What is Sentry, and what does it add over logging?", link:"/level-4-advanced/observability/#commercial-observability-platforms" },
-    { id:"commercial-observability-platforms-new-relic", label:"New Relic", desc:"What is New Relic, and how do these platforms overlap?", link:"/level-4-advanced/observability/#commercial-observability-platforms" },
-    { id:"commercial-observability-platforms-fundamentals", label:"Fundamentals", desc:"What are the three pillars of observability, and what's missing for data?", link:"/level-4-advanced/observability/#commercial-observability-platforms" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "etl-vs-reverse-etl",
+    "label": "ETL vs Reverse ETL",
+    "desc": "3 interview questions covering Fundamentals.",
+    "link": "/level-2-core-concepts/reverse-etl/#etl-vs-reverse-etl",
+    "subs": [
+      {
+        "id": "etl-vs-reverse-etl-fundamentals",
+        "label": "Fundamentals",
+        "desc": "What is reverse ETL, and how does it differ from ETL? Why did reverse ETL emerge as a category?",
+        "link": "/level-2-core-concepts/reverse-etl/#etl-vs-reverse-etl"
+      }
+    ]
+  },
+  {
+    "id": "tools-implementation",
+    "label": "Tools & Implementation",
+    "desc": "4 interview questions covering Tools, Implementation.",
+    "link": "/level-2-core-concepts/reverse-etl/#tools--implementation",
+    "subs": [
+      {
+        "id": "tools-implementation-tools",
+        "label": "Tools",
+        "desc": "What do Hightouch, Census and Segment each do?",
+        "link": "/level-2-core-concepts/reverse-etl/#tools--implementation"
+      },
+      {
+        "id": "tools-implementation-implementation",
+        "label": "Implementation",
+        "desc": "The pipeline itself is a scheduled job: query the warehouse for a model, diff against what was last sent, and call the destination's API for changed records.",
+        "link": "/level-2-core-concepts/reverse-etl/#tools--implementation"
+      }
+    ]
+  },
+  {
+    "id": "data-interoperability",
+    "label": "Data Interoperability",
+    "desc": "3 interview questions covering Interoperability.",
+    "link": "/level-2-core-concepts/reverse-etl/#data-interoperability",
+    "subs": [
+      {
+        "id": "data-interoperability-interoperability",
+        "label": "Interoperability",
+        "desc": "Interoperability gets much easier when systems agree on identifiers and formats up front rather than mapping after the fact.",
+        "link": "/level-2-core-concepts/reverse-etl/#data-interoperability"
+      }
+    ]
+  }
+]

@@ -1,0 +1,248 @@
+[
+  {
+    "id": "dkr-fundamentals",
+    "label": "Docker Fundamentals",
+    "desc": "What a container actually is — a process with restricted visibility, not a small virtual machine.",
+    "link": "/level-1-foundations/docker/#docker-fundamentals",
+    "subs": [
+      {
+        "id": "dkr-vs-vm",
+        "label": "Containers vs Virtual Machines",
+        "desc": "Shared kernel and namespaces versus a full guest OS on a hypervisor.",
+        "link": "/level-1-foundations/docker/#docker-fundamentals"
+      },
+      {
+        "id": "dkr-image-container",
+        "label": "Images vs Containers",
+        "desc": "The immutable template and the running instance with its writable layer.",
+        "link": "/level-1-foundations/docker/#docker-fundamentals"
+      },
+      {
+        "id": "dkr-namespaces",
+        "label": "Namespaces & cgroups",
+        "desc": "The kernel features behind isolation and resource limits — and OOMKills.",
+        "link": "/level-1-foundations/docker/#docker-fundamentals"
+      },
+      {
+        "id": "dkr-commands",
+        "label": "Essential Commands",
+        "desc": "build, run, ps, logs, exec, stop and the prune that reclaims your disk.",
+        "link": "/level-1-foundations/docker/#docker-fundamentals"
+      },
+      {
+        "id": "dkr-run-exec",
+        "label": "run vs start vs exec",
+        "desc": "Why docker run never reuses a container, and how to get a debugging shell.",
+        "link": "/level-1-foundations/docker/#docker-fundamentals"
+      },
+      {
+        "id": "dkr-exits",
+        "label": "Why Containers Exit",
+        "desc": "A container lives as long as PID 1 — the usual causes and how to diagnose them.",
+        "link": "/level-1-foundations/docker/#docker-fundamentals"
+      }
+    ]
+  },
+  {
+    "id": "dkr-images",
+    "label": "Images & Dockerfiles",
+    "desc": "Writing the Dockerfile — instructions, entrypoints, users and keeping secrets out of layers.",
+    "link": "/level-1-foundations/docker/#images--dockerfiles",
+    "subs": [
+      {
+        "id": "dkr-instructions",
+        "label": "Dockerfile Instructions",
+        "desc": "FROM, WORKDIR, COPY, RUN, ENV, ARG, USER, EXPOSE and HEALTHCHECK.",
+        "link": "/level-1-foundations/docker/#images--dockerfiles"
+      },
+      {
+        "id": "dkr-entrypoint",
+        "label": "ENTRYPOINT vs CMD",
+        "desc": "Executable versus default arguments, and why the exec form matters for SIGTERM.",
+        "link": "/level-1-foundations/docker/#images--dockerfiles"
+      },
+      {
+        "id": "dkr-copy-add",
+        "label": "COPY vs ADD",
+        "desc": "Why COPY is preferred, and the implicit behaviour that makes ADD surprising.",
+        "link": "/level-1-foundations/docker/#images--dockerfiles"
+      },
+      {
+        "id": "dkr-multistage",
+        "label": "Multi-Stage Builds",
+        "desc": "Leaving compilers behind — the single biggest lever on image size.",
+        "link": "/level-1-foundations/docker/#images--dockerfiles"
+      },
+      {
+        "id": "dkr-nonroot",
+        "label": "Running as Non-Root",
+        "desc": "Why root in a container is a host risk, and how to switch users correctly.",
+        "link": "/level-1-foundations/docker/#images--dockerfiles"
+      },
+      {
+        "id": "dkr-img-secrets",
+        "label": "Secrets in Images",
+        "desc": "Why ENV and ARG persist in metadata, and how BuildKit build secrets avoid it.",
+        "link": "/level-1-foundations/docker/#images--dockerfiles"
+      },
+      {
+        "id": "dkr-tags",
+        "label": "Image Tagging",
+        "desc": "Why 'latest' breaks reproducibility, and pinning by SHA or digest instead.",
+        "link": "/level-1-foundations/docker/#images--dockerfiles"
+      }
+    ]
+  },
+  {
+    "id": "dkr-layers",
+    "label": "Layers & Image Optimisation",
+    "desc": "The layer cache — the single most important thing to understand about build performance.",
+    "link": "/level-1-foundations/docker/#layers--image-optimisation",
+    "subs": [
+      {
+        "id": "dkr-cache",
+        "label": "The Layer Cache",
+        "desc": "How cache keys are computed, and why one miss invalidates everything after it.",
+        "link": "/level-1-foundations/docker/#layers--image-optimisation"
+      },
+      {
+        "id": "dkr-ordering",
+        "label": "Instruction Ordering",
+        "desc": "Copying requirements.txt before the source — a two-line fix for slow rebuilds.",
+        "link": "/level-1-foundations/docker/#layers--image-optimisation"
+      },
+      {
+        "id": "dkr-size",
+        "label": "Reducing Image Size",
+        "desc": "Slim bases, chained RUN with cleanup, --no-cache-dir and --no-install-recommends.",
+        "link": "/level-1-foundations/docker/#layers--image-optimisation"
+      },
+      {
+        "id": "dkr-alpine",
+        "label": "Alpine vs Slim for Python",
+        "desc": "Why musl forces source builds of pandas and numpy, often making images bigger.",
+        "link": "/level-1-foundations/docker/#layers--image-optimisation"
+      },
+      {
+        "id": "dkr-dockerignore",
+        "label": ".dockerignore",
+        "desc": "Keeping .git, venvs and local data out of the build context — speed and security.",
+        "link": "/level-1-foundations/docker/#layers--image-optimisation"
+      }
+    ]
+  },
+  {
+    "id": "dkr-storage",
+    "label": "Storage & Networking",
+    "desc": "Persisting data beyond the container's life, and letting containers reach each other.",
+    "link": "/level-1-foundations/docker/#storage--networking",
+    "subs": [
+      {
+        "id": "dkr-ephemeral",
+        "label": "Ephemeral Storage",
+        "desc": "Why the writable layer disappears with the container, and why that's deliberate.",
+        "link": "/level-1-foundations/docker/#storage--networking"
+      },
+      {
+        "id": "dkr-volumes",
+        "label": "Volumes vs Bind Mounts",
+        "desc": "Named volumes for production state, bind mounts for live-editing in development.",
+        "link": "/level-1-foundations/docker/#storage--networking"
+      },
+      {
+        "id": "dkr-drivers",
+        "label": "Network Drivers",
+        "desc": "bridge, host, none, overlay and macvlan — and which you actually use.",
+        "link": "/level-1-foundations/docker/#storage--networking"
+      },
+      {
+        "id": "dkr-dns",
+        "label": "Container-to-Container Networking",
+        "desc": "DNS by container name on user-defined networks, and the container-port gotcha.",
+        "link": "/level-1-foundations/docker/#storage--networking"
+      },
+      {
+        "id": "dkr-ports",
+        "label": "Port Publishing vs EXPOSE",
+        "desc": "What -p actually does, and why EXPOSE publishes nothing on its own.",
+        "link": "/level-1-foundations/docker/#storage--networking"
+      }
+    ]
+  },
+  {
+    "id": "dkr-compose",
+    "label": "Docker Compose",
+    "desc": "Running Postgres, Kafka and your pipeline together for local development and integration tests.",
+    "link": "/level-1-foundations/docker/#docker-compose",
+    "subs": [
+      {
+        "id": "dkr-compose-what",
+        "label": "What Compose Is For",
+        "desc": "Multi-container local development — and why it isn't an orchestrator.",
+        "link": "/level-1-foundations/docker/#docker-compose"
+      },
+      {
+        "id": "dkr-compose-file",
+        "label": "Compose File Anatomy",
+        "desc": "Services, volumes, networks and environment interpolation for a data pipeline.",
+        "link": "/level-1-foundations/docker/#docker-compose"
+      },
+      {
+        "id": "dkr-healthcheck",
+        "label": "depends_on & Health Checks",
+        "desc": "Why start order isn't readiness, and why the app should retry anyway.",
+        "link": "/level-1-foundations/docker/#docker-compose"
+      },
+      {
+        "id": "dkr-compose-cmds",
+        "label": "Compose Commands",
+        "desc": "up, logs, exec, run and the down -v that deletes your database volume.",
+        "link": "/level-1-foundations/docker/#docker-compose"
+      }
+    ]
+  },
+  {
+    "id": "dkr-de",
+    "label": "Docker for Data Engineering",
+    "desc": "Containerising Spark and Airflow, handling large data, and debugging a container in production.",
+    "link": "/level-1-foundations/docker/#docker-for-data-engineering",
+    "subs": [
+      {
+        "id": "dkr-why",
+        "label": "Why Containerise Pipelines",
+        "desc": "Reproducibility, dependency isolation, environment parity and instant rollback.",
+        "link": "/level-1-foundations/docker/#docker-for-data-engineering"
+      },
+      {
+        "id": "dkr-spark",
+        "label": "Containerising Spark",
+        "desc": "JVM, connector JARs, image size across 200 executors, and memory headroom.",
+        "link": "/level-1-foundations/docker/#docker-for-data-engineering"
+      },
+      {
+        "id": "dkr-airflow",
+        "label": "Docker & Airflow",
+        "desc": "Airflow in containers versus tasks in containers — DockerOperator and KubernetesPodOperator.",
+        "link": "/level-1-foundations/docker/#docker-for-data-engineering"
+      },
+      {
+        "id": "dkr-data",
+        "label": "Handling Large Data",
+        "desc": "Why data never goes in the image, and sizing ephemeral storage for shuffle.",
+        "link": "/level-1-foundations/docker/#docker-for-data-engineering"
+      },
+      {
+        "id": "dkr-debug",
+        "label": "Debugging Containers",
+        "desc": "Exit code 137, docker inspect, and overriding the entrypoint to get a shell.",
+        "link": "/level-1-foundations/docker/#docker-for-data-engineering"
+      },
+      {
+        "id": "dkr-ci",
+        "label": "Container CI",
+        "desc": "Build once tagged by SHA, lint, scan, test inside the image, then promote by re-tagging.",
+        "link": "/level-1-foundations/docker/#docker-for-data-engineering"
+      }
+    ]
+  }
+]

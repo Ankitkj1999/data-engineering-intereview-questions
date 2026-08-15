@@ -1,0 +1,136 @@
+[
+  {
+    "id": "core-concepts",
+    "label": "Core Concepts",
+    "desc": "12 interview questions covering Fundamentals, Roles, Cataloging, Metadata and more.",
+    "link": "/level-2-core-concepts/data-governance/#interview-questions",
+    "subs": [
+      {
+        "id": "core-concepts-fundamentals",
+        "label": "Fundamentals",
+        "desc": "Data governance is the set of processes, policies, and responsibilities that ensure data is discoverable, trusted, secure, and used correctly.",
+        "link": "/level-2-core-concepts/data-governance/#interview-questions"
+      },
+      {
+        "id": "core-concepts-roles",
+        "label": "Roles",
+        "desc": "What are common roles in data governance (owner/steward/custodian)?",
+        "link": "/level-2-core-concepts/data-governance/#interview-questions"
+      },
+      {
+        "id": "core-concepts-cataloging",
+        "label": "Cataloging",
+        "desc": "What is a data catalog and what should it contain?",
+        "link": "/level-2-core-concepts/data-governance/#interview-questions"
+      },
+      {
+        "id": "core-concepts-metadata",
+        "label": "Metadata",
+        "desc": "What is business glossary vs. technical metadata?",
+        "link": "/level-2-core-concepts/data-governance/#interview-questions"
+      },
+      {
+        "id": "core-concepts-access-control",
+        "label": "Access Control",
+        "desc": "RBAC vs. ABAC: what is the difference? What is row-level and column-level security?",
+        "link": "/level-2-core-concepts/data-governance/#interview-questions"
+      },
+      {
+        "id": "core-concepts-compliance",
+        "label": "Compliance",
+        "desc": "How do you handle PII/PHI data in analytics platforms? What is data masking and tokenization?",
+        "link": "/level-2-core-concepts/data-governance/#interview-questions"
+      },
+      {
+        "id": "core-concepts-auditing",
+        "label": "Auditing",
+        "desc": "How do you implement auditability for data access?",
+        "link": "/level-2-core-concepts/data-governance/#interview-questions"
+      },
+      {
+        "id": "core-concepts-retention",
+        "label": "Retention",
+        "desc": "Retention policies define how long data is kept and when it must be deleted or archived.",
+        "link": "/level-2-core-concepts/data-governance/#interview-questions"
+      }
+    ]
+  },
+  {
+    "id": "classification-modern-governance-models",
+    "label": "Classification & Modern Governance Models",
+    "desc": "5 interview questions covering Classification, Data Mesh, Compliance.",
+    "link": "/level-2-core-concepts/data-governance/#classification--modern-governance-models",
+    "subs": [
+      {
+        "id": "classification-modern-governance-models-classification",
+        "label": "Classification",
+        "desc": "Data classification labels datasets (or individual columns) by sensitivity, so access controls, masking rules, and retention policies can be applied consistently based on that label rather than decided ad hoc per table.",
+        "link": "/level-2-core-concepts/data-governance/#classification--modern-governance-models"
+      },
+      {
+        "id": "classification-modern-governance-models-data-mesh",
+        "label": "Data Mesh",
+        "desc": "What is data mesh, and how does it change the governance model compared to a centralized team? What is federated computational governance in a data mesh?",
+        "link": "/level-2-core-concepts/data-governance/#classification--modern-governance-models"
+      },
+      {
+        "id": "classification-modern-governance-models-compliance",
+        "label": "Compliance",
+        "desc": "What's the difference between anonymization and pseudonymization?",
+        "link": "/level-2-core-concepts/data-governance/#classification--modern-governance-models"
+      }
+    ]
+  },
+  {
+    "id": "tooling-automation",
+    "label": "Tooling & Automation",
+    "desc": "4 interview questions covering Tooling, Automation, Access Control.",
+    "link": "/level-2-core-concepts/data-governance/#tooling--automation",
+    "subs": [
+      {
+        "id": "tooling-automation-tooling",
+        "label": "Tooling",
+        "desc": "What do data catalog tools like DataHub or Collibra actually provide beyond a spreadsheet of tables?",
+        "link": "/level-2-core-concepts/data-governance/#tooling--automation"
+      },
+      {
+        "id": "tooling-automation-automation",
+        "label": "Automation",
+        "desc": "What is policy-as-code, and how does it apply to access governance? How would you automate detection of PII in a dataset you didn't design?",
+        "link": "/level-2-core-concepts/data-governance/#tooling--automation"
+      },
+      {
+        "id": "tooling-automation-access-control",
+        "label": "Access Control",
+        "desc": "What is an access request/approval workflow, and why not just grant broad access upfront?",
+        "link": "/level-2-core-concepts/data-governance/#tooling--automation"
+      }
+    ]
+  },
+  {
+    "id": "compliance-frameworks-process",
+    "label": "Compliance Frameworks & Process",
+    "desc": "5 interview questions covering Compliance, Governance Maturity, Process.",
+    "link": "/level-2-core-concepts/data-governance/#compliance-frameworks--process",
+    "subs": [
+      {
+        "id": "compliance-frameworks-process-compliance",
+        "label": "Compliance",
+        "desc": "How does GDPR differ from CCPA from a data engineering perspective? What is consent management, and how does it affect what a pipeline is allowed to process?",
+        "link": "/level-2-core-concepts/data-governance/#compliance-frameworks--process"
+      },
+      {
+        "id": "compliance-frameworks-process-governance-maturity",
+        "label": "Governance Maturity",
+        "desc": "How do you measure whether a governance program is actually working?",
+        "link": "/level-2-core-concepts/data-governance/#compliance-frameworks--process"
+      },
+      {
+        "id": "compliance-frameworks-process-process",
+        "label": "Process",
+        "desc": "How would you design a RACI matrix for a new data domain?",
+        "link": "/level-2-core-concepts/data-governance/#compliance-frameworks--process"
+      }
+    ]
+  }
+]

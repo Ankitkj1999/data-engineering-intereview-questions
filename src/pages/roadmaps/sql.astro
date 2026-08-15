@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/sql.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,183 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading">Learn the Basics</h3>
+        <p class="rm-index-desc">Core concepts of relational databases and the SQL language — where every journey starts.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/relational-databases/">What are Relational Databases?</a></span> <span class="rm-index-sub-desc">Tables, rows, columns, and the relational model introduced by Edgar Codd.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/rdbms-benefits-and-limitations/">RDBMS Benefits &amp; Limitations</a></span> <span class="rm-index-sub-desc">ACID properties, scalability trade-offs, and when to choose a relational DB.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/sql-keywords/">SQL Keywords</a></span> <span class="rm-index-sub-desc">Reserved words: SELECT, FROM, WHERE, JOIN, GROUP BY, ORDER BY, HAVING, etc.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/sql-vs-nosql/">SQL vs NoSQL Databases</a></span> <span class="rm-index-sub-desc">When to use relational vs document, key-value, column, or graph databases.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/sql-data-types/">Data Types</a></span> <span class="rm-index-sub-desc">INT, VARCHAR, TEXT, DATE, TIMESTAMP, BOOLEAN, DECIMAL, and vendor-specific types.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/sql-operators/">Operators</a></span> <span class="rm-index-sub-desc">Arithmetic, comparison, logical (AND/OR/NOT), BETWEEN, IN, LIKE, IS NULL.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/sql/basic-syntax/">Basic SQL Syntax</a></h3>
+        <p class="rm-index-desc">The fundamental SELECT statement and its clauses — how to read data from tables.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/basic-syntax/#select">SELECT</a></span> <span class="rm-index-sub-desc">Retrieving columns, using aliases, DISTINCT, and selecting all with *.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/basic-syntax/#from">FROM</a></span> <span class="rm-index-sub-desc">Specifying source tables, table aliases, and schema-qualified names.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/basic-syntax/#where">WHERE</a></span> <span class="rm-index-sub-desc">Filtering rows with conditions — combining predicates with AND/OR.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/basic-syntax/#order-by">ORDER BY</a></span> <span class="rm-index-sub-desc">Sorting results ASC/DESC, sorting by multiple columns and expressions.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/basic-syntax/#group-by">GROUP BY</a></span> <span class="rm-index-sub-desc">Grouping rows that have the same values in specified columns.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/basic-syntax/#having">HAVING</a></span> <span class="rm-index-sub-desc">Filtering grouped results — the WHERE clause for aggregated data.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/basic-syntax/#joins">JOINs</a></span> <span class="rm-index-sub-desc">Combining rows from two or more tables based on related columns.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/sql/ddl/">Data Definition Language (DDL)</a></h3>
+        <p class="rm-index-desc">Commands that define and modify the database schema — structure, not data.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/ddl/#create-table">CREATE TABLE</a></span> <span class="rm-index-sub-desc">Defining columns, data types, constraints, and default values.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/ddl/#alter-table">ALTER TABLE</a></span> <span class="rm-index-sub-desc">Adding, dropping, and modifying columns; renaming tables.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/ddl/#drop-table">DROP TABLE</a></span> <span class="rm-index-sub-desc">Permanently removing a table and all its data from the database.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/ddl/#truncate-table">TRUNCATE TABLE</a></span> <span class="rm-index-sub-desc">Removing all rows quickly without logging individual row deletions.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/sql/dml/">Data Manipulation Language (DML)</a></h3>
+        <p class="rm-index-desc">Commands for inserting, updating, and deleting data in tables.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/dml/#insert">INSERT</a></span> <span class="rm-index-sub-desc">Adding new rows — single row, multi-row, and INSERT … SELECT patterns.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/dml/#update">UPDATE</a></span> <span class="rm-index-sub-desc">Modifying existing rows — always use WHERE to avoid full-table updates.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/dml/#delete">DELETE</a></span> <span class="rm-index-sub-desc">Removing rows — differences between DELETE, TRUNCATE, and DROP.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/sql/aggregate-queries/">Aggregate Queries</a></h3>
+        <p class="rm-index-desc">Computing summary statistics across groups of rows.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/aggregate-queries/#count">COUNT</a></span> <span class="rm-index-sub-desc">COUNT(*) vs COUNT(col) — handling NULLs in aggregation.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/aggregate-queries/#sum">SUM</a></span> <span class="rm-index-sub-desc">Summing numeric columns, using with COALESCE for NULL safety.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/aggregate-queries/#avg">AVG</a></span> <span class="rm-index-sub-desc">Arithmetic mean — note that AVG ignores NULLs automatically.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/aggregate-queries/#min">MIN</a></span> <span class="rm-index-sub-desc">Finding the smallest value in a column or expression.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/aggregate-queries/#max">MAX</a></span> <span class="rm-index-sub-desc">Finding the largest value in a column or expression.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/sql/data-constraints/">Data Constraints</a></h3>
+        <p class="rm-index-desc">Rules enforced by the database engine to maintain data integrity.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/data-constraints/#primary-key">Primary Key</a></span> <span class="rm-index-sub-desc">Uniquely identifies each row — auto-increment, composite keys.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/data-constraints/#foreign-key">Foreign Key</a></span> <span class="rm-index-sub-desc">Referential integrity — CASCADE, SET NULL, RESTRICT actions.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/data-constraints/#unique">UNIQUE</a></span> <span class="rm-index-sub-desc">Ensures no duplicate values in a column or column combination.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/data-constraints/#not-null">NOT NULL</a></span> <span class="rm-index-sub-desc">Prevents NULL values from being stored in a column.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/data-constraints/#check">CHECK</a></span> <span class="rm-index-sub-desc">Validates column values against a boolean expression.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/sql/join-queries/">JOIN Queries</a></h3>
+        <p class="rm-index-desc">Combining data from multiple tables using different join strategies.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/join-queries/#inner-join">INNER JOIN</a></span> <span class="rm-index-sub-desc">Returns rows where there is a match in both tables.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/join-queries/#left-join">LEFT JOIN</a></span> <span class="rm-index-sub-desc">All rows from the left table, matched rows from the right (NULL if no match).</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/join-queries/#right-join">RIGHT JOIN</a></span> <span class="rm-index-sub-desc">All rows from the right table, matched rows from the left.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/join-queries/#full-outer-join">FULL OUTER JOIN</a></span> <span class="rm-index-sub-desc">All rows from both tables — NULLs where there is no match on either side.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/join-queries/#self-join">Self Join</a></span> <span class="rm-index-sub-desc">Joining a table to itself — useful for hierarchical or comparison queries.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/join-queries/#cross-join">Cross Join</a></span> <span class="rm-index-sub-desc">Cartesian product of two tables — every row paired with every other row.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/sql/subqueries/">Subqueries</a></h3>
+        <p class="rm-index-desc">Queries nested inside other queries — scalar, correlated, and derived tables.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/subqueries/#nested-subqueries">Nested Subqueries</a></span> <span class="rm-index-sub-desc">Subqueries in WHERE, HAVING, or SELECT clauses — IN, EXISTS, ANY, ALL.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/subqueries/#correlated-subqueries">Correlated Subqueries</a></span> <span class="rm-index-sub-desc">Subqueries that reference columns from the outer query — evaluated per row.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/subqueries/#scalar-subquery">Scalar Subquery</a></span> <span class="rm-index-sub-desc">Returns a single value — used in SELECT list or WHERE conditions.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/sql/advanced-functions/">Advanced Functions</a></h3>
+        <p class="rm-index-desc">Built-in functions for string manipulation, math, dates, and conditional logic.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/advanced-functions/#string-functions">String Functions</a></span> <span class="rm-index-sub-desc">CONCAT, LENGTH, SUBSTRING, REPLACE, UPPER, LOWER, TRIM, LIKE.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/advanced-functions/#math-functions">Math Functions</a></span> <span class="rm-index-sub-desc">FLOOR, CEILING, ROUND, ABS, MOD — rounding and numeric operations.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/advanced-functions/#date--time-functions">Date &amp; Time Functions</a></span> <span class="rm-index-sub-desc">DATE, TIME, TIMESTAMP, DATEPART, DATEADD — date arithmetic and formatting.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/advanced-functions/#case">CASE</a></span> <span class="rm-index-sub-desc">Conditional logic inside SQL — simple CASE vs searched CASE.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/advanced-functions/#coalesce--nullif">COALESCE / NULLIF</a></span> <span class="rm-index-sub-desc">COALESCE returns the first non-NULL value; NULLIF returns NULL when two values are equal.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/sql/views/">Views</a></h3>
+        <p class="rm-index-desc">Virtual tables based on saved queries — simplifying complex queries and access control.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/views/#creating-views">Creating Views</a></span> <span class="rm-index-sub-desc">CREATE VIEW — wrapping complex joins and logic into a reusable object.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/views/#modifying-views">Modifying Views</a></span> <span class="rm-index-sub-desc">CREATE OR REPLACE VIEW and ALTER VIEW depending on the database.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/views/#dropping-views">Dropping Views</a></span> <span class="rm-index-sub-desc">DROP VIEW — removing views without affecting the underlying tables.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/sql/indexes/">Indexes</a></h3>
+        <p class="rm-index-desc">Data structures that speed up queries at the cost of write overhead and storage.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/indexes/#managing-indexes">Managing Indexes</a></span> <span class="rm-index-sub-desc">CREATE INDEX, DROP INDEX, partial indexes, and covering indexes.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/indexes/#query-optimization-with-indexes">Query Optimization with Indexes</a></span> <span class="rm-index-sub-desc">How the query planner uses indexes — EXPLAIN / ANALYZE output.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/sql/transactions/">Transactions</a></h3>
+        <p class="rm-index-desc">Grouping SQL statements into atomic units of work that succeed or fail together.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/transactions/#begin">BEGIN</a></span> <span class="rm-index-sub-desc">Starting a transaction — implicit vs explicit transaction management.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/transactions/#commit">COMMIT</a></span> <span class="rm-index-sub-desc">Permanently saving all changes made in the current transaction.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/transactions/#rollback">ROLLBACK</a></span> <span class="rm-index-sub-desc">Undoing all changes since the last COMMIT or SAVEPOINT.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/transactions/#savepoint">SAVEPOINT</a></span> <span class="rm-index-sub-desc">Creating a partial rollback point within a transaction.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/transactions/#acid">ACID</a></span> <span class="rm-index-sub-desc">Atomicity, Consistency, Isolation, Durability — the four transaction guarantees.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/transactions/#transaction-isolation-levels">Transaction Isolation Levels</a></span> <span class="rm-index-sub-desc">READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, SERIALIZABLE.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/sql/data-integrity-security/">Data Integrity &amp; Security</a></h3>
+        <p class="rm-index-desc">Protecting data correctness and controlling who can access what.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/data-integrity-security/#data-integrity-constraints">Data Integrity Constraints</a></span> <span class="rm-index-sub-desc">Entity, referential, and domain integrity — enforced at the DB level.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/data-integrity-security/#grant-and-revoke">GRANT and REVOKE</a></span> <span class="rm-index-sub-desc">Managing user privileges — SELECT, INSERT, UPDATE, DELETE, EXECUTE.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/data-integrity-security/#db-security-best-practices">DB Security Best Practices</a></span> <span class="rm-index-sub-desc">Least privilege, parameterised queries, auditing, encryption at rest.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/sql/stored-procedures-functions/">Stored Procedures &amp; Functions</a></h3>
+        <p class="rm-index-desc">Reusable server-side logic stored in the database.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/stored-procedures-functions/#scalar-functions">Scalar Functions</a></span> <span class="rm-index-sub-desc">Return a single value — used in SELECT lists and WHERE clauses.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/stored-procedures-functions/#table-valued-functions">Table-valued Functions</a></span> <span class="rm-index-sub-desc">Return a result set — inline and multi-statement variants.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/stored-procedures-functions/#row--column-functions">Row &amp; Column Functions</a></span> <span class="rm-index-sub-desc">Functions that operate per-row — window function foundations.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/sql/performance-optimization/">Performance Optimization</a></h3>
+        <p class="rm-index-desc">Techniques to make SQL queries run faster at scale.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/performance-optimization/#query-analysis-techniques">Query Analysis Techniques</a></span> <span class="rm-index-sub-desc">EXPLAIN / EXPLAIN ANALYZE — reading query plans, identifying bottlenecks.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/performance-optimization/#using-indexes-effectively">Using Indexes Effectively</a></span> <span class="rm-index-sub-desc">Index selectivity, covering indexes, avoiding index scans on low-cardinality columns.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/performance-optimization/#optimizing-joins">Optimizing Joins</a></span> <span class="rm-index-sub-desc">Join order, hash joins vs nested loop vs merge join.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/performance-optimization/#reducing-subqueries">Reducing Subqueries</a></span> <span class="rm-index-sub-desc">Rewriting correlated subqueries as joins or CTEs for better performance.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/performance-optimization/#selective-projection">Selective Projection</a></span> <span class="rm-index-sub-desc">Selecting only needed columns — avoiding SELECT * in production queries.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/sql/advanced-sql/">Advanced SQL</a></h3>
+        <p class="rm-index-desc">Power features for complex analytical and programmatic SQL work.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/advanced-sql/#window-functions">Window Functions</a></span> <span class="rm-index-sub-desc">OVER(), PARTITION BY, ROWS/RANGE — running totals, moving averages.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/advanced-sql/#rank--dense_rank--row_number">RANK / DENSE_RANK / ROW_NUMBER</a></span> <span class="rm-index-sub-desc">Ranking rows within partitions — differences and use cases.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/advanced-sql/#lead--lag">LEAD / LAG</a></span> <span class="rm-index-sub-desc">Accessing values from the next or previous row within a partition.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/advanced-sql/#common-table-expressions-ctes">Common Table Expressions (CTEs)</a></span> <span class="rm-index-sub-desc">WITH clause — making complex queries readable and enabling recursion.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/advanced-sql/#recursive-queries">Recursive Queries</a></span> <span class="rm-index-sub-desc">Recursive CTEs for hierarchical data — org charts, bill of materials.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/advanced-sql/#pivot--unpivot-operations">Pivot / Unpivot Operations</a></span> <span class="rm-index-sub-desc">Transforming rows to columns and back — PIVOT, UNPIVOT, conditional aggregation.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/sql/advanced-sql/#dynamic-sql">Dynamic SQL</a></span> <span class="rm-index-sub-desc">Building and executing SQL strings at runtime — sp_executesql, EXECUTE.</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,113 +244,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"learn-basics", label:"Learn the Basics", desc:"Core concepts of relational databases and the SQL language — where every journey starts.", subs:[
-    { id:"what-are-rdb",   label:"What are Relational Databases?",  desc:"Tables, rows, columns, and the relational model introduced by Edgar Codd.", link:"/level-1-foundations/sql/relational-databases/" },
-    { id:"rdbms-limits",   label:"RDBMS Benefits & Limitations",    desc:"ACID properties, scalability trade-offs, and when to choose a relational DB.", link:"/level-1-foundations/sql/rdbms-benefits-and-limitations/" },
-    { id:"sql-keywords",   label:"SQL Keywords",                    desc:"Reserved words: SELECT, FROM, WHERE, JOIN, GROUP BY, ORDER BY, HAVING, etc.", link:"/level-1-foundations/sql/sql-keywords/" },
-    { id:"sql-vs-nosql",   label:"SQL vs NoSQL Databases",          desc:"When to use relational vs document, key-value, column, or graph databases.", link:"/level-1-foundations/sql/sql-vs-nosql/" },
-    { id:"data-types",     label:"Data Types",                      desc:"INT, VARCHAR, TEXT, DATE, TIMESTAMP, BOOLEAN, DECIMAL, and vendor-specific types.", link:"/level-1-foundations/sql/sql-data-types/" },
-    { id:"operators",      label:"Operators",                       desc:"Arithmetic, comparison, logical (AND/OR/NOT), BETWEEN, IN, LIKE, IS NULL.", link:"/level-1-foundations/sql/sql-operators/" },
-  ]},
-  { id:"basic-syntax", label:"Basic SQL Syntax", desc:"The fundamental SELECT statement and its clauses — how to read data from tables.", link:"/level-1-foundations/sql/basic-syntax/", subs:[
-    { id:"select",         label:"SELECT",                          desc:"Retrieving columns, using aliases, DISTINCT, and selecting all with *.", link:"/level-1-foundations/sql/basic-syntax/#select" },
-    { id:"from",           label:"FROM",                            desc:"Specifying source tables, table aliases, and schema-qualified names.", link:"/level-1-foundations/sql/basic-syntax/#from" },
-    { id:"where",          label:"WHERE",                           desc:"Filtering rows with conditions — combining predicates with AND/OR.", link:"/level-1-foundations/sql/basic-syntax/#where" },
-    { id:"order-by",       label:"ORDER BY",                        desc:"Sorting results ASC/DESC, sorting by multiple columns and expressions.", link:"/level-1-foundations/sql/basic-syntax/#order-by" },
-    { id:"group-by",       label:"GROUP BY",                        desc:"Grouping rows that have the same values in specified columns.", link:"/level-1-foundations/sql/basic-syntax/#group-by" },
-    { id:"having",         label:"HAVING",                          desc:"Filtering grouped results — the WHERE clause for aggregated data.", link:"/level-1-foundations/sql/basic-syntax/#having" },
-    { id:"joins-basic",    label:"JOINs",                           desc:"Combining rows from two or more tables based on related columns.", link:"/level-1-foundations/sql/basic-syntax/#joins" },
-  ]},
-  { id:"ddl", label:"Data Definition Language (DDL)", desc:"Commands that define and modify the database schema — structure, not data.", link:"/level-1-foundations/sql/ddl/", subs:[
-    { id:"create-table",   label:"CREATE TABLE",                    desc:"Defining columns, data types, constraints, and default values.", link:"/level-1-foundations/sql/ddl/#create-table" },
-    { id:"alter-table",    label:"ALTER TABLE",                     desc:"Adding, dropping, and modifying columns; renaming tables.", link:"/level-1-foundations/sql/ddl/#alter-table" },
-    { id:"drop-table",     label:"DROP TABLE",                      desc:"Permanently removing a table and all its data from the database.", link:"/level-1-foundations/sql/ddl/#drop-table" },
-    { id:"truncate-table", label:"TRUNCATE TABLE",                  desc:"Removing all rows quickly without logging individual row deletions.", link:"/level-1-foundations/sql/ddl/#truncate-table" },
-  ]},
-  { id:"dml", label:"Data Manipulation Language (DML)", desc:"Commands for inserting, updating, and deleting data in tables.", link:"/level-1-foundations/sql/dml/", subs:[
-    { id:"insert",         label:"INSERT",                          desc:"Adding new rows — single row, multi-row, and INSERT … SELECT patterns.", link:"/level-1-foundations/sql/dml/#insert" },
-    { id:"update",         label:"UPDATE",                          desc:"Modifying existing rows — always use WHERE to avoid full-table updates.", link:"/level-1-foundations/sql/dml/#update" },
-    { id:"delete",         label:"DELETE",                          desc:"Removing rows — differences between DELETE, TRUNCATE, and DROP.", link:"/level-1-foundations/sql/dml/#delete" },
-  ]},
-  { id:"aggregate", label:"Aggregate Queries", desc:"Computing summary statistics across groups of rows.", link:"/level-1-foundations/sql/aggregate-queries/", subs:[
-    { id:"count",          label:"COUNT",                           desc:"COUNT(*) vs COUNT(col) — handling NULLs in aggregation.", link:"/level-1-foundations/sql/aggregate-queries/#count" },
-    { id:"sum",            label:"SUM",                             desc:"Summing numeric columns, using with COALESCE for NULL safety.", link:"/level-1-foundations/sql/aggregate-queries/#sum" },
-    { id:"avg",            label:"AVG",                             desc:"Arithmetic mean — note that AVG ignores NULLs automatically.", link:"/level-1-foundations/sql/aggregate-queries/#avg" },
-    { id:"min",            label:"MIN",                             desc:"Finding the smallest value in a column or expression.", link:"/level-1-foundations/sql/aggregate-queries/#min" },
-    { id:"max",            label:"MAX",                             desc:"Finding the largest value in a column or expression.", link:"/level-1-foundations/sql/aggregate-queries/#max" },
-  ]},
-  { id:"constraints", label:"Data Constraints", desc:"Rules enforced by the database engine to maintain data integrity.", link:"/level-1-foundations/sql/data-constraints/", subs:[
-    { id:"primary-key",    label:"Primary Key",                     desc:"Uniquely identifies each row — auto-increment, composite keys.", link:"/level-1-foundations/sql/data-constraints/#primary-key" },
-    { id:"foreign-key",    label:"Foreign Key",                     desc:"Referential integrity — CASCADE, SET NULL, RESTRICT actions.", link:"/level-1-foundations/sql/data-constraints/#foreign-key" },
-    { id:"unique",         label:"UNIQUE",                          desc:"Ensures no duplicate values in a column or column combination.", link:"/level-1-foundations/sql/data-constraints/#unique" },
-    { id:"not-null",       label:"NOT NULL",                        desc:"Prevents NULL values from being stored in a column.", link:"/level-1-foundations/sql/data-constraints/#not-null" },
-    { id:"check",          label:"CHECK",                           desc:"Validates column values against a boolean expression.", link:"/level-1-foundations/sql/data-constraints/#check" },
-  ]},
-  { id:"joins", label:"JOIN Queries", desc:"Combining data from multiple tables using different join strategies.", link:"/level-1-foundations/sql/join-queries/", subs:[
-    { id:"inner-join",     label:"INNER JOIN",                      desc:"Returns rows where there is a match in both tables.", link:"/level-1-foundations/sql/join-queries/#inner-join" },
-    { id:"left-join",      label:"LEFT JOIN",                       desc:"All rows from the left table, matched rows from the right (NULL if no match).", link:"/level-1-foundations/sql/join-queries/#left-join" },
-    { id:"right-join",     label:"RIGHT JOIN",                      desc:"All rows from the right table, matched rows from the left.", link:"/level-1-foundations/sql/join-queries/#right-join" },
-    { id:"full-outer",     label:"FULL OUTER JOIN",                 desc:"All rows from both tables — NULLs where there is no match on either side.", link:"/level-1-foundations/sql/join-queries/#full-outer-join" },
-    { id:"self-join",      label:"Self Join",                       desc:"Joining a table to itself — useful for hierarchical or comparison queries.", link:"/level-1-foundations/sql/join-queries/#self-join" },
-    { id:"cross-join",     label:"Cross Join",                      desc:"Cartesian product of two tables — every row paired with every other row.", link:"/level-1-foundations/sql/join-queries/#cross-join" },
-  ]},
-  { id:"subqueries", label:"Subqueries", desc:"Queries nested inside other queries — scalar, correlated, and derived tables.", link:"/level-1-foundations/sql/subqueries/", subs:[
-    { id:"nested-sub",     label:"Nested Subqueries",               desc:"Subqueries in WHERE, HAVING, or SELECT clauses — IN, EXISTS, ANY, ALL.", link:"/level-1-foundations/sql/subqueries/#nested-subqueries" },
-    { id:"correlated-sub", label:"Correlated Subqueries",           desc:"Subqueries that reference columns from the outer query — evaluated per row.", link:"/level-1-foundations/sql/subqueries/#correlated-subqueries" },
-    { id:"scalar-sub",     label:"Scalar Subquery",                 desc:"Returns a single value — used in SELECT list or WHERE conditions.", link:"/level-1-foundations/sql/subqueries/#scalar-subquery" },
-  ]},
-  { id:"adv-functions", label:"Advanced Functions", desc:"Built-in functions for string manipulation, math, dates, and conditional logic.", link:"/level-1-foundations/sql/advanced-functions/", subs:[
-    { id:"string-fns",     label:"String Functions",                desc:"CONCAT, LENGTH, SUBSTRING, REPLACE, UPPER, LOWER, TRIM, LIKE.", link:"/level-1-foundations/sql/advanced-functions/#string-functions" },
-    { id:"math-fns",       label:"Math Functions",                  desc:"FLOOR, CEILING, ROUND, ABS, MOD — rounding and numeric operations.", link:"/level-1-foundations/sql/advanced-functions/#math-functions" },
-    { id:"date-fns",       label:"Date & Time Functions",           desc:"DATE, TIME, TIMESTAMP, DATEPART, DATEADD — date arithmetic and formatting.", link:"/level-1-foundations/sql/advanced-functions/#date--time-functions" },
-    { id:"case",           label:"CASE",                            desc:"Conditional logic inside SQL — simple CASE vs searched CASE.", link:"/level-1-foundations/sql/advanced-functions/#case" },
-    { id:"coalesce",       label:"COALESCE / NULLIF",               desc:"COALESCE returns the first non-NULL value; NULLIF returns NULL when two values are equal.", link:"/level-1-foundations/sql/advanced-functions/#coalesce--nullif" },
-  ]},
-  { id:"views", label:"Views", desc:"Virtual tables based on saved queries — simplifying complex queries and access control.", link:"/level-1-foundations/sql/views/", subs:[
-    { id:"creating-views", label:"Creating Views",                  desc:"CREATE VIEW — wrapping complex joins and logic into a reusable object.", link:"/level-1-foundations/sql/views/#creating-views" },
-    { id:"modifying-views",label:"Modifying Views",                 desc:"CREATE OR REPLACE VIEW and ALTER VIEW depending on the database.", link:"/level-1-foundations/sql/views/#modifying-views" },
-    { id:"dropping-views", label:"Dropping Views",                  desc:"DROP VIEW — removing views without affecting the underlying tables.", link:"/level-1-foundations/sql/views/#dropping-views" },
-  ]},
-  { id:"indexes", label:"Indexes", desc:"Data structures that speed up queries at the cost of write overhead and storage.", link:"/level-1-foundations/sql/indexes/", subs:[
-    { id:"managing-idx",   label:"Managing Indexes",                desc:"CREATE INDEX, DROP INDEX, partial indexes, and covering indexes.", link:"/level-1-foundations/sql/indexes/#managing-indexes" },
-    { id:"query-opt-idx",  label:"Query Optimization with Indexes", desc:"How the query planner uses indexes — EXPLAIN / ANALYZE output.", link:"/level-1-foundations/sql/indexes/#query-optimization-with-indexes" },
-  ]},
-  { id:"transactions", label:"Transactions", desc:"Grouping SQL statements into atomic units of work that succeed or fail together.", link:"/level-1-foundations/sql/transactions/", subs:[
-    { id:"begin",          label:"BEGIN",                           desc:"Starting a transaction — implicit vs explicit transaction management.", link:"/level-1-foundations/sql/transactions/#begin" },
-    { id:"commit",         label:"COMMIT",                          desc:"Permanently saving all changes made in the current transaction.", link:"/level-1-foundations/sql/transactions/#commit" },
-    { id:"rollback",       label:"ROLLBACK",                        desc:"Undoing all changes since the last COMMIT or SAVEPOINT.", link:"/level-1-foundations/sql/transactions/#rollback" },
-    { id:"savepoint",      label:"SAVEPOINT",                       desc:"Creating a partial rollback point within a transaction.", link:"/level-1-foundations/sql/transactions/#savepoint" },
-    { id:"acid",           label:"ACID",                            desc:"Atomicity, Consistency, Isolation, Durability — the four transaction guarantees.", link:"/level-1-foundations/sql/transactions/#acid" },
-    { id:"isolation",      label:"Transaction Isolation Levels",    desc:"READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, SERIALIZABLE.", link:"/level-1-foundations/sql/transactions/#transaction-isolation-levels" },
-  ]},
-  { id:"security", label:"Data Integrity & Security", desc:"Protecting data correctness and controlling who can access what.", link:"/level-1-foundations/sql/data-integrity-security/", subs:[
-    { id:"integrity",      label:"Data Integrity Constraints",      desc:"Entity, referential, and domain integrity — enforced at the DB level.", link:"/level-1-foundations/sql/data-integrity-security/#data-integrity-constraints" },
-    { id:"grant-revoke",   label:"GRANT and REVOKE",                desc:"Managing user privileges — SELECT, INSERT, UPDATE, DELETE, EXECUTE.", link:"/level-1-foundations/sql/data-integrity-security/#grant-and-revoke" },
-    { id:"security-best",  label:"DB Security Best Practices",      desc:"Least privilege, parameterised queries, auditing, encryption at rest.", link:"/level-1-foundations/sql/data-integrity-security/#db-security-best-practices" },
-  ]},
-  { id:"stored-procs", label:"Stored Procedures & Functions", desc:"Reusable server-side logic stored in the database.", link:"/level-1-foundations/sql/stored-procedures-functions/", subs:[
-    { id:"scalar-fn",      label:"Scalar Functions",                desc:"Return a single value — used in SELECT lists and WHERE clauses.", link:"/level-1-foundations/sql/stored-procedures-functions/#scalar-functions" },
-    { id:"table-fn",       label:"Table-valued Functions",          desc:"Return a result set — inline and multi-statement variants.", link:"/level-1-foundations/sql/stored-procedures-functions/#table-valued-functions" },
-    { id:"row-fn",         label:"Row & Column Functions",          desc:"Functions that operate per-row — window function foundations.", link:"/level-1-foundations/sql/stored-procedures-functions/#row--column-functions" },
-  ]},
-  { id:"perf-opt", label:"Performance Optimization", desc:"Techniques to make SQL queries run faster at scale.", link:"/level-1-foundations/sql/performance-optimization/", subs:[
-    { id:"query-analysis", label:"Query Analysis Techniques",       desc:"EXPLAIN / EXPLAIN ANALYZE — reading query plans, identifying bottlenecks.", link:"/level-1-foundations/sql/performance-optimization/#query-analysis-techniques" },
-    { id:"using-indexes",  label:"Using Indexes Effectively",       desc:"Index selectivity, covering indexes, avoiding index scans on low-cardinality columns.", link:"/level-1-foundations/sql/performance-optimization/#using-indexes-effectively" },
-    { id:"opt-joins",      label:"Optimizing Joins",                desc:"Join order, hash joins vs nested loop vs merge join.", link:"/level-1-foundations/sql/performance-optimization/#optimizing-joins" },
-    { id:"reduce-subs",    label:"Reducing Subqueries",             desc:"Rewriting correlated subqueries as joins or CTEs for better performance.", link:"/level-1-foundations/sql/performance-optimization/#reducing-subqueries" },
-    { id:"selective-proj", label:"Selective Projection",            desc:"Selecting only needed columns — avoiding SELECT * in production queries.", link:"/level-1-foundations/sql/performance-optimization/#selective-projection" },
-  ]},
-  { id:"advanced-sql", label:"Advanced SQL", desc:"Power features for complex analytical and programmatic SQL work.", link:"/level-1-foundations/sql/advanced-sql/", subs:[
-    { id:"window-fns",     label:"Window Functions",                desc:"OVER(), PARTITION BY, ROWS/RANGE — running totals, moving averages.", link:"/level-1-foundations/sql/advanced-sql/#window-functions" },
-    { id:"rank",           label:"RANK / DENSE_RANK / ROW_NUMBER",  desc:"Ranking rows within partitions — differences and use cases.", link:"/level-1-foundations/sql/advanced-sql/#rank--dense_rank--row_number" },
-    { id:"lead-lag",       label:"LEAD / LAG",                      desc:"Accessing values from the next or previous row within a partition.", link:"/level-1-foundations/sql/advanced-sql/#lead--lag" },
-    { id:"cte",            label:"Common Table Expressions (CTEs)", desc:"WITH clause — making complex queries readable and enabling recursion.", link:"/level-1-foundations/sql/advanced-sql/#common-table-expressions-ctes" },
-    { id:"recursive",      label:"Recursive Queries",               desc:"Recursive CTEs for hierarchical data — org charts, bill of materials.", link:"/level-1-foundations/sql/advanced-sql/#recursive-queries" },
-    { id:"pivot",          label:"Pivot / Unpivot Operations",       desc:"Transforming rows to columns and back — PIVOT, UNPIVOT, conditional aggregation.", link:"/level-1-foundations/sql/advanced-sql/#pivot--unpivot-operations" },
-    { id:"dynamic-sql",    label:"Dynamic SQL",                     desc:"Building and executing SQL strings at runtime — sp_executesql, EXECUTE.", link:"/level-1-foundations/sql/advanced-sql/#dynamic-sql" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

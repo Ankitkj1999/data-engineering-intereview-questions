@@ -1,0 +1,198 @@
+[
+  {
+    "id": "core-concepts",
+    "label": "Core Concepts",
+    "desc": "15 interview questions covering Fundamentals, Orchestration, Models, Project Structure and more.",
+    "link": "/level-3-technologies/transformation/dbt/#interview-questions",
+    "subs": [
+      {
+        "id": "core-concepts-fundamentals",
+        "label": "Fundamentals",
+        "desc": "What is dbt?",
+        "link": "/level-3-technologies/transformation/dbt/#interview-questions"
+      },
+      {
+        "id": "core-concepts-orchestration",
+        "label": "Orchestration",
+        "desc": "Airflow is an orchestration system that schedules and coordinates tasks of any kind.",
+        "link": "/level-3-technologies/transformation/dbt/#interview-questions"
+      },
+      {
+        "id": "core-concepts-models",
+        "label": "Models",
+        "desc": "A dbt model is a select query stored as a .sql file in the models/ directory.",
+        "link": "/level-3-technologies/transformation/dbt/#interview-questions"
+      },
+      {
+        "id": "core-concepts-project-structure",
+        "label": "Project Structure",
+        "desc": "What are the typical layers in a dbt project?",
+        "link": "/level-3-technologies/transformation/dbt/#interview-questions"
+      },
+      {
+        "id": "core-concepts-materializations",
+        "label": "Materializations",
+        "desc": "What is a materialization in dbt? When would you use view vs. table materializations?",
+        "link": "/level-3-technologies/transformation/dbt/#interview-questions"
+      },
+      {
+        "id": "core-concepts-incremental-models",
+        "label": "Incremental Models",
+        "desc": "What is an incremental model and what problems does it solve? How do you design a reliable unique_key?",
+        "link": "/level-3-technologies/transformation/dbt/#interview-questions"
+      },
+      {
+        "id": "core-concepts-testing",
+        "label": "Testing",
+        "desc": "What are dbt tests and what types exist? What are sources in dbt and how do you test them?",
+        "link": "/level-3-technologies/transformation/dbt/#interview-questions"
+      },
+      {
+        "id": "core-concepts-snapshots",
+        "label": "Snapshots",
+        "desc": "Snapshots capture slowly changing dimension history by tracking changes in source records over time.",
+        "link": "/level-3-technologies/transformation/dbt/#interview-questions"
+      },
+      {
+        "id": "core-concepts-macros",
+        "label": "Macros",
+        "desc": "Macros are Jinja functions that generate SQL.",
+        "link": "/level-3-technologies/transformation/dbt/#interview-questions"
+      },
+      {
+        "id": "core-concepts-ci-cd",
+        "label": "CI/CD",
+        "desc": "What is dbt state selection? How do you approach CI/CD for dbt projects?",
+        "link": "/level-3-technologies/transformation/dbt/#interview-questions"
+      }
+    ]
+  },
+  {
+    "id": "seeds-sources-project-configuration",
+    "label": "Seeds, Sources & Project Configuration",
+    "desc": "5 interview questions covering Seeds, Configuration, Documentation.",
+    "link": "/level-3-technologies/transformation/dbt/#seeds-sources--project-configuration",
+    "subs": [
+      {
+        "id": "seeds-sources-project-configuration-seeds",
+        "label": "Seeds",
+        "desc": "A seed is a CSV file in the seeds/ directory that dbt loads into the warehouse as a table via dbt seed.",
+        "link": "/level-3-technologies/transformation/dbt/#seeds-sources--project-configuration"
+      },
+      {
+        "id": "seeds-sources-project-configuration-configuration",
+        "label": "Configuration",
+        "desc": "A target in profiles.yml defines a specific connection (dev, staging, prod) — its warehouse, schema, and credentials — and dbt commands run against whichever target is active.",
+        "link": "/level-3-technologies/transformation/dbt/#seeds-sources--project-configuration"
+      },
+      {
+        "id": "seeds-sources-project-configuration-documentation",
+        "label": "Documentation",
+        "desc": "What are exposures, and why declare them?",
+        "link": "/level-3-technologies/transformation/dbt/#seeds-sources--project-configuration"
+      }
+    ]
+  },
+  {
+    "id": "materializations-incremental-strategies",
+    "label": "Materializations & Incremental Strategies",
+    "desc": "5 interview questions covering Materializations, Incremental Models, Contracts, Hooks.",
+    "link": "/level-3-technologies/transformation/dbt/#materializations--incremental-strategies",
+    "subs": [
+      {
+        "id": "materializations-incremental-strategies-materializations",
+        "label": "Materializations",
+        "desc": "What is an ephemeral materialization, and when would you use one?",
+        "link": "/level-3-technologies/transformation/dbt/#materializations--incremental-strategies"
+      },
+      {
+        "id": "materializations-incremental-strategies-incremental-models",
+        "label": "Incremental Models",
+        "desc": "What incremental strategies does dbt support, and how do you choose between them? When and why would you run a full refresh on an incremental model?",
+        "link": "/level-3-technologies/transformation/dbt/#materializations--incremental-strategies"
+      },
+      {
+        "id": "materializations-incremental-strategies-contracts",
+        "label": "Contracts",
+        "desc": "What are dbt model contracts, and what do they enforce?",
+        "link": "/level-3-technologies/transformation/dbt/#materializations--incremental-strategies"
+      },
+      {
+        "id": "materializations-incremental-strategies-hooks",
+        "label": "Hooks",
+        "desc": "What are pre-hooks and post-hooks used for?",
+        "link": "/level-3-technologies/transformation/dbt/#materializations--incremental-strategies"
+      }
+    ]
+  },
+  {
+    "id": "jinja-packages",
+    "label": "Jinja & Packages",
+    "desc": "4 interview questions covering Jinja, Packages, Testing.",
+    "link": "/level-3-technologies/transformation/dbt/#jinja--packages",
+    "subs": [
+      {
+        "id": "jinja-packages-jinja",
+        "label": "Jinja",
+        "desc": "How do Jinja control structures (if/for) get used inside a dbt model?",
+        "link": "/level-3-technologies/transformation/dbt/#jinja--packages"
+      },
+      {
+        "id": "jinja-packages-packages",
+        "label": "Packages",
+        "desc": "What is dbt_utils, and what's an example of a macro from it you'd actually use? How do you manage third-party dbt packages in a project?",
+        "link": "/level-3-technologies/transformation/dbt/#jinja--packages"
+      },
+      {
+        "id": "jinja-packages-testing",
+        "label": "Testing",
+        "desc": "A custom generic test is a macro following the test_<name> naming convention that returns a query — like any dbt test, it fails if that query returns any rows.",
+        "link": "/level-3-technologies/transformation/dbt/#jinja--packages"
+      }
+    ]
+  },
+  {
+    "id": "documentation-governance-ecosystem",
+    "label": "Documentation, Governance & Ecosystem",
+    "desc": "6 interview questions covering Documentation, Testing, Governance, Ecosystem and more.",
+    "link": "/level-3-technologies/transformation/dbt/#documentation-governance--ecosystem",
+    "subs": [
+      {
+        "id": "documentation-governance-ecosystem-documentation",
+        "label": "Documentation",
+        "desc": "How does dbt documentation generation work, and what does it produce?",
+        "link": "/level-3-technologies/transformation/dbt/#documentation-governance--ecosystem"
+      },
+      {
+        "id": "documentation-governance-ecosystem-testing",
+        "label": "Testing",
+        "desc": "What's the difference between warn and error severity on a dbt test?",
+        "link": "/level-3-technologies/transformation/dbt/#documentation-governance--ecosystem"
+      },
+      {
+        "id": "documentation-governance-ecosystem-governance",
+        "label": "Governance",
+        "desc": "What are grants in dbt, and why configure them in code rather than manually?",
+        "link": "/level-3-technologies/transformation/dbt/#documentation-governance--ecosystem"
+      },
+      {
+        "id": "documentation-governance-ecosystem-ecosystem",
+        "label": "Ecosystem",
+        "desc": "What's the difference between dbt Core and dbt Cloud?",
+        "link": "/level-3-technologies/transformation/dbt/#documentation-governance--ecosystem"
+      },
+      {
+        "id": "documentation-governance-ecosystem-python-models",
+        "label": "Python Models",
+        "desc": "What are dbt Python models, and when would you reach for one over SQL?",
+        "link": "/level-3-technologies/transformation/dbt/#documentation-governance--ecosystem"
+      },
+      {
+        "id": "documentation-governance-ecosystem-semantic-layer",
+        "label": "Semantic Layer",
+        "desc": "What is the dbt Semantic Layer / MetricFlow, and what problem does it solve?",
+        "link": "/level-3-technologies/transformation/dbt/#documentation-governance--ecosystem"
+      }
+    ]
+  }
+]

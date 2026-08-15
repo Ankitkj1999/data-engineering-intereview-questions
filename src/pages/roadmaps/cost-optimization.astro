@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/cost-optimization.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,30 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-4-advanced/cost-optimization/#interview-questions">Core Concepts</a></h3>
+        <p class="rm-index-desc">12 interview questions covering Fundamentals, Cost Drivers, Partitioning, Storage and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/cost-optimization/#interview-questions">Fundamentals</a></span> <span class="rm-index-sub-desc">Why is cost optimization considered a core skill for data engineers?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/cost-optimization/#interview-questions">Cost Drivers</a></span> <span class="rm-index-sub-desc">What are the main cost drivers in a data platform?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/cost-optimization/#interview-questions">Partitioning</a></span> <span class="rm-index-sub-desc">Good partitioning reduces scanned data by enabling partition pruning, so queries only touch the data they need.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/cost-optimization/#interview-questions">Storage</a></span> <span class="rm-index-sub-desc">What is the small files problem, and why does it hurt performance and cost? How do you choose a target file size?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/cost-optimization/#interview-questions">Performance</a></span> <span class="rm-index-sub-desc">Shuffle is the redistribution of data across executors, needed for operations like joins, group-by, and distinct.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/cost-optimization/#interview-questions">Materialization</a></span> <span class="rm-index-sub-desc">When should you materialize a dataset vs. keep it as a view?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/cost-optimization/#interview-questions">Governance</a></span> <span class="rm-index-sub-desc">How do you protect a platform from runaway queries and costs?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/cost-optimization/#interview-questions">Query Optimization</a></span> <span class="rm-index-sub-desc">You optimize joins by ensuring join keys are clean and well-distributed, filtering before the join rather than after, and choosing the right join strategy — broadcast for small tables, shuffle for large ones.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/cost-optimization/#interview-questions">Operations</a></span> <span class="rm-index-sub-desc">How do you plan and budget for a large backfill?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-4-advanced/cost-optimization/#interview-questions">FinOps</a></span> <span class="rm-index-sub-desc">What FinOps metrics should a data platform track?</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,20 +91,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"core-concepts", label:"Core Concepts", desc:"12 interview questions covering Fundamentals, Cost Drivers, Partitioning, Storage and more.", link:"/level-4-advanced/cost-optimization/#interview-questions", subs:[
-    { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"Why is cost optimization considered a core skill for data engineers?", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-cost-drivers", label:"Cost Drivers", desc:"What are the main cost drivers in a data platform?", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-partitioning", label:"Partitioning", desc:"Good partitioning reduces scanned data by enabling partition pruning, so queries only touch the data they need.", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-storage", label:"Storage", desc:"What is the small files problem, and why does it hurt performance and cost? How do you choose a target file size?", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-performance", label:"Performance", desc:"Shuffle is the redistribution of data across executors, needed for operations like joins, group-by, and distinct.", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-materialization", label:"Materialization", desc:"When should you materialize a dataset vs. keep it as a view?", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-governance", label:"Governance", desc:"How do you protect a platform from runaway queries and costs?", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-query-optimization", label:"Query Optimization", desc:"You optimize joins by ensuring join keys are clean and well-distributed, filtering before the join rather than after, and choosing the right join strategy — broadcast for small tables, shuffle for large ones.", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-operations", label:"Operations", desc:"How do you plan and budget for a large backfill?", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-    { id:"core-concepts-finops", label:"FinOps", desc:"What FinOps metrics should a data platform track?", link:"/level-4-advanced/cost-optimization/#interview-questions" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

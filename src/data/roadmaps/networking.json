@@ -1,0 +1,230 @@
+[
+  {
+    "id": "net-tcpip",
+    "label": "TCP/IP Fundamentals",
+    "desc": "Addressing, ports and the transport layer — plus the failure signatures that tell you what broke.",
+    "link": "/level-1-foundations/networking/#tcpip-fundamentals",
+    "subs": [
+      {
+        "id": "net-tcp-udp",
+        "label": "TCP vs UDP",
+        "desc": "Reliable and ordered versus minimal overhead, and which your tools use.",
+        "link": "/level-1-foundations/networking/#tcpip-fundamentals"
+      },
+      {
+        "id": "net-handshake",
+        "label": "The Three-Way Handshake",
+        "desc": "Why connection setup costs a round trip — and why refused differs from timeout.",
+        "link": "/level-1-foundations/networking/#tcpip-fundamentals"
+      },
+      {
+        "id": "net-ports",
+        "label": "Ports",
+        "desc": "The numbers worth memorising, from 5432 and 9092 to 10000 and 5439.",
+        "link": "/level-1-foundations/networking/#tcpip-fundamentals"
+      },
+      {
+        "id": "net-cidr",
+        "label": "CIDR Notation",
+        "desc": "Reading a /16, sizing subnets, and why EKS exhausts a /24 faster than you expect.",
+        "link": "/level-1-foundations/networking/#tcpip-fundamentals"
+      },
+      {
+        "id": "net-private-public",
+        "label": "Private vs Public IPs",
+        "desc": "RFC 1918 ranges, NAT, and why a private instance needs a gateway to pip install.",
+        "link": "/level-1-foundations/networking/#tcpip-fundamentals"
+      },
+      {
+        "id": "net-diagnose",
+        "label": "Diagnosing Connectivity",
+        "desc": "Working up the layers with dig, traceroute, nc and curl, stopping at the first failure.",
+        "link": "/level-1-foundations/networking/#tcpip-fundamentals"
+      }
+    ]
+  },
+  {
+    "id": "net-dns-cat",
+    "label": "DNS",
+    "desc": "Name resolution, record types, caching — and why your change hasn't taken effect yet.",
+    "link": "/level-1-foundations/networking/#dns",
+    "subs": [
+      {
+        "id": "net-resolution",
+        "label": "How Resolution Works",
+        "desc": "Resolver, root, TLD and authoritative servers, with caching at every step.",
+        "link": "/level-1-foundations/networking/#dns"
+      },
+      {
+        "id": "net-records",
+        "label": "Record Types",
+        "desc": "A, AAAA, CNAME, MX, TXT, NS, SRV and PTR, plus cloud-specific alias records.",
+        "link": "/level-1-foundations/networking/#dns"
+      },
+      {
+        "id": "net-dns-debug",
+        "label": "Troubleshooting DNS",
+        "desc": "dig against a specific resolver to separate a bad record from a stale cache.",
+        "link": "/level-1-foundations/networking/#dns"
+      },
+      {
+        "id": "net-ttl",
+        "label": "TTL & Propagation",
+        "desc": "Why changes take time, lowering TTL before a migration, and JVM caching.",
+        "link": "/level-1-foundations/networking/#dns"
+      }
+    ]
+  },
+  {
+    "id": "net-http-cat",
+    "label": "HTTP & TLS",
+    "desc": "Consuming APIs reliably — status codes, protocol versions, certificates and retry behaviour.",
+    "link": "/level-1-foundations/networking/#http--tls",
+    "subs": [
+      {
+        "id": "net-status",
+        "label": "Status Codes",
+        "desc": "Retry 5xx and 429, fail fast on 4xx — the rule an ingestion job needs.",
+        "link": "/level-1-foundations/networking/#http--tls"
+      },
+      {
+        "id": "net-http-versions",
+        "label": "HTTP/1.1 vs 2 vs 3",
+        "desc": "Multiplexing, head-of-line blocking and QUIC — and where it matters for ingestion.",
+        "link": "/level-1-foundations/networking/#http--tls"
+      },
+      {
+        "id": "net-tls-how",
+        "label": "How TLS Works",
+        "desc": "The handshake, certificates, and what encryption, authentication and integrity mean.",
+        "link": "/level-1-foundations/networking/#http--tls"
+      },
+      {
+        "id": "net-cert-errors",
+        "label": "Certificate Errors",
+        "desc": "Expiry, hostname mismatch, missing intermediates, absent CA bundles and TLS proxies.",
+        "link": "/level-1-foundations/networking/#http--tls"
+      },
+      {
+        "id": "net-retries",
+        "label": "Retry Strategies",
+        "desc": "Exponential backoff with jitter, Retry-After, timeouts and idempotency keys.",
+        "link": "/level-1-foundations/networking/#http--tls"
+      }
+    ]
+  },
+  {
+    "id": "net-cloud",
+    "label": "Cloud Networking",
+    "desc": "VPCs, subnets and the policy controls that decide whether two machines can talk at all.",
+    "link": "/level-1-foundations/networking/#cloud-networking",
+    "subs": [
+      {
+        "id": "net-vpc-subnets",
+        "label": "VPCs & Subnets",
+        "desc": "Public and private subnets as a routing distinction, and the standard data layout.",
+        "link": "/level-1-foundations/networking/#cloud-networking"
+      },
+      {
+        "id": "net-sg-nacl",
+        "label": "Security Groups vs NACLs",
+        "desc": "Stateful versus stateless, and the return-path rule people forget.",
+        "link": "/level-1-foundations/networking/#cloud-networking"
+      },
+      {
+        "id": "net-endpoints",
+        "label": "VPC Endpoints",
+        "desc": "Gateway and interface endpoints — cost, security and reachability for S3 traffic.",
+        "link": "/level-1-foundations/networking/#cloud-networking"
+      },
+      {
+        "id": "net-connect",
+        "label": "Connecting Networks",
+        "desc": "Peering, Transit Gateway, VPN, Direct Connect and PrivateLink.",
+        "link": "/level-1-foundations/networking/#cloud-networking"
+      },
+      {
+        "id": "net-nat",
+        "label": "NAT Gateways & Cost",
+        "desc": "Per-GB processing charges, and why S3 traffic through NAT is a billing mistake.",
+        "link": "/level-1-foundations/networking/#cloud-networking"
+      }
+    ]
+  },
+  {
+    "id": "net-lb-cat",
+    "label": "Load Balancing",
+    "desc": "Distributing traffic across backends, and knowing when a request should stop being sent to one.",
+    "link": "/level-1-foundations/networking/#load-balancing",
+    "subs": [
+      {
+        "id": "net-l4-l7",
+        "label": "Layer 4 vs Layer 7",
+        "desc": "Connection forwarding versus content-aware routing and TLS termination.",
+        "link": "/level-1-foundations/networking/#load-balancing"
+      },
+      {
+        "id": "net-algorithms",
+        "label": "Balancing Algorithms",
+        "desc": "Round robin, least connections, consistent hashing and two-random-choices.",
+        "link": "/level-1-foundations/networking/#load-balancing"
+      },
+      {
+        "id": "net-health",
+        "label": "Health Checks",
+        "desc": "Checking real capability, tuning thresholds, and liveness versus readiness.",
+        "link": "/level-1-foundations/networking/#load-balancing"
+      },
+      {
+        "id": "net-proxy-gateway",
+        "label": "LB vs Reverse Proxy vs API Gateway",
+        "desc": "Overlapping tools distinguished by emphasis, not hard boundaries.",
+        "link": "/level-1-foundations/networking/#load-balancing"
+      }
+    ]
+  },
+  {
+    "id": "net-de",
+    "label": "Networking for Data Engineers",
+    "desc": "The networking problems that actually land on a data engineer: connectivity, cost and throughput.",
+    "link": "/level-1-foundations/networking/#networking-for-data-engineers",
+    "subs": [
+      {
+        "id": "net-de-debug",
+        "label": "Debugging a Connection Failure",
+        "desc": "The layer-by-layer walkthrough from DNS to security groups to authentication.",
+        "link": "/level-1-foundations/networking/#networking-for-data-engineers"
+      },
+      {
+        "id": "net-de-cost",
+        "label": "Data Transfer Pricing",
+        "desc": "Cross-AZ, cross-region, internet and NAT charges — and how to cut each.",
+        "link": "/level-1-foundations/networking/#networking-for-data-engineers"
+      },
+      {
+        "id": "net-de-kafka",
+        "label": "Kafka advertised.listeners",
+        "desc": "Why bootstrap succeeds and everything after it fails — a config bug, not a network one.",
+        "link": "/level-1-foundations/networking/#networking-for-data-engineers"
+      },
+      {
+        "id": "net-de-placement",
+        "label": "Placement & Data Gravity",
+        "desc": "Moving compute to the data, AZ placement, and instance network tiers.",
+        "link": "/level-1-foundations/networking/#networking-for-data-engineers"
+      },
+      {
+        "id": "net-de-onprem",
+        "label": "On-Premises Connectivity",
+        "desc": "VPN, Direct Connect, bastions and agent-based pull for source databases.",
+        "link": "/level-1-foundations/networking/#networking-for-data-engineers"
+      },
+      {
+        "id": "net-de-throughput",
+        "label": "Throughput Bottlenecks",
+        "desc": "Bandwidth-delay product, small files, connection churn and server-side rate limits.",
+        "link": "/level-1-foundations/networking/#networking-for-data-engineers"
+      }
+    ]
+  }
+]

@@ -1,0 +1,493 @@
+[
+  {
+    "id": "learn-basics",
+    "label": "Learn the Basics",
+    "desc": "The foundation of Python — syntax, data types, control flow, and built-in structures.",
+    "link": "/level-1-foundations/python/basics/",
+    "subs": [
+      {
+        "id": "basic-syntax",
+        "label": "Basic Syntax",
+        "desc": "Indentation rules, comments, print statements, and the Python REPL.",
+        "link": "/level-1-foundations/python/basics/#syntax--variables"
+      },
+      {
+        "id": "vars-datatypes",
+        "label": "Variables & Data Types",
+        "desc": "int, float, str, bool, None — and dynamic typing in Python.",
+        "link": "/level-1-foundations/python/basics/#data-types--casting"
+      },
+      {
+        "id": "conditionals",
+        "label": "Conditionals",
+        "desc": "if / elif / else, ternary expressions, and truthy/falsy values.",
+        "link": "/level-1-foundations/python/basics/#conditionals--loops"
+      },
+      {
+        "id": "loops",
+        "label": "Loops",
+        "desc": "for loops, while loops, break, continue, and range().",
+        "link": "/level-1-foundations/python/basics/#conditionals--loops"
+      },
+      {
+        "id": "type-casting",
+        "label": "Type Casting",
+        "desc": "Converting between types: int(), str(), float(), list(), etc.",
+        "link": "/level-1-foundations/python/basics/#data-types--casting"
+      },
+      {
+        "id": "exceptions",
+        "label": "Exceptions",
+        "desc": "try/except/finally, raising exceptions, and custom exception classes.",
+        "link": "/level-1-foundations/python/basics/#exceptions"
+      },
+      {
+        "id": "functions",
+        "label": "Functions & Builtins",
+        "desc": "Defining functions, *args, **kwargs, and useful builtins like map(), filter(), zip().",
+        "link": "/level-1-foundations/python/basics/#built-in-functions"
+      },
+      {
+        "id": "lists",
+        "label": "Lists",
+        "desc": "Mutable ordered sequences — indexing, slicing, list methods.",
+        "link": "/level-1-foundations/python/basics/#lists--tuples"
+      },
+      {
+        "id": "tuples",
+        "label": "Tuples",
+        "desc": "Immutable sequences — packing, unpacking, named tuples.",
+        "link": "/level-1-foundations/python/basics/#lists--tuples"
+      },
+      {
+        "id": "sets",
+        "label": "Sets",
+        "desc": "Unordered unique collections — set operations, frozenset.",
+        "link": "/level-1-foundations/python/basics/#sets--dictionaries"
+      },
+      {
+        "id": "dicts",
+        "label": "Dictionaries",
+        "desc": "Key-value stores — dict comprehensions, .get(), .items(), .update().",
+        "link": "/level-1-foundations/python/basics/#sets--dictionaries"
+      }
+    ]
+  },
+  {
+    "id": "data-structures",
+    "label": "Data Structures & Algorithms",
+    "desc": "Classic CS concepts implemented in Python — essential for technical interviews.",
+    "link": "/level-1-foundations/python/data-structures-algorithms/",
+    "subs": [
+      {
+        "id": "arrays-ll",
+        "label": "Arrays and Linked Lists",
+        "desc": "Python lists as arrays, implementing singly/doubly linked lists.",
+        "link": "/level-1-foundations/python/data-structures-algorithms/#arrays--linked-lists"
+      },
+      {
+        "id": "hash-tables",
+        "label": "Hash Tables",
+        "desc": "Dictionaries under the hood — hashing and collision handling.",
+        "link": "/level-1-foundations/python/data-structures-algorithms/#hash-tables"
+      },
+      {
+        "id": "heaps-stacks",
+        "label": "Heaps, Stacks & Queues",
+        "desc": "heapq module, collections.deque, and stack patterns with lists.",
+        "link": "/level-1-foundations/python/data-structures-algorithms/#heaps--priority-queues"
+      },
+      {
+        "id": "bst",
+        "label": "Binary Search Tree",
+        "desc": "BST properties, insertion, search, and traversal algorithms.",
+        "link": "/level-1-foundations/python/data-structures-algorithms/#trees--binary-search"
+      },
+      {
+        "id": "recursion",
+        "label": "Recursion",
+        "desc": "Base cases, call stacks, memoization, and tail recursion patterns.",
+        "link": "/level-1-foundations/python/data-structures-algorithms/#recursion"
+      },
+      {
+        "id": "sorting",
+        "label": "Sorting Algorithms",
+        "desc": "Built-in sort(), Timsort, and implementing merge/quick sort.",
+        "link": "/level-1-foundations/python/data-structures-algorithms/#sorting--searching"
+      }
+    ]
+  },
+  {
+    "id": "modules",
+    "label": "Modules",
+    "desc": "Organising code with modules, packages, and the Python import system.",
+    "link": "/level-1-foundations/python/modules-packaging/",
+    "subs": [
+      {
+        "id": "builtin-modules",
+        "label": "Builtin Modules",
+        "desc": "os, sys, math, datetime, json, pathlib, collections, itertools.",
+        "link": "/level-1-foundations/python/modules-packaging/#modules--imports"
+      },
+      {
+        "id": "custom-modules",
+        "label": "Custom Modules",
+        "desc": "Creating __init__.py, relative vs absolute imports, __all__.",
+        "link": "/level-1-foundations/python/modules-packaging/#packages"
+      }
+    ]
+  },
+  {
+    "id": "lambdas",
+    "label": "Lambdas",
+    "desc": "Anonymous functions with lambda — usage with map(), filter(), sorted(), and functional patterns.",
+    "link": "/level-1-foundations/python/functions/#lambdas",
+    "subs": []
+  },
+  {
+    "id": "decorators",
+    "label": "Decorators",
+    "desc": "Higher-order functions that wrap other functions — functools.wraps, class decorators, stacking decorators.",
+    "link": "/level-1-foundations/python/decorators-context-managers/#decorator-fundamentals",
+    "subs": []
+  },
+  {
+    "id": "iterators",
+    "label": "Iterators",
+    "desc": "__iter__ and __next__ protocols, itertools module, lazy evaluation.",
+    "link": "/level-1-foundations/python/comprehensions-generators/#the-iterator-protocol",
+    "subs": []
+  },
+  {
+    "id": "regex",
+    "label": "Regular Expressions",
+    "desc": "Pattern matching with the re module — compile, match, search, findall, groups.",
+    "link": "/level-1-foundations/python/regular-expressions/",
+    "subs": []
+  },
+  {
+    "id": "oop",
+    "label": "Object Oriented Programming",
+    "desc": "Python's OOP model — classes, inheritance, magic methods, and encapsulation.",
+    "link": "/level-1-foundations/python/oop/",
+    "subs": [
+      {
+        "id": "classes",
+        "label": "Classes",
+        "desc": "__init__, instance vs class attributes, @classmethod, @staticmethod, @property.",
+        "link": "/level-1-foundations/python/oop/#classes--instances"
+      },
+      {
+        "id": "inheritance",
+        "label": "Inheritance",
+        "desc": "Single/multiple inheritance, super(), MRO (Method Resolution Order).",
+        "link": "/level-1-foundations/python/oop/#inheritance"
+      },
+      {
+        "id": "dunder",
+        "label": "Methods & Dunder",
+        "desc": "__str__, __repr__, __len__, __eq__, __hash__, and operator overloading.",
+        "link": "/level-1-foundations/python/oop/#dunder-methods"
+      }
+    ]
+  },
+  {
+    "id": "pkg-managers",
+    "label": "Package Managers",
+    "desc": "Tools for installing, managing, and isolating Python dependencies.",
+    "link": "/level-1-foundations/python/modules-packaging/#package-managers",
+    "subs": [
+      {
+        "id": "pip",
+        "label": "pip",
+        "desc": "The standard Python package installer — pip install, requirements.txt, pip freeze.",
+        "link": "/level-1-foundations/python/modules-packaging/#package-managers"
+      },
+      {
+        "id": "pypi",
+        "label": "PyPI",
+        "desc": "The Python Package Index — finding, publishing, and versioning packages.",
+        "link": "/level-1-foundations/python/modules-packaging/#package-managers"
+      },
+      {
+        "id": "poetry",
+        "label": "Poetry",
+        "desc": "Modern dependency management with pyproject.toml, lock files, and virtual envs.",
+        "link": "/level-1-foundations/python/modules-packaging/#package-managers"
+      },
+      {
+        "id": "conda",
+        "label": "Conda",
+        "desc": "Package and environment manager from Anaconda — great for data science.",
+        "link": "/level-1-foundations/python/modules-packaging/#virtual-environments"
+      },
+      {
+        "id": "uv",
+        "label": "uv",
+        "desc": "Ultra-fast Python package and project manager written in Rust.",
+        "link": "/level-1-foundations/python/modules-packaging/#package-managers"
+      },
+      {
+        "id": "pipenv",
+        "label": "Pipenv",
+        "desc": "Combines pip and virtualenv — Pipfile and Pipfile.lock.",
+        "link": "/level-1-foundations/python/modules-packaging/#package-managers"
+      },
+      {
+        "id": "virtualenv",
+        "label": "virtualenv",
+        "desc": "Creating isolated Python environments.",
+        "link": "/level-1-foundations/python/modules-packaging/#virtual-environments"
+      },
+      {
+        "id": "pyenv",
+        "label": "pyenv",
+        "desc": "Managing multiple Python versions on the same machine.",
+        "link": "/level-1-foundations/python/modules-packaging/#virtual-environments"
+      },
+      {
+        "id": "pyproject",
+        "label": "pyproject.toml",
+        "desc": "The modern Python project configuration standard (PEP 517/518).",
+        "link": "/level-1-foundations/python/modules-packaging/#package-managers"
+      }
+    ]
+  },
+  {
+    "id": "list-comp",
+    "label": "List Comprehensions",
+    "desc": "Concise syntax for building lists — [expr for x in iterable if condition].",
+    "link": "/level-1-foundations/python/comprehensions-generators/#comprehensions",
+    "subs": []
+  },
+  {
+    "id": "gen-expr",
+    "label": "Generator Expressions",
+    "desc": "Lazy evaluation with (expr for x in iterable) — memory-efficient alternative to list comprehensions.",
+    "link": "/level-1-foundations/python/comprehensions-generators/#generators",
+    "subs": []
+  },
+  {
+    "id": "paradigms",
+    "label": "Paradigms",
+    "desc": "Python as a multi-paradigm language — functional, procedural, and OOP patterns.",
+    "link": "/level-1-foundations/python/functions/#functional-programming",
+    "subs": []
+  },
+  {
+    "id": "context-mgr",
+    "label": "Context Manager",
+    "desc": "The with statement, __enter__/__exit__, contextlib, and resource management patterns.",
+    "link": "/level-1-foundations/python/decorators-context-managers/#context-manager-fundamentals",
+    "subs": []
+  },
+  {
+    "id": "frameworks",
+    "label": "Learn a Framework",
+    "desc": "Web and async frameworks for building APIs, dashboards, and services with Python.",
+    "link": "/level-1-foundations/python/web-frameworks/",
+    "subs": [
+      {
+        "id": "fastapi",
+        "label": "FastAPI",
+        "desc": "Modern, high-performance web API framework with automatic docs and type hints.",
+        "link": "/level-1-foundations/python/web-frameworks/#fastapi"
+      },
+      {
+        "id": "django",
+        "label": "Django",
+        "desc": "Batteries-included web framework — ORM, admin, auth, templates.",
+        "link": "/level-1-foundations/python/web-frameworks/#framework-comparison"
+      },
+      {
+        "id": "flask",
+        "label": "Flask",
+        "desc": "Lightweight WSGI microframework — great for small APIs and services.",
+        "link": "/level-1-foundations/python/web-frameworks/#framework-comparison"
+      },
+      {
+        "id": "aiohttp",
+        "label": "aiohttp",
+        "desc": "Async HTTP client/server framework built on asyncio.",
+        "link": "/level-1-foundations/python/web-frameworks/#framework-comparison"
+      },
+      {
+        "id": "tornado",
+        "label": "Tornado",
+        "desc": "Non-blocking network I/O and web framework.",
+        "link": "/level-1-foundations/python/web-frameworks/#framework-comparison"
+      },
+      {
+        "id": "sanic",
+        "label": "Sanic",
+        "desc": "Fast async web server and framework, built for speed.",
+        "link": "/level-1-foundations/python/web-frameworks/#framework-comparison"
+      },
+      {
+        "id": "dash",
+        "label": "Plotly Dash",
+        "desc": "Build interactive analytical web apps in pure Python.",
+        "link": "/level-1-foundations/python/web-frameworks/#framework-comparison"
+      },
+      {
+        "id": "pyramid",
+        "label": "Pyramid",
+        "desc": "Flexible web framework — scales from simple to complex apps.",
+        "link": "/level-1-foundations/python/web-frameworks/#framework-comparison"
+      },
+      {
+        "id": "gevent",
+        "label": "gevent",
+        "desc": "Coroutine-based networking library using greenlets.",
+        "link": "/level-1-foundations/python/web-frameworks/#framework-comparison"
+      }
+    ]
+  },
+  {
+    "id": "concurrency",
+    "label": "Concurrency",
+    "desc": "Running tasks simultaneously in Python — threads, processes, and async.",
+    "link": "/level-1-foundations/python/concurrency/",
+    "subs": [
+      {
+        "id": "gil",
+        "label": "GIL",
+        "desc": "The Global Interpreter Lock — what it is, why it exists, and its impact on threading.",
+        "link": "/level-1-foundations/python/concurrency/#the-gil"
+      },
+      {
+        "id": "threading",
+        "label": "Threading",
+        "desc": "Thread-based parallelism with the threading module — I/O-bound tasks.",
+        "link": "/level-1-foundations/python/concurrency/#threading"
+      },
+      {
+        "id": "multiprocessing",
+        "label": "Multiprocessing",
+        "desc": "Process-based parallelism — bypassing the GIL for CPU-bound tasks.",
+        "link": "/level-1-foundations/python/concurrency/#multiprocessing"
+      },
+      {
+        "id": "asyncio",
+        "label": "Asynchrony (asyncio)",
+        "desc": "Cooperative multitasking with async/await, event loops, and coroutines.",
+        "link": "/level-1-foundations/python/concurrency/#asyncio"
+      }
+    ]
+  },
+  {
+    "id": "static-typing",
+    "label": "Static Typing",
+    "desc": "Adding type annotations to Python — improving code quality and IDE support.",
+    "link": "/level-1-foundations/python/static-typing/",
+    "subs": [
+      {
+        "id": "typing-mod",
+        "label": "typing module",
+        "desc": "List, Dict, Optional, Union, Callable, TypeVar, and Protocol.",
+        "link": "/level-1-foundations/python/static-typing/#the-typing-module"
+      },
+      {
+        "id": "pydantic",
+        "label": "Pydantic",
+        "desc": "Data validation using Python type hints — widely used in FastAPI.",
+        "link": "/level-1-foundations/python/static-typing/#pydantic--runtime-validation"
+      },
+      {
+        "id": "mypy",
+        "label": "mypy",
+        "desc": "Static type checker for Python — catches type errors before runtime.",
+        "link": "/level-1-foundations/python/static-typing/#type-checkers"
+      },
+      {
+        "id": "pyright",
+        "label": "pyright",
+        "desc": "Fast type checker from Microsoft — powers Pylance in VS Code.",
+        "link": "/level-1-foundations/python/static-typing/#type-checkers"
+      },
+      {
+        "id": "pyre",
+        "label": "pyre",
+        "desc": "Type checker from Meta — designed for large codebases.",
+        "link": "/level-1-foundations/python/static-typing/#type-checkers"
+      }
+    ]
+  },
+  {
+    "id": "code-fmt",
+    "label": "Code Formatting",
+    "desc": "Keeping Python code consistent, readable, and style-guide compliant.",
+    "link": "/level-1-foundations/python/code-quality/",
+    "subs": [
+      {
+        "id": "ruff",
+        "label": "ruff",
+        "desc": "Extremely fast Python linter and formatter written in Rust — replaces flake8 + isort.",
+        "link": "/level-1-foundations/python/code-quality/#formatting"
+      },
+      {
+        "id": "black",
+        "label": "black",
+        "desc": "The uncompromising code formatter — opinionated, zero-config formatting.",
+        "link": "/level-1-foundations/python/code-quality/#formatting"
+      },
+      {
+        "id": "yapf",
+        "label": "yapf",
+        "desc": "Yet Another Python Formatter from Google — highly configurable.",
+        "link": "/level-1-foundations/python/code-quality/#formatting"
+      },
+      {
+        "id": "sphinx",
+        "label": "Sphinx",
+        "desc": "Documentation generator — reStructuredText, autodoc, and Read the Docs.",
+        "link": "/level-1-foundations/python/code-quality/#documentation"
+      }
+    ]
+  },
+  {
+    "id": "common-pkgs",
+    "label": "Common Packages",
+    "desc": "Essential Python packages for data engineering: NumPy, Pandas, requests, SQLAlchemy, and more.",
+    "link": "/level-1-foundations/python/data-libraries/",
+    "subs": []
+  },
+  {
+    "id": "testing",
+    "label": "Testing",
+    "desc": "Writing tests to verify correctness — unit, integration, and property-based testing.",
+    "link": "/level-1-foundations/python/testing/",
+    "subs": [
+      {
+        "id": "pytest",
+        "label": "pytest",
+        "desc": "The most popular Python testing framework — fixtures, parametrize, plugins.",
+        "link": "/level-1-foundations/python/testing/#pytest-fundamentals"
+      },
+      {
+        "id": "unittest",
+        "label": "unittest / pyUnit",
+        "desc": "Python's built-in testing framework based on xUnit patterns.",
+        "link": "/level-1-foundations/python/testing/#other-testing-tools"
+      },
+      {
+        "id": "doctest",
+        "label": "doctest",
+        "desc": "Tests embedded in docstrings — simple and self-documenting.",
+        "link": "/level-1-foundations/python/testing/#other-testing-tools"
+      },
+      {
+        "id": "tox",
+        "label": "tox",
+        "desc": "Automate testing across multiple Python versions and environments.",
+        "link": "/level-1-foundations/python/testing/#other-testing-tools"
+      },
+      {
+        "id": "nose",
+        "label": "nose",
+        "desc": "Test runner extending unittest — largely superseded by pytest.",
+        "link": "/level-1-foundations/python/testing/#other-testing-tools"
+      }
+    ]
+  }
+]

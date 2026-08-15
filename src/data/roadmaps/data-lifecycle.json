@@ -1,0 +1,70 @@
+[
+  {
+    "id": "data-generation",
+    "label": "Data Generation",
+    "desc": "3 interview questions covering Generation.",
+    "link": "/level-2-core-concepts/data-lifecycle/#data-generation",
+    "subs": [
+      {
+        "id": "data-generation-generation",
+        "label": "Generation",
+        "desc": "An explicit, versioned agreement between a data producer and its consumers covering schema, semantics (what each field actually means), quality guarantees, freshness SLAs, and a change process.",
+        "link": "/level-2-core-concepts/data-lifecycle/#data-generation"
+      }
+    ]
+  },
+  {
+    "id": "data-storage",
+    "label": "Data Storage",
+    "desc": "4 interview questions covering Storage.",
+    "link": "/level-2-core-concepts/data-lifecycle/#data-storage",
+    "subs": [
+      {
+        "id": "data-storage-storage",
+        "label": "Storage",
+        "desc": "What are the storage options, and how do you choose? What is the difference between a data lake, a warehouse and a lakehouse?",
+        "link": "/level-2-core-concepts/data-lifecycle/#data-storage"
+      }
+    ]
+  },
+  {
+    "id": "data-ingestion",
+    "label": "Data Ingestion",
+    "desc": "3 interview questions covering Ingestion.",
+    "link": "/level-2-core-concepts/data-lifecycle/#data-ingestion",
+    "subs": [
+      {
+        "id": "data-ingestion-ingestion",
+        "label": "Ingestion",
+        "desc": "What is the difference between ETL and ELT? How do you decide between full and incremental loads?",
+        "link": "/level-2-core-concepts/data-lifecycle/#data-ingestion"
+      }
+    ]
+  },
+  {
+    "id": "transformation-serving",
+    "label": "Transformation & Serving",
+    "desc": "4 interview questions covering Transformation, Serving, Fundamentals.",
+    "link": "/level-2-core-concepts/data-lifecycle/#transformation--serving",
+    "subs": [
+      {
+        "id": "transformation-serving-transformation",
+        "label": "Transformation",
+        "desc": "What happens in the transformation stage?",
+        "link": "/level-2-core-concepts/data-lifecycle/#transformation--serving"
+      },
+      {
+        "id": "transformation-serving-serving",
+        "label": "Serving",
+        "desc": "BI and analysts — dimensional models, consistent metric definitions, fast interactive queries, and a semantic layer so \"revenue\" means one thing everywhere.",
+        "link": "/level-2-core-concepts/data-lifecycle/#transformation--serving"
+      },
+      {
+        "id": "transformation-serving-fundamentals",
+        "label": "Fundamentals",
+        "desc": "Concerns that apply at every stage rather than being a stage themselves — the framing from Fundamentals of Data Engineering*.",
+        "link": "/level-2-core-concepts/data-lifecycle/#transformation--serving"
+      }
+    ]
+  }
+]

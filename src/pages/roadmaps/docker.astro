@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/docker.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,83 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/docker/#docker-fundamentals">Docker Fundamentals</a></h3>
+        <p class="rm-index-desc">What a container actually is — a process with restricted visibility, not a small virtual machine.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-fundamentals">Containers vs Virtual Machines</a></span> <span class="rm-index-sub-desc">Shared kernel and namespaces versus a full guest OS on a hypervisor.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-fundamentals">Images vs Containers</a></span> <span class="rm-index-sub-desc">The immutable template and the running instance with its writable layer.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-fundamentals">Namespaces &amp; cgroups</a></span> <span class="rm-index-sub-desc">The kernel features behind isolation and resource limits — and OOMKills.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-fundamentals">Essential Commands</a></span> <span class="rm-index-sub-desc">build, run, ps, logs, exec, stop and the prune that reclaims your disk.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-fundamentals">run vs start vs exec</a></span> <span class="rm-index-sub-desc">Why docker run never reuses a container, and how to get a debugging shell.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-fundamentals">Why Containers Exit</a></span> <span class="rm-index-sub-desc">A container lives as long as PID 1 — the usual causes and how to diagnose them.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/docker/#images--dockerfiles">Images &amp; Dockerfiles</a></h3>
+        <p class="rm-index-desc">Writing the Dockerfile — instructions, entrypoints, users and keeping secrets out of layers.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#images--dockerfiles">Dockerfile Instructions</a></span> <span class="rm-index-sub-desc">FROM, WORKDIR, COPY, RUN, ENV, ARG, USER, EXPOSE and HEALTHCHECK.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#images--dockerfiles">ENTRYPOINT vs CMD</a></span> <span class="rm-index-sub-desc">Executable versus default arguments, and why the exec form matters for SIGTERM.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#images--dockerfiles">COPY vs ADD</a></span> <span class="rm-index-sub-desc">Why COPY is preferred, and the implicit behaviour that makes ADD surprising.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#images--dockerfiles">Multi-Stage Builds</a></span> <span class="rm-index-sub-desc">Leaving compilers behind — the single biggest lever on image size.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#images--dockerfiles">Running as Non-Root</a></span> <span class="rm-index-sub-desc">Why root in a container is a host risk, and how to switch users correctly.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#images--dockerfiles">Secrets in Images</a></span> <span class="rm-index-sub-desc">Why ENV and ARG persist in metadata, and how BuildKit build secrets avoid it.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#images--dockerfiles">Image Tagging</a></span> <span class="rm-index-sub-desc">Why 'latest' breaks reproducibility, and pinning by SHA or digest instead.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/docker/#layers--image-optimisation">Layers &amp; Image Optimisation</a></h3>
+        <p class="rm-index-desc">The layer cache — the single most important thing to understand about build performance.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#layers--image-optimisation">The Layer Cache</a></span> <span class="rm-index-sub-desc">How cache keys are computed, and why one miss invalidates everything after it.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#layers--image-optimisation">Instruction Ordering</a></span> <span class="rm-index-sub-desc">Copying requirements.txt before the source — a two-line fix for slow rebuilds.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#layers--image-optimisation">Reducing Image Size</a></span> <span class="rm-index-sub-desc">Slim bases, chained RUN with cleanup, --no-cache-dir and --no-install-recommends.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#layers--image-optimisation">Alpine vs Slim for Python</a></span> <span class="rm-index-sub-desc">Why musl forces source builds of pandas and numpy, often making images bigger.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#layers--image-optimisation">.dockerignore</a></span> <span class="rm-index-sub-desc">Keeping .git, venvs and local data out of the build context — speed and security.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/docker/#storage--networking">Storage &amp; Networking</a></h3>
+        <p class="rm-index-desc">Persisting data beyond the container's life, and letting containers reach each other.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#storage--networking">Ephemeral Storage</a></span> <span class="rm-index-sub-desc">Why the writable layer disappears with the container, and why that's deliberate.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#storage--networking">Volumes vs Bind Mounts</a></span> <span class="rm-index-sub-desc">Named volumes for production state, bind mounts for live-editing in development.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#storage--networking">Network Drivers</a></span> <span class="rm-index-sub-desc">bridge, host, none, overlay and macvlan — and which you actually use.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#storage--networking">Container-to-Container Networking</a></span> <span class="rm-index-sub-desc">DNS by container name on user-defined networks, and the container-port gotcha.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#storage--networking">Port Publishing vs EXPOSE</a></span> <span class="rm-index-sub-desc">What -p actually does, and why EXPOSE publishes nothing on its own.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/docker/#docker-compose">Docker Compose</a></h3>
+        <p class="rm-index-desc">Running Postgres, Kafka and your pipeline together for local development and integration tests.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-compose">What Compose Is For</a></span> <span class="rm-index-sub-desc">Multi-container local development — and why it isn't an orchestrator.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-compose">Compose File Anatomy</a></span> <span class="rm-index-sub-desc">Services, volumes, networks and environment interpolation for a data pipeline.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-compose">depends_on &amp; Health Checks</a></span> <span class="rm-index-sub-desc">Why start order isn't readiness, and why the app should retry anyway.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-compose">Compose Commands</a></span> <span class="rm-index-sub-desc">up, logs, exec, run and the down -v that deletes your database volume.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-1-foundations/docker/#docker-for-data-engineering">Docker for Data Engineering</a></h3>
+        <p class="rm-index-desc">Containerising Spark and Airflow, handling large data, and debugging a container in production.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-for-data-engineering">Why Containerise Pipelines</a></span> <span class="rm-index-sub-desc">Reproducibility, dependency isolation, environment parity and instant rollback.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-for-data-engineering">Containerising Spark</a></span> <span class="rm-index-sub-desc">JVM, connector JARs, image size across 200 executors, and memory headroom.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-for-data-engineering">Docker &amp; Airflow</a></span> <span class="rm-index-sub-desc">Airflow in containers versus tasks in containers — DockerOperator and KubernetesPodOperator.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-for-data-engineering">Handling Large Data</a></span> <span class="rm-index-sub-desc">Why data never goes in the image, and sizing ephemeral storage for shuffle.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-for-data-engineering">Debugging Containers</a></span> <span class="rm-index-sub-desc">Exit code 137, docker inspect, and overriding the entrypoint to get a shell.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-1-foundations/docker/#docker-for-data-engineering">Container CI</a></span> <span class="rm-index-sub-desc">Build once tagged by SHA, lint, scan, test inside the image, then promote by re-tagging.</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,53 +144,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"dkr-fundamentals", label:"Docker Fundamentals", desc:"What a container actually is — a process with restricted visibility, not a small virtual machine.", link:"/level-1-foundations/docker/#docker-fundamentals", subs:[
-    { id:"dkr-vs-vm", label:"Containers vs Virtual Machines", desc:"Shared kernel and namespaces versus a full guest OS on a hypervisor.", link:"/level-1-foundations/docker/#docker-fundamentals" },
-    { id:"dkr-image-container", label:"Images vs Containers", desc:"The immutable template and the running instance with its writable layer.", link:"/level-1-foundations/docker/#docker-fundamentals" },
-    { id:"dkr-namespaces", label:"Namespaces & cgroups", desc:"The kernel features behind isolation and resource limits — and OOMKills.", link:"/level-1-foundations/docker/#docker-fundamentals" },
-    { id:"dkr-commands", label:"Essential Commands", desc:"build, run, ps, logs, exec, stop and the prune that reclaims your disk.", link:"/level-1-foundations/docker/#docker-fundamentals" },
-    { id:"dkr-run-exec", label:"run vs start vs exec", desc:"Why docker run never reuses a container, and how to get a debugging shell.", link:"/level-1-foundations/docker/#docker-fundamentals" },
-    { id:"dkr-exits", label:"Why Containers Exit", desc:"A container lives as long as PID 1 — the usual causes and how to diagnose them.", link:"/level-1-foundations/docker/#docker-fundamentals" },
-  ]},
-  { id:"dkr-images", label:"Images & Dockerfiles", desc:"Writing the Dockerfile — instructions, entrypoints, users and keeping secrets out of layers.", link:"/level-1-foundations/docker/#images--dockerfiles", subs:[
-    { id:"dkr-instructions", label:"Dockerfile Instructions", desc:"FROM, WORKDIR, COPY, RUN, ENV, ARG, USER, EXPOSE and HEALTHCHECK.", link:"/level-1-foundations/docker/#images--dockerfiles" },
-    { id:"dkr-entrypoint", label:"ENTRYPOINT vs CMD", desc:"Executable versus default arguments, and why the exec form matters for SIGTERM.", link:"/level-1-foundations/docker/#images--dockerfiles" },
-    { id:"dkr-copy-add", label:"COPY vs ADD", desc:"Why COPY is preferred, and the implicit behaviour that makes ADD surprising.", link:"/level-1-foundations/docker/#images--dockerfiles" },
-    { id:"dkr-multistage", label:"Multi-Stage Builds", desc:"Leaving compilers behind — the single biggest lever on image size.", link:"/level-1-foundations/docker/#images--dockerfiles" },
-    { id:"dkr-nonroot", label:"Running as Non-Root", desc:"Why root in a container is a host risk, and how to switch users correctly.", link:"/level-1-foundations/docker/#images--dockerfiles" },
-    { id:"dkr-img-secrets", label:"Secrets in Images", desc:"Why ENV and ARG persist in metadata, and how BuildKit build secrets avoid it.", link:"/level-1-foundations/docker/#images--dockerfiles" },
-    { id:"dkr-tags", label:"Image Tagging", desc:"Why 'latest' breaks reproducibility, and pinning by SHA or digest instead.", link:"/level-1-foundations/docker/#images--dockerfiles" },
-  ]},
-  { id:"dkr-layers", label:"Layers & Image Optimisation", desc:"The layer cache — the single most important thing to understand about build performance.", link:"/level-1-foundations/docker/#layers--image-optimisation", subs:[
-    { id:"dkr-cache", label:"The Layer Cache", desc:"How cache keys are computed, and why one miss invalidates everything after it.", link:"/level-1-foundations/docker/#layers--image-optimisation" },
-    { id:"dkr-ordering", label:"Instruction Ordering", desc:"Copying requirements.txt before the source — a two-line fix for slow rebuilds.", link:"/level-1-foundations/docker/#layers--image-optimisation" },
-    { id:"dkr-size", label:"Reducing Image Size", desc:"Slim bases, chained RUN with cleanup, --no-cache-dir and --no-install-recommends.", link:"/level-1-foundations/docker/#layers--image-optimisation" },
-    { id:"dkr-alpine", label:"Alpine vs Slim for Python", desc:"Why musl forces source builds of pandas and numpy, often making images bigger.", link:"/level-1-foundations/docker/#layers--image-optimisation" },
-    { id:"dkr-dockerignore", label:".dockerignore", desc:"Keeping .git, venvs and local data out of the build context — speed and security.", link:"/level-1-foundations/docker/#layers--image-optimisation" },
-  ]},
-  { id:"dkr-storage", label:"Storage & Networking", desc:"Persisting data beyond the container's life, and letting containers reach each other.", link:"/level-1-foundations/docker/#storage--networking", subs:[
-    { id:"dkr-ephemeral", label:"Ephemeral Storage", desc:"Why the writable layer disappears with the container, and why that's deliberate.", link:"/level-1-foundations/docker/#storage--networking" },
-    { id:"dkr-volumes", label:"Volumes vs Bind Mounts", desc:"Named volumes for production state, bind mounts for live-editing in development.", link:"/level-1-foundations/docker/#storage--networking" },
-    { id:"dkr-drivers", label:"Network Drivers", desc:"bridge, host, none, overlay and macvlan — and which you actually use.", link:"/level-1-foundations/docker/#storage--networking" },
-    { id:"dkr-dns", label:"Container-to-Container Networking", desc:"DNS by container name on user-defined networks, and the container-port gotcha.", link:"/level-1-foundations/docker/#storage--networking" },
-    { id:"dkr-ports", label:"Port Publishing vs EXPOSE", desc:"What -p actually does, and why EXPOSE publishes nothing on its own.", link:"/level-1-foundations/docker/#storage--networking" },
-  ]},
-  { id:"dkr-compose", label:"Docker Compose", desc:"Running Postgres, Kafka and your pipeline together for local development and integration tests.", link:"/level-1-foundations/docker/#docker-compose", subs:[
-    { id:"dkr-compose-what", label:"What Compose Is For", desc:"Multi-container local development — and why it isn't an orchestrator.", link:"/level-1-foundations/docker/#docker-compose" },
-    { id:"dkr-compose-file", label:"Compose File Anatomy", desc:"Services, volumes, networks and environment interpolation for a data pipeline.", link:"/level-1-foundations/docker/#docker-compose" },
-    { id:"dkr-healthcheck", label:"depends_on & Health Checks", desc:"Why start order isn't readiness, and why the app should retry anyway.", link:"/level-1-foundations/docker/#docker-compose" },
-    { id:"dkr-compose-cmds", label:"Compose Commands", desc:"up, logs, exec, run and the down -v that deletes your database volume.", link:"/level-1-foundations/docker/#docker-compose" },
-  ]},
-  { id:"dkr-de", label:"Docker for Data Engineering", desc:"Containerising Spark and Airflow, handling large data, and debugging a container in production.", link:"/level-1-foundations/docker/#docker-for-data-engineering", subs:[
-    { id:"dkr-why", label:"Why Containerise Pipelines", desc:"Reproducibility, dependency isolation, environment parity and instant rollback.", link:"/level-1-foundations/docker/#docker-for-data-engineering" },
-    { id:"dkr-spark", label:"Containerising Spark", desc:"JVM, connector JARs, image size across 200 executors, and memory headroom.", link:"/level-1-foundations/docker/#docker-for-data-engineering" },
-    { id:"dkr-airflow", label:"Docker & Airflow", desc:"Airflow in containers versus tasks in containers — DockerOperator and KubernetesPodOperator.", link:"/level-1-foundations/docker/#docker-for-data-engineering" },
-    { id:"dkr-data", label:"Handling Large Data", desc:"Why data never goes in the image, and sizing ephemeral storage for shuffle.", link:"/level-1-foundations/docker/#docker-for-data-engineering" },
-    { id:"dkr-debug", label:"Debugging Containers", desc:"Exit code 137, docker inspect, and overriding the entrypoint to get a shell.", link:"/level-1-foundations/docker/#docker-for-data-engineering" },
-    { id:"dkr-ci", label:"Container CI", desc:"Build once tagged by SHA, lint, scan, test inside the image, then promote by re-tagging.", link:"/level-1-foundations/docker/#docker-for-data-engineering" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

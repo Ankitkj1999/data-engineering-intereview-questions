@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/kubernetes.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,40 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Core Concepts</a></h3>
+        <p class="rm-index-desc">25 interview questions covering Cluster Ops, Resource Management, Architecture, Availability and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Cluster Ops</a></span> <span class="rm-index-sub-desc">Whenever security patches are available, the Kubernetes administrator has to apply them to the running containers to prevent vulnerabilities — an unavoidable part of administration.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Resource Management</a></span> <span class="rm-index-sub-desc">How do you control the resource usage of a pod?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Architecture</a></span> <span class="rm-index-sub-desc">What are the various K8s services running on nodes, and what is the role of each?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Availability</a></span> <span class="rm-index-sub-desc">What is a PDB (Pod Disruption Budget)?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Init Containers</a></span> <span class="rm-index-sub-desc">Init containers set the stage for you before the actual pod's main container(s) start running.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Networking</a></span> <span class="rm-index-sub-desc">What is the role of a load balancer in Kubernetes? What are the different ways to provide external network connectivity to K8s?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Security</a></span> <span class="rm-index-sub-desc">What can be done to increase Kubernetes security?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Monitoring</a></span> <span class="rm-index-sub-desc">How do you monitor a Kubernetes cluster?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Logging</a></span> <span class="rm-index-sub-desc">How do you get centralized logs from pods?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Services</a></span> <span class="rm-index-sub-desc">How would you turn the following Service into an externally accessible one, and what would the Ingress equivalent look like?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Ingress</a></span> <span class="rm-index-sub-desc">How do you configure TLS with Ingress? What is an Ingress default backend?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Namespaces</a></span> <span class="rm-index-sub-desc">Why use namespaces? What is the problem with using only the default namespace? In the following ConfigMap, which service and namespace is being referred to?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Operators</a></span> <span class="rm-index-sub-desc">Operators are software extensions to Kubernetes that make use of custom resources to manage applications and their components.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Cloud</a></span> <span class="rm-index-sub-desc">What is GKE?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Local Dev</a></span> <span class="rm-index-sub-desc">How do you run Kubernetes locally?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Load Balancing</a></span> <span class="rm-index-sub-desc">Load balancing is one of the most common and standard ways of exposing services.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Secrets</a></span> <span class="rm-index-sub-desc">What does the following Deployment configuration snippet mean?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Comparison</a></span> <span class="rm-index-sub-desc">What is the difference between Docker Swarm and Kubernetes?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Troubleshooting</a></span> <span class="rm-index-sub-desc">How do you troubleshoot a pod that isn't getting scheduled?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/kubernetes/#interview-questions">Scheduling</a></span> <span class="rm-index-sub-desc">How do you run a pod on a particular node?</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,30 +101,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"core-concepts", label:"Core Concepts", desc:"25 interview questions covering Cluster Ops, Resource Management, Architecture, Availability and more.", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions", subs:[
-    { id:"core-concepts-cluster-ops", label:"Cluster Ops", desc:"Whenever security patches are available, the Kubernetes administrator has to apply them to the running containers to prevent vulnerabilities — an unavoidable part of administration.", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-resource-management", label:"Resource Management", desc:"How do you control the resource usage of a pod?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-architecture", label:"Architecture", desc:"What are the various K8s services running on nodes, and what is the role of each?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-availability", label:"Availability", desc:"What is a PDB (Pod Disruption Budget)?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-init-containers", label:"Init Containers", desc:"Init containers set the stage for you before the actual pod's main container(s) start running.", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-networking", label:"Networking", desc:"What is the role of a load balancer in Kubernetes? What are the different ways to provide external network connectivity to K8s?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-security", label:"Security", desc:"What can be done to increase Kubernetes security?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-monitoring", label:"Monitoring", desc:"How do you monitor a Kubernetes cluster?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-logging", label:"Logging", desc:"How do you get centralized logs from pods?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-services", label:"Services", desc:"How would you turn the following Service into an externally accessible one, and what would the Ingress equivalent look like?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-ingress", label:"Ingress", desc:"How do you configure TLS with Ingress? What is an Ingress default backend?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-namespaces", label:"Namespaces", desc:"Why use namespaces? What is the problem with using only the default namespace? In the following ConfigMap, which service and namespace is being referred to?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-operators", label:"Operators", desc:"Operators are software extensions to Kubernetes that make use of custom resources to manage applications and their components.", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-cloud", label:"Cloud", desc:"What is GKE?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-local-dev", label:"Local Dev", desc:"How do you run Kubernetes locally?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-load-balancing", label:"Load Balancing", desc:"Load balancing is one of the most common and standard ways of exposing services.", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-secrets", label:"Secrets", desc:"What does the following Deployment configuration snippet mean?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-comparison", label:"Comparison", desc:"What is the difference between Docker Swarm and Kubernetes?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-troubleshooting", label:"Troubleshooting", desc:"How do you troubleshoot a pod that isn't getting scheduled?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-    { id:"core-concepts-scheduling", label:"Scheduling", desc:"How do you run a pod on a particular node?", link:"/level-3-technologies/orchestration/kubernetes/#interview-questions" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

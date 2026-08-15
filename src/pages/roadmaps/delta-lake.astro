@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/delta-lake.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,36 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/formats/delta/#interview-questions">Core Concepts</a></h3>
+        <p class="rm-index-desc">30 interview questions covering Fundamentals, Architecture, ACID, Schema and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">Fundamentals</a></span> <span class="rm-index-sub-desc">Delta Lake is an open-source storage layer that brings ACID transactions, data versioning, and unified batch/streaming processing to data lakes built on Apache Spark.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">Architecture</a></span> <span class="rm-index-sub-desc">What is the Delta Lake transaction log? What is Delta Lake's compatibility with Parquet?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">ACID</a></span> <span class="rm-index-sub-desc">How does Delta Lake provide ACID transactions?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">Schema</a></span> <span class="rm-index-sub-desc">Schema enforcement prevents accidental data corruption by rejecting writes that don't match the table's schema.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">Time Travel</a></span> <span class="rm-index-sub-desc">Time travel allows querying previous versions of a table by specifying a version number or a timestamp.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">Maintenance</a></span> <span class="rm-index-sub-desc">What is the VACUUM command in Delta Lake? What is the OPTIMIZE command in Delta Lake?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">Performance</a></span> <span class="rm-index-sub-desc">Z-order clustering reorganizes data on disk to maximize data-skipping efficiency, which can dramatically improve query performance for queries that filter on the clustered columns.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">Governance</a></span> <span class="rm-index-sub-desc">How does Delta Lake handle data lineage?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">CDC</a></span> <span class="rm-index-sub-desc">What is Change Data Capture in Delta Lake? How do you enable CDC in Delta Lake?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">Ecosystem</a></span> <span class="rm-index-sub-desc">Can you use Delta Lake with Spark? Can you use Delta Lake with other tools?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">Basics</a></span> <span class="rm-index-sub-desc">How do you create a Delta Lake table?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">Table Types</a></span> <span class="rm-index-sub-desc">Managed tables store their data inside the warehouse's managed directory; external tables reference data at an external storage location that the warehouse doesn't own.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">Concurrency</a></span> <span class="rm-index-sub-desc">Delta Lake uses optimistic concurrency control, allowing multiple writers to operate against the same table with automatic conflict detection and resolution at commit time.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">DML</a></span> <span class="rm-index-sub-desc">What is the MERGE command in Delta Lake? How do you delete records in Delta Lake?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">Migration</a></span> <span class="rm-index-sub-desc">How do you upgrade an existing table to Delta Lake? Can you downgrade from Delta Lake?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/formats/delta/#interview-questions">Infrastructure</a></span> <span class="rm-index-sub-desc">What are the storage requirements for Delta Lake?</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,26 +97,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"core-concepts", label:"Core Concepts", desc:"30 interview questions covering Fundamentals, Architecture, ACID, Schema and more.", link:"/level-3-technologies/formats/delta/#interview-questions", subs:[
-    { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"Delta Lake is an open-source storage layer that brings ACID transactions, data versioning, and unified batch/streaming processing to data lakes built on Apache Spark.", link:"/level-3-technologies/formats/delta/#interview-questions" },
-    { id:"core-concepts-architecture", label:"Architecture", desc:"What is the Delta Lake transaction log? What is Delta Lake's compatibility with Parquet?", link:"/level-3-technologies/formats/delta/#interview-questions" },
-    { id:"core-concepts-acid", label:"ACID", desc:"How does Delta Lake provide ACID transactions?", link:"/level-3-technologies/formats/delta/#interview-questions" },
-    { id:"core-concepts-schema", label:"Schema", desc:"Schema enforcement prevents accidental data corruption by rejecting writes that don't match the table's schema.", link:"/level-3-technologies/formats/delta/#interview-questions" },
-    { id:"core-concepts-time-travel", label:"Time Travel", desc:"Time travel allows querying previous versions of a table by specifying a version number or a timestamp.", link:"/level-3-technologies/formats/delta/#interview-questions" },
-    { id:"core-concepts-maintenance", label:"Maintenance", desc:"What is the VACUUM command in Delta Lake? What is the OPTIMIZE command in Delta Lake?", link:"/level-3-technologies/formats/delta/#interview-questions" },
-    { id:"core-concepts-performance", label:"Performance", desc:"Z-order clustering reorganizes data on disk to maximize data-skipping efficiency, which can dramatically improve query performance for queries that filter on the clustered columns.", link:"/level-3-technologies/formats/delta/#interview-questions" },
-    { id:"core-concepts-governance", label:"Governance", desc:"How does Delta Lake handle data lineage?", link:"/level-3-technologies/formats/delta/#interview-questions" },
-    { id:"core-concepts-cdc", label:"CDC", desc:"What is Change Data Capture in Delta Lake? How do you enable CDC in Delta Lake?", link:"/level-3-technologies/formats/delta/#interview-questions" },
-    { id:"core-concepts-ecosystem", label:"Ecosystem", desc:"Can you use Delta Lake with Spark? Can you use Delta Lake with other tools?", link:"/level-3-technologies/formats/delta/#interview-questions" },
-    { id:"core-concepts-basics", label:"Basics", desc:"How do you create a Delta Lake table?", link:"/level-3-technologies/formats/delta/#interview-questions" },
-    { id:"core-concepts-table-types", label:"Table Types", desc:"Managed tables store their data inside the warehouse's managed directory; external tables reference data at an external storage location that the warehouse doesn't own.", link:"/level-3-technologies/formats/delta/#interview-questions" },
-    { id:"core-concepts-concurrency", label:"Concurrency", desc:"Delta Lake uses optimistic concurrency control, allowing multiple writers to operate against the same table with automatic conflict detection and resolution at commit time.", link:"/level-3-technologies/formats/delta/#interview-questions" },
-    { id:"core-concepts-dml", label:"DML", desc:"What is the MERGE command in Delta Lake? How do you delete records in Delta Lake?", link:"/level-3-technologies/formats/delta/#interview-questions" },
-    { id:"core-concepts-migration", label:"Migration", desc:"How do you upgrade an existing table to Delta Lake? Can you downgrade from Delta Lake?", link:"/level-3-technologies/formats/delta/#interview-questions" },
-    { id:"core-concepts-infrastructure", label:"Infrastructure", desc:"What are the storage requirements for Delta Lake?", link:"/level-3-technologies/formats/delta/#interview-questions" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

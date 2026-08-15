@@ -1,0 +1,61 @@
+# Data Engineering Interview Questions
+
+> A study resource for data engineering interviews: 3,895 questions with written answers across
+> 130 topic pages, 51 interactive roadmaps, plus curated recorded interview experiences and
+> end-to-end projects. Every question is a self-contained Q&A pair with a difficulty and a topic.
+
+The content is organised in four tiers, from foundations to advanced, and mirrored by roadmaps
+that link each node to the section of the page covering it.
+
+- Answers are written prose, not link lists. They aim to explain the reasoning an interviewer is
+  listening for, not just state the fact.
+- Difficulty is one of easy, intermediate or hard; it reflects interview expectation, not
+  conceptual complexity.
+- The site is static. Full-text search is available via Pagefind at /pagefind/.
+
+## Start here
+
+- [Data Engineering roadmap](/roadmaps/data-engineering/): The index for everything — 25 categories, 123 nodes, each linking to the page that covers it.
+- [Overall progress](/progress/): Per-topic completion tracking across every question on the site.
+
+## Foundations
+
+- [SQL theory](/level-1-foundations/sql/theory/): 99 questions across 15 areas, plus 21 deeper subtopic pages reached from the SQL roadmap.
+- [Python](/level-1-foundations/python/theory/): Language fundamentals, with 14 subtopic pages covering generators, concurrency, typing, testing and the data stack.
+- [Data structures](/level-1-foundations/data-structure/): Complexity and structure choice as they come up in pipeline work.
+- [Git & GitHub](/level-1-foundations/git/), [Linux](/level-1-foundations/linux/), [Docker](/level-1-foundations/docker/), [CI/CD](/level-1-foundations/cicd/), [Infrastructure as Code](/level-1-foundations/iac/), [Networking](/level-1-foundations/networking/): The engineering foundations assumed but rarely taught.
+
+## Core concepts
+
+- [Data modeling](/level-2-core-concepts/data-modeling/): Star schema, SCD, Data Vault, grain and schema evolution.
+- [Data warehousing](/level-2-core-concepts/data-warehousing/): Architecture, dimensional modelling, ETL/ELT and administration.
+- [The data lifecycle](/level-2-core-concepts/data-lifecycle/): Generation, storage, ingestion, transformation and serving, plus the undercurrents.
+- [Data quality](/level-2-core-concepts/data-quality/) and [Data governance](/level-2-core-concepts/data-governance/): Testing, contracts, lineage and compliance.
+- [Reverse ETL](/level-2-core-concepts/reverse-etl/): Activating warehouse data in operational tools.
+
+## Technologies
+
+- [Apache Spark](/level-3-technologies/batch-processing/spark/): 134 questions, plus 22 subtopic pages on joins, tuning, streaming and the Catalyst optimiser.
+- [Hadoop](/level-3-technologies/batch-processing/hadoop/) and [Hive](/level-3-technologies/batch-processing/hive/): HDFS, MapReduce and SQL-on-Hadoop.
+- [Kafka](/level-3-technologies/streaming/kafka/), [Flink](/level-3-technologies/streaming/flink/), [Ingestion patterns](/level-3-technologies/ingestion/ingestion-patterns/), [CDC](/level-3-technologies/ingestion/cdc/): Streaming and change capture.
+- [Airflow](/level-3-technologies/orchestration/airflow/), [dbt](/level-3-technologies/transformation/dbt/), [Kubernetes](/level-3-technologies/orchestration/kubernetes/): Orchestration and transformation.
+- [Snowflake](/level-3-technologies/data-warehouses/snowflake/), [BigQuery](/level-3-technologies/data-warehouses/bigquery/), [Redshift](/level-3-technologies/data-warehouses/redshift/), [Databricks](/level-3-technologies/data-warehouses/databricks/): Cloud warehouses.
+- [Parquet](/level-3-technologies/formats/parquet/), [Avro](/level-3-technologies/formats/avro/), [Delta Lake](/level-3-technologies/formats/delta/), [Iceberg](/level-3-technologies/formats/iceberg/): File and table formats.
+- [AWS](/level-3-technologies/cloud/aws/), [Azure](/level-3-technologies/cloud/azure/), [GCP](/level-3-technologies/cloud/gcp/): Cloud overviews, each with 5–7 subtopic pages on compute, storage, databases, analytics and service comparisons.
+
+## Advanced
+
+- [System design](/level-4-advanced/system-design/): 63 questions on distributed systems, storage selection, scalability and fault tolerance.
+- [Observability](/level-4-advanced/observability/): Freshness, volume and schema monitoring, plus Prometheus and the commercial platforms.
+- [ML & MLOps](/level-4-advanced/mlops/): Feature stores, training-serving skew, drift and the data engineer's boundary.
+- [Cost optimization](/level-4-advanced/cost-optimization/): Where cloud data spend actually goes.
+
+## Curated external resources
+
+- [Interview experiences](/interview-experiences/): Recorded interviews, mock loops and prep guides, grouped by format with company where a source names one.
+- [Projects](/projects/): End-to-end projects grouped by stack, each with a repo, video walkthrough or written guide.
+
+## Optional
+
+- [Sitemap](/sitemap-index.xml): Every indexable URL.
+- Every roadmap page carries an "All topics" section listing each node as text with a link to the page section covering it, so roadmap structure is readable without executing JavaScript.

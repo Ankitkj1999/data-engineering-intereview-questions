@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/nifi.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,31 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/ingestion/nifi/#interview-questions">Core Concepts</a></h3>
+        <p class="rm-index-desc">15 interview questions covering Fundamentals, FlowFiles, Processors, Monitoring and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/nifi/#interview-questions">Fundamentals</a></span> <span class="rm-index-sub-desc">What is Apache NiFi?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/nifi/#interview-questions">FlowFiles</a></span> <span class="rm-index-sub-desc">You can certainly add attributes to your FlowFiles at any time — that's the whole point of separating metadata from the actual data.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/nifi/#interview-questions">Processors</a></span> <span class="rm-index-sub-desc">The Processor is the main component in NiFi that actually works on the FlowFile content, helping create, send, receive, transform, route, split, merge, and otherwise process FlowFiles.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/nifi/#interview-questions">Monitoring</a></span> <span class="rm-index-sub-desc">What is a Reporting Task? What is bulleting and how does it help in NiFi?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/nifi/#interview-questions">Extensibility</a></span> <span class="rm-index-sub-desc">NiFi is implemented in the Java programming language and allows extensions (processors, controller services, and reporting tasks) to be implemented in Java.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/nifi/#interview-questions">Architecture</a></span> <span class="rm-index-sub-desc">Huge volumes of data can transit through a DataFlow because, as data moves through NiFi, only a pointer to the data is passed around (referred to as a FlowFile).</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/nifi/#interview-questions">Flow Control</a></span> <span class="rm-index-sub-desc">Sometimes a producer system is faster than the consumer system, so messages are consumed more slowly than they're produced.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/nifi/#interview-questions">Templates</a></span> <span class="rm-index-sub-desc">A template is a re-usable workflow that you can import and export within the same or different NiFi instances.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/nifi/#interview-questions">Security</a></span> <span class="rm-index-sub-desc">What happens if you have stored a password in a dataflow and create a template out of it?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/nifi/#interview-questions">Configuration</a></span> <span class="rm-index-sub-desc">What is a NiFi custom properties registry?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/ingestion/nifi/#interview-questions">Clustering</a></span> <span class="rm-index-sub-desc">Does NiFi work as a Master-Slave architecture?</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,21 +92,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"core-concepts", label:"Core Concepts", desc:"15 interview questions covering Fundamentals, FlowFiles, Processors, Monitoring and more.", link:"/level-3-technologies/ingestion/nifi/#interview-questions", subs:[
-    { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"What is Apache NiFi?", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-flowfiles", label:"FlowFiles", desc:"You can certainly add attributes to your FlowFiles at any time — that's the whole point of separating metadata from the actual data.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-processors", label:"Processors", desc:"The Processor is the main component in NiFi that actually works on the FlowFile content, helping create, send, receive, transform, route, split, merge, and otherwise process FlowFiles.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-monitoring", label:"Monitoring", desc:"What is a Reporting Task? What is bulleting and how does it help in NiFi?", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-extensibility", label:"Extensibility", desc:"NiFi is implemented in the Java programming language and allows extensions (processors, controller services, and reporting tasks) to be implemented in Java.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-architecture", label:"Architecture", desc:"Huge volumes of data can transit through a DataFlow because, as data moves through NiFi, only a pointer to the data is passed around (referred to as a FlowFile).", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-flow-control", label:"Flow Control", desc:"Sometimes a producer system is faster than the consumer system, so messages are consumed more slowly than they're produced.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-templates", label:"Templates", desc:"A template is a re-usable workflow that you can import and export within the same or different NiFi instances.", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-security", label:"Security", desc:"What happens if you have stored a password in a dataflow and create a template out of it?", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-configuration", label:"Configuration", desc:"What is a NiFi custom properties registry?", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-    { id:"core-concepts-clustering", label:"Clustering", desc:"Does NiFi work as a Master-Slave architecture?", link:"/level-3-technologies/ingestion/nifi/#interview-questions" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

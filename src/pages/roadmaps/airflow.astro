@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/airflow.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,78 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/orchestration/airflow/#interview-questions">Core Concepts</a></h3>
+        <p class="rm-index-desc">17 interview questions covering Fundamentals, DAGs, Architecture, Executors and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#interview-questions">Fundamentals</a></span> <span class="rm-index-sub-desc">What is Airflow? What issues does Airflow resolve compared to cron?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#interview-questions">DAGs</a></span> <span class="rm-index-sub-desc">Explain how a workflow is designed in Airflow.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#interview-questions">Architecture</a></span> <span class="rm-index-sub-desc">Explain Airflow's architecture and its components.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#interview-questions">Executors</a></span> <span class="rm-index-sub-desc">The executors are the components that actually execute tasks, while the scheduler orchestrates them.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#interview-questions">DAG Definition</a></span> <span class="rm-index-sub-desc">How do you define a workflow in Airflow?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#interview-questions">Scheduling</a></span> <span class="rm-index-sub-desc">A cron expression is composed of 5 fields separated by spaces: Breaking down schedule_interval='30 8 * * 1-5': 1.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#interview-questions">Docker</a></span> <span class="rm-index-sub-desc">If you're using Docker Compose, you need to build a custom image with your own additional dependencies in order to make the module available to Airflow.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#interview-questions">XCom</a></span> <span class="rm-index-sub-desc">XCom (short for &quot;cross-communication&quot;) are messages that allow data to be passed between tasks.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#interview-questions">Templating</a></span> <span class="rm-index-sub-desc">What are Jinja templates? How do you use Airflow XComs in Jinja templates?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/orchestration/airflow/#operators-hooks--connections">Operators, Hooks &amp; Connections</a></h3>
+        <p class="rm-index-desc">5 interview questions covering Operators, Hooks, Connections, Variables.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#operators-hooks--connections">Operators</a></span> <span class="rm-index-sub-desc">An operator is a template for a single task — it defines what* work gets done (run a Python function, execute a bash command, run a SQL query, copy a file to S3).</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#operators-hooks--connections">Hooks</a></span> <span class="rm-index-sub-desc">A connection stores the credentials and connection details for an external system (host, login, password, extra config) in Airflow's metadata database, referenced by a conn_id string rather than hardcoded values.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#operators-hooks--connections">Connections</a></span> <span class="rm-index-sub-desc">Connections are created through the Airflow UI (Admin → Connections), the CLI (airflow connections add), or environment variables (AIRFLOW_CONN_*) — never hardcoded in DAG files.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#operators-hooks--connections">Variables</a></span> <span class="rm-index-sub-desc">Variables are key-value settings stored in Airflow's metadata database, meant for configuration that's the same across runs — an environment name, a feature flag, a file path prefix.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/orchestration/airflow/#modern-dag-authoring-taskflow-api">Modern DAG Authoring: TaskFlow API</a></h3>
+        <p class="rm-index-desc">5 interview questions covering TaskFlow, TaskGroups, Dynamic Tasks.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#modern-dag-authoring-taskflow-api">TaskFlow</a></span> <span class="rm-index-sub-desc">TaskFlow lets you write DAGs as plain Python functions with a @task decorator — dependencies and XCom passing are inferred from how you call the functions, instead of manually instantiating operators and wiring &gt;&gt;/xcom_pull by hand.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#modern-dag-authoring-taskflow-api">TaskGroups</a></span> <span class="rm-index-sub-desc">What are TaskGroups, and why would you use one?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#modern-dag-authoring-taskflow-api">Dynamic Tasks</a></span> <span class="rm-index-sub-desc">Dynamic task mapping creates a variable number of task instances at runtime, based on data that isn't known until the DAG actually runs — one file discovered in S3, one partition per date range, one API page.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/orchestration/airflow/#control-flow-branching--trigger-rules">Control Flow: Branching &amp; Trigger Rules</a></h3>
+        <p class="rm-index-desc">4 interview questions covering Dependencies, Branching, Trigger Rules.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#control-flow-branching--trigger-rules">Dependencies</a></span> <span class="rm-index-sub-desc">How do you set task dependencies in Airflow?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#control-flow-branching--trigger-rules">Branching</a></span> <span class="rm-index-sub-desc">The branching function returns the task_id (or list of ids) that should run next; every other downstream task in that branch point is automatically skipped, not just left unscheduled.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#control-flow-branching--trigger-rules">Trigger Rules</a></span> <span class="rm-index-sub-desc">A trigger rule decides when a task is eligible to run based on the state of its upstream tasks.</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/orchestration/airflow/#scheduling-backfills--idempotency">Scheduling, Backfills &amp; Idempotency</a></h3>
+        <p class="rm-index-desc">4 interview questions covering Scheduling, Backfills, SLAs, Resource Management.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#scheduling-backfills--idempotency">Scheduling</a></span> <span class="rm-index-sub-desc">What's the difference between execution_date and data_interval in Airflow scheduling?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#scheduling-backfills--idempotency">Backfills</a></span> <span class="rm-index-sub-desc">What's the difference between catchup and backfill?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#scheduling-backfills--idempotency">SLAs</a></span> <span class="rm-index-sub-desc">What is an SLA in Airflow, and what happens when one is missed?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#scheduling-backfills--idempotency">Resource Management</a></span> <span class="rm-index-sub-desc">What are pools and priority weights used for?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/orchestration/airflow/#operations-testing--ecosystem">Operations, Testing &amp; Ecosystem</a></h3>
+        <p class="rm-index-desc">5 interview questions covering Testing, Monitoring, Performance, Ecosystem and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#operations-testing--ecosystem">Testing</a></span> <span class="rm-index-sub-desc">How do you unit test an Airflow DAG?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#operations-testing--ecosystem">Monitoring</a></span> <span class="rm-index-sub-desc">How do you set up alerting when a task fails?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#operations-testing--ecosystem">Performance</a></span> <span class="rm-index-sub-desc">Why does DAG file parsing performance matter, and what's a common mistake that hurts it?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#operations-testing--ecosystem">Ecosystem</a></span> <span class="rm-index-sub-desc">Airflow is the most established and widely adopted, with the largest ecosystem of providers/integrations, but its DAG model is comparatively low-level about data (tasks pass small XComs, not first-class typed data assets).</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/orchestration/airflow/#operations-testing--ecosystem">Operations</a></span> <span class="rm-index-sub-desc">What can you do with the Airflow REST API or CLI that you can't easily do from the UI?</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,48 +139,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"core-concepts", label:"Core Concepts", desc:"17 interview questions covering Fundamentals, DAGs, Architecture, Executors and more.", link:"/level-3-technologies/orchestration/airflow/#interview-questions", subs:[
-    { id:"core-concepts-fundamentals", label:"Fundamentals", desc:"What is Airflow? What issues does Airflow resolve compared to cron?", link:"/level-3-technologies/orchestration/airflow/#interview-questions" },
-    { id:"core-concepts-dags", label:"DAGs", desc:"Explain how a workflow is designed in Airflow.", link:"/level-3-technologies/orchestration/airflow/#interview-questions" },
-    { id:"core-concepts-architecture", label:"Architecture", desc:"Explain Airflow's architecture and its components.", link:"/level-3-technologies/orchestration/airflow/#interview-questions" },
-    { id:"core-concepts-executors", label:"Executors", desc:"The executors are the components that actually execute tasks, while the scheduler orchestrates them.", link:"/level-3-technologies/orchestration/airflow/#interview-questions" },
-    { id:"core-concepts-dag-definition", label:"DAG Definition", desc:"How do you define a workflow in Airflow?", link:"/level-3-technologies/orchestration/airflow/#interview-questions" },
-    { id:"core-concepts-scheduling", label:"Scheduling", desc:"A cron expression is composed of 5 fields separated by spaces: Breaking down schedule_interval='30 8 * * 1-5': 1.", link:"/level-3-technologies/orchestration/airflow/#interview-questions" },
-    { id:"core-concepts-docker", label:"Docker", desc:"If you're using Docker Compose, you need to build a custom image with your own additional dependencies in order to make the module available to Airflow.", link:"/level-3-technologies/orchestration/airflow/#interview-questions" },
-    { id:"core-concepts-xcom", label:"XCom", desc:"XCom (short for \"cross-communication\") are messages that allow data to be passed between tasks.", link:"/level-3-technologies/orchestration/airflow/#interview-questions" },
-    { id:"core-concepts-templating", label:"Templating", desc:"What are Jinja templates? How do you use Airflow XComs in Jinja templates?", link:"/level-3-technologies/orchestration/airflow/#interview-questions" },
-  ]},
-  { id:"operators-hooks-connections", label:"Operators, Hooks & Connections", desc:"5 interview questions covering Operators, Hooks, Connections, Variables.", link:"/level-3-technologies/orchestration/airflow/#operators-hooks--connections", subs:[
-    { id:"operators-hooks-connections-operators", label:"Operators", desc:"An operator is a template for a single task — it defines what* work gets done (run a Python function, execute a bash command, run a SQL query, copy a file to S3).", link:"/level-3-technologies/orchestration/airflow/#operators-hooks--connections" },
-    { id:"operators-hooks-connections-hooks", label:"Hooks", desc:"A connection stores the credentials and connection details for an external system (host, login, password, extra config) in Airflow's metadata database, referenced by a conn_id string rather than hardcoded values.", link:"/level-3-technologies/orchestration/airflow/#operators-hooks--connections" },
-    { id:"operators-hooks-connections-connections", label:"Connections", desc:"Connections are created through the Airflow UI (Admin → Connections), the CLI (airflow connections add), or environment variables (AIRFLOW_CONN_*) — never hardcoded in DAG files.", link:"/level-3-technologies/orchestration/airflow/#operators-hooks--connections" },
-    { id:"operators-hooks-connections-variables", label:"Variables", desc:"Variables are key-value settings stored in Airflow's metadata database, meant for configuration that's the same across runs — an environment name, a feature flag, a file path prefix.", link:"/level-3-technologies/orchestration/airflow/#operators-hooks--connections" },
-  ]},
-  { id:"modern-dag-authoring-taskflow-api", label:"Modern DAG Authoring: TaskFlow API", desc:"5 interview questions covering TaskFlow, TaskGroups, Dynamic Tasks.", link:"/level-3-technologies/orchestration/airflow/#modern-dag-authoring-taskflow-api", subs:[
-    { id:"modern-dag-authoring-taskflow-api-taskflow", label:"TaskFlow", desc:"TaskFlow lets you write DAGs as plain Python functions with a @task decorator — dependencies and XCom passing are inferred from how you call the functions, instead of manually instantiating operators and wiring >>/xcom_pull by hand.", link:"/level-3-technologies/orchestration/airflow/#modern-dag-authoring-taskflow-api" },
-    { id:"modern-dag-authoring-taskflow-api-taskgroups", label:"TaskGroups", desc:"What are TaskGroups, and why would you use one?", link:"/level-3-technologies/orchestration/airflow/#modern-dag-authoring-taskflow-api" },
-    { id:"modern-dag-authoring-taskflow-api-dynamic-tasks", label:"Dynamic Tasks", desc:"Dynamic task mapping creates a variable number of task instances at runtime, based on data that isn't known until the DAG actually runs — one file discovered in S3, one partition per date range, one API page.", link:"/level-3-technologies/orchestration/airflow/#modern-dag-authoring-taskflow-api" },
-  ]},
-  { id:"control-flow-branching-trigger-rules", label:"Control Flow: Branching & Trigger Rules", desc:"4 interview questions covering Dependencies, Branching, Trigger Rules.", link:"/level-3-technologies/orchestration/airflow/#control-flow-branching--trigger-rules", subs:[
-    { id:"control-flow-branching-trigger-rules-dependencies", label:"Dependencies", desc:"How do you set task dependencies in Airflow?", link:"/level-3-technologies/orchestration/airflow/#control-flow-branching--trigger-rules" },
-    { id:"control-flow-branching-trigger-rules-branching", label:"Branching", desc:"The branching function returns the task_id (or list of ids) that should run next; every other downstream task in that branch point is automatically skipped, not just left unscheduled.", link:"/level-3-technologies/orchestration/airflow/#control-flow-branching--trigger-rules" },
-    { id:"control-flow-branching-trigger-rules-trigger-rules", label:"Trigger Rules", desc:"A trigger rule decides when a task is eligible to run based on the state of its upstream tasks.", link:"/level-3-technologies/orchestration/airflow/#control-flow-branching--trigger-rules" },
-  ]},
-  { id:"scheduling-backfills-idempotency", label:"Scheduling, Backfills & Idempotency", desc:"4 interview questions covering Scheduling, Backfills, SLAs, Resource Management.", link:"/level-3-technologies/orchestration/airflow/#scheduling-backfills--idempotency", subs:[
-    { id:"scheduling-backfills-idempotency-scheduling", label:"Scheduling", desc:"What's the difference between execution_date and data_interval in Airflow scheduling?", link:"/level-3-technologies/orchestration/airflow/#scheduling-backfills--idempotency" },
-    { id:"scheduling-backfills-idempotency-backfills", label:"Backfills", desc:"What's the difference between catchup and backfill?", link:"/level-3-technologies/orchestration/airflow/#scheduling-backfills--idempotency" },
-    { id:"scheduling-backfills-idempotency-slas", label:"SLAs", desc:"What is an SLA in Airflow, and what happens when one is missed?", link:"/level-3-technologies/orchestration/airflow/#scheduling-backfills--idempotency" },
-    { id:"scheduling-backfills-idempotency-resource-management", label:"Resource Management", desc:"What are pools and priority weights used for?", link:"/level-3-technologies/orchestration/airflow/#scheduling-backfills--idempotency" },
-  ]},
-  { id:"operations-testing-ecosystem", label:"Operations, Testing & Ecosystem", desc:"5 interview questions covering Testing, Monitoring, Performance, Ecosystem and more.", link:"/level-3-technologies/orchestration/airflow/#operations-testing--ecosystem", subs:[
-    { id:"operations-testing-ecosystem-testing", label:"Testing", desc:"How do you unit test an Airflow DAG?", link:"/level-3-technologies/orchestration/airflow/#operations-testing--ecosystem" },
-    { id:"operations-testing-ecosystem-monitoring", label:"Monitoring", desc:"How do you set up alerting when a task fails?", link:"/level-3-technologies/orchestration/airflow/#operations-testing--ecosystem" },
-    { id:"operations-testing-ecosystem-performance", label:"Performance", desc:"Why does DAG file parsing performance matter, and what's a common mistake that hurts it?", link:"/level-3-technologies/orchestration/airflow/#operations-testing--ecosystem" },
-    { id:"operations-testing-ecosystem-ecosystem", label:"Ecosystem", desc:"Airflow is the most established and widely adopted, with the largest ecosystem of providers/integrations, but its DAG model is comparatively low-level about data (tasks pass small XComs, not first-class typed data assets).", link:"/level-3-technologies/orchestration/airflow/#operations-testing--ecosystem" },
-    { id:"operations-testing-ecosystem-operations", label:"Operations", desc:"What can you do with the Airflow REST API or CLI that you can't easily do from the UI?", link:"/level-3-technologies/orchestration/airflow/#operations-testing--ecosystem" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

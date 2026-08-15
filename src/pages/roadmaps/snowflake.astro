@@ -1,5 +1,6 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ROADMAP_DATA from "../../data/roadmaps/snowflake.json";
 ---
 
 <StarlightPage
@@ -59,6 +60,53 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
       </div>
     </div>
   </div>
+
+  <section class="rm-index" aria-label="All topics on this roadmap">
+    <h2 class="rm-index-title">All topics</h2>
+    <p class="rm-index-lede">Every node on the roadmap above, as text. Each links to the page section that covers it.</p>
+    <ul class="rm-index-list">
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/data-warehouses/snowflake/#architecture--storage">Architecture &amp; Storage</a></h3>
+        <p class="rm-index-desc">18 interview questions covering Fundamentals, Architecture, Storage, Compute and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#architecture--storage">Fundamentals</a></span> <span class="rm-index-sub-desc">Snowflake is a cloud-native, fully managed data warehouse that supports structured and semi-structured data with elastic scalability and shared infrastructure.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#architecture--storage">Architecture</a></span> <span class="rm-index-sub-desc">Snowflake uses a multi-cluster, shared data architecture that separates storage, compute, and services layers.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#architecture--storage">Storage</a></span> <span class="rm-index-sub-desc">The cloud storage layer stores data in a compressed, columnar format on cloud object storage (S3, Azure Blob, or GCS), providing durability and high availability.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#architecture--storage">Compute</a></span> <span class="rm-index-sub-desc">The compute layer consists of virtual warehouses — clusters of compute resources that execute queries against data in storage — scaling independently from storage.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#architecture--storage">Services</a></span> <span class="rm-index-sub-desc">The services layer handles SQL compilation, metadata management, access control, and query optimization.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#architecture--storage">Warehouses</a></span> <span class="rm-index-sub-desc">Virtual warehouses are compute clusters that process queries, with sizes ranging from X-Small to 6XL, sized based on concurrent users and query complexity.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#architecture--storage">Concurrency</a></span> <span class="rm-index-sub-desc">Snowflake supports high concurrency through its architecture, allowing multiple warehouses and queries to run against shared data without performance degradation, because each warehouse has isolated compute.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#architecture--storage">Data Loading</a></span> <span class="rm-index-sub-desc">Data can be loaded using the COPY INTO command from staged files, Snowpipe for continuous/automated loading, or third-party ETL/ELT tools (Fivetran, Airbyte, dbt, etc.) that connect via Snowflake's drivers and APIs.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#architecture--storage">Schema Design</a></span> <span class="rm-index-sub-desc">Snowflake supports various schema designs including star schema, snowflake schema, and normalized designs depending on use case.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#architecture--storage">Tables</a></span> <span class="rm-index-sub-desc">What are the differences between staging and permanent tables?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/data-warehouses/snowflake/#performance--optimization">Performance &amp; Optimization</a></h3>
+        <p class="rm-index-desc">9 interview questions covering Monitoring, Optimization, Clustering, Caching and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#performance--optimization">Monitoring</a></span> <span class="rm-index-sub-desc">What is query performance monitoring in Snowflake?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#performance--optimization">Optimization</a></span> <span class="rm-index-sub-desc">How do you optimize Snowflake queries?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#performance--optimization">Clustering</a></span> <span class="rm-index-sub-desc">Clustering keys define the sort order and physical layout of data across a table's micro-partitions, improving query performance for filtered queries.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#performance--optimization">Caching</a></span> <span class="rm-index-sub-desc">What is Snowflake result caching? What are the benefits of result caching?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#performance--optimization">Metadata</a></span> <span class="rm-index-sub-desc">How does Snowflake handle metadata? What is Snowflake metadata caching?</span></li>
+        </ul>
+      </li>
+      <li class="rm-index-group">
+        <h3 class="rm-index-heading"><a href="/level-3-technologies/data-warehouses/snowflake/#security--administration">Security &amp; Administration</a></h3>
+        <p class="rm-index-desc">14 interview questions covering Security, RBAC, Encryption, Compliance and more.</p>
+        <ul class="rm-index-subs">
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#security--administration">Security</a></span> <span class="rm-index-sub-desc">Security is implemented through authentication (password, SSO, key-pair, MFA), authorization (RBAC), encryption (at rest and in transit), network policies (IP allow-listing), and audit logging via ACCOUNT_USAGE and INFORMATION_SCHEMA views.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#security--administration">RBAC</a></span> <span class="rm-index-sub-desc">RBAC controls user access to databases, schemas, tables, and views through roles with specific privileges.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#security--administration">Encryption</a></span> <span class="rm-index-sub-desc">Snowflake provides encryption at rest using AES-256 and encryption in transit using TLS 1.2, applied automatically to all data — there's no opt-out, and no additional configuration is required for baseline encryption.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#security--administration">Compliance</a></span> <span class="rm-index-sub-desc">How do you handle compliance and auditing in Snowflake?</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#security--administration">Data Sharing</a></span> <span class="rm-index-sub-desc">Benefits include real-time access to shared data (no batch export/import lag), reduced data movement and duplication, improved cross-organization collaboration, and simplified governance since the provider controls access centrally.</span></li>
+          <li><span class="rm-index-sub-label"><a href="/level-3-technologies/data-warehouses/snowflake/#security--administration">Data Recovery</a></span> <span class="rm-index-sub-desc">Fail-safe provides a non-configurable 7-day recovery window after* time travel expires, ensuring protection against accidental or malicious data deletion.</span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <script type="application/json" id="rm-data" set:html={JSON.stringify(ROADMAP_DATA)}></script>
 </StarlightPage>
 
 <style is:global>
@@ -66,35 +114,7 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 </style>
 
 <script>
-const ROADMAP = [
-  { id:"architecture-storage", label:"Architecture & Storage", desc:"18 interview questions covering Fundamentals, Architecture, Storage, Compute and more.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage", subs:[
-    { id:"architecture-storage-fundamentals", label:"Fundamentals", desc:"Snowflake is a cloud-native, fully managed data warehouse that supports structured and semi-structured data with elastic scalability and shared infrastructure.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
-    { id:"architecture-storage-architecture", label:"Architecture", desc:"Snowflake uses a multi-cluster, shared data architecture that separates storage, compute, and services layers.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
-    { id:"architecture-storage-storage", label:"Storage", desc:"The cloud storage layer stores data in a compressed, columnar format on cloud object storage (S3, Azure Blob, or GCS), providing durability and high availability.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
-    { id:"architecture-storage-compute", label:"Compute", desc:"The compute layer consists of virtual warehouses — clusters of compute resources that execute queries against data in storage — scaling independently from storage.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
-    { id:"architecture-storage-services", label:"Services", desc:"The services layer handles SQL compilation, metadata management, access control, and query optimization.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
-    { id:"architecture-storage-warehouses", label:"Warehouses", desc:"Virtual warehouses are compute clusters that process queries, with sizes ranging from X-Small to 6XL, sized based on concurrent users and query complexity.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
-    { id:"architecture-storage-concurrency", label:"Concurrency", desc:"Snowflake supports high concurrency through its architecture, allowing multiple warehouses and queries to run against shared data without performance degradation, because each warehouse has isolated compute.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
-    { id:"architecture-storage-data-loading", label:"Data Loading", desc:"Data can be loaded using the COPY INTO command from staged files, Snowpipe for continuous/automated loading, or third-party ETL/ELT tools (Fivetran, Airbyte, dbt, etc.) that connect via Snowflake's drivers and APIs.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
-    { id:"architecture-storage-schema-design", label:"Schema Design", desc:"Snowflake supports various schema designs including star schema, snowflake schema, and normalized designs depending on use case.", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
-    { id:"architecture-storage-tables", label:"Tables", desc:"What are the differences between staging and permanent tables?", link:"/level-3-technologies/data-warehouses/snowflake/#architecture--storage" },
-  ]},
-  { id:"performance-optimization", label:"Performance & Optimization", desc:"9 interview questions covering Monitoring, Optimization, Clustering, Caching and more.", link:"/level-3-technologies/data-warehouses/snowflake/#performance--optimization", subs:[
-    { id:"performance-optimization-monitoring", label:"Monitoring", desc:"What is query performance monitoring in Snowflake?", link:"/level-3-technologies/data-warehouses/snowflake/#performance--optimization" },
-    { id:"performance-optimization-optimization", label:"Optimization", desc:"How do you optimize Snowflake queries?", link:"/level-3-technologies/data-warehouses/snowflake/#performance--optimization" },
-    { id:"performance-optimization-clustering", label:"Clustering", desc:"Clustering keys define the sort order and physical layout of data across a table's micro-partitions, improving query performance for filtered queries.", link:"/level-3-technologies/data-warehouses/snowflake/#performance--optimization" },
-    { id:"performance-optimization-caching", label:"Caching", desc:"What is Snowflake result caching? What are the benefits of result caching?", link:"/level-3-technologies/data-warehouses/snowflake/#performance--optimization" },
-    { id:"performance-optimization-metadata", label:"Metadata", desc:"How does Snowflake handle metadata? What is Snowflake metadata caching?", link:"/level-3-technologies/data-warehouses/snowflake/#performance--optimization" },
-  ]},
-  { id:"security-administration", label:"Security & Administration", desc:"14 interview questions covering Security, RBAC, Encryption, Compliance and more.", link:"/level-3-technologies/data-warehouses/snowflake/#security--administration", subs:[
-    { id:"security-administration-security", label:"Security", desc:"Security is implemented through authentication (password, SSO, key-pair, MFA), authorization (RBAC), encryption (at rest and in transit), network policies (IP allow-listing), and audit logging via ACCOUNT_USAGE and INFORMATION_SCHEMA views.", link:"/level-3-technologies/data-warehouses/snowflake/#security--administration" },
-    { id:"security-administration-rbac", label:"RBAC", desc:"RBAC controls user access to databases, schemas, tables, and views through roles with specific privileges.", link:"/level-3-technologies/data-warehouses/snowflake/#security--administration" },
-    { id:"security-administration-encryption", label:"Encryption", desc:"Snowflake provides encryption at rest using AES-256 and encryption in transit using TLS 1.2, applied automatically to all data — there's no opt-out, and no additional configuration is required for baseline encryption.", link:"/level-3-technologies/data-warehouses/snowflake/#security--administration" },
-    { id:"security-administration-compliance", label:"Compliance", desc:"How do you handle compliance and auditing in Snowflake?", link:"/level-3-technologies/data-warehouses/snowflake/#security--administration" },
-    { id:"security-administration-data-sharing", label:"Data Sharing", desc:"Benefits include real-time access to shared data (no batch export/import lag), reduced data movement and duplication, improved cross-organization collaboration, and simplified governance since the provider controls access centrally.", link:"/level-3-technologies/data-warehouses/snowflake/#security--administration" },
-    { id:"security-administration-data-recovery", label:"Data Recovery", desc:"Fail-safe provides a non-configurable 7-day recovery window after* time travel expires, ensuring protection against accidental or malicious data deletion.", link:"/level-3-technologies/data-warehouses/snowflake/#security--administration" },
-  ]},
-];
+const ROADMAP = JSON.parse(document.getElementById("rm-data").textContent);
 
 const ICON_PENDING    = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/></svg>`;
 const ICON_INPROGRESS = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 10 10"/></svg>`;

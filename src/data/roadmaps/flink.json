@@ -1,0 +1,172 @@
+[
+  {
+    "id": "fundamentals-architecture-deployment",
+    "label": "Fundamentals, Architecture & Deployment",
+    "desc": "19 interview questions covering Fundamentals, Comparison, Architecture, Ecosystem and more.",
+    "link": "/level-3-technologies/streaming/flink/#fundamentals-architecture--deployment",
+    "subs": [
+      {
+        "id": "fundamentals-architecture-deployment-fundamentals",
+        "label": "Fundamentals",
+        "desc": "Apache Flink is an open-source, unified stream- and batch-processing framework created by the Apache Software Foundation.",
+        "link": "/level-3-technologies/streaming/flink/#fundamentals-architecture--deployment"
+      },
+      {
+        "id": "fundamentals-architecture-deployment-comparison",
+        "label": "Comparison",
+        "desc": "Flink's long-term goal is to fully unify batch and streaming, since a bounded dataset can be understood as just a finite stream.",
+        "link": "/level-3-technologies/streaming/flink/#fundamentals-architecture--deployment"
+      },
+      {
+        "id": "fundamentals-architecture-deployment-architecture",
+        "label": "Architecture",
+        "desc": "At its core, Flink is a robust, distributed dataflow engine that executes programs as a stream, using cyclic dataflow execution.",
+        "link": "/level-3-technologies/streaming/flink/#fundamentals-architecture--deployment"
+      },
+      {
+        "id": "fundamentals-architecture-deployment-ecosystem",
+        "label": "Ecosystem",
+        "desc": "Does Flink need to depend on Hadoop?",
+        "link": "/level-3-technologies/streaming/flink/#fundamentals-architecture--deployment"
+      },
+      {
+        "id": "fundamentals-architecture-deployment-use-cases",
+        "label": "Use Cases",
+        "desc": "What are the use cases of Apache Flink? What are the most common types of applications that use Apache Flink?",
+        "link": "/level-3-technologies/streaming/flink/#fundamentals-architecture--deployment"
+      },
+      {
+        "id": "fundamentals-architecture-deployment-deployment",
+        "label": "Deployment",
+        "desc": "What are the different ways to deploy and use Apache Flink? How would you size a Flink cluster for production?",
+        "link": "/level-3-technologies/streaming/flink/#fundamentals-architecture--deployment"
+      },
+      {
+        "id": "fundamentals-architecture-deployment-tooling",
+        "label": "Tooling",
+        "desc": "What are the different types of tools supported by Apache Flink?",
+        "link": "/level-3-technologies/streaming/flink/#fundamentals-architecture--deployment"
+      }
+    ]
+  },
+  {
+    "id": "programming-model-apis-tooling",
+    "label": "Programming Model, APIs & Tooling",
+    "desc": "18 interview questions covering Programming Model, Architecture, APIs, Libraries and more.",
+    "link": "/level-3-technologies/streaming/flink/#programming-model-apis--tooling",
+    "subs": [
+      {
+        "id": "programming-model-apis-tooling-programming-model",
+        "label": "Programming Model",
+        "desc": "What is the Flink programming model? What are the commonly used operators in Flink?",
+        "link": "/level-3-technologies/streaming/flink/#programming-model-apis--tooling"
+      },
+      {
+        "id": "programming-model-apis-tooling-architecture",
+        "label": "Architecture",
+        "desc": "A slot is a TaskManager-level concept — it determines how many slots a given TaskManager offers, which caps how much parallelism it can support.",
+        "link": "/level-3-technologies/streaming/flink/#programming-model-apis--tooling"
+      },
+      {
+        "id": "programming-model-apis-tooling-apis",
+        "label": "APIs",
+        "desc": "The DataStream API handles data as a continuous stream, supporting operations like filtering, routing, windowing, and aggregation.",
+        "link": "/level-3-technologies/streaming/flink/#programming-model-apis--tooling"
+      },
+      {
+        "id": "programming-model-apis-tooling-libraries",
+        "label": "Libraries",
+        "desc": "FlinkML is Flink's machine learning library — a growing initiative with an expanding set of algorithms and contributors.",
+        "link": "/level-3-technologies/streaming/flink/#programming-model-apis--tooling"
+      },
+      {
+        "id": "programming-model-apis-tooling-ecosystem",
+        "label": "Ecosystem",
+        "desc": "What storage systems and streaming sources/sinks does Apache Flink integrate with? What filesystems does Apache Flink support?",
+        "link": "/level-3-technologies/streaming/flink/#programming-model-apis--tooling"
+      },
+      {
+        "id": "programming-model-apis-tooling-tooling",
+        "label": "Tooling",
+        "desc": "The Flink SQL client provides a command-line interface for running SQL operations — creating and dropping tables, creating and dropping views, and other SQL commands.",
+        "link": "/level-3-technologies/streaming/flink/#programming-model-apis--tooling"
+      }
+    ]
+  },
+  {
+    "id": "state-time-windowing-watermarks",
+    "label": "State, Time, Windowing & Watermarks",
+    "desc": "16 interview questions covering Fundamentals, Streams, Time Semantics, Windowing and more.",
+    "link": "/level-3-technologies/streaming/flink/#state-time-windowing--watermarks",
+    "subs": [
+      {
+        "id": "state-time-windowing-watermarks-fundamentals",
+        "label": "Fundamentals",
+        "desc": "In batch processing, the data is a bounded set with a defined start and end point, so processing only begins once the entire dataset has been ingested.",
+        "link": "/level-3-technologies/streaming/flink/#state-time-windowing--watermarks"
+      },
+      {
+        "id": "state-time-windowing-watermarks-streams",
+        "label": "Streams",
+        "desc": "What are unbounded streams in Apache Flink? What are bounded streams in Apache Flink, and what is bounded vs. unbounded data?",
+        "link": "/level-3-technologies/streaming/flink/#state-time-windowing--watermarks"
+      },
+      {
+        "id": "state-time-windowing-watermarks-time-semantics",
+        "label": "Time Semantics",
+        "desc": "A watermark is Flink's mechanism for handling out-of-order data when working with event time.",
+        "link": "/level-3-technologies/streaming/flink/#state-time-windowing--watermarks"
+      },
+      {
+        "id": "state-time-windowing-watermarks-windowing",
+        "label": "Windowing",
+        "desc": "Flink supports dividing a stream into windows based on time or count (a session window is also, conceptually, time-based).",
+        "link": "/level-3-technologies/streaming/flink/#state-time-windowing--watermarks"
+      },
+      {
+        "id": "state-time-windowing-watermarks-state",
+        "label": "State",
+        "desc": "Flink often needs to store intermediate state during a computation to avoid data loss and support recovery from failure.",
+        "link": "/level-3-technologies/streaming/flink/#state-time-windowing--watermarks"
+      },
+      {
+        "id": "state-time-windowing-watermarks-cep",
+        "label": "CEP",
+        "desc": "A brief introduction to CEP and state programming in Flink.",
+        "link": "/level-3-technologies/streaming/flink/#state-time-windowing--watermarks"
+      }
+    ]
+  },
+  {
+    "id": "fault-tolerance-checkpointing-operations",
+    "label": "Fault Tolerance, Checkpointing & Operations",
+    "desc": "13 interview questions covering Fault Tolerance, Comparison, Performance, Data Quality.",
+    "link": "/level-3-technologies/streaming/flink/#fault-tolerance-checkpointing--operations",
+    "subs": [
+      {
+        "id": "fault-tolerance-checkpointing-operations-fault-tolerance",
+        "label": "Fault Tolerance",
+        "desc": "For streaming applications, Flink manages fault tolerance by periodically capturing a snapshot of the streaming dataflow's state; if a failure occurs, that snapshot is used to recover.",
+        "link": "/level-3-technologies/streaming/flink/#fault-tolerance-checkpointing--operations"
+      },
+      {
+        "id": "fault-tolerance-checkpointing-operations-comparison",
+        "label": "Comparison",
+        "desc": "How do Spark Streaming and Flink differ in their checkpoint behavior? What is the difference between Spark and Flink serialization?",
+        "link": "/level-3-technologies/streaming/flink/#fault-tolerance-checkpointing--operations"
+      },
+      {
+        "id": "fault-tolerance-checkpointing-operations-performance",
+        "label": "Performance",
+        "desc": "First, confirm the skew: the Flink web UI shows the amount of data each subtask processes, and a serious skew looks like most subtasks handling, say, 100 MB while one handles only 1 MB (or vice versa).",
+        "link": "/level-3-technologies/streaming/flink/#fault-tolerance-checkpointing--operations"
+      },
+      {
+        "id": "fault-tolerance-checkpointing-operations-data-quality",
+        "label": "Data Quality",
+        "desc": "How do you handle abnormal (bad) data in Flink?",
+        "link": "/level-3-technologies/streaming/flink/#fault-tolerance-checkpointing--operations"
+      }
+    ]
+  }
+]
