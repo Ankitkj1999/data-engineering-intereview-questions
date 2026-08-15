@@ -142,3 +142,62 @@ html[data-theme="dark"] body {
 .sl-markdown-content pre {
 	font-family: var(--sl-font-mono);
 }
+
+/* ---------------------------------------------------------------------------
+   Content rhythm
+   ---------------------------------------------------------------------------
+   Starlight spaces content with a single --sl-content-gap-y (1rem) between every
+   sibling pair, plus 1.5em BEFORE a heading. Nothing sets the space AFTER a
+   heading, so it falls back to that 1rem — and on this site almost every heading
+   is followed immediately by a bold lead paragraph or a <QuestionList>, which
+   made headings look glued to their content. The page title had it worse: the
+   H1 lives in its own panel with no bottom margin at all.
+
+   Fixed here, once, rather than per page. Note that Starlight wraps headings in
+   .sl-heading-wrapper (for the anchor link), so adjacency selectors must target
+   the wrapper, not the h2 itself.
+--------------------------------------------------------------------------- */
+
+/* Page title sits in a separate panel from the content and had margin-bottom: 0,
+   so it butted straight up against the first section heading. */
+.page-content-panel > h1#_top {
+	margin-bottom: 0.9rem;
+}
+
+/* Space after a heading, scaled by level. */
+.sl-markdown-content .sl-heading-wrapper + *:not(:where(.not-content *)) {
+	margin-top: 1.5rem;
+}
+.sl-markdown-content
+	.sl-heading-wrapper:is(.level-h3, .level-h4, .level-h5, .level-h6)
+	+ *:not(:where(.not-content *)) {
+	margin-top: 1.15rem;
+}
+
+/* Space before a heading — a new section should read as a break, not a paragraph.
+   `hr` is excluded because it already separates; stacking both is too much. */
+.sl-markdown-content
+	:not(.sl-heading-wrapper, hr)
+	+ .sl-heading-wrapper.level-h2:not(:where(.not-content *)) {
+	margin-top: 3rem;
+}
+.sl-markdown-content
+	:not(.sl-heading-wrapper, hr)
+	+ .sl-heading-wrapper.level-h3:not(:where(.not-content *)) {
+	margin-top: 2.25rem;
+}
+.sl-markdown-content hr + .sl-heading-wrapper:not(:where(.not-content *)) {
+	margin-top: 2rem;
+}
+.sl-markdown-content hr:not(:where(.not-content *)) {
+	margin-top: 2.25rem;
+}
+
+/* Question blocks are substantial; they need more room than a paragraph does,
+   on both sides. This also wins over the post-heading rule above, deliberately. */
+.sl-markdown-content .ql:not(:where(.not-content *)) {
+	margin-top: 1.75rem;
+}
+.sl-markdown-content .ql + *:not(:where(.not-content *)) {
+	margin-top: 1.75rem;
+}

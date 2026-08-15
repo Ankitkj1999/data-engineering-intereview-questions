@@ -521,6 +521,42 @@ did not fix.
 **How to apply:** if regenerating, node ids must stay stable — they are localStorage progress keys.
 The generator asserts that no previously-existing id disappears, and that assertion should be kept.
 
+### D11. Content spacing is fixed globally in `theme.css`, not per page
+
+Starlight spaces markdown with a single `--sl-content-gap-y` (1rem) between every sibling pair,
+plus `1.5em` **before** a heading. Nothing sets the space **after** a heading, so it fell back to
+that 1rem — and on this site nearly every heading is immediately followed by a bold lead paragraph
+or a `<QuestionList>`, which made headings look glued to their content. The page title was worse:
+the `h1` lives in its own panel with `margin-bottom: 0`, so it butted straight against the first
+section heading.
+
+Fixed once in [`src/styles/theme.css`](src/styles/theme.css) under "Content rhythm":
+
+| Relationship | Was | Now |
+|---|---|---|
+| Page title → first heading | 0 | 0.9rem |
+| After an `h2` | 1rem | 1.5rem |
+| After an `h3`–`h6` | 1rem | 1.15rem |
+| Before an `h2` (section break) | 1.5em | 3rem |
+| Before an `h3` | 1.5em | 2.25rem |
+| Around a `<QuestionList>` | 1rem | 1.75rem |
+
+**Two implementation facts worth keeping:**
+
+1. **Starlight wraps headings in `.sl-heading-wrapper`** (for the anchor link), so adjacency
+   selectors must target the *wrapper*, not the `h2`. Selectors written against `h2 + *` silently
+   match nothing.
+2. **`hr` is excluded from the section-break rule** — a rule already separates visually, and
+   stacking both produced far too much space.
+
+**Scope:** these rules only affect `.sl-markdown-content` *with* heading wrappers, i.e. MDX content
+pages. Custom `.astro` pages (roadmaps, `/interview-experiences/`, `/projects/`) render raw
+headings and carry their own spacing systems, so they are deliberately untouched — but they do pick
+up the shared page-title fix.
+
+**How to apply:** adjust spacing here, not in individual pages or components. If a page needs
+different rhythm, that's a signal it should own its layout like the custom `.astro` pages do.
+
 ---
 
 ## Open questions
