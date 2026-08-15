@@ -8,204 +8,373 @@ type Resource = {
 };
 
 const resources = data.resources as Resource[];
-const companies = data.companies as { slug: string; name: string; rounds: unknown[]; commonTopics: string[]; summaryStatus: string }[];
+const companies = data.companies as { slug: string; name: string; rounds: unknown[]; commonTopics: string[] }[];
 const creators = data.creators as { name: string; url: string; bio: string }[];
 
-// Videos before articles — video is the more engaging format, so it leads.
-const MEDIUM_ORDER: Record<string, number> = { video: 0, playlist: 1, article: 2 };
-const byMedium = (a: Resource, b: Resource) =>
-  (MEDIUM_ORDER[a.medium] ?? 9) - (MEDIUM_ORDER[b.medium] ?? 9) || a.title.localeCompare(b.title);
+// Video before article — video is the format people actually reach for first.
+const MEDIUM_ORDER: Record<string, number> = { playlist: 0, video: 1, article: 2 };
+// Bigger playlists first: scale is the main thing someone is choosing on.
+const byWeight = (a: Resource, b: Resource) =>
+  (MEDIUM_ORDER[a.medium] ?? 9) - (MEDIUM_ORDER[b.medium] ?? 9) ||
+  (b.count ?? 0) - (a.count ?? 0) ||
+  a.title.localeCompare(b.title);
 
 const byCompany = companies
-  .map((c) => ({ ...c, items: resources.filter((r) => r.company === c.slug).sort(byMedium) }))
+  .map((c) => ({ ...c, items: resources.filter((r) => r.company === c.slug).sort(byWeight) }))
   .filter((c) => c.items.length > 0)
   .sort((a, b) => b.items.length - a.items.length);
 
-const mocks = resources.filter((r) => r.kind === "mock" && !r.company).sort(byMedium);
-const guides = resources.filter((r) => r.kind === "guide" && !r.company).sort(byMedium);
+const mocks = resources.filter((r) => r.kind === "mock" && !r.company).sort(byWeight);
+const guides = resources.filter((r) => r.kind === "guide" && !r.company).sort(byWeight);
 
-// topic slug -> where that topic lives on this site
 const TOPIC_LINKS: Record<string, { label: string; href: string }> = {
   sql: { label: "SQL", href: "/level-1-foundations/sql/theory/" },
   spark: { label: "Spark", href: "/level-3-technologies/batch-processing/spark/" },
   kafka: { label: "Kafka", href: "/level-3-technologies/streaming/kafka/" },
   aws: { label: "AWS", href: "/level-3-technologies/cloud/aws/" },
-  "system-design": { label: "System Design", href: "/level-4-advanced/system-design/" },
-  "data-structures": { label: "Data Structures", href: "/level-1-foundations/data-structure/" },
+  "system-design": { label: "System design", href: "/level-4-advanced/system-design/" },
+  "data-structures": { label: "Data structures", href: "/level-1-foundations/data-structure/" },
 };
 
-const allTopics = [...new Set(resources.flatMap((r) => r.topics))].filter((t) => TOPIC_LINKS[t]).sort();
 const counts = {
   total: resources.length,
   experience: resources.filter((r) => r.kind === "experience").length,
   mock: mocks.length,
   guide: guides.length,
 };
+const checked = data._meta.checked as string;
 ---
 
 <StarlightPage frontmatter={{ title: "Interview Experiences", description: "Curated recorded interview experiences, mock interviews and preparation guides for data engineering roles." }}>
-  <div class="ie-root">
+  <div class="ie">
     <p class="ie-lede">
-      Recorded interviews and preparation material, curated rather than scraped.
-      <strong>{counts.total}</strong> resources — {counts.experience} company experiences,
-      {counts.mock} mock interviews, {counts.guide} guides.
+      Recorded interviews, mock loops and preparation guides — curated, not scraped.
+      Every link is checked automatically; the number on the left is how many videos you're
+      committing to.
     </p>
 
-    {allTopics.length > 0 && (
-      <div class="ie-topics">
-        <span class="ie-topics-label">Topics covered</span>
-        {allTopics.map((t) => (
-          <a class="ie-chip" href={TOPIC_LINKS[t].href}>{TOPIC_LINKS[t].label}</a>
+    <dl class="ie-stats">
+      <div><dt>Resources</dt><dd>{counts.total}</dd></div>
+      <div><dt>Company experiences</dt><dd>{counts.experience}</dd></div>
+      <div><dt>Mock interviews</dt><dd>{counts.mock}</dd></div>
+      <div><dt>Guides</dt><dd>{counts.guide}</dd></div>
+      <div><dt>Links checked</dt><dd class="ie-stat-sm">{checked}</dd></div>
+    </dl>
+
+    {/* ---------------------------------------------------------------- company */}
+    <section class="ie-section">
+      <div class="ie-head">
+        <h2 id="by-company">By company</h2>
+        <span class="ie-head-count">{byCompany.length} companies · {counts.experience} sources</span>
+      </div>
+      <p class="ie-head-desc">
+        A company appears here only when a source names it. Most recorded material is unbranded
+        mock interviews — those are in the next section.
+      </p>
+
+      <div class="ie-grid">
+        {byCompany.map((c) => (
+          <article class="ie-card">
+            <header class="ie-card-head">
+              <h3 id={`company-${c.slug}`}>{c.name}</h3>
+              <span class="ie-card-count">{c.items.length}</span>
+            </header>
+            <ul class="ie-items">
+              {c.items.map((r) => (
+                <li class="ie-item">
+                  <a class="ie-link" href={r.url} target="_blank" rel="noopener noreferrer">
+                    <span class="ie-weight" data-medium={r.medium} data-size={r.count ? "known" : "unknown"}>
+                      {r.count
+                        ? r.count
+                        : <span class="ie-play" aria-hidden="true">{r.medium === "playlist" ? "≡" : "▶"}</span>}
+                    </span>
+                    <span class="ie-body">
+                      <span class="ie-title">{r.title}</span>
+                      <span class="ie-meta">
+                        {r.author && <span>{r.author}</span>}
+                        <span class="ie-medium">{r.medium}</span>
+                      </span>
+                    </span>
+                  </a>
+                  {r.topics.filter((t) => TOPIC_LINKS[t]).length > 0 && (
+                    <span class="ie-tags">
+                      {r.topics.filter((t) => TOPIC_LINKS[t]).map((t) => (
+                        <a class="ie-tag" href={TOPIC_LINKS[t].href}>{TOPIC_LINKS[t].label}</a>
+                      ))}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {c.rounds.length === 0 && (
+              <p class="ie-card-todo">Round-by-round breakdown not written yet.</p>
+            )}
+          </article>
         ))}
       </div>
-    )}
+    </section>
 
-    <h2 id="by-company">By company</h2>
-    <p class="ie-note">
-      Company tagging is manual and still thin — most recorded material is unbranded mock
-      interviews, which are in the next section. Companies appear here only when a source
-      names them.
-    </p>
+    {/* ------------------------------------------------------------------ mocks */}
+    <section class="ie-section">
+      <div class="ie-head">
+        <h2 id="mock-interviews">Mock interviews</h2>
+        <span class="ie-head-count">{counts.mock} resources</span>
+      </div>
+      <p class="ie-head-desc">Full and partial loops recorded end to end — the closest thing to sitting in one.</p>
 
-    <div class="ie-companies">
-      {byCompany.map((c) => (
-        <section class="ie-company">
-          <header class="ie-company-head">
-            <h3 id={`company-${c.slug}`}>{c.name}</h3>
-            <span class="ie-count">{c.items.length} {c.items.length === 1 ? "source" : "sources"}</span>
-          </header>
-
-          {c.rounds.length === 0 && (
-            <p class="ie-empty">
-              No round-by-round breakdown written yet — that needs someone to watch the
-              sources and summarise the loop.
-            </p>
-          )}
-
-          <ul class="ie-list">
-            {c.items.map((r) => (
-              <li class="ie-item">
-                <a href={r.url} target="_blank" rel="noopener noreferrer">
-                  <span class="ie-medium" data-medium={r.medium}>{r.medium === "article" ? "Read" : "Watch"}</span>
-                  <span class="ie-title">{r.title}</span>
-                </a>
+      <ul class="ie-items ie-items-flush">
+        {mocks.map((r) => (
+          <li class="ie-item">
+            <a class="ie-link" href={r.url} target="_blank" rel="noopener noreferrer">
+              <span class="ie-weight" data-medium={r.medium} data-size={r.count ? "known" : "unknown"}>
+                {r.count
+                  ? r.count
+                  : <span class="ie-play" aria-hidden="true">{r.medium === "playlist" ? "≡" : "▶"}</span>}
+              </span>
+              <span class="ie-body">
+                <span class="ie-title">{r.title}</span>
                 <span class="ie-meta">
                   {r.author && <span>{r.author}</span>}
-                  {r.count && <span>{r.count} videos</span>}
-                  {r.topics.filter((t) => TOPIC_LINKS[t]).map((t) => (
-                    <a class="ie-chip ie-chip-sm" href={TOPIC_LINKS[t].href}>{TOPIC_LINKS[t].label}</a>
-                  ))}
+                  <span class="ie-medium">{r.medium}</span>
                 </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
-    </div>
+                {r.note && <span class="ie-note">{r.note}</span>}
+              </span>
+            </a>
+            {r.topics.filter((t) => TOPIC_LINKS[t]).length > 0 && (
+              <span class="ie-tags">
+                {r.topics.filter((t) => TOPIC_LINKS[t]).map((t) => (
+                  <a class="ie-tag" href={TOPIC_LINKS[t].href}>{TOPIC_LINKS[t].label}</a>
+                ))}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
 
-    <h2 id="mock-interviews">Mock interviews</h2>
-    <p class="ie-note">Full and partial loops recorded end to end — the closest thing to sitting in one.</p>
-    <ul class="ie-list ie-list-lg">
-      {mocks.map((r) => (
-        <li class="ie-item">
-          <a href={r.url} target="_blank" rel="noopener noreferrer">
-            <span class="ie-medium" data-medium={r.medium}>{r.medium === "playlist" ? "Playlist" : "Watch"}</span>
-            <span class="ie-title">{r.title}</span>
-          </a>
-          <span class="ie-meta">
-            {r.author && <span>{r.author}</span>}
-            {r.count && <span><strong>{r.count} videos</strong></span>}
-            {r.topics.filter((t) => TOPIC_LINKS[t]).map((t) => (
-              <a class="ie-chip ie-chip-sm" href={TOPIC_LINKS[t].href}>{TOPIC_LINKS[t].label}</a>
-            ))}
-          </span>
-          {r.note && <p class="ie-item-note">{r.note}</p>}
-        </li>
-      ))}
-    </ul>
+    {/* ----------------------------------------------------------------- guides */}
+    <section class="ie-section">
+      <div class="ie-head">
+        <h2 id="guides">Guides &amp; question sets</h2>
+        <span class="ie-head-count">{counts.guide} resources</span>
+      </div>
+      <p class="ie-head-desc">Preparation strategy, round breakdowns and worked question sets.</p>
 
-    <h2 id="guides">Guides & question compilations</h2>
-    <p class="ie-note">Preparation strategy, round breakdowns and worked question sets.</p>
-    <ul class="ie-list ie-list-lg">
-      {guides.map((r) => (
-        <li class="ie-item">
-          <a href={r.url} target="_blank" rel="noopener noreferrer">
-            <span class="ie-medium" data-medium={r.medium}>{r.medium === "playlist" ? "Playlist" : "Watch"}</span>
-            <span class="ie-title">{r.title}</span>
-          </a>
-          <span class="ie-meta">
-            {r.author && <span>{r.author}</span>}
-            {r.count && <span><strong>{r.count} videos</strong></span>}
-            {r.topics.filter((t) => TOPIC_LINKS[t]).map((t) => (
-              <a class="ie-chip ie-chip-sm" href={TOPIC_LINKS[t].href}>{TOPIC_LINKS[t].label}</a>
-            ))}
-          </span>
-          {r.note && <p class="ie-item-note">{r.note}</p>}
-        </li>
-      ))}
-    </ul>
+      <ul class="ie-items ie-items-flush">
+        {guides.map((r) => (
+          <li class="ie-item">
+            <a class="ie-link" href={r.url} target="_blank" rel="noopener noreferrer">
+              <span class="ie-weight" data-medium={r.medium} data-size={r.count ? "known" : "unknown"}>
+                {r.count
+                  ? r.count
+                  : <span class="ie-play" aria-hidden="true">{r.medium === "playlist" ? "≡" : "▶"}</span>}
+              </span>
+              <span class="ie-body">
+                <span class="ie-title">{r.title}</span>
+                <span class="ie-meta">
+                  {r.author && <span>{r.author}</span>}
+                  <span class="ie-medium">{r.medium}</span>
+                </span>
+                {r.note && <span class="ie-note">{r.note}</span>}
+              </span>
+            </a>
+            {r.topics.filter((t) => TOPIC_LINKS[t]).length > 0 && (
+              <span class="ie-tags">
+                {r.topics.filter((t) => TOPIC_LINKS[t]).map((t) => (
+                  <a class="ie-tag" href={TOPIC_LINKS[t].href}>{TOPIC_LINKS[t].label}</a>
+                ))}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
 
-    <h2 id="creators">Creators worth following</h2>
-    <ul class="ie-creators">
-      {creators.map((c) => (
-        <li>
-          <a href={c.url} target="_blank" rel="noopener noreferrer">{c.name}</a>
-          <span>{c.bio}</span>
-        </li>
-      ))}
-    </ul>
+    {/* --------------------------------------------------------------- creators */}
+    <section class="ie-section">
+      <div class="ie-head">
+        <h2 id="creators">Creators worth following</h2>
+        <span class="ie-head-count">{creators.length}</span>
+      </div>
+      <p class="ie-head-desc">Channels that publish this material regularly, rather than one-off videos.</p>
+
+      <ul class="ie-creators">
+        {creators.map((c) => (
+          <li>
+            <a href={c.url} target="_blank" rel="noopener noreferrer">{c.name}</a>
+            <span>{c.bio}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   </div>
 </StarlightPage>
 
 <style>
-  .ie-lede { font-size: 1.05rem; }
-  .ie-note { color: var(--sl-color-gray-3); font-size: 0.9rem; margin-top: -0.4rem; }
-  .ie-empty {
-    color: var(--sl-color-gray-3); font-size: 0.85rem; font-style: italic;
-    margin: 0 0 0.6rem; padding-left: 0.7rem; border-left: 2px solid var(--sl-color-gray-5);
+  .ie {
+    --ie-gap-section: 3.25rem;
+    --ie-rule: var(--sl-color-hairline);
   }
 
-  .ie-topics { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 1rem 0 1.5rem; }
-  .ie-topics-label { font-size: 0.8rem; color: var(--sl-color-gray-3); margin-right: 0.2rem; }
-  .ie-chip {
-    display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
-    background: var(--sl-color-gray-6); border: 1px solid var(--sl-color-gray-5);
-    font-size: 0.78rem; text-decoration: none; color: var(--sl-color-text);
+  .ie-lede {
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    max-width: 60ch;
+    margin: 0 0 1.75rem;
   }
-  .ie-chip:hover { background: var(--sl-color-accent-low); border-color: var(--sl-color-accent); }
-  .ie-chip-sm { font-size: 0.72rem; padding: 0.05rem 0.45rem; }
 
-  .ie-companies { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
-  .ie-company {
-    border: 1px solid var(--sl-color-gray-5); border-radius: 0.5rem;
-    padding: 0.9rem 1rem; background: var(--sl-color-black);
+  /* --- stat strip ------------------------------------------------------- */
+  .ie-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 2.25rem;
+    margin: 0 0 var(--ie-gap-section);
+    padding: 0.9rem 0;
+    border-block: 1px solid var(--ie-rule);
   }
-  .ie-company-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
-  .ie-company-head h3 { margin: 0 0 0.5rem; font-size: 1.05rem; }
-  .ie-count { font-size: 0.78rem; color: var(--sl-color-gray-3); white-space: nowrap; }
+  .ie-stats div { display: flex; flex-direction: column-reverse; gap: 0.15rem; }
+  .ie-stats dt { font-size: 0.75rem; color: var(--sl-color-gray-3); margin: 0; }
+  .ie-stats dd {
+    margin: 0;
+    font-size: 1.5rem;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--sl-color-white);
+  }
+  .ie-stats .ie-stat-sm { font-size: 0.95rem; padding-top: 0.4rem; }
 
-  .ie-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.7rem; }
-  .ie-list-lg { margin-bottom: 2rem; }
-  .ie-item > a { display: flex; gap: 0.5rem; align-items: baseline; text-decoration: none; }
-  .ie-item > a:hover .ie-title { text-decoration: underline; }
-  .ie-title { color: var(--sl-color-white); font-weight: 500; }
-  .ie-medium {
-    flex: none; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em;
-    padding: 0.1rem 0.4rem; border-radius: 0.25rem; border: 1px solid var(--sl-color-gray-5);
+  /* --- section header --------------------------------------------------- */
+  .ie-section { margin-bottom: var(--ie-gap-section); }
+  .ie-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--ie-rule);
+  }
+  .ie-head h2 {
+    margin: 0;
+    font-size: 1.375rem;
+    line-height: 1.2;
+    border: none;          /* Starlight puts a rule on h2; we own it here */
+    padding: 0;
+  }
+  .ie-head-count {
+    font-size: 0.78rem;
+    color: var(--sl-color-gray-3);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  /* The fix: the description gets real breathing room, not a negative margin. */
+  .ie-head-desc {
+    margin: 0.9rem 0 1.5rem;
+    max-width: 62ch;
     color: var(--sl-color-gray-2);
+    font-size: 0.9375rem;
+    line-height: 1.55;
   }
-  .ie-medium[data-medium="video"], .ie-medium[data-medium="playlist"] {
-    border-color: var(--sl-color-accent); color: var(--sl-color-accent-high);
+
+  /* --- item rows -------------------------------------------------------- */
+  .ie-items { list-style: none; padding: 0; margin: 0; }
+  .ie-item { border-top: 1px solid var(--ie-rule); }
+  .ie-items > .ie-item:first-child { border-top: none; }
+  .ie-items-flush > .ie-item:first-child { border-top: 1px solid var(--ie-rule); }
+
+  .ie-link {
+    display: grid;
+    grid-template-columns: 3.5rem 1fr;
+    gap: 0 1rem;
+    align-items: start;
+    padding: 0.85rem 0;
+    text-decoration: none;
+    color: inherit;
   }
+  .ie-link:hover .ie-title { color: var(--sl-color-text-accent); }
+  .ie-link:focus-visible { outline: 2px solid var(--sl-color-text-accent); outline-offset: 3px; border-radius: 2px; }
+
+  /* Signature: scale is the anchor. A 96-video playlist should not look like
+     a 12-minute video, because that is the decision someone is actually making. */
+  .ie-weight {
+    justify-self: end;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.375rem;
+    line-height: 1.15;
+    font-weight: 600;
+    color: var(--sl-color-text-accent);
+    letter-spacing: -0.02em;
+  }
+  /* Only a known size earns the loud treatment. A single video, or a playlist whose
+     length we haven't recorded, stays quiet rather than implying weight we can't back up. */
+  .ie-weight[data-size="unknown"] { font-size: 1rem; color: var(--sl-color-gray-3); font-weight: 400; }
+  .ie-play { font-size: 0.8em; }
+
+  .ie-body { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+  .ie-title { color: var(--sl-color-white); font-weight: 500; line-height: 1.4; }
   .ie-meta {
-    display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center;
-    font-size: 0.78rem; color: var(--sl-color-gray-3); margin-top: 0.15rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--sl-color-gray-3);
   }
-  .ie-item-note { font-size: 0.78rem; color: var(--sl-color-gray-3); margin: 0.25rem 0 0; }
+  .ie-medium { text-transform: lowercase; }
+  .ie-meta > span + span::before { content: "·"; margin-right: 0.5rem; color: var(--sl-color-gray-4); }
+  .ie-note { font-size: 0.8125rem; color: var(--sl-color-gray-3); font-style: italic; }
 
-  .ie-creators { list-style: none; padding: 0; display: grid; gap: 0.55rem; }
-  .ie-creators li { display: flex; flex-direction: column; }
-  .ie-creators span { font-size: 0.82rem; color: var(--sl-color-gray-3); }
+  .ie-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0 0 0.85rem 4.5rem; }
+  .ie-tag {
+    font-size: 0.72rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--ie-rule);
+    color: var(--sl-color-gray-2);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .ie-tag:hover { border-color: var(--sl-color-text-accent); color: var(--sl-color-text-accent); }
 
-  @media (max-width: 50rem) { .ie-companies { grid-template-columns: 1fr; } }
+  /* --- company cards ---------------------------------------------------- */
+  .ie-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .ie-card {
+    border: 1px solid var(--ie-rule);
+    border-radius: 0.5rem;
+    padding: 1rem 1.1rem 0.35rem;
+    background: var(--sl-color-bg-nav);
+  }
+  .ie-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+  }
+  .ie-card-head h3 { margin: 0; font-size: 1.0625rem; border: none; padding: 0; }
+  .ie-card-count {
+    font-size: 0.78rem;
+    color: var(--sl-color-gray-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .ie-card .ie-link { grid-template-columns: 2.25rem 1fr; padding: 0.7rem 0; }
+  .ie-card .ie-weight { font-size: 1.0625rem; }
+  .ie-card .ie-tags { padding-left: 3.25rem; padding-bottom: 0.7rem; }
+  .ie-card-todo {
+    margin: 0.5rem 0 0.75rem;
+    font-size: 0.78rem;
+    color: var(--sl-color-gray-3);
+    font-style: italic;
+  }
+
+  /* --- creators --------------------------------------------------------- */
+  .ie-creators { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.85rem; }
+  .ie-creators li { display: flex; flex-direction: column; gap: 0.15rem; }
+  .ie-creators span { font-size: 0.85rem; color: var(--sl-color-gray-3); line-height: 1.5; }
+
+  @media (max-width: 50rem) {
+    .ie-grid { grid-template-columns: 1fr; }
+    .ie-stats { gap: 0.9rem 1.75rem; }
+    .ie-stats dd { font-size: 1.25rem; }
+    .ie-link { grid-template-columns: 2.75rem 1fr; gap: 0 0.75rem; }
+    .ie-tags { padding-left: 3.5rem; }
+  }
 </style>
