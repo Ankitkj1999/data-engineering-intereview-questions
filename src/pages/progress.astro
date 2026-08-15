@@ -640,6 +640,12 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
   }
 
   /* ── Personalization toolbar ──────────────────────────────────────── */
+  /* The toggle is a bordered control and the hint beside it is plain text, so
+     centring the two boxes left their *text* on different lines — the control
+     read as sitting higher than the sentence next to it. Align the text
+     instead: the toggle gets an explicit height from the shared control token,
+     and the hint gets the same line-height so both sets of glyphs sit on one
+     optical line. */
   .stack-toolbar {
     display: flex;
     align-items: center;
@@ -650,12 +656,15 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
 
   .stack-toggle {
     display: inline-flex;
+    align-items: stretch;
+    height: var(--ds-control-h);
     padding: 3px;
     gap: 2px;
-    border: 1.5px solid var(--page-border);
+    border: var(--ds-border-w) solid var(--page-border);
     border-radius: var(--page-radius-lg);
     background: var(--page-bg-secondary);
     flex-shrink: 0;
+    box-sizing: border-box;
   }
 
   .stack-toggle-btn {
@@ -668,8 +677,9 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
     font-family: var(--page-font-family);
     font-size: 0.8rem;
     font-weight: 600;
-    padding: 0.45rem 0.85rem;
-    border-radius: var(--page-radius-lg);
+    line-height: 1;
+    padding: 0 0.85rem;
+    border-radius: calc(var(--page-radius-lg) - 2px);
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease;
   }
@@ -696,14 +706,22 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
 
   .stack-hint {
     font-size: 0.82rem;
+    line-height: var(--ds-control-h);
     color: var(--sl-color-gray-3);
     margin: 0;
     flex: 1;
     min-width: 220px;
   }
 
+  /* Once it wraps to its own row the tall line-height is just dead space. */
+  @media (max-width: 620px) {
+    .stack-hint {
+      line-height: 1.5;
+    }
+  }
+
   .hero-stat {
-    border: 1.5px solid var(--page-border);
+    border: var(--ds-border-w) solid var(--page-border);
     border-radius: var(--page-radius-lg);
     background: var(--page-bg-secondary);
     padding: 1.25rem 1.5rem;
@@ -837,7 +855,7 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
     letter-spacing: -0.01em;
     margin: 0 0 1.1rem;
     padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--page-border-light);
+    border-bottom: var(--ds-border-w) solid var(--page-border-light);
   }
 
   .topic-group + .topic-group {
@@ -847,7 +865,7 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
   .stage-empty-hint {
     font-size: 0.85rem;
     color: var(--page-text-muted);
-    border: 1.5px dashed var(--page-border);
+    border: var(--ds-border-w) dashed var(--page-border);
     border-radius: var(--page-radius-lg);
     padding: 1rem 1.1rem;
     margin: 0 0 1rem;
@@ -866,17 +884,25 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
     margin: 0 0 0.6rem;
   }
 
+  /* Grid rows size to their tallest card, so one topic whose title wrapped to
+     two lines made that entire row taller than every other — the cards looked
+     like they came in two sizes. Every card holds the same three things
+     (title, count, bar), so its height should be constant: the title is held
+     to one line and the row gets an explicit height. */
   .topic-grid {
+    --topic-row-h: 3.9rem;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: var(--topic-row-h);
     gap: 0.65rem;
   }
 
   .topic-row {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 0.6rem;
-    padding: 0.75rem 0.9rem;
+    padding: 0 0.9rem;
+    box-sizing: border-box;
   }
 
   .topic-row[hidden] {
@@ -916,7 +942,7 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
     width: 26px;
     height: 26px;
     flex-shrink: 0;
-    border: 1.5px solid var(--page-border);
+    border: var(--ds-border-w) solid var(--page-border);
     border-radius: var(--page-radius-lg);
     background: transparent;
     color: var(--sl-color-gray-3);
@@ -947,11 +973,17 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
     height: 13px;
   }
 
+  /* Held to one line so card height never depends on title length. The longest
+     title on the page is "Infrastructure as Code" (22 chars), which fits the
+     column comfortably — the ellipsis is a guard, not the normal case. */
   .topic-row-title {
     font-size: 0.88rem;
     font-weight: 600;
     color: var(--sl-color-text);
     min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .topic-row-count {

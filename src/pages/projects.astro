@@ -132,7 +132,7 @@ const checked = data._meta.checked as string;
   .pj-stats {
     display: flex; flex-wrap: wrap; gap: 0 2.25rem;
     margin: 0 0 var(--pj-gap-section); padding: 0.9rem 0;
-    border-block: 1px solid var(--pj-rule);
+    border-block: var(--ds-border-w) solid var(--pj-rule);
   }
   .pj-stats div { display: flex; flex-direction: column-reverse; gap: 0.15rem; }
   .pj-stats dt { font-size: 0.75rem; color: var(--sl-color-gray-3); margin: 0; }
@@ -145,7 +145,7 @@ const checked = data._meta.checked as string;
   .pj-section { margin-bottom: var(--pj-gap-section); }
   .pj-head {
     display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
-    padding-bottom: 0.5rem; border-bottom: 1px solid var(--pj-rule);
+    padding-bottom: 0.5rem; border-bottom: var(--ds-border-w) solid var(--pj-rule);
   }
   .pj-head h2 { margin: 0; font-size: 1.375rem; line-height: 1.2; border: none; padding: 0; }
   .pj-head-count {
@@ -160,9 +160,9 @@ const checked = data._meta.checked as string;
   .pj-items { list-style: none; padding: 0; margin: 0; }
   .pj-item {
     display: grid; grid-template-columns: 5.5rem 1fr; gap: 0 1.25rem;
-    padding: 1.15rem 0; border-top: 1px solid var(--pj-rule);
+    padding: 1.15rem 0; border-top: var(--ds-border-w) solid var(--pj-rule);
   }
-  .pj-items > .pj-item:first-child { border-top: 1px solid var(--pj-rule); }
+  .pj-items > .pj-item:first-child { border-top: var(--ds-border-w) solid var(--pj-rule); }
 
   /* Signature: commitment, not decoration. Three dots say how much you're taking on,
      which is the thing someone is actually deciding between projects in a stack. */
@@ -170,7 +170,7 @@ const checked = data._meta.checked as string;
   .pj-dots { display: flex; gap: 0.2rem; }
   .pj-dots i {
     width: 0.45rem; height: 0.45rem; border-radius: 50%;
-    border: 1px solid var(--sl-color-gray-4); background: transparent;
+    border: var(--ds-border-w) solid var(--sl-color-gray-4); background: transparent;
   }
   .pj-dots i[data-on="true"] { background: var(--sl-color-text-accent); border-color: var(--sl-color-text-accent); }
   .pj-level-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sl-color-gray-3); }
@@ -188,7 +188,7 @@ const checked = data._meta.checked as string;
   .pj-source {
     display: inline-flex; align-items: baseline; gap: 0.4rem;
     padding: 0.2rem 0.6rem; border-radius: 0.3rem;
-    border: 1px solid var(--pj-rule); text-decoration: none;
+    border: var(--ds-border-w) solid var(--pj-rule); text-decoration: none;
     font-size: 0.8125rem; color: var(--sl-color-gray-2); max-width: 100%;
   }
   .pj-source:hover { border-color: var(--sl-color-text-accent); color: var(--sl-color-text-accent); }
@@ -205,7 +205,7 @@ const checked = data._meta.checked as string;
   .pj-tags-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sl-color-gray-4); }
   .pj-tag {
     font-size: 0.72rem; padding: 0.1rem 0.5rem; border-radius: 999px;
-    border: 1px solid var(--pj-rule); color: var(--sl-color-gray-2);
+    border: var(--ds-border-w) solid var(--pj-rule); color: var(--sl-color-gray-2);
     text-decoration: none; white-space: nowrap;
   }
   .pj-tag:hover { border-color: var(--sl-color-text-accent); color: var(--sl-color-text-accent); }

@@ -11,12 +11,13 @@ This document defines the visual system for the site's chrome (header, sidebars,
 3. [Layout: which routes get which rails](#layout-which-routes-get-which-rails)
 4. [Navigation](#navigation)
 5. [Radius](#radius)
-6. [Shadow](#shadow)
-7. [Spacing](#spacing)
-8. [Primitives](#primitives)
-9. [Roadmap pages: a deliberate scope boundary](#roadmap-pages-a-deliberate-scope-boundary)
-10. [Accessibility: amber usage](#accessibility-amber-usage)
-11. [Known, deliberate out-of-scope areas](#known-deliberate-out-of-scope-areas)
+6. [Border width & control height](#border-width--control-height)
+7. [Shadow](#shadow)
+8. [Spacing](#spacing)
+9. [Primitives](#primitives)
+10. [Roadmap pages: a deliberate scope boundary](#roadmap-pages-a-deliberate-scope-boundary)
+11. [Accessibility: amber usage](#accessibility-amber-usage)
+12. [Known, deliberate out-of-scope areas](#known-deliberate-out-of-scope-areas)
 
 ---
 
@@ -75,6 +76,20 @@ Header nav used to be read from `process.env.PAGE_NAVIGATION`, which is set nowh
 ## Radius
 
 **One radius, one exception.** Every card, panel, button, and input uses `var(--page-radius-lg)` (8px — already the vendor's own scale, not a new token). The only other radius in active use is `var(--page-radius-full)` (a true pill), reserved strictly for status/count/difficulty **badges** — never a nav item, never a button. Before this was standardized, hardcoded radii ranged across nine different values (2px–24px) with no pattern; if you're tempted to write a raw `border-radius: Npx`, use `var(--page-radius-lg)` instead unless it's genuinely a pill.
+
+## Border width & control height
+
+**One hairline width: `var(--ds-border-w)` (1px).** Every border on the site — panels, cards, pills, toggles, inputs — reads from it. Do not write a literal width.
+
+This was the fix for a real, visible fault. Widths had drifted between `1px` and `1.5px`, mixed *within the same files, including `primitives.css` itself*. A 1.5px border can't land on the pixel grid, so the browser antialiases it: next to a 1px line it reads as blurry and heavier, and the surfaces stop looking like one system. All 66 sites across 15 files are on the token; the only literal left in `src/` is the definition.
+
+**`var(--ds-accent-edge-w)` (3px)** is the left edge on `.ds-card-interactive`. It's a separate token because it's a different *thing* — an accent marking the card as interactive, not a border — and it should not move when the hairline does.
+
+**`var(--ds-control-h)` (2.25rem)** is the height of any inline control: pill toggles, icon buttons, segmented switches. Give controls this height rather than letting each derive one from its own padding, which is what leaves two controls beside each other looking misaligned.
+
+**Aligning a control with text next to it:** give the text the *same value as its `line-height`*, not just `align-items: center` on the flex parent. Centring aligns the boxes; matching the line box is what puts the glyphs on one optical line. Drop the tall line-height at the breakpoint where the text wraps to its own row, or it becomes dead space.
+
+**Cards in a grid must not derive height from their content.** Grid rows size to their tallest item, so one card whose title wraps makes that entire row taller and the set looks like two different sizes. Where every card holds the same things, set `grid-auto-rows` and hold the variable-length text to one line (`white-space: nowrap` + `text-overflow: ellipsis`) — `.topic-grid` on `/progress/` is the reference implementation.
 
 ## Shadow
 

@@ -13,7 +13,7 @@ are the way they are, so settled questions don't get re-opened as if they were b
 
 > **Two tracks are open.**
 > **Content:** Phase 6 — Video Catalog. 6a and 6c shipped; only 6b remains. Phases 1–5 ✅ done, plus a roadmap quality pass.
-> **Design:** a separate track started 2026-08-15 — see [Design track](#design-track) below. Phase 1 (navigation & layout shell) ✅ done.
+> **Design:** a separate track started 2026-08-15 — see [Design track](#design-track) below. Phase 1 (navigation & layout shell) ✅ done; phase 2 (tokens) part-done — border width and control height are tokens now ([D14](#d14-hairline-width-and-control-height-are-tokens-not-per-rule-literals)), type scale and colour roles still open.
 > Last updated: 2026-08-15
 
 Site total: **3,895 questions** across 51 topic pages + 74 subtopic pages, and **50 roadmaps**.
@@ -74,7 +74,7 @@ precision and restraint, monkeytype for the eventual theme switcher.
 | # | Phase | Scope | Status |
 |:-:|---|---|---|
 | D1 | **Navigation & layout shell** | Header nav + section panels, rails scoped per route, widths re-cut, `/roadmaps/` index | ✅ Done (2026-08-15) |
-| D2 | **Design tokens** | Type scale (28 ad-hoc sizes → one scale), elevation, colour role reassignment | ⬜ Not started |
+| D2 | **Design tokens** | Type scale (28 ad-hoc sizes → one scale), elevation, colour role reassignment | 🟡 Started — border width + control height done ([D14](#d14-hairline-width-and-control-height-are-tokens-not-per-rule-literals)); type scale, elevation and colour roles remain |
 | D3 | **Homepage + `/questions/` index** | Crossroads homepage (see below) plus the missing questions directory | ⬜ Not started |
 | D4 | **SEO + LLM surface** | Real `site` URL, JSON-LD, `llms.txt`, canonicals, crawlable roadmaps | ✅ Done (2026-08-13) — see [D12](#d12-structured-data-breadcrumblist--techarticle-deliberately-no-faqpage), [D13](#d13-roadmaps-render-a-static-topic-index-hub-and-spoke) |
 | D5 | **Theme picker** | Ships the contract D2 establishes | ⬜ Not started |
@@ -692,6 +692,39 @@ Fixed 2026-08-13:
 
 ---
 
+### D14. Hairline width and control height are tokens, not per-rule literals
+
+Triggered by the `/progress/` page reading as "not symmetric": the toggle at the top sat oddly
+against the text beside it, and topic cards came in two visibly different sizes.
+
+Neither was a progress-page bug. The audit found a **systemic** cause and it was fixed in the
+design system, per the brief ("incorporated into the design system itself"):
+
+**1. Border width had drifted.** Rules used `1px` and `1.5px` interchangeably — mixed *within the
+same files*, including `primitives.css` itself. A 1.5px border straddles the pixel grid and
+antialiases, so a 1.5px line next to a 1px line reads as blurry and heavier. That is why panels,
+toggles and cards looked like they came from different systems.
+
+`--ds-border-w: 1px` now defines every hairline: **66 sites across 15 files**, and the only
+remaining literal in `src/` is the token definition. The 3px left edge on `.ds-card-interactive`
+is an **accent, not a border**, so it keeps a separate `--ds-accent-edge-w` (4 sites).
+
+**2. Inline controls each derived their own height from padding.** `--ds-control-h: 2.25rem` gives
+pill toggles and icon buttons one height, so controls beside each other line up. The toolbar's
+plain-text hint takes the same value as its `line-height`, which is what actually aligns the
+*text* — centring the boxes had aligned the boxes but left the glyphs on different lines.
+
+**3. Card height must not depend on content length.** Grid rows size to their tallest item, so a
+single title wrapping to two lines made that whole row taller. Every topic card holds the same
+three things (title, count, bar), so `.topic-grid` sets `grid-auto-rows` and the title is held to
+one line. The longest title on the page is "Infrastructure as Code" (22 chars) and fits — the
+ellipsis is a guard, not the normal case.
+
+**Rule going forward:** no literal border width or control height in a component stylesheet. If a
+surface needs a different value, that is a new token with a stated reason, not a local override.
+
+---
+
 ## Open questions
 
 Unresolved calls. Settle before the phase that needs them; move the answer into **Decisions**.
@@ -814,6 +847,7 @@ Newest first. One line per working session: what was done, and what's next.
 
 | Date | What happened | Next up |
 |---|---|---|
+| 2026-08-15 | **Progress page symmetry — fixed in the design system (D14).** User reported topic cards rendering at different sizes and the toolbar toggle misaligned with the text beside it, and asked for the fix to live in the design system. Neither was a page-local bug. Border width had **drifted across the whole site** — `1px` and `1.5px` used interchangeably, mixed *within the same files including `primitives.css` itself*; at 1.5px a border straddles the pixel grid and antialiases, so it reads blurry and heavier next to a 1px line. Added `--ds-border-w`, `--ds-accent-edge-w` (the 3px card edge is an accent, not a border) and `--ds-control-h`, then migrated **all 66 border sites across 15 files** — the only literal left in `src/` is the token definition. Then the two reported faults: the toolbar centred *boxes* but left the glyphs on different lines, so the toggle now takes `--ds-control-h` and the hint takes the same value as `line-height`, which aligns the text; and `.topic-grid` rows sized to their tallest card, so one wrapped title made a whole row taller — `grid-auto-rows` plus a one-line title makes card height constant. Clean build, both fixes verified in the shipped bundle. | Design phase 2 — tokens: type scale, elevation, colour role reassignment |
 | 2026-08-15 | **Design phase 1 — navigation & layout shell.** Audit first: colour is genuinely centralised (~20 stray hexes outside `theme.css`), **typography is not** (28 ad-hoc `font-size` values, no scale, while the vendor ships an unused `--page-font-size-*` scale). Fixed four structural faults, all pre-existing: header nav read `process.env.PAGE_NAVIGATION`, **never set anywhere**, so the `<nav>` rendered nothing on every page; both rails rendered on every route (`sidebar.length > 0` is the *global* config, and Starlight synthesizes a one-item TOC), so home/roadmaps/projects each carried 640px of chrome pointing nowhere; trailing `.page-toc-sidebar` rules out-ordered the `@media (min-width: 1280px)` block so the TOC never went `position: fixed` and sat in flow at 320px — **doc prose measured 434px, now 752px**; and roadmap pages shipped two H1s. Built the header nav with Roadmaps/Questions panels, moved the sidebar below the header (one site title, not two), scoped rail offsets to `.with-sidebar`/`.with-toc`, and added the missing **`/roadmaps/` index** (50 roadmaps, 2,049 nodes, grouped, with live per-roadmap progress read from each page's own storage key). Bonus, outside phase scope: **light mode was unusable** — the vendor stamps `data-theme` on `<body>` and other inner elements and never updates them, so its dark palette kept applying under a light root. Fixed at both the token and attribute layer. Clean build, 209 pages. Reviewed after: fixed 4 real findings — section active-state matched on `href` so "Questions" lit on 1 of 29 topics (now an explicit `match` prefix list per nav item), `/guides` earned a rail it has no sidebar entries for, the menu blurb said "123 nodes" where the index says 148 (123 sub-nodes + 25 categories — unit now stated), and a dead `is-standalone` class. Two findings rejected with measurements: the header is pinned by PageFrame's `height:100vh; overflow:hidden` shell, so it does not scroll away and no gap opens above the rail. | Design phase 2 — tokens: type scale, elevation, colour role reassignment |
 | 2026-08-13 | **Phase 6c done — projects.** Researched projects live across the stacks (Spark, Databricks, AWS, Azure, GCP, Snowflake/dbt, streaming, orchestration), built `/projects/` with **18 projects and 27 sources** in 8 domains. Each project carries a repo *and* video *and* article where they exist, plus a "Revise" row linking into the site's own questions. Generalised the link checker to cover both data files and to tell dead apart from bot-blocked: **67/67 live, 0 dead**. | Phase 6b — concept videos on roadmap nodes |
 | 2026-08-13 | **Phase 6 planned — video catalog.** Wrote up the design: companion-not-catalog shape (concept videos on existing topic pages, new sections for interview experiences and projects), one shared data file + component + mandatory link-rot checker, tagged to topic slugs. Assessed the 45-record source JSON: it's a starting point, not a catalog — **company-first organisation doesn't work** (only 5 of 45 tagged, title-derivation gives false positives), the **playlists carry more value than the single videos**, and 7 channel links aren't really catalog entries. Four open questions logged. Not started. | Phase 6 — settle open questions, then build |

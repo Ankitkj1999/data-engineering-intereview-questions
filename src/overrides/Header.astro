@@ -335,7 +335,7 @@ const ARROW = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" strok
     right: 0;
     height: var(--page-header-height);
     background: var(--page-bg-secondary);
-    border-bottom: 1px solid var(--page-border);
+    border-bottom: var(--ds-border-w) solid var(--page-border);
     z-index: 1000;
     display: flex;
     align-items: center;
@@ -570,7 +570,7 @@ const ARROW = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" strok
     width: max-content;
     max-width: min(64rem, calc(100vw - 3rem));
     background: var(--page-bg-elevated);
-    border: 1px solid var(--page-border);
+    border: var(--ds-border-w) solid var(--page-border);
     border-radius: var(--page-radius-lg);
     box-shadow: var(--page-shadow-lg);
     opacity: 0;
@@ -617,7 +617,7 @@ const ARROW = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" strok
     gap: 0.45rem;
     margin: 0 0 var(--page-space-3);
     padding-bottom: var(--page-space-2);
-    border-bottom: 1px solid var(--page-border);
+    border-bottom: var(--ds-border-w) solid var(--page-border);
   }
 
   .nav-col-id {
@@ -678,8 +678,8 @@ const ARROW = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" strok
     width: 15rem;
     flex-shrink: 0;
     padding: var(--page-space-5);
-    border: 1px solid var(--page-border);
-    border-left: 3px solid var(--sl-color-accent);
+    border: var(--ds-border-w) solid var(--page-border);
+    border-left: var(--ds-accent-edge-w) solid var(--sl-color-accent);
     border-radius: var(--page-radius-lg);
     background: var(--page-bg-secondary);
     text-decoration: none;
@@ -726,7 +726,7 @@ const ARROW = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" strok
     justify-content: center;
     gap: 0.4rem;
     padding: var(--page-space-3);
-    border-top: 1px solid var(--page-border);
+    border-top: var(--ds-border-w) solid var(--page-border);
     font-size: 0.8rem;
     font-weight: 600;
     color: var(--page-text-secondary);

@@ -188,7 +188,7 @@ const showToc = hasUsefulToc(toc);
     width: var(--page-sidebar-width);
     flex-shrink: 0;
     background: var(--page-bg-secondary);
-    border-right: 1px solid var(--page-border);
+    border-right: var(--ds-border-w) solid var(--page-border);
     overflow: hidden;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
   }
@@ -240,7 +240,7 @@ const showToc = hasUsefulToc(toc);
       width: 200px;
       height: calc(100vh - var(--page-header-height, 64px));
       background: var(--page-bg-secondary);
-      border-right: 1px solid var(--page-border);
+      border-right: var(--ds-border-w) solid var(--page-border);
       z-index: 1000;
       transform: translateX(-100%);
       transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -514,7 +514,7 @@ const showToc = hasUsefulToc(toc);
     overflow-y: auto;
     padding: var(--page-space-6);
     background: var(--page-bg-secondary);
-    border-left: 1px solid var(--page-border);
+    border-left: var(--ds-border-w) solid var(--page-border);
     border-radius: var(--page-radius-lg) 0 0 var(--page-radius-lg);
   }
 
@@ -568,7 +568,7 @@ const showToc = hasUsefulToc(toc);
   /* TOC indent by depth */
   .page-toc-sticky :global(ul ul) {
     margin-left: var(--page-space-4);
-    border-left: 1px solid var(--page-border);
+    border-left: var(--ds-border-w) solid var(--page-border);
     padding-left: var(--page-space-2);
   }
 
@@ -625,7 +625,7 @@ const showToc = hasUsefulToc(toc);
     font-size: 0.875rem !important;
     margin-bottom: var(--page-space-4) !important;
     padding-bottom: var(--page-space-2) !important;
-    border-bottom: 1px solid var(--page-border) !important;
+    border-bottom: var(--ds-border-w) solid var(--page-border) !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
   }
@@ -634,7 +634,7 @@ const showToc = hasUsefulToc(toc);
   :global(.page-toc-sticky .sl-toc ul) {
     list-style: none !important;
     margin-left: var(--page-space-4) !important;
-    border-left: 1px solid var(--page-border) !important;
+    border-left: var(--ds-border-w) solid var(--page-border) !important;
     padding-left: var(--page-space-2) !important;
   }
 
@@ -663,7 +663,7 @@ const showToc = hasUsefulToc(toc);
     width: 100%;
     padding: var(--page-space-3) var(--page-space-4);
     background: var(--page-bg-secondary);
-    border: 1px solid var(--page-border);
+    border: var(--ds-border-w) solid var(--page-border);
     border-radius: var(--page-radius-lg);
     cursor: pointer;
     font-size: 0.875rem;

@@ -133,7 +133,7 @@ const DIFFICULTY_TONE = { easy: "success", medium: "neutral", hard: "danger" } a
     --_save-clr : var(--sl-color-accent);
 
     position: relative;
-    border: 1.5px solid var(--sl-color-gray-5);
+    border: var(--ds-border-w) solid var(--sl-color-gray-5);
     border-radius: var(--_radius);
     background: var(--sl-color-bg);
     margin-top: 0;
@@ -175,7 +175,7 @@ const DIFFICULTY_TONE = { easy: "success", medium: "neutral", hard: "danger" } a
     justify-content: space-between;
     gap: var(--_gap);
     padding: var(--_pad-y) var(--_pad-x) 0.75rem calc(var(--_pad-x) + 6px);
-    border-bottom: 1px solid var(--sl-color-gray-6);
+    border-bottom: var(--ds-border-w) solid var(--sl-color-gray-6);
   }
 
   .qc-meta {
@@ -200,7 +200,7 @@ const DIFFICULTY_TONE = { easy: "success", medium: "neutral", hard: "danger" } a
     letter-spacing: 0.04em;
     color: var(--page-text-secondary);
     background: var(--page-bg-tertiary);
-    border: 1px solid var(--page-border);
+    border: var(--ds-border-w) solid var(--page-border);
     padding: 0.2em 0.6em;
     border-radius: var(--page-radius-full);
     white-space: nowrap;
@@ -227,7 +227,7 @@ const DIFFICULTY_TONE = { easy: "success", medium: "neutral", hard: "danger" } a
     margin: 0;
     padding: 0 0.625rem;
     border-radius: var(--page-radius-lg);
-    border: 1.5px solid var(--sl-color-gray-5);
+    border: var(--ds-border-w) solid var(--sl-color-gray-5);
     background: transparent;
     color: var(--sl-color-gray-3);
     font-size: 0.72rem;
@@ -296,7 +296,7 @@ const DIFFICULTY_TONE = { easy: "success", medium: "neutral", hard: "danger" } a
   .qc-answer {
     margin: 0.75rem var(--_pad-x) 0 var(--_pad-x);
     padding-top: 0.75rem;
-    border-top: 1px solid var(--sl-color-gray-6);
+    border-top: var(--ds-border-w) solid var(--sl-color-gray-6);
   }
 
   .qc-answer-body {
@@ -315,7 +315,7 @@ const DIFFICULTY_TONE = { easy: "success", medium: "neutral", hard: "danger" } a
   .qc-answer-body :global(blockquote) {
     margin: 0.6rem 0;
     padding: 0.5rem 0.875rem;
-    border-left: 3px solid var(--sl-color-accent);
+    border-left: var(--ds-accent-edge-w) solid var(--sl-color-accent);
     background: color-mix(in srgb, var(--sl-color-accent) 6%, transparent);
     border-radius: 0 var(--page-radius-lg) var(--page-radius-lg) 0;
     font-size: 0.875rem;
@@ -327,7 +327,7 @@ const DIFFICULTY_TONE = { easy: "success", medium: "neutral", hard: "danger" } a
     display: flex;
     align-items: center;
     padding: 0.75rem var(--_pad-x) var(--_pad-y) var(--_pad-x);
-    border-top: 1px solid var(--sl-color-gray-6);
+    border-top: var(--ds-border-w) solid var(--sl-color-gray-6);
     margin-top: 0.75rem;
   }
 
@@ -340,7 +340,7 @@ const DIFFICULTY_TONE = { easy: "success", medium: "neutral", hard: "danger" } a
     margin: 0;
     padding: 0 0.75rem;
     border-radius: var(--page-radius-lg);
-    border: 1.5px solid var(--sl-color-accent);
+    border: var(--ds-border-w) solid var(--sl-color-accent);
     background: transparent;
     color: var(--sl-color-accent);
     font-size: 0.72rem;

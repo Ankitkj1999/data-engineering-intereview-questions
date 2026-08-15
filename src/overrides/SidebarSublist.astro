@@ -72,7 +72,7 @@ const { sublist, nested } = Astro.props;
     gap: 0.125rem;
     padding: 0.25rem 0 0 0.7rem;
     margin-left: 0.35rem;
-    border-left: 1px solid var(--page-border-light);
+    border-left: var(--ds-border-w) solid var(--page-border-light);
   }
 
   .page-sidebar-group {
@@ -85,7 +85,7 @@ const { sublist, nested } = Astro.props;
   .page-sidebar-group.is-top + .page-sidebar-group.is-top {
     margin-top: var(--page-space-5);
     padding-top: var(--page-space-5);
-    border-top: 1px solid var(--page-border-light);
+    border-top: var(--ds-border-w) solid var(--page-border-light);
   }
 
   /* Group label: the site's structural/metadata voice (mono, small, muted,

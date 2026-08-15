@@ -71,7 +71,7 @@ h1#_top {
   text-transform: uppercase;
   color        : var(--sl-color-accent);
   background   : color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
-  border       : 1px solid color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
+  border       : var(--ds-border-w) solid color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
   padding      : 0.2em 0.7em;
   border-radius: 999px;
   margin-bottom: 0.4rem;
@@ -114,7 +114,7 @@ h1#_top {
 .rm-filter-toggle {
   display      : inline-flex;
   padding      : 2px;
-  border       : 1.5px solid var(--sl-color-gray-5);
+  border       : var(--ds-border-w) solid var(--sl-color-gray-5);
   border-radius: 999px;
   background   : var(--sl-color-gray-7, var(--sl-color-bg-sidebar));
 }
@@ -338,7 +338,7 @@ h1#_top {
   align-items  : center;
   gap          : 0.5rem;
   padding      : 0.5rem 0.875rem;
-  border       : 1.5px solid var(--sl-color-gray-6);
+  border       : var(--ds-border-w) solid var(--sl-color-gray-6);
   border-left  : 3px solid var(--rm-pending);
   border-radius: var(--rm-radius);
   background   : var(--sl-color-bg-sidebar, var(--sl-color-gray-7, #f8fafc));
@@ -435,7 +435,7 @@ h1#_top {
   bottom        : 0;
   width         : min(400px, 90vw);
   background    : var(--sl-color-bg);
-  border-left   : 1.5px solid var(--sl-color-gray-5);
+  border-left   : var(--ds-border-w) solid var(--sl-color-gray-5);
   display       : flex;
   flex-direction: column;
   transform     : translateX(100%);
@@ -451,7 +451,7 @@ h1#_top {
   justify-content: space-between;
   gap            : 0.75rem;
   padding        : 1.25rem 1rem 0.875rem;
-  border-bottom  : 1px solid var(--sl-color-gray-6);
+  border-bottom  : var(--ds-border-w) solid var(--sl-color-gray-6);
   flex-shrink    : 0;
 }
 
@@ -491,7 +491,7 @@ h1#_top {
   width          : 28px;
   height         : 28px;
   flex-shrink    : 0;
-  border         : 1.5px solid var(--sl-color-gray-5);
+  border         : var(--ds-border-w) solid var(--sl-color-gray-5);
   border-radius  : var(--page-radius-lg);
   background     : transparent;
   color          : var(--sl-color-gray-3);
@@ -507,7 +507,7 @@ h1#_top {
   align-items: center;
   gap        : 0.625rem;
   padding    : 0.75rem 1rem;
-  border-bottom: 1px solid var(--sl-color-gray-6);
+  border-bottom: var(--ds-border-w) solid var(--sl-color-gray-6);
   flex-shrink: 0;
 }
 
@@ -548,7 +548,7 @@ h1#_top {
   height       : 30px;
   padding      : 0 0.625rem 0 1.75rem;
   border-radius: var(--page-radius-lg);
-  border       : 1.5px solid var(--sl-color-gray-5);
+  border       : var(--ds-border-w) solid var(--sl-color-gray-5);
   background   : var(--sl-color-bg);
   color        : var(--sl-color-text);
   font-size    : 0.75rem;
@@ -602,7 +602,7 @@ h1#_top {
 }
 
 .rm-panel-sublist {
-  border       : 1.5px solid var(--sl-color-gray-5);
+  border       : var(--ds-border-w) solid var(--sl-color-gray-5);
   border-radius: var(--page-radius-lg);
   overflow     : hidden;
 }
@@ -616,7 +616,7 @@ h1#_top {
   padding       : 0.5rem 0.875rem;
   margin        : 0;
   background    : var(--sl-color-gray-7, var(--sl-color-bg-sidebar));
-  border-bottom : 1px solid var(--sl-color-gray-6);
+  border-bottom : var(--ds-border-w) solid var(--sl-color-gray-6);
 }
 
 .rm-panel-subitem {
@@ -625,7 +625,7 @@ h1#_top {
   gap          : 0.5rem;
   padding      : 0.55rem 0.875rem;
   cursor       : pointer;
-  border-bottom: 1px solid var(--sl-color-gray-6);
+  border-bottom: var(--ds-border-w) solid var(--sl-color-gray-6);
   transition   : background 0.12s;
 }
 
@@ -705,7 +705,7 @@ h1#_top {
 	margin: 3.5rem auto 0;
 	max-width: var(--rm-max-width, 72rem);
 	padding-top: 2rem;
-	border-top: 1px solid var(--sl-color-hairline);
+	border-top: var(--ds-border-w) solid var(--sl-color-hairline);
 }
 .rm-index-title { margin: 0 0 0.4rem; font-size: 1.25rem; }
 .rm-index-lede {
@@ -734,7 +734,7 @@ h1#_top {
 	list-style: none;
 	padding: 0 0 0 0.85rem;
 	margin: 0;
-	border-left: 1px solid var(--sl-color-hairline);
+	border-left: var(--ds-border-w) solid var(--sl-color-hairline);
 	display: grid;
 	gap: 0.5rem;
 }

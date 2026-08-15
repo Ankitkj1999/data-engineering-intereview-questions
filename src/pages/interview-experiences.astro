@@ -235,7 +235,7 @@ const checked = data._meta.checked as string;
     gap: 0 2.25rem;
     margin: 0 0 var(--ie-gap-section);
     padding: 0.9rem 0;
-    border-block: 1px solid var(--ie-rule);
+    border-block: var(--ds-border-w) solid var(--ie-rule);
   }
   .ie-stats div { display: flex; flex-direction: column-reverse; gap: 0.15rem; }
   .ie-stats dt { font-size: 0.75rem; color: var(--sl-color-gray-3); margin: 0; }
@@ -256,7 +256,7 @@ const checked = data._meta.checked as string;
     justify-content: space-between;
     gap: 1rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--ie-rule);
+    border-bottom: var(--ds-border-w) solid var(--ie-rule);
   }
   .ie-head h2 {
     margin: 0;
@@ -282,9 +282,9 @@ const checked = data._meta.checked as string;
 
   /* --- item rows -------------------------------------------------------- */
   .ie-items { list-style: none; padding: 0; margin: 0; }
-  .ie-item { border-top: 1px solid var(--ie-rule); }
+  .ie-item { border-top: var(--ds-border-w) solid var(--ie-rule); }
   .ie-items > .ie-item:first-child { border-top: none; }
-  .ie-items-flush > .ie-item:first-child { border-top: 1px solid var(--ie-rule); }
+  .ie-items-flush > .ie-item:first-child { border-top: var(--ds-border-w) solid var(--ie-rule); }
 
   .ie-link {
     display: grid;
@@ -332,7 +332,7 @@ const checked = data._meta.checked as string;
     font-size: 0.72rem;
     padding: 0.1rem 0.5rem;
     border-radius: 999px;
-    border: 1px solid var(--ie-rule);
+    border: var(--ds-border-w) solid var(--ie-rule);
     color: var(--sl-color-gray-2);
     text-decoration: none;
     white-space: nowrap;
@@ -342,7 +342,7 @@ const checked = data._meta.checked as string;
   /* --- company cards ---------------------------------------------------- */
   .ie-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
   .ie-card {
-    border: 1px solid var(--ie-rule);
+    border: var(--ds-border-w) solid var(--ie-rule);
     border-radius: 0.5rem;
     padding: 1rem 1.1rem 0.35rem;
     background: var(--sl-color-bg-nav);

@@ -113,7 +113,7 @@ const { topic, storagePrefix } = Astro.props;
     align-items: center;
     gap: 0;
     padding: 0.625rem 0.875rem;
-    border: 1.5px solid var(--page-border);
+    border: var(--ds-border-w) solid var(--page-border);
     border-radius: var(--page-radius-lg);
     background: var(--page-bg-secondary);
     margin-bottom: 0.875rem;
@@ -146,13 +146,13 @@ const { topic, storagePrefix } = Astro.props;
   .ql-stat-icon--done {
     background: color-mix(in srgb, var(--brand-green) 14%, transparent);
     color: var(--brand-green);
-    border: 1px solid color-mix(in srgb, var(--brand-green) 25%, transparent);
+    border: var(--ds-border-w) solid color-mix(in srgb, var(--brand-green) 25%, transparent);
   }
 
   .ql-stat-icon--saved {
     background: color-mix(in srgb, var(--sl-color-accent) 14%, transparent);
     color: var(--sl-color-accent);
-    border: 1px solid color-mix(in srgb, var(--sl-color-accent) 25%, transparent);
+    border: var(--ds-border-w) solid color-mix(in srgb, var(--sl-color-accent) 25%, transparent);
   }
 
   .ql-stat-body {

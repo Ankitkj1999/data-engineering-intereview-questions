@@ -19,6 +19,27 @@
    repeated-class specificity trick over adding more !important.
 ──────────────────────────────────────────────────────────────────────────── */
 
+/* ── Border & control tokens ──────────────────────────────────────────────
+   Border width used to be written inline per rule, and drifted: 1px and 1.5px
+   used interchangeably, mixed *within the same files* — including this one. At
+   1.5px a border straddles the pixel grid and antialiases, so a 1.5px line
+   next to a 1px line reads as blurry and visibly heavier — which is what made
+   panels, toggles and cards look like they belonged to different systems.
+
+   One hairline width for every surface. The 3px left-edge marker on
+   .ds-card-interactive is a different thing — an accent, not a border — and
+   keeps its own token.
+
+   --ds-control-h is the shared height for pill toggles, icon buttons and any
+   other inline control, so controls sitting next to each other line up
+   instead of each deriving a height from its own padding.
+──────────────────────────────────────────────────────────────────────────── */
+:root {
+	--ds-border-w: 1px;
+	--ds-accent-edge-w: 3px;
+	--ds-control-h: 2.25rem;
+}
+
 /* Flat, hairline-bordered surface — the one panel treatment used by the
    header and both sidebars, so they read as the same system rather than
    three different ones (glass header / flat rail / floating rounded card). */
@@ -31,8 +52,8 @@
    shape shared by homepage stage/roadmap cards and QuestionCard. */
 .ds-card-interactive {
 	display: block;
-	border: 1.5px solid var(--page-border);
-	border-left: 3px solid var(--sl-color-accent);
+	border: var(--ds-border-w) solid var(--page-border);
+	border-left: var(--ds-accent-edge-w) solid var(--sl-color-accent);
 	border-radius: var(--page-radius-lg);
 	background: var(--page-bg-secondary);
 	text-decoration: none;
@@ -105,7 +126,7 @@
 .ds-pill--neutral {
 	background: var(--page-bg-tertiary);
 	color: var(--page-text-secondary);
-	border: 1px solid var(--page-border);
+	border: var(--ds-border-w) solid var(--page-border);
 }
 
 /* The one "danger" hue in the site (QuestionCard's "hard" difficulty tag) —
