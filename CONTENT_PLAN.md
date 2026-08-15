@@ -11,8 +11,10 @@ are the way they are, so settled questions don't get re-opened as if they were b
 
 ## You are here
 
-> **Current phase: Phase 6 — Video Catalog. 6a and 6c shipped; only 6b remains.**
-> Phases 1–5 ✅ done, plus a roadmap quality pass. Last updated: 2026-08-13
+> **Two tracks are open.**
+> **Content:** Phase 6 — Video Catalog. 6a and 6c shipped; only 6b remains. Phases 1–5 ✅ done, plus a roadmap quality pass.
+> **Design:** a separate track started 2026-08-15 — see [Design track](#design-track) below. Phase 1 (navigation & layout shell) ✅ done.
+> Last updated: 2026-08-15
 
 Site total: **3,895 questions** across 51 topic pages + 74 subtopic pages, and **50 roadmaps**.
 The master DE roadmap has **118 of 123 sub-nodes linked**; the 5 that aren't have no honest
@@ -56,6 +58,33 @@ Other ideas, not queued, roughly by value:
 - **Fix the `ssf-01`/`ssf-02` duplicate ids** (see [Open questions](#open-questions)).
 - **The 5 unlinked master-roadmap nodes** — a Java/Scala-for-DE page is the most defensible addition.
 - **Audit `sql/theory.mdx` (102 Q) against the 260 SQL subtopic questions** for duplication.
+
+---
+
+## Design track
+
+Separate from the content phases below, started 2026-08-15. Visual/UX work only — no content
+changes. Direction settled with the user up front: **keep the navy + amber brand but reassign
+roles** (amber gets one job — in-progress state and the primary CTA — with a separate link/info
+blue and done-green taking the rest of its current workload), add a real elevation scale and type
+scale, and **write the token layer as a swappable theme contract now, ship a theme picker later**.
+References the user gave: roadmap.sh and programiz for the entry-point shape, once-ui for
+precision and restraint, monkeytype for the eventual theme switcher.
+
+| # | Phase | Scope | Status |
+|:-:|---|---|---|
+| D1 | **Navigation & layout shell** | Header nav + section panels, rails scoped per route, widths re-cut, `/roadmaps/` index | ✅ Done (2026-08-15) |
+| D2 | **Design tokens** | Type scale (28 ad-hoc sizes → one scale), elevation, colour role reassignment | ⬜ Not started |
+| D3 | **Homepage** | Rebuild as the "here is everything" entry point, on top of D1+D2 | ⬜ Not started |
+| D4 | **SEO + LLM surface** | Real `site` URL, JSON-LD, `llms.txt`, canonicals — see below | ⬜ Not started |
+| D5 | **Theme picker** | Ships the contract D2 establishes | ⬜ Not started |
+
+**D4 detail.** `astro.config.mjs` still has `site: "https://example.com"`, so every canonical and
+every URL in the generated sitemap is wrong. There's no `robots.txt`, no JSON-LD and no
+`llms.txt`. With 3,895 questions across 153 docs, `FAQPage`/`Course` structured data plus a
+generated `llms.txt` is the concrete version of the "get referred by LLMs" goal. The sitewide
+`noindex` in `astro.config.mjs` head is **deliberate** and stays until launch — it's orthogonal to
+all of the above, which can be built behind it.
 
 ---
 
@@ -681,6 +710,7 @@ Newest first. One line per working session: what was done, and what's next.
 
 | Date | What happened | Next up |
 |---|---|---|
+| 2026-08-15 | **Design phase 1 — navigation & layout shell.** Audit first: colour is genuinely centralised (~20 stray hexes outside `theme.css`), **typography is not** (28 ad-hoc `font-size` values, no scale, while the vendor ships an unused `--page-font-size-*` scale). Fixed four structural faults, all pre-existing: header nav read `process.env.PAGE_NAVIGATION`, **never set anywhere**, so the `<nav>` rendered nothing on every page; both rails rendered on every route (`sidebar.length > 0` is the *global* config, and Starlight synthesizes a one-item TOC), so home/roadmaps/projects each carried 640px of chrome pointing nowhere; trailing `.page-toc-sidebar` rules out-ordered the `@media (min-width: 1280px)` block so the TOC never went `position: fixed` and sat in flow at 320px — **doc prose measured 434px, now 752px**; and roadmap pages shipped two H1s. Built the header nav with Roadmaps/Questions panels, moved the sidebar below the header (one site title, not two), scoped rail offsets to `.with-sidebar`/`.with-toc`, and added the missing **`/roadmaps/` index** (50 roadmaps, 2,049 nodes, grouped, with live per-roadmap progress read from each page's own storage key). Bonus, outside phase scope: **light mode was unusable** — the vendor stamps `data-theme` on `<body>` and other inner elements and never updates them, so its dark palette kept applying under a light root. Fixed at both the token and attribute layer. Clean build, 209 pages. Reviewed after: fixed 4 real findings — section active-state matched on `href` so "Questions" lit on 1 of 29 topics (now an explicit `match` prefix list per nav item), `/guides` earned a rail it has no sidebar entries for, the menu blurb said "123 nodes" where the index says 148 (123 sub-nodes + 25 categories — unit now stated), and a dead `is-standalone` class. Two findings rejected with measurements: the header is pinned by PageFrame's `height:100vh; overflow:hidden` shell, so it does not scroll away and no gap opens above the rail. | Design phase 2 — tokens: type scale, elevation, colour role reassignment |
 | 2026-08-13 | **Phase 6c done — projects.** Researched projects live across the stacks (Spark, Databricks, AWS, Azure, GCP, Snowflake/dbt, streaming, orchestration), built `/projects/` with **18 projects and 27 sources** in 8 domains. Each project carries a repo *and* video *and* article where they exist, plus a "Revise" row linking into the site's own questions. Generalised the link checker to cover both data files and to tell dead apart from bot-blocked: **67/67 live, 0 dead**. | Phase 6b — concept videos on roadmap nodes |
 | 2026-08-13 | **Phase 6 planned — video catalog.** Wrote up the design: companion-not-catalog shape (concept videos on existing topic pages, new sections for interview experiences and projects), one shared data file + component + mandatory link-rot checker, tagged to topic slugs. Assessed the 45-record source JSON: it's a starting point, not a catalog — **company-first organisation doesn't work** (only 5 of 45 tagged, title-derivation gives false positives), the **playlists carry more value than the single videos**, and 7 channel links aren't really catalog entries. Four open questions logged. Not started. | Phase 6 — settle open questions, then build |
 | 2026-08-13 | **Roadmap quality pass + 4 new roadmaps.** Rewrote the description generator: descriptions now come from the first *complete* answer sentence when it scores well, and from the **question text** otherwise. Unusable descriptions went **37% → 0%** (was 179 truncated, 61 fallback, 17 fragments across 696). Regenerated all 33 generated roadmaps plus a stale Observability (page had grown 12→20 Q in Phase 4), and added 4 missing roadmaps for the Phase 4 pages per D9 — **50 roadmaps, 2,049 nodes**. All 694 link targets verified; **no node id changed**, so no roadmap progress was lost. Recorded as D10, including the finding that `data-warehousing.mdx` has weak *source* answers the roadmap now routes around but the page still shows. | Ask the user |

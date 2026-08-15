@@ -21,7 +21,11 @@
 ──────────────────────────────────────────────────────────────────────────── */
 
 :root {
-	/* ── Starlight tokens — authoritative palette (dark, this site's default) ── */
+	/* ── Starlight tokens — authoritative palette (dark, this site's default) ──
+	   These stay on :root ONLY. They are the source of truth for which theme
+	   the document is in, and putting them on any inner selector would let a
+	   descendant disagree with the root about that — which is exactly the bug
+	   documented on the --page-* alias block below. */
 	--sl-color-white: #e7eaf2;
 	--sl-color-black: #0b1220;
 
@@ -47,11 +51,43 @@
 	--sl-font: "IBM Plex Sans", var(--sl-font-system);
 	--sl-font-mono: "IBM Plex Mono", var(--sl-font-system-mono);
 
-	/* ── Page chrome tokens — alias the palette above, no values of their own.
-	     Radius/spacing/shadow scales are intentionally NOT redefined here:
-	     @pelagornis/page already ships a complete, sane scale (--page-radius-*,
-	     --page-space-*, --page-shadow-*) — the fix is consistent usage of it
-	     across the site, not a second scale layered on top. See DESIGN_SYSTEM.md. ── */
+	--page-font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+	/* ── Brand tokens ── */
+	--brand-green: #22c55e;
+	--brand-display: "Space Grotesk", var(--sl-font-system);
+	--brand-mono: "IBM Plex Mono", var(--sl-font-system-mono);
+}
+
+/* ── Page chrome tokens — alias the palette above, no values of their own.
+     Radius/spacing/shadow scales are intentionally NOT redefined here:
+     @pelagornis/page already ships a complete, sane scale (--page-radius-*,
+     --page-space-*, --page-shadow-*) — the fix is consistent usage of it
+     across the site, not a second scale layered on top. See DESIGN_SYSTEM.md.
+
+     Why this matches [data-theme] and not just :root
+     ------------------------------------------------
+     @pelagornis/page's theme.css declares the full --page-* palette twice —
+     light values in `:root`, dark values in a bare `[data-theme="dark"]` — and
+     its runtime stamps data-theme onto elements INSIDE the document, not only
+     the root: <body>, .page-header, .page-footer-container,
+     .page-mobile-menu-overlay and its <page-select>. Starlight's theme toggle
+     only ever updates <html>.
+
+     So switching to light left <html data-theme="light"> sitting above
+     <body data-theme="dark">, and that stale body attribute kept matching the
+     vendor's dark block — re-declaring every --page-* to a dark literal
+     (#111111 and friends) on the element the whole page inherits from. Light
+     mode rendered light text on dark surfaces, which is why the theme toggle
+     has never really worked here.
+
+     Repeating the aliases at [data-theme] out-weighs that block at each of
+     those carriers. It's safe precisely because these are aliases: every one
+     resolves a --sl-color-* token, and those are declared on :root alone (see
+     above) and inherit down — so each carrier resolves to whatever theme the
+     root is actually in, which is the only place that answer lives. ── */
+:root,
+[data-theme] {
 	--page-bg: var(--sl-color-black);
 	--page-bg-secondary: var(--sl-color-gray-6);
 	--page-bg-tertiary: var(--sl-color-gray-5);
@@ -74,13 +110,6 @@
 	   .page-nav-link.active, SidebarSublist.astro [aria-current="page"]). */
 	--page-accent-light: var(--sl-color-gray-6);
 	--page-accent-bg: var(--sl-color-gray-6);
-
-	--page-font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-
-	/* ── Brand tokens ── */
-	--brand-green: #22c55e;
-	--brand-display: "Space Grotesk", var(--sl-font-system);
-	--brand-mono: "IBM Plex Mono", var(--sl-font-system-mono);
 }
 
 /* Starlight's light mode is toggled via this attribute; values above are dark.

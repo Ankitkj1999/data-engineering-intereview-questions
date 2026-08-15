@@ -7,13 +7,16 @@ This document defines the visual system for the site's chrome (header, sidebars,
 
 ## Table of Contents
 1. [Tokens](#tokens)
-2. [Radius](#radius)
-3. [Shadow](#shadow)
-4. [Spacing](#spacing)
-5. [Primitives](#primitives)
-6. [Roadmap pages: a deliberate scope boundary](#roadmap-pages-a-deliberate-scope-boundary)
-7. [Accessibility: amber usage](#accessibility-amber-usage)
-8. [Known, deliberate out-of-scope areas](#known-deliberate-out-of-scope-areas)
+2. [Theme carriers: the one vendor trap](#theme-carriers-the-one-vendor-trap)
+3. [Layout: which routes get which rails](#layout-which-routes-get-which-rails)
+4. [Navigation](#navigation)
+5. [Radius](#radius)
+6. [Shadow](#shadow)
+7. [Spacing](#spacing)
+8. [Primitives](#primitives)
+9. [Roadmap pages: a deliberate scope boundary](#roadmap-pages-a-deliberate-scope-boundary)
+10. [Accessibility: amber usage](#accessibility-amber-usage)
+11. [Known, deliberate out-of-scope areas](#known-deliberate-out-of-scope-areas)
 
 ---
 
@@ -27,6 +30,47 @@ There is **one** authoritative color palette: Starlight's own `--sl-color-*` tok
 **Never add a new independent color literal.** If you need a color, either an existing `--sl-color-*`/`--page-*`/`--brand-green` token already means what you want, or (rarely) it belongs as a new alias in `theme.css`, not a literal hex in a component file. This is the rule that broke before: `--page-accent` used to be a stray literal that never actually resolved to the site's amber accent in dark mode, so the header and chat button silently never showed it. Aliasing makes that class of bug structurally impossible — change the source, every consumer updates.
 
 `--sl-color-*` itself stays exactly as Starlight ships it (dark values in the unprefixed `:root`, light values in `:root[data-theme="light"]`) because Starlight's own untouched internals (code blocks, admonitions, search modal, pagination) depend on its exact shape.
+
+**`--sl-color-*` is declared on `:root` only; the `--page-*` aliases are declared on `:root, [data-theme]`.** That asymmetry is deliberate — see the next section.
+
+## Theme carriers: the one vendor trap
+
+`@pelagornis/page` declares its own complete `--page-*` palette twice (light in `:root`, dark in a bare `[data-theme="dark"]`), and its runtime stamps `data-theme` onto elements **inside** the document: `<body>`, `.page-header`, `.page-footer-container`, `.page-mobile-menu-overlay`, and its `<page-select>`. Starlight's theme toggle only ever writes to `<html>`.
+
+Left alone, those disagree: `<html data-theme="light">` above `<body data-theme="dark">`, with the vendor's dark block still matching on `body` and re-declaring the whole `--page-*` palette to dark literals that the entire page inherits. That produced light-mode text on dark-mode surfaces — the reason the theme toggle was effectively broken until this was fixed. Two halves keep it working, and **both are load-bearing**:
+
+1. **`src/styles/theme.css`** declares the `--page-*` aliases on `:root, [data-theme]`, so they out-weigh the vendor's block at every carrier. This is safe *because* they're aliases — each resolves a `--sl-color-*` token, and those live on `:root` alone and inherit down, so every carrier lands on the theme the root is actually in.
+2. **`src/overrides/Header.astro`** mirrors the root's `data-theme` onto every carrier (`syncThemeCarriers`, plus a subtree `MutationObserver` filtered to that one attribute, since the vendor stamps them during its own init).
+
+**Never declare `--sl-color-*` on anything but `:root`** — that's what lets a descendant disagree with the root about which theme is in effect, which is the whole bug.
+
+## Layout: which routes get which rails
+
+Both rails are earned per route, decided in one place: **`src/lib/route.ts`**.
+
+| Rail | Shown when | Why |
+|---|---|---|
+| Left sidebar (`hasCurriculumSidebar`) | Path is under `/level-1-foundations`, `/level-2-core-concepts`, `/level-3-technologies`, `/level-4-advanced` | It's the curriculum tree — it can only navigate *within* the curriculum |
+| Right TOC (`hasUsefulToc`) | The page has ≥2 real headings | Starlight synthesizes an "Overview" entry even for a page with none |
+
+This replaced `sidebar.length > 0` (Starlight's *global* config, non-empty on every route) and a bare `toc` truthiness check. Between them, the homepage, all 50 roadmaps, `/projects/`, `/interview-experiences/` and `/progress/` each rendered a 320px tree of links to somewhere else *and* a 320px panel showing one dead word.
+
+Two consequences worth knowing before changing layout CSS:
+
+- **The sidebar starts below the header** (`top: var(--page-header-height)`, `z-index: 50`), not at `top: 0`. It used to span the full viewport at `z-index: 150` and draw *over* the header's left column, which is why the site title was duplicated into the rail and hidden in the header. The header now carries real navigation in exactly that space, so there is one site title, in the header. `Sidebar.astro` is just the scrolling nav list.
+- **Offsets are scoped to `.with-sidebar` / `.with-toc`.** Don't reintroduce an unconditional `margin-left: var(--page-sidebar-width)`. Watch source order too: the trailing `.page-toc-sidebar` rules sit *after* the `@media (min-width: 1280px)` block at equal specificity, and a `position`/`width` there silently beats the desktop block — that bug kept the TOC in flow at a hardcoded 320px and cost the reading column ~320px on every doc page.
+
+Railless routes cap themselves (`#home-root`, `#progress-root`, `#rm-root`, `#rm-index`, `.pj`, `.ie`). A new full-width page **must** set its own `max-width`, or it inherits nothing but the 1200px wrapper and runs to ~1100px of prose.
+
+## Navigation
+
+`src/config/navigation.json` holds both halves:
+
+- **`header.primary`** — the top-level bar. Two entries (`Roadmaps`, `Questions`) name a key in `header.menus` and open a panel; the rest are plain links. Each carries a **`match`** array of the route prefixes that section owns, rendered to `data-match` and used for the active state. **This is not the same as `href` and must not be derived from it:** `Questions` links to `/level-1-foundations/sql/` because a leaf topic is the sensible place to land, but it stands for all four `level-*` trees. Matching on `href` lit the tab on 1 of 29 question topics.
+- **`header.menus`** — grouped columns, an optional `featured` card, and an optional `more` footer link. Panels open on `:hover` and `:focus-within` with no JS; every trigger is a real link to a real landing page, so a tap on touch still goes somewhere.
+- **`sidebar`** — the curriculum tree only. Roadmaps, Projects, Interviews and Progress live in the header now, not here.
+
+Header nav used to be read from `process.env.PAGE_NAVIGATION`, which is set nowhere in the repo — the parse always yielded `undefined` and the `<nav>` never rendered at all.
 
 ## Radius
 

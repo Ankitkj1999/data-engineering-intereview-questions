@@ -9,6 +9,20 @@
    directly. Don't try to; keep the visual language in sync by hand instead.
 ──────────────────────────────────────────────────────────────────────────── */
 
+/* Starlight renders the frontmatter title as an <h1 id="_top"> in the content
+   panel, immediately above this page's own .rm-header — which states the
+   roadmap's name at display size right underneath it. Every roadmap page has
+   been shipping two H1s that say the same thing ("SQL Roadmap" then "SQL"),
+   which reads as a mistake and gives crawlers a heading outline that doesn't
+   match the page. .rm-title is the real one; hide the generated one.
+
+   Applies wherever this file is loaded, which is the 50 roadmap pages and the
+   homepage — the homepage suppresses the same element for the same reason in
+   its own <style>, so nothing changes there. */
+h1#_top {
+  display: none;
+}
+
 #rm-root {
   --rm-pending   : #94a3b8;
   /* Aliased, not literal — so these two track the sitewide accent/success
@@ -19,7 +33,12 @@
   --rm-done      : var(--brand-green);
   --rm-ease      : cubic-bezier(0.4, 0, 0.2, 1);
   --rm-radius    : var(--page-radius-lg);
-  max-width      : 640px;
+  /* Roadmap pages no longer carry either rail, so the canvas isn't competing
+     with 640px of chrome for the viewport — 640px here was sized for what was
+     left over, not for the content. Wider, but still a bounded column: the
+     flow is a vertical sequence of category nodes, and stretching those into
+     full-width bars would make each row harder to scan, not easier. */
+  max-width      : 52rem;
   margin         : 0 auto;
   padding-bottom : 4rem;
 }

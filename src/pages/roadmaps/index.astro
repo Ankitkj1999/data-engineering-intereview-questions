@@ -1,0 +1,523 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+
+/* Every roadmap page already states its own name, subtitle, node ids and
+   localStorage key. Reading them straight out of the source at build time
+   keeps this index from becoming a 50-entry list that has to be edited by
+   hand every time a roadmap is added or renamed — the failure mode being a
+   directory page that quietly disagrees with the pages it points at. */
+const sources = import.meta.glob("./*.astro", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
+
+type Roadmap = {
+  slug: string;
+  title: string;
+  blurb: string;
+  nodes: number;
+  storageKey: string | null;
+};
+
+const roadmaps: Roadmap[] = Object.entries(sources)
+  .map(([path, src]) => {
+    const slug = path.replace(/^\.\//, "").replace(/\.astro$/, "");
+    if (slug === "index") return null;
+    const title = src.match(/<h1 class="rm-title">([^<]+)<\/h1>/)?.[1];
+    if (!title) return null;
+    return {
+      slug,
+      // Titles are authored as HTML, so "Git &amp; GitHub" arrives escaped.
+      title: title.replace(/&amp;/g, "&"),
+      blurb: (src.match(/<p class="rm-subtitle">([^<]+)<\/p>/)?.[1] ?? "").replace(/&amp;/g, "&"),
+      nodes: (src.match(/\bid:\s*"/g) ?? []).length,
+      storageKey: src.match(/const KEY = "([^"]+)"/)?.[1] ?? null,
+    };
+  })
+  .filter((r): r is Roadmap => r !== null);
+
+const bySlug = new Map(roadmaps.map((r) => [r.slug, r]));
+const FEATURED = "data-engineering";
+
+/* Grouped by what someone is actually choosing between — a language, a
+   concept, an engine, a store — rather than alphabetically, which would put
+   Apache Airflow next to Apache Avro and Amazon Redshift. */
+const GROUPS: { label: string; blurb: string; slugs: string[] }[] = [
+  {
+    label: "Foundations",
+    blurb: "The languages and tooling every data engineering role assumes you already have.",
+    slugs: ["sql", "python", "data-structures", "git", "linux", "networking", "docker", "kubernetes", "cicd", "iac"],
+  },
+  {
+    label: "Concepts & design",
+    blurb: "The judgement calls — how data is modelled, moved, governed and paid for.",
+    slugs: ["data-modeling", "data-warehousing", "data-quality", "data-governance", "data-lifecycle", "ingestion-patterns", "cdc", "reverse-etl", "system-design", "cost-optimization"],
+  },
+  {
+    label: "Processing & orchestration",
+    blurb: "The engines that move and transform data, and the schedulers that run them.",
+    slugs: ["apache-spark", "kafka", "airflow", "dbt", "flink", "hadoop", "hive", "flume", "nifi"],
+  },
+  {
+    label: "Warehouses & databases",
+    blurb: "Where the data lands, and the query engines that read it back.",
+    slugs: ["snowflake", "databricks", "bigquery", "redshift", "mongodb", "cassandra", "dynamodb", "bigtable"],
+  },
+  {
+    label: "Formats & table types",
+    blurb: "On-disk layouts and the table formats that give a lake warehouse behaviour.",
+    slugs: ["parquet", "avro", "delta-lake", "iceberg"],
+  },
+  {
+    label: "Cloud, BI & operations",
+    blurb: "Provider service maps, the reporting layer, and keeping it all running.",
+    slugs: ["aws", "azure", "gcp", "looker", "superset", "tableau", "observability", "mlops"],
+  },
+];
+
+const featured = bySlug.get(FEATURED);
+const grouped = GROUPS.map((g) => ({
+  ...g,
+  items: g.slugs.map((s) => bySlug.get(s)).filter((r): r is Roadmap => Boolean(r)),
+}));
+
+// Guard against a roadmap being added without being filed into a group — it
+// would otherwise vanish from the only page that lists them all.
+const placed = new Set([FEATURED, ...GROUPS.flatMap((g) => g.slugs)]);
+const unfiled = roadmaps.filter((r) => !placed.has(r.slug));
+
+const totalNodes = roadmaps.reduce((n, r) => n + r.nodes, 0);
+const nf = new Intl.NumberFormat("en-US");
+
+// Only roadmaps that actually persist state can report progress.
+const progressIndex = roadmaps
+  .filter((r) => r.storageKey)
+  .map((r) => ({ slug: r.slug, key: r.storageKey, total: r.nodes, title: r.title }));
+
+const ARROW = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" y1="7" x2="11" y2="7"/><polyline points="7.5 3.5 11 7 7.5 10.5"/></svg>`;
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "Roadmaps",
+    description: `All ${roadmaps.length} data engineering roadmaps — ${nf.format(totalNodes)} nodes across languages, concepts, processing engines, warehouses, formats and cloud platforms. Mark each node as you learn it and your progress saves in the browser.`,
+    tableOfContents: false,
+  }}
+>
+  <div id="rm-index" data-progress-index={JSON.stringify(progressIndex)}>
+    <header class="ix-hero">
+      <p class="ix-eyebrow">Roadmaps</p>
+      <h1 class="ix-title">Every path, node by node.</h1>
+      <p class="ix-sub">
+        {roadmaps.length} roadmaps covering {nf.format(totalNodes)} nodes. Work through one node at a
+        time, mark what you know, and pick up where you left off &mdash; progress saves in this
+        browser, no account needed.
+      </p>
+    </header>
+
+    <!-- Populated from localStorage, so it stays out of the DOM until there is
+         something to resume. Hidden by default rather than rendered empty. -->
+    <section class="ix-resume" id="ix-resume" hidden>
+      <h2 class="ix-resume-head">Pick up where you left off</h2>
+      <div class="ix-resume-track" id="ix-resume-track"></div>
+    </section>
+
+    {featured && (
+      <a class="ix-featured" href={`/roadmaps/${featured.slug}/`}>
+        <span class="ix-featured-meta">Start here</span>
+        <span class="ix-featured-title">{featured.title}</span>
+        <span class="ix-featured-blurb">{featured.blurb}</span>
+        <span class="ix-featured-foot">
+          <span class="ix-count">{featured.nodes} nodes</span>
+          <span class="ix-featured-go" set:html={ARROW} />
+        </span>
+        <span class="ix-bar" data-slug={featured.slug} hidden>
+          <span class="ds-progress-track"><span class="ds-progress-fill"></span></span>
+          <span class="ix-pct"></span>
+        </span>
+      </a>
+    )}
+
+    {grouped.map((group) => (
+      <section class="ix-group">
+        <div class="ix-group-head">
+          <h2 class="ix-group-title">{group.label}</h2>
+          <span class="ix-group-count">{group.items.length}</span>
+        </div>
+        <p class="ix-group-blurb">{group.blurb}</p>
+        <div class="ix-grid">
+          {group.items.map((rm) => (
+            <a class="ix-card ds-card-interactive" href={`/roadmaps/${rm.slug}/`}>
+              <span class="ix-card-title">{rm.title}</span>
+              <span class="ix-card-blurb">{rm.blurb}</span>
+              <span class="ix-card-foot">
+                <span class="ix-count">{rm.nodes} nodes</span>
+              </span>
+              <span class="ix-bar" data-slug={rm.slug} hidden>
+                <span class="ds-progress-track"><span class="ds-progress-fill"></span></span>
+                <span class="ix-pct"></span>
+              </span>
+            </a>
+          ))}
+        </div>
+      </section>
+    ))}
+
+    {unfiled.length > 0 && (
+      <section class="ix-group">
+        <div class="ix-group-head">
+          <h2 class="ix-group-title">More</h2>
+          <span class="ix-group-count">{unfiled.length}</span>
+        </div>
+        <div class="ix-grid">
+          {unfiled.map((rm) => (
+            <a class="ix-card ds-card-interactive" href={`/roadmaps/${rm.slug}/`}>
+              <span class="ix-card-title">{rm.title}</span>
+              <span class="ix-card-blurb">{rm.blurb}</span>
+              <span class="ix-card-foot">
+                <span class="ix-count">{rm.nodes} nodes</span>
+              </span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </div>
+</StarlightPage>
+
+<script>
+  /* Each roadmap owns its own localStorage key and stores a map of
+     nodeId -> status. Reading them here turns the directory into a status
+     board: which paths you've started, and how far in you are. */
+  type Entry = { slug: string; key: string; total: number; title: string };
+
+  function readProgress(entry: Entry): number {
+    try {
+      const raw = localStorage.getItem(entry.key);
+      if (!raw) return 0;
+      const state = JSON.parse(raw) as Record<string, string>;
+      const done = Object.values(state).filter((s) => s === "done").length;
+      return entry.total ? Math.round((done / entry.total) * 100) : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  function paint() {
+    const root = document.getElementById("rm-index");
+    if (!root) return;
+
+    let entries: Entry[];
+    try {
+      entries = JSON.parse(root.dataset.progressIndex ?? "[]");
+    } catch {
+      return;
+    }
+
+    const started: { entry: Entry; pct: number }[] = [];
+
+    for (const entry of entries) {
+      const pct = readProgress(entry);
+      if (pct <= 0) continue;
+      started.push({ entry, pct });
+
+      const bar = root.querySelector<HTMLElement>(`.ix-bar[data-slug="${entry.slug}"]`);
+      if (!bar) continue;
+      bar.hidden = false;
+      const fill = bar.querySelector<HTMLElement>(".ds-progress-fill");
+      if (fill) fill.style.width = `${pct}%`;
+      const pctEl = bar.querySelector<HTMLElement>(".ix-pct");
+      if (pctEl) pctEl.textContent = `${pct}%`;
+    }
+
+    // Furthest along first — the one you're most likely coming back to.
+    started.sort((a, b) => b.pct - a.pct);
+
+    const resume = document.getElementById("ix-resume");
+    const track = document.getElementById("ix-resume-track");
+    if (!resume || !track || started.length === 0) return;
+
+    track.innerHTML = "";
+    for (const { entry, pct } of started.slice(0, 4)) {
+      const a = document.createElement("a");
+      a.className = "ix-resume-card ds-card-interactive";
+      a.href = `/roadmaps/${entry.slug}/`;
+      a.innerHTML =
+        `<span class="ix-resume-title"></span>` +
+        `<span class="ds-progress-track"><span class="ds-progress-fill" style="width:${pct}%"></span></span>` +
+        `<span class="ix-pct">${pct}% complete</span>`;
+      // Titles come from page source, so set them as text rather than markup.
+      const titleEl = a.querySelector(".ix-resume-title");
+      if (titleEl) titleEl.textContent = entry.title;
+      track.appendChild(a);
+    }
+    resume.hidden = false;
+  }
+
+  paint();
+  document.addEventListener("astro:page-load", paint);
+</script>
+
+<style>
+  /* Starlight's generated <h1 id="_top"> duplicates .ix-title below it. */
+  :global(h1#_top) {
+    display: none;
+  }
+
+  #rm-index {
+    max-width: 68rem;
+    margin: 0 auto;
+    padding-bottom: 5rem;
+  }
+
+  /* ── Hero ──────────────────────────────────────────────────────────── */
+  .ix-hero {
+    padding: 2.5rem 0 2.75rem;
+    border-bottom: 1px solid var(--sl-color-gray-6);
+    margin-bottom: 2.5rem;
+  }
+
+  .ix-eyebrow {
+    font-family: var(--brand-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sl-color-accent);
+    margin: 0 0 0.75rem;
+  }
+
+  .ix-title {
+    font-family: var(--brand-display);
+    font-size: clamp(1.9rem, 4vw, 2.75rem);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    color: var(--sl-color-white);
+    margin: 0 0 0.85rem;
+  }
+
+  .ix-sub {
+    font-size: 1.02rem;
+    line-height: 1.65;
+    color: var(--sl-color-gray-2);
+    max-width: 60ch;
+    margin: 0;
+  }
+
+  /* ── Resume strip ──────────────────────────────────────────────────── */
+  .ix-resume {
+    margin-bottom: 2.5rem;
+  }
+
+  .ix-resume-head {
+    font-family: var(--brand-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--sl-color-white);
+    margin: 0 0 0.9rem;
+  }
+
+  .ix-resume-track {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 0.75rem;
+  }
+
+  .ix-resume-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.9rem 1rem;
+  }
+
+  .ix-resume-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--sl-color-white);
+  }
+
+  /* ── Featured ──────────────────────────────────────────────────────── */
+  .ix-featured {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1.5rem 1.6rem;
+    margin-bottom: 3rem;
+    border: 1.5px solid var(--page-border);
+    border-left: 3px solid var(--sl-color-accent);
+    border-radius: var(--page-radius-lg);
+    background: var(--page-bg-secondary);
+    text-decoration: none;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .ix-featured:hover {
+    border-color: var(--sl-color-accent);
+    transform: translateY(-1px);
+  }
+
+  .ix-featured:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+
+  .ix-featured-meta {
+    font-family: var(--brand-mono);
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--sl-color-accent);
+  }
+
+  .ix-featured-title {
+    font-family: var(--brand-display);
+    font-size: 1.55rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--sl-color-white);
+  }
+
+  .ix-featured-blurb {
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: var(--sl-color-gray-2);
+    max-width: 58ch;
+  }
+
+  .ix-featured-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    color: var(--sl-color-accent);
+  }
+
+  .ix-featured-go {
+    display: flex;
+  }
+
+  /* ── Groups ────────────────────────────────────────────────────────── */
+  .ix-group {
+    margin-bottom: 2.75rem;
+  }
+
+  .ix-group-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid var(--sl-color-gray-6);
+  }
+
+  .ix-group-title {
+    font-family: var(--brand-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--sl-color-white);
+    margin: 0;
+  }
+
+  .ix-group-count {
+    font-family: var(--brand-mono);
+    font-size: 0.72rem;
+    color: var(--sl-color-gray-3);
+  }
+
+  .ix-group-blurb {
+    font-size: 0.86rem;
+    line-height: 1.55;
+    color: var(--sl-color-gray-3);
+    margin: 0.7rem 0 1.1rem;
+    max-width: 62ch;
+  }
+
+  .ix-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+    gap: 0.75rem;
+  }
+
+  /* Shape comes from .ds-card-interactive (primitives.css) — the same recipe
+     the homepage stage cards and QuestionCard use. Only layout lives here. */
+  .ix-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.95rem 1.05rem;
+  }
+
+  .ix-card-title {
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: var(--sl-color-white);
+  }
+
+  .ix-card-blurb {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--sl-color-gray-3);
+    /* Subtitles run from a few words to a full sentence; clamping keeps the
+       grid's rows even without truncating the short ones. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .ix-card-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 0.45rem;
+  }
+
+  .ix-count {
+    font-family: var(--brand-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--sl-color-gray-4);
+  }
+
+  /* ── Progress ──────────────────────────────────────────────────────── */
+  .ix-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-top: 0.5rem;
+  }
+
+  /* An author `display` beats the UA stylesheet's `[hidden] { display: none }`,
+     so the rule above would show every bar — at a full-width fill, since an
+     unset .ds-progress-fill stretches — on a first visit with no saved
+     progress at all. Restore the attribute's meaning explicitly. */
+  .ix-bar[hidden],
+  .ix-resume[hidden] {
+    display: none;
+  }
+
+  .ix-bar .ds-progress-track {
+    flex: 1;
+  }
+
+  .ix-pct {
+    font-family: var(--brand-mono);
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: var(--brand-green);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 480px) {
+    .ix-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ix-featured {
+      transition: none !important;
+    }
+  }
+</style>

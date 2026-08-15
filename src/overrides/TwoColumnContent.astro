@@ -1,14 +1,26 @@
 ---
-const { toc, entry, sidebar } = Astro.locals.starlightRoute;
+const { toc } = Astro.locals.starlightRoute;
 import Sidebar from "./Sidebar.astro";
 import MobileMenuOverlay from "@pelagornis/page/overrides/MobileMenuOverlay.astro";
+import { hasCurriculumSidebar, hasUsefulToc } from "../lib/route";
 
-// Check if sidebar exists
-const hasSidebar = sidebar && sidebar.length > 0;
+// Both rails are now earned per route rather than rendered unconditionally.
+//
+// The sidebar test used to be `sidebar.length > 0` — Starlight's *global*
+// sidebar config, non-empty on every route — so the homepage, all 50 roadmap
+// pages, /projects/ and /interview-experiences/ each carried a 320px rail
+// listing pages in a tree they aren't part of. It belongs to curriculum
+// routes, which are the only pages it can actually navigate within.
+//
+// The TOC test used to be `toc` alone, which Starlight always provides: it
+// synthesizes an "Overview" entry even for a page with no headings, so those
+// same pages rendered a full-height panel to display one dead word.
+const hasSidebar = hasCurriculumSidebar(Astro.url.pathname);
+const showToc = hasUsefulToc(toc);
 ---
 
 <main
-  class={`page-main-container ${hasSidebar ? "with-sidebar" : "no-sidebar"} ${toc ? "with-toc" : "no-toc"}`}
+  class={`page-main-container ${hasSidebar ? "with-sidebar" : "no-sidebar"} ${showToc ? "with-toc" : "no-toc"}`}
 >
   {
     hasSidebar && (
@@ -42,7 +54,7 @@ const hasSidebar = sidebar && sidebar.length > 0;
   </div>
 
   {
-    toc && (
+    showToc && (
       <aside class="page-toc-sidebar">
         <div class="page-toc-sticky">
           <slot name="right-sidebar" />
@@ -94,36 +106,42 @@ const hasSidebar = sidebar && sidebar.length > 0;
 <style>
   /* CSS variables */
   :root {
-    --page-sidebar-width: 320px;
-    --page-toc-width: 320px;
+    /* Both rails were 320px, which on a 1440px viewport spent 640px — 45% of
+       it — on chrome and left the content a ~600px column with dead space on
+       either side. Cut to what each actually needs to hold: a nav tree of
+       short labels, and a list of heading links. */
+    --page-sidebar-width: 17.5rem;
+    --page-toc-width: 15rem;
+    /* Prose measure. Long-form technical reading wants ~70-75 characters a
+       line; without a cap, content on a wide screen with no rails runs the
+       full width and stops being readable. */
+    --page-reading-width: 47rem;
     --page-content-gap: var(--page-space-10);
     /* Flush against the viewport edge, same as the left sidebar — a floating
        card offset from the edge is what made this panel read as a different
        system from the sidebar it sits opposite. */
     --page-toc-right-margin: 0px;
-    --page-toc-top-position: 88px;
-    --page-toc-height: calc(100vh - 104px);
+    /* Derived from the header rather than the 88px/104px literals these were,
+       which silently encoded a header height that no longer has to match. */
+    --page-toc-top-position: calc(var(--page-header-height) + var(--page-space-6));
+    --page-toc-height: calc(100vh - var(--page-header-height) - var(--page-space-6));
   }
 
-  /* Dynamic sizing by viewport */
-  @media (min-width: 1600px) and (max-width: 1999px) {
+  /* Dynamic sizing by viewport. Extra width past ~1600px goes to the reading
+     column and the gaps, not to the rails — a wider list of heading links is
+     not a better list of heading links. */
+  @media (min-width: 1600px) {
     :root {
-      --page-toc-width: 300px;
-      --page-content-gap: var(--page-space-8);
-    }
-  }
-
-  @media (min-width: 2000px) and (max-width: 2399px) {
-    :root {
-      --page-toc-width: 320px;
-      --page-content-gap: var(--page-space-10);
-    }
-  }
-
-  @media (min-width: 2400px) {
-    :root {
-      --page-toc-width: 360px;
+      --page-toc-width: 16rem;
+      --page-reading-width: 50rem;
       --page-content-gap: var(--page-space-12);
+    }
+  }
+
+  @media (min-width: 2000px) {
+    :root {
+      --page-toc-width: 17rem;
+      --page-reading-width: 53rem;
     }
   }
 
@@ -175,23 +193,23 @@ const hasSidebar = sidebar && sidebar.length > 0;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
   }
 
-  /* Show sidebar on desktop (narrow) — spans the full viewport height,
-     including the row the top header occupies (the header's own copy of the
-     site title is hidden at this width; the sidebar's built-in header row
-     is what's visible there now — see Sidebar.astro). Corners are "notched":
-     flush against the left/top/bottom viewport edges, rounded only on the
-     two corners that face the content area. */
+  /* Show sidebar on desktop — starts below the header rather than spanning
+     the full viewport height. It used to run top:0 and sit at z-index 150 so
+     it drew *over* the header's left column, which is why the site title had
+     to be duplicated into the rail and hidden in the header. Now that the
+     header carries real navigation, that column is no longer free to cover:
+     the roadmaps and questions menus live exactly where the rail used to be.
+     Sitting under the header instead means one site title, one nav bar, and
+     no z-index contest. */
   @media (min-width: 769px) {
     .page-sidebar-nav {
       position: fixed;
-      top: 0;
+      top: var(--page-header-height);
       left: 0;
-      height: 100vh;
-      /* Clears .header's real z-index (100, set in PageFrame.astro — not
-         .page-header's locally-scoped 1000, which only orders that
-         component's own children) so the sidebar draws over the header's
-         left column instead of under it. */
-      z-index: 150;
+      height: calc(100vh - var(--page-header-height));
+      /* Below .header's z-index (100, set in PageFrame.astro) and above the
+         content, which is all it needs now that it doesn't overlap the bar. */
+      z-index: 50;
       transform: translateX(0);
       width: var(--page-sidebar-width);
       border-radius: 0 var(--page-radius-lg) var(--page-radius-lg) 0;
@@ -200,10 +218,8 @@ const hasSidebar = sidebar && sidebar.length > 0;
 
   /* Between 769–1024px the chat panel opens as a full-width bottom sheet
      (z-index 50, in the vendor's ChatPane) that spatially overlaps the
-     sidebar's lower ~70%. The sidebar's new z-index:150 would otherwise draw
-     over that open sheet — drop back below it in just this band, where the
-     header (the thing z-index:150 actually needs to clear) never overlaps
-     the chat sheet anyway, so nothing is lost by lowering it here. */
+     sidebar's lower ~70%. Tied z-indexes would let the later-painted rail
+     win, so drop it below the open sheet in just this band. */
   @media (max-width: 1024px) {
     :global(body.page-chat-open) .page-sidebar-nav {
       z-index: 10;
@@ -256,32 +272,22 @@ const hasSidebar = sidebar && sidebar.length > 0;
     min-width: 0;
   }
 
-  /* Full width on index page */
+  /* Railless routes (home, /roadmaps/*, /projects/, /interview-experiences/,
+     /progress/). One cap, not an escalating 1200/1400/1600 ladder: each of
+     these pages already sets the width its own content wants — a hero column,
+     a roadmap canvas, a card grid — so widening the wrapper past this only
+     moved the page's left edge around on large screens without giving the
+     content any more room. */
   .page-content-wrapper-full {
-    margin-left: 0 !important;
     width: 100% !important;
     max-width: 1200px !important;
     margin: 0 auto !important;
     padding: 0 var(--page-space-8) !important;
   }
 
-  /* Index page padding on mobile */
   @media (max-width: 768px) {
     .page-content-wrapper-full {
       padding: 0 var(--page-space-4) !important;
-    }
-  }
-
-  /* Responsive max-width */
-  @media (min-width: 1400px) {
-    .page-content-wrapper-full {
-      max-width: 1400px !important;
-    }
-  }
-
-  @media (min-width: 1600px) {
-    .page-content-wrapper-full {
-      max-width: 1600px !important;
     }
   }
 
@@ -334,7 +340,10 @@ const hasSidebar = sidebar && sidebar.length > 0;
       padding: var(--page-space-6);
     }
 
-    .page-content-wrapper {
+    /* Only offset for a rail that is actually rendered — this used to apply
+       to every page, so the routes that never had a sidebar still reserved
+       its width and sat pushed right against nothing. */
+    .with-sidebar .page-content-wrapper {
       margin-left: var(--page-sidebar-width);
       width: calc(100% - var(--page-sidebar-width));
       min-width: 0;
@@ -372,7 +381,7 @@ const hasSidebar = sidebar && sidebar.length > 0;
       padding: var(--page-space-6);
     }
 
-    :global(body.page-chat-open) .page-content-wrapper {
+    :global(body.page-chat-open) .with-sidebar .page-content-wrapper {
       margin-left: var(--page-sidebar-width);
       width: calc(100% - var(--page-sidebar-width));
       min-width: 0;
@@ -418,11 +427,30 @@ const hasSidebar = sidebar && sidebar.length > 0;
 
     .page-content-wrapper {
       flex: 1;
-      margin-left: var(--page-sidebar-width);
       width: auto;
       min-width: 0;
       max-width: none;
-      margin-right: 5rem;
+    }
+
+    /* Each rail reserves its own gutter, and only when it's rendered. The
+       previous rules offset by the sidebar width and a flat 5rem on the
+       right unconditionally — including on pages with neither rail. */
+    .with-sidebar .page-content-wrapper {
+      margin-left: var(--page-sidebar-width);
+    }
+
+    .with-toc .page-content-wrapper {
+      margin-right: calc(var(--page-toc-width) + var(--page-content-gap));
+    }
+
+    /* Cap the measure and center what's left, so reclaimed width becomes
+       margin rather than 130-character lines. Scoped to curriculum routes —
+       they're the prose pages, and the only ones that want a measure. The
+       custom pages (home, roadmaps, projects, interviews) each set their own
+       width for a canvas or a grid, and would be squeezed by a prose cap. */
+    .with-sidebar .page-content-wrapper > :global(*) {
+      max-width: var(--page-reading-width);
+      margin-inline: auto;
     }
 
     .page-toc-sidebar {
@@ -455,17 +483,17 @@ const hasSidebar = sidebar && sidebar.length > 0;
     position: relative;
   }
 
+  /* The rail is hidden below 1280px (rules further down), and pinned to the
+     viewport's right edge above it by the @media (min-width: 1280px) block
+     above. It deliberately has no base `position`/`width` of its own:
+     it used to carry `width: 320px` plus a `@media (min-width: 768px)`
+     `position: relative` HERE, after that block and at equal specificity, so
+     source order handed the win to these — the rail never actually went
+     fixed, sat in the flex flow at a hardcoded 320px, and the content column
+     paid for it twice (once in the reserved gutter, once in the flex track).
+     That is where the missing width went. */
   .page-toc-sidebar {
-    display: block;
-    width: 320px;
     flex-shrink: 0;
-  }
-
-  @media (min-width: 768px) {
-    .page-toc-sidebar {
-      display: block;
-      position: relative;
-    }
   }
 
   /* Same flat, hairline-bordered, edge-attached surface as .page-sidebar-nav
@@ -473,11 +501,16 @@ const hasSidebar = sidebar && sidebar.length > 0;
      flanking the content read as one system instead of "flat panel" on one
      side and "floating rounded card" on the other. Corners are "notched"
      the same way the sidebar's are: square on the outer/right edge, rounded
-     only on the two corners that face the content. */
+     only on the two corners that face the content.
+
+     Fills its parent rather than positioning itself: the aside is already
+     the fixed, sized element. This was `position: fixed` with no `width` or
+     `right`, which took it out of flow and let it shrink-wrap to its longest
+     heading link — so the panel's real width was whatever the page's wordiest
+     heading happened to be (346px here against a 240px rail). */
   .page-toc-sticky {
-    position: fixed;
-    top: calc(var(--page-header-height) + var(--page-space-8));
-    height: calc(100vh - var(--page-header-height) - var(--page-space-8));
+    width: 100%;
+    height: 100%;
     overflow-y: auto;
     padding: var(--page-space-6);
     background: var(--page-bg-secondary);
@@ -768,9 +801,9 @@ const hasSidebar = sidebar && sidebar.length > 0;
     }
   }
 
-  /* Sidebar collapse toggle — sits on the sidebar's own header-row seam
-     (vertically centered in the same var(--page-header-height) band as
-     Sidebar.astro's .page-sidebar-header), at its right edge. Visual shape
+  /* Sidebar collapse toggle — sits on the vertical seam between the rail and
+     the content, just below the header bar now that the rail starts there.
+     Visual shape
      (background/radius/hover) comes from the shared .ds-icon-btn primitive;
      only position/size is scoped here. Desktop only: mobile already has the
      hamburger for this job. Stays a DOM sibling of <Sidebar/>, not a child
@@ -786,15 +819,16 @@ const hasSidebar = sidebar && sidebar.length > 0;
       align-items: center;
       justify-content: center;
       position: fixed;
-      top: calc(var(--page-header-height) / 2);
+      top: calc(var(--page-header-height) + var(--page-space-4));
       left: var(--page-sidebar-width);
-      transform: translate(-50%, -50%);
+      transform: translate(-50%, 0);
       width: 32px;
       height: 32px;
       padding: 0;
       cursor: pointer;
-      /* Above the sidebar (150) so it's never covered, expanded or collapsed. */
-      z-index: 160;
+      /* Above the rail (50) so it's never covered, expanded or collapsed,
+         but below the header (100) so a menu panel opens over it. */
+      z-index: 60;
       transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -822,7 +856,7 @@ const hasSidebar = sidebar && sidebar.length > 0;
        and give it real breathing room from the edge instead. */
     body.sidebar-collapsed .sidebar-collapse-toggle {
       left: 12px;
-      transform: translateY(-50%);
+      transform: none;
     }
 
     body.sidebar-collapsed .sidebar-collapse-toggle svg {

@@ -119,6 +119,12 @@ const checked = data._meta.checked as string;
   .pj {
     --pj-gap-section: 3.25rem;
     --pj-rule: var(--sl-color-hairline);
+    /* This page carries no side rails, so without a cap of its own the
+       project rows run the full width of the wrapper — over 1000px on a
+       desktop screen, which is nobody's reading measure. It never needed one
+       before because the rails used to do the constraining by accident. */
+    max-width: 62rem;
+    margin: 0 auto;
   }
 
   .pj-lede { font-size: 1.0625rem; line-height: 1.6; max-width: 62ch; margin: 0 0 1.75rem; }

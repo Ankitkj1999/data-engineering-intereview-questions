@@ -1,97 +1,29 @@
 ---
 import SidebarSublist from "./SidebarSublist.astro";
 
-const { sidebar, siteTitle, siteTitleHref } = Astro.locals.starlightRoute;
+const { sidebar } = Astro.locals.starlightRoute;
 ---
 
 <div class="page-sidebar">
-  <div class="page-sidebar-header">
-    <a href={siteTitleHref} class="page-sidebar-title">
-      <svg
-        class="sidebar-logo logo-cell"
-        viewBox="0 0 108 108"
-        width="28"
-        height="28"
-        role="img"
-        aria-label={siteTitle}
-      >
-        <rect class="logo-cell-bg" x="0" y="0" width="108" height="108" rx="24" ry="24" />
-        <text class="logo-cell-fg" x="31" y="40" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="8">01</text>
-        <text class="logo-cell-fg" x="54" y="67" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="33">De</text>
-        <text class="logo-cell-fg" x="54" y="79.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="5.6" letter-spacing="0.8">DATA ENG</text>
-      </svg>
-      <span class="page-title-text">{siteTitle}</span>
-    </a>
-  </div>
   <div class="page-sidebar-container">
     <SidebarSublist sublist={sidebar} />
   </div>
 </div>
 
 <style>
-  /* Pinned header row (site title) + independently-scrolling nav list below
-     it — a flat child reorder wouldn't work here, since the header needs to
-     stay put while the list scrolls under it. */
+  /* Just the scrolling nav list now. This panel used to carry its own header
+     row with a second copy of the site title, because the rail spanned the
+     full viewport height and covered the real header's left column — so the
+     title had to be re-rendered here to stay visible. The rail now starts
+     below the header (see TwoColumnContent.astro), which leaves the header
+     an unbroken bar for the site title and the nav, and leaves this panel
+     one job. */
   .page-sidebar {
     display: flex;
     flex-direction: column;
     height: 100%;
     overflow: hidden;
     background: var(--page-bg-secondary);
-  }
-
-  .page-sidebar-header {
-    flex-shrink: 0;
-    height: var(--page-header-height);
-    display: flex;
-    align-items: center;
-    padding: 0 var(--page-space-6);
-    border-bottom: 1px solid var(--page-border);
-  }
-
-  /* Same treatment as Header.astro's .page-site-title/.page-title-text —
-     this is the same identity mark, just relocated into the sidebar. */
-  .page-sidebar-title {
-    display: flex;
-    align-items: center;
-    gap: var(--page-space-3);
-    text-decoration: none;
-    color: var(--page-text);
-    font-weight: 700;
-    font-size: 1.125rem;
-    transition: opacity 0.2s ease;
-  }
-
-  .page-sidebar-title:hover {
-    opacity: 0.7;
-  }
-
-  .page-sidebar-title .page-title-text {
-    font-family: var(--page-font-family);
-    letter-spacing: -0.02em;
-  }
-
-  .sidebar-logo {
-    border-radius: var(--page-radius-sm);
-    flex-shrink: 0;
-  }
-
-  /* Logo mark: one inline SVG instead of separate light/dark PNGs — see
-     Header.astro's matching rule for why the fill stays orange in both
-     themes. */
-  .logo-cell-bg {
-    fill: var(--sl-color-accent);
-  }
-
-  .logo-cell-fg {
-    fill: #fff;
-  }
-
-  /* The vendor stylesheet force-overrides plain <a> color in dark mode via a
-     high-specificity selector (documented in SidebarSublist.astro) — out-
-     specify it the same way rather than reaching for !important. */
-  a.page-sidebar-title.page-sidebar-title.page-sidebar-title.page-sidebar-title.page-sidebar-title {
-    color: var(--page-text) !important;
   }
 
   .page-sidebar-container {

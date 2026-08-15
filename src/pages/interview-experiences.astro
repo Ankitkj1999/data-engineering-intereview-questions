@@ -214,6 +214,11 @@ const checked = data._meta.checked as string;
   .ie {
     --ie-gap-section: 3.25rem;
     --ie-rule: var(--sl-color-hairline);
+    /* Same reason as .pj in projects.astro: no side rails on this route, so
+       the page has to set its own measure instead of inheriting one from
+       chrome that is no longer there. */
+    max-width: 62rem;
+    margin: 0 auto;
   }
 
   .ie-lede {

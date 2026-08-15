@@ -1,223 +1,329 @@
 {
-  "sidebar": [
-    {
-      "label": "Overall Progress",
-      "link": "/progress/"
-    },
-    {
-      "label": "Roadmaps",
-      "items": [
-        {
+  "header": {
+    "primary": [
+      {
+        "label": "Roadmaps",
+        "href": "/roadmaps/",
+        "menu": "roadmaps",
+        "match": [
+          "/roadmaps"
+        ]
+      },
+      {
+        "label": "Questions",
+        "href": "/level-1-foundations/sql/",
+        "menu": "questions",
+        "match": [
+          "/level-1-foundations",
+          "/level-2-core-concepts",
+          "/level-3-technologies",
+          "/level-4-advanced"
+        ]
+      },
+      {
+        "label": "Projects",
+        "href": "/projects/",
+        "match": [
+          "/projects"
+        ]
+      },
+      {
+        "label": "Interviews",
+        "href": "/interview-experiences/",
+        "match": [
+          "/interview-experiences"
+        ]
+      },
+      {
+        "label": "Progress",
+        "href": "/progress/",
+        "match": [
+          "/progress"
+        ]
+      }
+    ],
+    "menus": {
+      "roadmaps": {
+        "featured": {
           "label": "Data Engineering",
-          "link": "/roadmaps/data-engineering/"
+          "href": "/roadmaps/data-engineering/",
+          "blurb": "The master roadmap. 25 categories, 123 sub-nodes, all but five wired to real questions.",
+          "meta": "Start here"
         },
-        {
-          "label": "Python",
-          "link": "/roadmaps/python/"
-        },
-        {
-          "label": "SQL",
-          "link": "/roadmaps/sql/"
-        },
-        {
-          "label": "Data Structures",
-          "link": "/roadmaps/data-structures/"
-        },
-        {
-          "label": "Git & GitHub",
-          "link": "/roadmaps/git/"
-        },
-        {
-          "label": "Linux",
-          "link": "/roadmaps/linux/"
-        },
-        {
-          "label": "Networking",
-          "link": "/roadmaps/networking/"
-        },
-        {
-          "label": "Docker",
-          "link": "/roadmaps/docker/"
-        },
-        {
-          "label": "Kubernetes",
-          "link": "/roadmaps/kubernetes/"
-        },
-        {
-          "label": "CI/CD",
-          "link": "/roadmaps/cicd/"
-        },
-        {
-          "label": "Infrastructure as Code",
-          "link": "/roadmaps/iac/"
-        },
-        {
-          "label": "Data Modeling",
-          "link": "/roadmaps/data-modeling/"
-        },
-        {
-          "label": "Data Warehousing",
-          "link": "/roadmaps/data-warehousing/"
-        },
-        {
-          "label": "Data Quality",
-          "link": "/roadmaps/data-quality/"
-        },
-        {
-          "label": "Data Governance",
-          "link": "/roadmaps/data-governance/"
-        },
-        {
-          "label": "Data Lifecycle",
-          "link": "/roadmaps/data-lifecycle/"
-        },
-        {
-          "label": "Reverse ETL",
-          "link": "/roadmaps/reverse-etl/"
-        },
-        {
-          "label": "Apache Spark",
-          "link": "/roadmaps/apache-spark/"
-        },
-        {
-          "label": "Hadoop",
-          "link": "/roadmaps/hadoop/"
-        },
-        {
-          "label": "Apache Hive",
-          "link": "/roadmaps/hive/"
-        },
-        {
-          "label": "Apache Kafka",
-          "link": "/roadmaps/kafka/"
-        },
-        {
-          "label": "Apache Flink",
-          "link": "/roadmaps/flink/"
-        },
-        {
-          "label": "Apache Airflow",
-          "link": "/roadmaps/airflow/"
-        },
-        {
-          "label": "dbt",
-          "link": "/roadmaps/dbt/"
-        },
-        {
-          "label": "Change Data Capture",
-          "link": "/roadmaps/cdc/"
-        },
-        {
-          "label": "Ingestion Patterns",
-          "link": "/roadmaps/ingestion-patterns/"
-        },
-        {
-          "label": "Apache Flume",
-          "link": "/roadmaps/flume/"
-        },
-        {
-          "label": "Apache NiFi",
-          "link": "/roadmaps/nifi/"
-        },
-        {
-          "label": "Snowflake",
-          "link": "/roadmaps/snowflake/"
-        },
-        {
-          "label": "Google BigQuery",
-          "link": "/roadmaps/bigquery/"
-        },
-        {
-          "label": "Amazon Redshift",
-          "link": "/roadmaps/redshift/"
-        },
-        {
-          "label": "Databricks",
-          "link": "/roadmaps/databricks/"
-        },
-        {
-          "label": "MongoDB",
-          "link": "/roadmaps/mongodb/"
-        },
-        {
-          "label": "Apache Cassandra",
-          "link": "/roadmaps/cassandra/"
-        },
-        {
-          "label": "Amazon DynamoDB",
-          "link": "/roadmaps/dynamodb/"
-        },
-        {
-          "label": "Cloud Bigtable",
-          "link": "/roadmaps/bigtable/"
-        },
-        {
-          "label": "Apache Parquet",
-          "link": "/roadmaps/parquet/"
-        },
-        {
-          "label": "Apache Avro",
-          "link": "/roadmaps/avro/"
-        },
-        {
-          "label": "Delta Lake",
-          "link": "/roadmaps/delta-lake/"
-        },
-        {
-          "label": "Apache Iceberg",
-          "link": "/roadmaps/iceberg/"
-        },
-        {
-          "label": "Looker",
-          "link": "/roadmaps/looker/"
-        },
-        {
-          "label": "Apache Superset",
-          "link": "/roadmaps/superset/"
-        },
-        {
-          "label": "Tableau",
-          "link": "/roadmaps/tableau/"
-        },
-        {
-          "label": "AWS Services",
-          "link": "/roadmaps/aws/"
-        },
-        {
-          "label": "Azure Services",
-          "link": "/roadmaps/azure/"
-        },
-        {
-          "label": "GCP Services",
-          "link": "/roadmaps/gcp/"
-        },
-        {
-          "label": "System Design",
-          "link": "/roadmaps/system-design/"
-        },
-        {
-          "label": "Observability",
-          "link": "/roadmaps/observability/"
-        },
-        {
-          "label": "ML & MLOps",
-          "link": "/roadmaps/mlops/"
-        },
-        {
-          "label": "Cost Optimization",
-          "link": "/roadmaps/cost-optimization/"
+        "groups": [
+          {
+            "label": "Foundations",
+            "items": [
+              {
+                "label": "SQL",
+                "href": "/roadmaps/sql/"
+              },
+              {
+                "label": "Python",
+                "href": "/roadmaps/python/"
+              },
+              {
+                "label": "Data Structures",
+                "href": "/roadmaps/data-structures/"
+              },
+              {
+                "label": "Linux",
+                "href": "/roadmaps/linux/"
+              },
+              {
+                "label": "Git & GitHub",
+                "href": "/roadmaps/git/"
+              },
+              {
+                "label": "Docker",
+                "href": "/roadmaps/docker/"
+              }
+            ]
+          },
+          {
+            "label": "Core concepts",
+            "items": [
+              {
+                "label": "Data Modeling",
+                "href": "/roadmaps/data-modeling/"
+              },
+              {
+                "label": "Data Warehousing",
+                "href": "/roadmaps/data-warehousing/"
+              },
+              {
+                "label": "Data Quality",
+                "href": "/roadmaps/data-quality/"
+              },
+              {
+                "label": "Data Governance",
+                "href": "/roadmaps/data-governance/"
+              },
+              {
+                "label": "System Design",
+                "href": "/roadmaps/system-design/"
+              },
+              {
+                "label": "Ingestion Patterns",
+                "href": "/roadmaps/ingestion-patterns/"
+              }
+            ]
+          },
+          {
+            "label": "Processing",
+            "items": [
+              {
+                "label": "Apache Spark",
+                "href": "/roadmaps/apache-spark/"
+              },
+              {
+                "label": "Apache Kafka",
+                "href": "/roadmaps/kafka/"
+              },
+              {
+                "label": "Apache Airflow",
+                "href": "/roadmaps/airflow/"
+              },
+              {
+                "label": "dbt",
+                "href": "/roadmaps/dbt/"
+              },
+              {
+                "label": "Apache Flink",
+                "href": "/roadmaps/flink/"
+              },
+              {
+                "label": "Hadoop",
+                "href": "/roadmaps/hadoop/"
+              }
+            ]
+          },
+          {
+            "label": "Platforms",
+            "items": [
+              {
+                "label": "Snowflake",
+                "href": "/roadmaps/snowflake/"
+              },
+              {
+                "label": "Databricks",
+                "href": "/roadmaps/databricks/"
+              },
+              {
+                "label": "Google BigQuery",
+                "href": "/roadmaps/bigquery/"
+              },
+              {
+                "label": "AWS Services",
+                "href": "/roadmaps/aws/"
+              },
+              {
+                "label": "Azure Services",
+                "href": "/roadmaps/azure/"
+              },
+              {
+                "label": "GCP Services",
+                "href": "/roadmaps/gcp/"
+              }
+            ]
+          }
+        ],
+        "more": {
+          "label": "All 50 roadmaps",
+          "href": "/roadmaps/"
         }
-      ],
-      "collapsed": true
-    },
-    {
-      "label": "Interview Experiences",
-      "link": "/interview-experiences/"
-    },
-    {
-      "label": "Projects",
-      "link": "/projects/"
-    },
+      },
+      "questions": {
+        "groups": [
+          {
+            "label": "Foundations",
+            "id": "01",
+            "href": "/level-1-foundations/sql/",
+            "items": [
+              {
+                "label": "SQL",
+                "href": "/level-1-foundations/sql/"
+              },
+              {
+                "label": "Python",
+                "href": "/level-1-foundations/python/"
+              },
+              {
+                "label": "Data Structures",
+                "href": "/level-1-foundations/data-structure/"
+              },
+              {
+                "label": "Git & GitHub",
+                "href": "/level-1-foundations/git/"
+              },
+              {
+                "label": "Linux",
+                "href": "/level-1-foundations/linux/"
+              },
+              {
+                "label": "Docker",
+                "href": "/level-1-foundations/docker/"
+              },
+              {
+                "label": "CI/CD",
+                "href": "/level-1-foundations/cicd/"
+              },
+              {
+                "label": "Infrastructure as Code",
+                "href": "/level-1-foundations/iac/"
+              },
+              {
+                "label": "Networking",
+                "href": "/level-1-foundations/networking/"
+              }
+            ]
+          },
+          {
+            "label": "Core concepts",
+            "id": "02",
+            "href": "/level-2-core-concepts/what-is-data-engineering/",
+            "items": [
+              {
+                "label": "What is Data Engineering",
+                "href": "/level-2-core-concepts/what-is-data-engineering/"
+              },
+              {
+                "label": "Data Modeling",
+                "href": "/level-2-core-concepts/data-modeling/"
+              },
+              {
+                "label": "Data Warehousing",
+                "href": "/level-2-core-concepts/data-warehousing/"
+              },
+              {
+                "label": "Data Quality",
+                "href": "/level-2-core-concepts/data-quality/"
+              },
+              {
+                "label": "Data Governance",
+                "href": "/level-2-core-concepts/data-governance/"
+              },
+              {
+                "label": "Data Lifecycle",
+                "href": "/level-2-core-concepts/data-lifecycle/"
+              },
+              {
+                "label": "Reverse ETL",
+                "href": "/level-2-core-concepts/reverse-etl/"
+              }
+            ]
+          },
+          {
+            "label": "Technologies",
+            "id": "03",
+            "href": "/level-3-technologies/",
+            "items": [
+              {
+                "label": "Data Warehouses",
+                "href": "/level-3-technologies/data-warehouses/snowflake/"
+              },
+              {
+                "label": "Databases",
+                "href": "/level-3-technologies/databases/mongodb/"
+              },
+              {
+                "label": "Batch Processing",
+                "href": "/level-3-technologies/batch-processing/spark/"
+              },
+              {
+                "label": "Streaming",
+                "href": "/level-3-technologies/streaming/kafka/"
+              },
+              {
+                "label": "Orchestration",
+                "href": "/level-3-technologies/orchestration/airflow/"
+              },
+              {
+                "label": "Data Formats",
+                "href": "/level-3-technologies/formats/parquet/"
+              },
+              {
+                "label": "Ingestion",
+                "href": "/level-3-technologies/ingestion/ingestion-patterns/"
+              },
+              {
+                "label": "Cloud Providers",
+                "href": "/level-3-technologies/cloud/aws/"
+              },
+              {
+                "label": "BI Tools",
+                "href": "/level-3-technologies/bi/tableau/"
+              }
+            ]
+          },
+          {
+            "label": "Advanced",
+            "id": "04",
+            "href": "/level-4-advanced/system-design/",
+            "items": [
+              {
+                "label": "System Design",
+                "href": "/level-4-advanced/system-design/"
+              },
+              {
+                "label": "Cost Optimization",
+                "href": "/level-4-advanced/cost-optimization/"
+              },
+              {
+                "label": "Observability",
+                "href": "/level-4-advanced/observability/"
+              },
+              {
+                "label": "ML & MLOps",
+                "href": "/level-4-advanced/mlops/"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "sidebar": [
     {
       "label": "Foundations",
       "items": [

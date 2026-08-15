@@ -9,6 +9,7 @@ import MobileMenuToggle from "@pelagornis/page/overrides/MobileMenuToggle.astro"
 import LanguageSelect from "@pelagornis/page/overrides/LanguageSelect.astro";
 import ThemeSelect from "@pelagornis/page/overrides/ThemeSelect.astro";
 import config from "virtual:starlight/user-config";
+import { hasCurriculumSidebar } from "../lib/route";
 
 // Build path considering locale
 function localizedPath(path: string): string {
@@ -23,19 +24,24 @@ function localizedPath(path: string): string {
   return `/${currentLocale}${path}`;
 }
 
-// Get navigation from env
-let navigation: { href: string; label: string }[] | undefined;
-try {
-  const navigationEnv = process.env.PAGE_NAVIGATION;
-  navigation = navigationEnv ? JSON.parse(navigationEnv) : undefined;
-} catch {
-  navigation = undefined;
-}
+// Navigation comes from src/config/navigation.json, the same file that feeds
+// Starlight's sidebar — not from process.env.PAGE_NAVIGATION, which this
+// component used to read. That variable is never set anywhere in the repo, so
+// the parse always yielded undefined and the whole <nav> was skipped: the
+// header has been rendering a logo, a void, and four icons on every page.
+import navigationConfig from "../config/navigation.json";
 
-const { siteTitle, siteTitleHref, sidebar } = Astro.locals.starlightRoute;
+const { primary, menus } = navigationConfig.header;
 
-// Check if sidebar exists
-const hasSidebar = sidebar && sidebar.length > 0;
+const { siteTitle, siteTitleHref } = Astro.locals.starlightRoute;
+
+// Only curriculum routes get the left rail (see src/lib/route.ts), and only
+// they need the mobile hamburger that opens it. The site title is no longer
+// conditional on this: the rail starts below the header now, so it never
+// covers this corner and the title simply always renders here.
+const hasSidebar = hasCurriculumSidebar(Astro.url.pathname);
+const CHEVRON = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 4.5 6 7.5 9 4.5"/></svg>`;
+const ARROW = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" y1="7" x2="11" y2="7"/><polyline points="7.5 3.5 11 7 7.5 10.5"/></svg>`;
 ---
 
 <div class="page-header">
@@ -59,18 +65,85 @@ const hasSidebar = sidebar && sidebar.length > 0;
         <span class="page-title-text">{siteTitle}</span>
       </a>
 
-      <!-- Page-style navigation -->
-      {
-        navigation && (
-          <nav class="page-nav">
-            {navigation.map((item: { href: string; label: string }) => (
-              <a href={localizedPath(item.href)} class="page-nav-link">
-                {item.label}
-              </a>
-            ))}
-          </nav>
-        )
-      }
+      <!-- Top-level navigation. The two sections with more than a handful of
+           destinations (50 roadmaps, 29 question topics) open a panel rather
+           than trying to fit in the bar or hiding in a 320px accordion. -->
+      <nav class="page-nav" aria-label="Main">
+        {
+          primary.map((item) => {
+            const menu = item.menu ? menus[item.menu as keyof typeof menus] : null;
+            const match = item.match.join(",");
+            if (!menu) {
+              return (
+                <a href={localizedPath(item.href)} class="page-nav-link" data-match={match}>
+                  {item.label}
+                </a>
+              );
+            }
+            return (
+              <div class="nav-group" data-menu={item.menu}>
+                <a
+                  href={localizedPath(item.href)}
+                  class="page-nav-link nav-group-trigger"
+                  data-match={match}
+                  aria-haspopup="true"
+                >
+                  {item.label}
+                  <span class="nav-group-chevron" set:html={CHEVRON} />
+                </a>
+
+                <div class="nav-panel" data-panel={item.menu}>
+                  <div class="nav-panel-inner">
+                    {"featured" in menu && menu.featured && (
+                      <a class="nav-featured" href={localizedPath(menu.featured.href)}>
+                        <span class="nav-featured-meta">{menu.featured.meta}</span>
+                        <span class="nav-featured-title">{menu.featured.label}</span>
+                        <span class="nav-featured-blurb">{menu.featured.blurb}</span>
+                        <span class="nav-featured-go" set:html={ARROW} />
+                      </a>
+                    )}
+
+                    <div class="nav-cols">
+                      {menu.groups.map((group) => (
+                        <div class="nav-col">
+                          <p class="nav-col-head">
+                            {"id" in group && group.id && (
+                              <span class="nav-col-id">{group.id}</span>
+                            )}
+                            {"href" in group && group.href ? (
+                              <a class="nav-col-label" href={localizedPath(group.href)}>
+                                {group.label}
+                              </a>
+                            ) : (
+                              <span class="nav-col-label">{group.label}</span>
+                            )}
+                          </p>
+                          <ul class="nav-col-list">
+                            {group.items.map((link) => (
+                              <li>
+                                <a class="nav-link" href={localizedPath(link.href)}>
+                                  {link.label}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {"more" in menu && menu.more && (
+                    <a class="nav-panel-more" href={localizedPath(menu.more.href)}>
+                      {menu.more.label}
+                      <span set:html={ARROW} />
+                    </a>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        }
+      </nav>
     </div>
 
     <div class="page-header-right">
@@ -107,20 +180,53 @@ const hasSidebar = sidebar && sidebar.length > 0;
     // Add extra logic here if needed
   }
 
-  // Page-style active navigation
+  /* Active section, matched against the prefixes a nav item owns (data-match,
+     from navigation.json) rather than against its own href.
+
+     Those differ on purpose. "Questions" links to /level-1-foundations/sql/,
+     because a leaf topic is the sensible place to land someone — but the
+     section it stands for is four separate level-* trees. Testing
+     currentPath.startsWith(href), as this did, lit the tab on exactly one of
+     the 29 question topics and left it dark on the other 28. */
   function setpageActiveNavLink() {
-    const currentPath = window.location.pathname;
-    const navLinks = document.querySelectorAll(".page-nav-link");
+    const currentPath = window.location.pathname.replace(/\/+$/, "") || "/";
 
-    navLinks.forEach((link) => {
+    document.querySelectorAll(".page-nav-link").forEach((link) => {
       link.classList.remove("active");
-      const href = link.getAttribute("href");
 
-      // More precise active link matching
-      if (href === "/" && currentPath === "/") {
-        link.classList.add("active");
-      } else if (href !== "/" && href && currentPath.startsWith(href)) {
-        link.classList.add("active");
+      const raw = link.getAttribute("data-match");
+      if (!raw) return;
+
+      const isActive = raw.split(",").some((prefix) => {
+        const p = prefix.replace(/\/+$/, "");
+        if (!p) return false;
+        // Guard with "/" so /projects can't claim /projects-archive.
+        return currentPath === p || currentPath.startsWith(`${p}/`);
+      });
+
+      if (isActive) link.classList.add("active");
+    });
+  }
+
+  /* @pelagornis/page stamps data-theme onto elements inside the document —
+     <body>, .page-header, .page-footer-container, .page-mobile-menu-overlay,
+     its <page-select> — and never updates them again. Starlight's theme
+     toggle only ever writes to <html>, so switching themes left those stale:
+     <html data-theme="light"> above <body data-theme="dark">, with the
+     vendor's own `[data-theme="dark"] body { ... !important }` rules still
+     matching and painting dark-mode background and text under a light-mode
+     page. Mirroring the root's value onto every carrier makes the vendor's
+     rules agree with the theme actually in effect instead of contradicting
+     it. See src/styles/theme.css for the token-level half of this. */
+  function syncThemeCarriers() {
+    const theme = document.documentElement.getAttribute("data-theme");
+    if (!theme) return;
+    document.querySelectorAll("[data-theme]").forEach((el) => {
+      if (el === document.documentElement) return;
+      // Guard the write: setAttribute fires the observer below even when the
+      // value is unchanged, which would loop.
+      if (el.getAttribute("data-theme") !== theme) {
+        el.setAttribute("data-theme", theme);
       }
     });
   }
@@ -152,22 +258,28 @@ const hasSidebar = sidebar && sidebar.length > 0;
     initpageThemeToggle();
     setpageActiveNavLink();
     updateLogo();
+    syncThemeCarriers();
 
-    // Listen for theme change
+    // Listen for theme change. Watching the whole subtree (filtered to the one
+    // attribute) rather than just documentElement, because the vendor stamps
+    // its carriers during its own init — which can land after this runs, and
+    // would otherwise stay stale until the next toggle.
     const observer = new MutationObserver((mutations) => {
+      let rootChanged = false;
+      let carrierChanged = false;
       mutations.forEach((mutation) => {
-        if (
-          mutation.type === "attributes" &&
-          mutation.attributeName === "data-theme"
-        ) {
-          updateLogo();
-        }
+        if (mutation.type !== "attributes" || mutation.attributeName !== "data-theme") return;
+        if (mutation.target === document.documentElement) rootChanged = true;
+        else carrierChanged = true;
       });
+      if (rootChanged) updateLogo();
+      if (rootChanged || carrierChanged) syncThemeCarriers();
     });
 
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["data-theme"],
+      subtree: true,
     });
 
     isInitialized = true;
@@ -249,6 +361,9 @@ const hasSidebar = sidebar && sidebar.length > 0;
     display: flex;
     align-items: center;
     gap: var(--page-space-2);
+    /* Never give up width to the nav — on mobile the nav is a scrolling
+       strip, and a shrinking icon cluster let it slide underneath. */
+    flex-shrink: 0;
   }
 
   /* Nav icon buttons: same 40x40 as SocialIcons (Slack etc), icon 20px */
@@ -341,34 +456,32 @@ const hasSidebar = sidebar && sidebar.length > 0;
     min-height: 24px !important;
   }
 
-  /* Page-style site title — lives in the sidebar now (Sidebar.astro) at
-     desktop widths, where the sidebar spans the full viewport height and
-     covers this header's left column. Stays visible here on mobile (the
-     sidebar's full-height treatment is desktop-only) and reappears here the
-     moment the sidebar is collapsed, so there's still a way home.
-
-     Ordering matters: the hiding rule below has the same specificity
-     (0-1-0) as this base rule, so it must come AFTER it in source order to
-     win at desktop widths — .sidebar-collapsed then out-specifies both. */
+  /* Site title, on every route and at every width. It used to be hidden at
+     ≥769px and re-rendered inside the sidebar, because the rail covered this
+     corner of the header — two copies of one mark, kept in sync by hand,
+     each with its own visibility rules. The rail now starts below the header
+     (TwoColumnContent.astro), so there is one title in one place. */
   .page-site-title {
     display: flex;
     align-items: center;
     gap: var(--page-space-3);
+    flex-shrink: 0;
     text-decoration: none;
     color: var(--page-text);
     font-weight: 700;
     font-size: 1.125rem;
+    line-height: 1.15;
+    white-space: nowrap;
     transition: opacity 0.2s ease;
   }
 
-  @media (min-width: 769px) {
-    .page-site-title {
+  /* Between 769px and 1180px the bar holds the title, five nav sections and
+     four icon controls — past that point the wordmark is what gives, since
+     the logo alone still gets you home and the nav does not degrade. */
+  @media (min-width: 769px) and (max-width: 1180px) {
+    .page-title-text {
       display: none;
     }
-  }
-
-  :global(body.sidebar-collapsed) .page-site-title {
-    display: flex;
   }
 
   .page-site-title:hover {
@@ -411,10 +524,230 @@ const hasSidebar = sidebar && sidebar.length > 0;
   .page-nav {
     display: flex;
     align-items: center;
-    gap: var(--page-space-6);
+    gap: var(--page-space-1);
     list-style: none;
     margin: 0;
     padding: 0;
+  }
+
+  /* ── Section panels ────────────────────────────────────────────────────
+     Roadmaps and Questions each have far too many destinations for a nav
+     bar (50 and 29), and the 320px accordion they used to hide in made a
+     50-item list something you scrolled rather than scanned. A panel gives
+     them their real shape: grouped columns, all visible at once.
+
+     Opened on hover and on :focus-within, so the whole thing is reachable
+     by keyboard with no JS — and every trigger is a real link to a real
+     landing page, so a tap on touch (where hover doesn't exist) navigates
+     somewhere useful instead of doing nothing. */
+  .nav-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .nav-group-trigger {
+    gap: var(--page-space-1);
+  }
+
+  .nav-group-chevron {
+    display: flex;
+    color: var(--page-text-muted);
+    transition: transform 0.18s ease, color 0.18s ease;
+  }
+
+  .nav-group:hover .nav-group-chevron,
+  .nav-group:focus-within .nav-group-chevron {
+    color: inherit;
+    transform: rotate(180deg);
+  }
+
+  .nav-panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    z-index: 200;
+    width: max-content;
+    max-width: min(64rem, calc(100vw - 3rem));
+    background: var(--page-bg-elevated);
+    border: 1px solid var(--page-border);
+    border-radius: var(--page-radius-lg);
+    box-shadow: var(--page-shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+  }
+
+  .nav-group:hover .nav-panel,
+  .nav-group:focus-within .nav-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  /* The trigger and its panel are separated by a 0.5rem gap; without
+     something spanning it the pointer leaves both on the way down and the
+     panel closes mid-travel. */
+  .nav-panel::before {
+    content: "";
+    position: absolute;
+    inset: -0.5rem 0 auto 0;
+    height: 0.5rem;
+  }
+
+  .nav-panel-inner {
+    display: flex;
+    gap: var(--page-space-8);
+    padding: var(--page-space-6);
+  }
+
+  .nav-cols {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(9.5rem, 1fr));
+    gap: var(--page-space-6) var(--page-space-8);
+  }
+
+  /* Column heads carry the curriculum's stage number where the content
+     genuinely is a sequence (Questions: 01 Foundations → 04 Advanced) and
+     omit it where it isn't (Roadmaps, which are peers you pick between). */
+  .nav-col-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.45rem;
+    margin: 0 0 var(--page-space-3);
+    padding-bottom: var(--page-space-2);
+    border-bottom: 1px solid var(--page-border);
+  }
+
+  .nav-col-id {
+    font-family: var(--brand-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--sl-color-accent);
+  }
+
+  .nav-col-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--page-text-muted);
+    text-decoration: none;
+  }
+
+  a.nav-col-label:hover {
+    color: var(--page-text);
+  }
+
+  .nav-col-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nav-panel .nav-link {
+    display: block;
+    padding: 0.3rem 0.5rem;
+    margin-left: -0.5rem;
+    border-radius: var(--page-radius-md);
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: var(--page-text-secondary);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.12s ease, background 0.12s ease;
+  }
+
+  .nav-panel .nav-link:hover {
+    color: var(--page-text);
+    background: var(--page-accent-light);
+  }
+
+  /* The master roadmap is the site's front door — 123 nodes, all but five
+     linked to real questions — so it gets picked out of the list rather
+     than sorted alphabetically into it. */
+  .nav-featured {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    width: 15rem;
+    flex-shrink: 0;
+    padding: var(--page-space-5);
+    border: 1px solid var(--page-border);
+    border-left: 3px solid var(--sl-color-accent);
+    border-radius: var(--page-radius-lg);
+    background: var(--page-bg-secondary);
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .nav-featured:hover {
+    border-color: var(--sl-color-accent);
+  }
+
+  .nav-featured-meta {
+    font-family: var(--brand-mono);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--sl-color-accent);
+  }
+
+  .nav-featured-title {
+    font-family: var(--brand-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--page-text);
+  }
+
+  .nav-featured-blurb {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--page-text-muted);
+  }
+
+  .nav-featured-go {
+    display: flex;
+    margin-top: auto;
+    padding-top: var(--page-space-3);
+    color: var(--sl-color-accent);
+  }
+
+  .nav-panel-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: var(--page-space-3);
+    border-top: 1px solid var(--page-border);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--page-text-secondary);
+    text-decoration: none;
+    transition: color 0.12s ease, background 0.12s ease;
+  }
+
+  .nav-panel-more:hover {
+    color: var(--sl-color-accent);
+    background: var(--page-accent-light);
+  }
+
+  .nav-panel-more :global(svg) {
+    display: block;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-panel,
+    .nav-group-chevron {
+      transition: none !important;
+    }
   }
 
   .page-nav-link {
@@ -549,10 +882,43 @@ const hasSidebar = sidebar && sidebar.length > 0;
     }
 
     .page-header-left {
-      gap: var(--page-space-4);
+      gap: var(--page-space-3);
+      min-width: 0;
+      flex: 1;
     }
 
+    /* Mobile keeps the top-level sections reachable as a scrolling strip
+       rather than hiding them entirely, which is what used to happen — and
+       with the hamburger now scoped to curriculum routes, hiding them would
+       have left the homepage and all 50 roadmap pages with no navigation at
+       all. The panels don't come along: there is no hover on touch, and each
+       trigger is already a link to that section's landing page. */
     .page-nav {
+      gap: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+      min-width: 0;
+      /* The strip sits flush against the icon cluster, so without a gutter
+         the fade lands exactly on the first icon and reads as a label the
+         buttons are covering rather than as more nav to scroll to. */
+      margin-right: var(--page-space-3);
+      -webkit-mask-image: linear-gradient(to right, black calc(100% - 2rem), transparent);
+      mask-image: linear-gradient(to right, black calc(100% - 2rem), transparent);
+    }
+
+    .page-nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .page-nav-link {
+      padding: var(--page-space-2) var(--page-space-3);
+      white-space: nowrap;
+    }
+
+    .nav-panel,
+    .nav-group-chevron {
       display: none;
     }
 
