@@ -44,7 +44,10 @@ const checked = data._meta.checked as string;
 ---
 
 <StarlightPage frontmatter={{ title: "Projects", description: "Curated end-to-end data engineering projects grouped by stack — Spark, Databricks, AWS, Azure, GCP, Snowflake and dbt — each with a repo, video walkthrough or written guide." }}>
-  <div class="pj">
+  {/* `not-content` — this is app UI, not prose. Starlight's markdown stylesheet
+      gives every non-first sibling inside `.sl-markdown-content` a top margin,
+      which inside a flex/grid container is a layout bug rather than spacing. */}
+  <div class="pj not-content">
     <p class="pj-lede">
       End-to-end projects worth building, grouped by the stack they run on. Every one links to
       whatever exists for it — a repo to clone, a video to follow, a written guide to read.

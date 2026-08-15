@@ -40,6 +40,35 @@
 	--ds-control-h: 2.25rem;
 }
 
+/* ── `.not-content` baseline ──────────────────────────────────────────────
+   Starlight styles *everything* inside `.sl-markdown-content` as prose, and
+   custom pages render inside that wrapper too. Its sibling rule
+
+     .sl-markdown-content :not(a,strong,em,del,span,input,code,br)
+       + :not(a,strong,em,del,span,input,code,br,:where(.not-content *))
+       { margin-top: var(--sl-content-gap-y) }
+
+   hands a 1rem top margin to every non-first element on the page. Between
+   paragraphs that is the point; inside a flex or grid container it is a
+   layout bug, because a margin on an item eats into the space the container
+   allotted it. That is what made the progress page's topic cards render at
+   two different heights and left its stack toggle misaligned — the first
+   child of each container had no preceding sibling and so kept its full
+   height, and every later one lost 16px.
+
+   So app UI carries Starlight's own `not-content` opt-out: whole-page roots
+   for the custom pages, and just the chrome (never the answer prose) inside
+   MDX components.
+
+   Opting out also drops Starlight's heading baseline, leaving headings at the
+   browser default of bold 700 / line-height 1.5. Restore only that, at zero
+   specificity (`:where`) so any page's own heading rule still wins.
+──────────────────────────────────────────────────────────────────────────── */
+:where(.not-content) :where(h1, h2, h3, h4, h5, h6) {
+	font-weight: 600;
+	line-height: 1.2;
+}
+
 /* Flat, hairline-bordered surface — the one panel treatment used by the
    header and both sidebars, so they read as the same system rather than
    three different ones (glass header / flat rail / floating rounded card). */

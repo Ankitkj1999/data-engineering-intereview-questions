@@ -363,7 +363,13 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
     description: "Your aggregated progress across every topic in this platform, staged the same way as the curriculum: foundations, core concepts, technologies, advanced.",
   }}
 >
-  <div id="progress-root">
+  {/* `not-content` opts this subtree out of Starlight's markdown styling. This
+      page is app UI, not prose, and that stylesheet's sibling rule
+      (`:not(a,strong,…) + :not(…)`) was handing a 1rem top margin to *every*
+      non-first element on the page — including flex and grid items, where a
+      stray margin isn't spacing, it's a layout bug. See the note above
+      `.stack-toggle` in the styles below. */}
+  <div id="progress-root" class="not-content">
     <section class="hero">
       <p class="hero-eyebrow">Data engineering &middot; your progress</p>
       <h1 class="hero-title">Where you stand in the pipeline.</h1>
@@ -648,6 +654,7 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
      optical line. */
   .stack-toolbar {
     display: flex;
+    margin-top: 1rem;
     align-items: center;
     flex-wrap: wrap;
     gap: 0.75rem 1.25rem;
@@ -721,6 +728,7 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
   }
 
   .hero-stat {
+    margin-top: 1rem;
     border: var(--ds-border-w) solid var(--page-border);
     border-radius: var(--page-radius-lg);
     background: var(--page-bg-secondary);
@@ -759,6 +767,7 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
 
   .hero-stat-bar-wrap {
     display: flex;
+    margin-top: 1rem;
     align-items: center;
     gap: 0.85rem;
   }
@@ -783,6 +792,7 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
   .tier-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+    margin-top: 1rem;
     gap: 0.75rem;
     margin-bottom: 2.5rem;
   }
@@ -843,6 +853,7 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
 
   /* ── Stage sections ───────────────────────────────────────────────── */
   .stage-section {
+    margin-top: 1rem;
     scroll-margin-top: calc(var(--page-header-height) + 1rem);
     margin-bottom: 2.75rem;
   }
@@ -851,11 +862,18 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
     font-family: var(--brand-display);
     font-size: 1.3rem;
     font-weight: 600;
+    /* Was inherited from Starlight's prose heading styles; set explicitly now
+       that this subtree is `not-content`. */
+    line-height: 1.2;
     color: var(--sl-color-white);
     letter-spacing: -0.01em;
     margin: 0 0 1.1rem;
     padding-bottom: 0.75rem;
     border-bottom: var(--ds-border-w) solid var(--page-border-light);
+  }
+
+  .topic-group {
+    margin-top: 1rem;
   }
 
   .topic-group + .topic-group {
@@ -889,6 +907,10 @@ const totalTopics = tierStats.reduce((sum, t) => sum + t.topicCount, 0);
      like they came in two sizes. Every card holds the same three things
      (title, count, bar), so its height should be constant: the title is held
      to one line and the row gets an explicit height. */
+  .group-label + .topic-grid {
+    margin-top: 1rem;
+  }
+
   .topic-grid {
     --topic-row-h: 3.9rem;
     display: grid;

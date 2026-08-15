@@ -13,7 +13,7 @@ are the way they are, so settled questions don't get re-opened as if they were b
 
 > **Two tracks are open.**
 > **Content:** Phase 6 — Video Catalog. 6a and 6c shipped; only 6b remains. Phases 1–5 ✅ done, plus a roadmap quality pass.
-> **Design:** a separate track started 2026-08-15 — see [Design track](#design-track) below. Phase 1 (navigation & layout shell) ✅ done; phase 2 (tokens) part-done — border width and control height are tokens now ([D14](#d14-hairline-width-and-control-height-are-tokens-not-per-rule-literals)), type scale and colour roles still open.
+> **Design:** a separate track started 2026-08-15 — see [Design track](#design-track) below. Phase 1 (navigation & layout shell) ✅ done; phase 2 (tokens) part-done — border width and control height are tokens now ([D14](#d14-hairline-width-and-control-height-are-tokens-not-per-rule-literals)) and app UI opts out of prose styling ([D15](#d15-app-ui-opts-out-of-starlights-prose-styling-with-not-content)); type scale and colour roles still open.
 > Last updated: 2026-08-15
 
 Site total: **3,895 questions** across 51 topic pages + 74 subtopic pages, and **50 roadmaps**.
@@ -74,7 +74,7 @@ precision and restraint, monkeytype for the eventual theme switcher.
 | # | Phase | Scope | Status |
 |:-:|---|---|---|
 | D1 | **Navigation & layout shell** | Header nav + section panels, rails scoped per route, widths re-cut, `/roadmaps/` index | ✅ Done (2026-08-15) |
-| D2 | **Design tokens** | Type scale (28 ad-hoc sizes → one scale), elevation, colour role reassignment | 🟡 Started — border width + control height done ([D14](#d14-hairline-width-and-control-height-are-tokens-not-per-rule-literals)); type scale, elevation and colour roles remain |
+| D2 | **Design tokens** | Type scale (28 ad-hoc sizes → one scale), elevation, colour role reassignment | 🟡 Started — border width + control height ([D14](#d14-hairline-width-and-control-height-are-tokens-not-per-rule-literals)) and the prose/app-UI boundary ([D15](#d15-app-ui-opts-out-of-starlights-prose-styling-with-not-content)) done; type scale, elevation and colour roles remain |
 | D3 | **Homepage + `/questions/` index** | Crossroads homepage (see below) plus the missing questions directory | ⬜ Not started |
 | D4 | **SEO + LLM surface** | Real `site` URL, JSON-LD, `llms.txt`, canonicals, crawlable roadmaps | ✅ Done (2026-08-13) — see [D12](#d12-structured-data-breadcrumblist--techarticle-deliberately-no-faqpage), [D13](#d13-roadmaps-render-a-static-topic-index-hub-and-spoke) |
 | D5 | **Theme picker** | Ships the contract D2 establishes | ⬜ Not started |
@@ -725,6 +725,65 @@ surface needs a different value, that is a new token with a stated reason, not a
 
 ---
 
+### D15. App UI opts out of Starlight's prose styling with `not-content`
+
+D14 fixed the *tokens* behind the progress page's asymmetry but not the asymmetry itself — the
+cards and the toggle still rendered at different heights. Measuring the built page in headless
+Chrome (rather than reading the CSS) found the actual cause, and it was neither page-local nor
+token-related.
+
+**Every custom page renders inside `.sl-markdown-content`**, so Starlight's prose stylesheet
+applies to all of it. One rule in `@astrojs/starlight/style/markdown.css` does the damage:
+
+```css
+.sl-markdown-content :not(a, strong, em, del, span, input, code, br)
+  + :not(a, strong, em, del, span, input, code, br, :where(.not-content *)) {
+  margin-top: var(--sl-content-gap-y);   /* 1rem */
+}
+```
+
+Between paragraphs that is the point. Applied to a **flex or grid item** it is a layout bug: the
+margin eats into the space the container allotted the item. And because `+` never matches a first
+child, *only the first item in each container escaped it*. That is the whole story:
+
+| | Before | After |
+|---|---:|---:|
+| Progress topic-card heights | 62.4px (first) vs **46.4px** (all others) | **62.4px, all 54** |
+| Toggle buttons | 28px ("All topics") vs **12px** ("My stack") | **28px both**, text tops identical |
+| QuestionCard height on a topic page | 168.2px vs 152.2px | **152.2px, uniform** |
+
+Fixed by adopting Starlight's own opt-out, `class="not-content"`, on app UI:
+
+- **Whole-page roots** for the custom pages — `#progress-root`, `#home-root`, `.pj`, `.ie`,
+  `#rm-index`, and `#rm-root` + `.rm-index` on all 50 roadmap pages.
+- **Chrome only, never prose**, inside MDX components: `.qc-header` on `QuestionCard` and
+  `.ql-stat` on `QuestionList`. The answer body stays prose and keeps its styling.
+
+`not-content` is purely a CSS opt-out — it does not affect Pagefind indexing or crawlability, so
+D13's static topic index is untouched.
+
+**Two things opting out also removes, both restored deliberately:**
+
+1. **Heading baseline.** Headings fell back to the browser default (bold 700, line-height 1.5).
+   Restored once in `primitives.css` as `:where(.not-content) :where(h1…h6)` — zero specificity,
+   so any page's own heading rule still wins.
+2. **`li + li` 0.25rem.** *Not* restored: all four affected lists (`.pj-item`, `.ie-item`,
+   `.ie-creators`, `.rm-index-*`) already separate themselves with borders + padding or a grid
+   `gap`. The 4px sat on top of that and skipped the first item — the same asymmetry in miniature.
+
+**Verified, not eyeballed.** Every claim above is a measurement from headless Chrome against the
+built output: a full-depth geometry snapshot of each page before and after (650 elements on
+`/progress/` alone), diffed positionally, plus a typography diff that toggles the class at runtime.
+On `/progress/` exactly 37 elements changed — the 36 cards and the one button — and nothing else
+moved by a single pixel. A site-wide scan for "flex/grid item carrying a stray prose margin" now
+returns **zero** on every page type; the handful still flagged are the pages' own deliberate
+margins (8px, 2.4px), Starlight's `.sr-only` clip (-1px), and a `display:none` `<script>`.
+
+**Rule going forward:** if markup is app UI rather than prose, mark it `not-content`. If it lives
+inside an MDX component, scope that to the chrome and leave the authored content alone.
+
+---
+
 ## Open questions
 
 Unresolved calls. Settle before the phase that needs them; move the answer into **Decisions**.
@@ -847,6 +906,7 @@ Newest first. One line per working session: what was done, and what's next.
 
 | Date | What happened | Next up |
 |---|---|---|
+| 2026-08-16 | **Found the real cause of the progress-page asymmetry (D15).** D14's tokens didn't fix it, so I measured the built page in headless Chrome instead of reading CSS. Cause: every custom page renders inside `.sl-markdown-content`, and Starlight's prose sibling rule hands a **1rem top margin to every non-first element** — including flex and grid items, where a margin eats the space the container allotted. `+` never matches a first child, so **only the first item in each container escaped**: progress cards were 62.4px (first) vs 46.4px (rest), toggle buttons 28px vs 12px. Same defect site-wide — QuestionCard headers, QuestionList stats, projects dot-meters, interview-experience cards, roadmap topic indexes. Fixed with Starlight's own `not-content` opt-out on app UI: page roots for the 4 custom pages + `/roadmaps/` + all 50 roadmap pages (root and `.rm-index`), and **chrome only, never the answer prose**, inside the MDX components. Restored the heading baseline it also strips as a zero-specificity `:where()` rule in `primitives.css`; deliberately did *not* restore `li + li`, since all four affected lists already separate via borders or grid `gap`. Verified by full-depth geometry diff before/after (650 elements on `/progress/`): **exactly the 36 cards and 1 button changed, nothing else moved a pixel**; typography diff clean on every page; site-wide stray-margin scan now zero. | Design phase 2 — tokens: type scale, elevation, colour role reassignment |
 | 2026-08-15 | **Progress page symmetry — fixed in the design system (D14).** User reported topic cards rendering at different sizes and the toolbar toggle misaligned with the text beside it, and asked for the fix to live in the design system. Neither was a page-local bug. Border width had **drifted across the whole site** — `1px` and `1.5px` used interchangeably, mixed *within the same files including `primitives.css` itself*; at 1.5px a border straddles the pixel grid and antialiases, so it reads blurry and heavier next to a 1px line. Added `--ds-border-w`, `--ds-accent-edge-w` (the 3px card edge is an accent, not a border) and `--ds-control-h`, then migrated **all 66 border sites across 15 files** — the only literal left in `src/` is the token definition. Then the two reported faults: the toolbar centred *boxes* but left the glyphs on different lines, so the toggle now takes `--ds-control-h` and the hint takes the same value as `line-height`, which aligns the text; and `.topic-grid` rows sized to their tallest card, so one wrapped title made a whole row taller — `grid-auto-rows` plus a one-line title makes card height constant. Clean build, both fixes verified in the shipped bundle. | Design phase 2 — tokens: type scale, elevation, colour role reassignment |
 | 2026-08-15 | **Design phase 1 — navigation & layout shell.** Audit first: colour is genuinely centralised (~20 stray hexes outside `theme.css`), **typography is not** (28 ad-hoc `font-size` values, no scale, while the vendor ships an unused `--page-font-size-*` scale). Fixed four structural faults, all pre-existing: header nav read `process.env.PAGE_NAVIGATION`, **never set anywhere**, so the `<nav>` rendered nothing on every page; both rails rendered on every route (`sidebar.length > 0` is the *global* config, and Starlight synthesizes a one-item TOC), so home/roadmaps/projects each carried 640px of chrome pointing nowhere; trailing `.page-toc-sidebar` rules out-ordered the `@media (min-width: 1280px)` block so the TOC never went `position: fixed` and sat in flow at 320px — **doc prose measured 434px, now 752px**; and roadmap pages shipped two H1s. Built the header nav with Roadmaps/Questions panels, moved the sidebar below the header (one site title, not two), scoped rail offsets to `.with-sidebar`/`.with-toc`, and added the missing **`/roadmaps/` index** (50 roadmaps, 2,049 nodes, grouped, with live per-roadmap progress read from each page's own storage key). Bonus, outside phase scope: **light mode was unusable** — the vendor stamps `data-theme` on `<body>` and other inner elements and never updates them, so its dark palette kept applying under a light root. Fixed at both the token and attribute layer. Clean build, 209 pages. Reviewed after: fixed 4 real findings — section active-state matched on `href` so "Questions" lit on 1 of 29 topics (now an explicit `match` prefix list per nav item), `/guides` earned a rail it has no sidebar entries for, the menu blurb said "123 nodes" where the index says 148 (123 sub-nodes + 25 categories — unit now stated), and a dead `is-standalone` class. Two findings rejected with measurements: the header is pinned by PageFrame's `height:100vh; overflow:hidden` shell, so it does not scroll away and no gap opens above the rail. | Design phase 2 — tokens: type scale, elevation, colour role reassignment |
 | 2026-08-13 | **Phase 6c done — projects.** Researched projects live across the stacks (Spark, Databricks, AWS, Azure, GCP, Snowflake/dbt, streaming, orchestration), built `/projects/` with **18 projects and 27 sources** in 8 domains. Each project carries a repo *and* video *and* article where they exist, plus a "Revise" row linking into the site's own questions. Generalised the link checker to cover both data files and to tell dead apart from bot-blocked: **67/67 live, 0 dead**. | Phase 6b — concept videos on roadmap nodes |

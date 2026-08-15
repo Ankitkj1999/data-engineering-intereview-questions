@@ -46,7 +46,10 @@ const checked = data._meta.checked as string;
 ---
 
 <StarlightPage frontmatter={{ title: "Interview Experiences", description: "Curated recorded interview experiences, mock interviews and preparation guides for data engineering roles." }}>
-  <div class="ie">
+  {/* `not-content` — this is app UI, not prose. Starlight's markdown stylesheet
+      gives every non-first sibling inside `.sl-markdown-content` a top margin,
+      which inside a flex/grid container is a layout bug rather than spacing. */}
+  <div class="ie not-content">
     <p class="ie-lede">
       Recorded interviews, mock loops and preparation guides — curated, not scraped.
       Every link is checked automatically; the number on the left is how many videos you're

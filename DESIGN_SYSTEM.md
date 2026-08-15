@@ -7,17 +7,18 @@ This document defines the visual system for the site's chrome (header, sidebars,
 
 ## Table of Contents
 1. [Tokens](#tokens)
-2. [Theme carriers: the one vendor trap](#theme-carriers-the-one-vendor-trap)
-3. [Layout: which routes get which rails](#layout-which-routes-get-which-rails)
-4. [Navigation](#navigation)
-5. [Radius](#radius)
-6. [Border width & control height](#border-width--control-height)
-7. [Shadow](#shadow)
-8. [Spacing](#spacing)
-9. [Primitives](#primitives)
-10. [Roadmap pages: a deliberate scope boundary](#roadmap-pages-a-deliberate-scope-boundary)
-11. [Accessibility: amber usage](#accessibility-amber-usage)
-12. [Known, deliberate out-of-scope areas](#known-deliberate-out-of-scope-areas)
+2. [Prose vs app UI: the `.not-content` boundary](#prose-vs-app-ui-the-not-content-boundary)
+3. [Theme carriers: the one vendor trap](#theme-carriers-the-one-vendor-trap)
+4. [Layout: which routes get which rails](#layout-which-routes-get-which-rails)
+5. [Navigation](#navigation)
+6. [Radius](#radius)
+7. [Border width & control height](#border-width--control-height)
+8. [Shadow](#shadow)
+9. [Spacing](#spacing)
+10. [Primitives](#primitives)
+11. [Roadmap pages: a deliberate scope boundary](#roadmap-pages-a-deliberate-scope-boundary)
+12. [Accessibility: amber usage](#accessibility-amber-usage)
+13. [Known, deliberate out-of-scope areas](#known-deliberate-out-of-scope-areas)
 
 ---
 
@@ -33,6 +34,35 @@ There is **one** authoritative color palette: Starlight's own `--sl-color-*` tok
 `--sl-color-*` itself stays exactly as Starlight ships it (dark values in the unprefixed `:root`, light values in `:root[data-theme="light"]`) because Starlight's own untouched internals (code blocks, admonitions, search modal, pagination) depend on its exact shape.
 
 **`--sl-color-*` is declared on `:root` only; the `--page-*` aliases are declared on `:root, [data-theme]`.** That asymmetry is deliberate — see the next section.
+
+## Prose vs app UI: the `.not-content` boundary
+
+**If markup is app UI rather than prose, it must carry `class="not-content"`.**
+
+Every page on this site — including the fully custom ones — renders inside Starlight's `.sl-markdown-content` wrapper, so its prose stylesheet applies to all of it. One rule matters most:
+
+```css
+.sl-markdown-content :not(a, strong, em, del, span, input, code, br)
+  + :not(a, strong, em, del, span, input, code, br, :where(.not-content *)) {
+  margin-top: var(--sl-content-gap-y);   /* 1rem */
+}
+```
+
+Between paragraphs that's the point. On a **flex or grid item it is a layout bug** — the margin eats into the space the container allotted the item. And since `+` never matches a first child, *only the first item in each container escapes*, so containers render with one correct child and N short ones. This is what made the progress page's topic cards come out at 62.4px and 46.4px, its toggle buttons at 28px and 12px, and every `QuestionCard` header 16px taller than it should be.
+
+Where the class goes:
+
+| Markup | Where `not-content` goes |
+|---|---|
+| A custom page (`src/pages/*.astro`, roadmap pages) | The page root — `#progress-root`, `#home-root`, `.pj`, `.ie`, `#rm-index`, `#rm-root`, `.rm-index` |
+| An MDX component | **The chrome only** — `.qc-header`, `.ql-stat`. Never the answer body, which is real prose and must keep its styling |
+
+Two caveats:
+
+- **It also drops Starlight's heading baseline**, so headings revert to the browser default (bold 700, line-height 1.5). `primitives.css` restores just that with `:where(.not-content) :where(h1…h6)` — written with `:where()` so it has zero specificity and any page's own heading rule still wins.
+- **It is CSS only.** It has no effect on Pagefind indexing or crawlability, so marking the roadmap topic index `not-content` doesn't undo the hub-and-spoke work.
+
+**Don't diagnose this class of bug by reading CSS** — the cause sits in a vendor stylesheet and the symptom appears in your own component. Measure the built page (`getBoundingClientRect` in headless Chrome against `dist/`) and look for flex/grid items whose computed `margin-top` is non-zero.
 
 ## Theme carriers: the one vendor trap
 

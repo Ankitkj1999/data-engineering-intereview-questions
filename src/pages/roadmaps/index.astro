@@ -101,7 +101,10 @@ const ARROW = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" strok
     tableOfContents: false,
   }}
 >
-  <div id="rm-index" data-progress-index={JSON.stringify(progressIndex)}>
+  {/* `not-content` — this is app UI, not prose. Starlight's markdown stylesheet
+      gives every non-first sibling inside `.sl-markdown-content` a top margin,
+      which inside a flex/grid container is a layout bug rather than spacing. */}
+  <div id="rm-index" class="not-content" data-progress-index={JSON.stringify(progressIndex)}>
     <header class="ix-hero">
       <p class="ix-eyebrow">Roadmaps</p>
       <h1 class="ix-title">Every path, node by node.</h1>

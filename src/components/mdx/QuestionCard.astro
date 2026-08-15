@@ -17,8 +17,10 @@ const DIFFICULTY_TONE = { easy: "success", medium: "neutral", hard: "danger" } a
 ---
 
 <div class="qc" data-question-id={id} data-difficulty={difficulty}>
-  <!-- Card header -->
-  <div class="qc-header">
+  <!-- Card header. `not-content` keeps Starlight's prose sibling-margin rule
+       off this flex row (it was pushing .qc-actions down by 1rem). Scoped to the
+       header only — the answer body below is real prose and keeps its styling. -->
+  <div class="qc-header not-content">
     <div class="qc-meta">
       {number && <span class="qc-num">Q{number}</span>}
       {topic && <Badge tone="neutral">{topic}</Badge>}
