@@ -1,0 +1,251 @@
+{
+  "_meta": {
+    "description": "Curated end-to-end data engineering projects, grouped by the stack they're built on. Each project links to whatever exists for it — a repo, a video walkthrough, a written guide — because different people learn from different formats.",
+    "levels": {
+      "beginner": "One or two tools. You can finish it in a weekend and understand every part.",
+      "intermediate": "A real pipeline: several services, orchestration, a scheduled run.",
+      "advanced": "Streaming, infrastructure-as-code, or a full platform with governance."
+    },
+    "checked": "2026-08-13",
+    "note": "Sources were found via web search and verified live by scripts/check-links.mjs. Levels and summaries are editorial judgements from each project's own description, not claims about how long it will take you."
+  },
+
+  "domains": [
+    { "slug": "streaming", "name": "Streaming & real-time", "blurb": "Kafka, Spark Structured Streaming and the operational reality of unbounded data." },
+    { "slug": "aws", "name": "AWS", "blurb": "Glue, Redshift, S3, Lambda, Kinesis and Athena wired into working pipelines." },
+    { "slug": "azure", "name": "Azure", "blurb": "Data Factory, Databricks, ADLS Gen2 and Synapse — usually with the medallion layering." },
+    { "slug": "gcp", "name": "Google Cloud", "blurb": "BigQuery, Dataflow, Pub/Sub and Cloud Functions." },
+    { "slug": "lakehouse", "name": "Databricks & lakehouse", "blurb": "Delta Lake, the medallion architecture and Unity Catalog." },
+    { "slug": "warehouse", "name": "Warehousing & analytics engineering", "blurb": "Snowflake and dbt — modelling, testing and deploying transformations." },
+    { "slug": "orchestration", "name": "Orchestration", "blurb": "Airflow DAGs against real APIs, scheduled and retried." },
+    { "slug": "collections", "name": "Project collections", "blurb": "Curated lists worth mining when you want more than the projects above." }
+  ],
+
+  "projects": [
+    {
+      "id": "kafka-spark-airflow-cassandra",
+      "title": "Real-time streaming pipeline: Kafka to Cassandra",
+      "summary": "Stream data from an API into Kafka, process it with Spark, land it in Cassandra and Postgres, and orchestrate the whole thing with Airflow — all in Docker.",
+      "domain": "streaming",
+      "level": "advanced",
+      "stack": ["Kafka", "Spark", "Airflow", "Cassandra", "Postgres", "Docker"],
+      "topics": ["kafka", "spark", "airflow"],
+      "sources": [
+        { "medium": "repo", "label": "stomanin/E2E-data-engineering", "url": "https://github.com/stomanin/E2E-data-engineering" },
+        { "medium": "article", "label": "Walkthrough — Dogukan Ulu", "url": "https://medium.com/@dogukannulu/data-engineering-end-to-end-project-1-7a7be2a3671" },
+        { "medium": "article", "label": "Walkthrough — Yusuf Ganiyu", "url": "https://medium.com/@yusuf.ganiyu/realtime-data-engineering-project-with-airflow-kafka-spark-cassandra-and-postgres-804bcd963974" }
+      ]
+    },
+    {
+      "id": "aws-streaming-kinesis-redshift",
+      "title": "AWS streaming pipeline with Kinesis and Redshift",
+      "summary": "An end-to-end AWS pipeline spanning Glue, Lambda, Kinesis, Redshift, Athena and QuickSight — the closest thing here to a production AWS analytics stack.",
+      "domain": "aws",
+      "level": "advanced",
+      "stack": ["Kinesis", "Glue", "Lambda", "Redshift", "Athena", "QuickSight", "S3"],
+      "topics": ["aws", "spark"],
+      "sources": [
+        { "medium": "repo", "label": "dogukannulu/aws_end_to_end_streaming_pipeline", "url": "https://github.com/dogukannulu/aws_end_to_end_streaming_pipeline" },
+        { "medium": "article", "label": "Written walkthrough", "url": "https://medium.com/@dogukannulu/aws-cloud-engineering-project-part-1-aws-glue-lambda-kinesis-redshift-athena-quicksight-649fc4d7e0dc" }
+      ]
+    },
+    {
+      "id": "youtube-analytics-aws",
+      "title": "YouTube trending data analytics on AWS",
+      "summary": "Land raw YouTube trending data in S3, clean and partition it with Glue (PySpark), query it with Athena and build a QuickSight dashboard. The most-followed beginner AWS project.",
+      "domain": "aws",
+      "level": "intermediate",
+      "stack": ["S3", "Glue", "Lambda", "Athena", "QuickSight"],
+      "topics": ["aws", "spark"],
+      "sources": [
+        { "medium": "video", "label": "Full walkthrough — Darshil Parmar", "url": "https://www.youtube.com/watch?v=yZKJFKu49Dk" },
+        { "medium": "repo", "label": "darshilparmar/dataengineering-youtube-analysis-project", "url": "https://github.com/darshilparmar/dataengineering-youtube-analysis-project" },
+        { "medium": "article", "label": "Written version", "url": "https://medium.com/@darshilp/end-to-end-data-engineering-project-youtube-analytics-1c7eebf0d31" }
+      ]
+    },
+    {
+      "id": "aws-medallion-pipeline",
+      "title": "Bronze–silver–gold pipeline on AWS",
+      "summary": "Medallion layering applied to AWS: S3 and Kinesis for ingestion, Glue and Databricks for transformation, Redshift for serving.",
+      "domain": "aws",
+      "level": "advanced",
+      "stack": ["S3", "Kinesis", "Glue", "Databricks", "Redshift"],
+      "topics": ["aws", "spark", "delta"],
+      "sources": [
+        { "medium": "repo", "label": "vijaytheegala/aws-data-engineering-pipeline", "url": "https://github.com/vijaytheegala/aws-data-engineering-pipeline" }
+      ]
+    },
+    {
+      "id": "aws-mwaa-glue-redshift",
+      "title": "Orchestrated ETL with MWAA, Glue and Redshift Serverless",
+      "summary": "AWS's own reference build: S3 to Glue to Redshift Serverless, orchestrated by Managed Airflow. Useful because it shows the patterns AWS itself recommends.",
+      "domain": "aws",
+      "level": "intermediate",
+      "stack": ["MWAA", "Glue", "Redshift Serverless", "S3"],
+      "topics": ["aws", "airflow"],
+      "sources": [
+        { "medium": "article", "label": "AWS Big Data Blog", "url": "https://aws.amazon.com/blogs/big-data/orchestrate-an-end-to-end-etl-pipeline-using-amazon-s3-aws-glue-and-amazon-redshift-serverless-with-amazon-mwaa/" }
+      ]
+    },
+    {
+      "id": "azure-adventureworks",
+      "title": "AdventureWorks pipeline on Azure",
+      "summary": "The canonical Azure build: Data Factory ingests, Databricks transforms, Synapse serves, Power BI reports. Uses the AdventureWorks sample database.",
+      "domain": "azure",
+      "level": "intermediate",
+      "stack": ["Data Factory", "Databricks", "ADLS Gen2", "Synapse", "Power BI"],
+      "topics": ["azure", "spark"],
+      "sources": [
+        { "medium": "repo", "label": "Sivaprasad-V/Adventure-Works-Azure-Data-Engineering-Project", "url": "https://github.com/Sivaprasad-V/Adventure-Works-Azure-Data-Engineering-Project" },
+        { "medium": "repo", "label": "zBalachandar — sales analytics variant", "url": "https://github.com/zBalachandar/Sales-Data-Analytics-Azure-Data-Engineering-End-to-End-Project-13" }
+      ]
+    },
+    {
+      "id": "azure-realtime-adf-synapse",
+      "title": "Real-time Azure pipeline with ADF and Synapse",
+      "summary": "ADF and Synapse pipelines with Spark transformations and a Power BI layer on top — a fuller Azure workflow than the AdventureWorks build.",
+      "domain": "azure",
+      "level": "advanced",
+      "stack": ["Data Factory", "Databricks", "ADLS Gen2", "Synapse", "Power BI"],
+      "topics": ["azure", "spark"],
+      "sources": [
+        { "medium": "repo", "label": "Shagun-khandelwal/End-to-End-Azure-Data-Engineering-Real-Time-Project", "url": "https://github.com/Shagun-khandelwal/End-to-End-Azure-Data-Engineering-Real-Time-Project" }
+      ]
+    },
+    {
+      "id": "azure-onprem-to-lake",
+      "title": "On-premises SQL Server to Azure Data Lake",
+      "summary": "A migration-shaped project: pull from on-prem SQL Server into ADLS Gen2 via Data Factory, layer the processing in Databricks, serve through Synapse — with Key Vault and Entra ID for the security story.",
+      "domain": "azure",
+      "level": "advanced",
+      "stack": ["Data Factory", "ADLS Gen2", "Databricks", "Synapse", "Key Vault"],
+      "topics": ["azure"],
+      "sources": [
+        { "medium": "repo", "label": "Aniruthan-0709/Azure-Data-Engineering-Project", "url": "https://github.com/Aniruthan-0709/Azure-Data-Engineering-Project" }
+      ]
+    },
+    {
+      "id": "gcp-streaming-pubsub-dataflow",
+      "title": "Streaming pipeline on GCP: Pub/Sub to BigQuery",
+      "summary": "Poll an air-quality API with Cloud Functions, publish to Pub/Sub, process in Dataflow, land in BigQuery and model with dbt. A genuinely complete GCP streaming build.",
+      "domain": "gcp",
+      "level": "advanced",
+      "stack": ["Cloud Functions", "Pub/Sub", "Dataflow", "BigQuery", "dbt"],
+      "topics": ["gcp", "dbt"],
+      "sources": [
+        { "medium": "repo", "label": "sri-krishna-kireeti/GCP_End_to_End_Pipeline", "url": "https://github.com/sri-krishna-kireeti/GCP_End_to_End_Pipeline" },
+        { "medium": "article", "label": "Written walkthrough", "url": "https://medium.com/@ganeshnasrikrishna/building-a-real-end-to-end-data-pipeline-on-gcp-yes-from-scratch-04b5e78ecbf6" }
+      ]
+    },
+    {
+      "id": "gcp-dbt-bigquery-cloudrun",
+      "title": "dbt on BigQuery, deployed with Cloud Run",
+      "summary": "An analytics-engineering angle on GCP — dbt models against BigQuery, containerised and scheduled on Cloud Run rather than a managed orchestrator.",
+      "domain": "gcp",
+      "level": "intermediate",
+      "stack": ["BigQuery", "dbt", "Cloud Run"],
+      "topics": ["gcp", "dbt"],
+      "sources": [
+        { "medium": "article", "label": "Written walkthrough", "url": "https://medium.com/@claudiofilho22/end-to-end-data-engineering-project-using-dbt-bigquery-cloud-run-eae10e0c7dc3" }
+      ]
+    },
+    {
+      "id": "databricks-medallion-fmcg",
+      "title": "Medallion lakehouse on Databricks",
+      "summary": "Bronze, silver and gold layers built with PySpark and Delta Lake over S3, organised as one notebook per layer. A clean reference for how medallion is actually laid out.",
+      "domain": "lakehouse",
+      "level": "intermediate",
+      "stack": ["Databricks", "PySpark", "Delta Lake", "S3"],
+      "topics": ["spark", "delta", "aws"],
+      "sources": [
+        { "medium": "repo", "label": "takadlag/databricks-medallion-lakehouse-fmcg", "url": "https://github.com/takadlag/databricks-medallion-lakehouse-fmcg" }
+      ]
+    },
+    {
+      "id": "databricks-bootcamp",
+      "title": "Databricks lakehouse bootcamp",
+      "summary": "A full lakehouse implementation with datasets, notebooks, SQL and exercises — covering ingestion through to analytics-ready products, including Unity Catalog.",
+      "domain": "lakehouse",
+      "level": "intermediate",
+      "stack": ["Databricks", "PySpark", "Delta Lake", "Unity Catalog", "SQL"],
+      "topics": ["spark", "delta", "sql"],
+      "sources": [
+        { "medium": "repo", "label": "DataWithBaraa/databricks_bootcamp_2026", "url": "https://github.com/DataWithBaraa/databricks_bootcamp_2026" }
+      ]
+    },
+    {
+      "id": "medallion-datalakehouse-azure",
+      "title": "Medallion lakehouse with ADF and dbt",
+      "summary": "A medallion lakehouse fed from a SQL database through Data Factory into Delta on ADLS Gen2, with dbt handling the transformations.",
+      "domain": "lakehouse",
+      "level": "intermediate",
+      "stack": ["Data Factory", "ADLS Gen2", "Databricks", "dbt", "Delta Lake"],
+      "topics": ["azure", "dbt", "delta"],
+      "sources": [
+        { "medium": "repo", "label": "MekWiset/Medallion_DataLakehouse", "url": "https://github.com/MekWiset/Medallion_DataLakehouse" }
+      ]
+    },
+    {
+      "id": "snowflake-dbt-airflow-elt",
+      "title": "Snowflake ELT with dbt and Airflow",
+      "summary": "An ELT pipeline over Snowflake's TPCH sample data — dbt for the modelling, Airflow for scheduling. Good because the dataset ships with Snowflake, so there's nothing to source.",
+      "domain": "warehouse",
+      "level": "intermediate",
+      "stack": ["Snowflake", "dbt", "Airflow"],
+      "topics": ["dbt", "airflow", "sql"],
+      "sources": [
+        { "medium": "repo", "label": "DivineSamOfficial/Snowflake-ELT-Pipeline-with-dbt-and-Airflow", "url": "https://github.com/DivineSamOfficial/Snowflake-ELT-Pipeline-with-dbt-and-Airflow" },
+        { "medium": "repo", "label": "ansamAY — alternative implementation", "url": "https://github.com/ansamAY/end-to-end-data-engineering-dbt-snowflake-airflow" }
+      ]
+    },
+    {
+      "id": "dbt-on-snowflake-official",
+      "title": "dbt on Snowflake — official getting started",
+      "summary": "Snowflake's own dbt project, covering environment setup, modelling, CI/CD and scheduling natively inside Snowflake. The authoritative starting point rather than a community build.",
+      "domain": "warehouse",
+      "level": "beginner",
+      "stack": ["Snowflake", "dbt"],
+      "topics": ["dbt", "sql"],
+      "sources": [
+        { "medium": "repo", "label": "Snowflake-Labs/getting-started-with-dbt-on-snowflake", "url": "https://github.com/Snowflake-Labs/getting-started-with-dbt-on-snowflake" },
+        { "medium": "article", "label": "Official tutorial", "url": "https://docs.snowflake.com/en/user-guide/tutorials/dbt-projects-on-snowflake-getting-started-tutorial" }
+      ]
+    },
+    {
+      "id": "twitter-airflow-etl",
+      "title": "Airflow ETL against a live API",
+      "summary": "A small, self-contained Airflow project: extract from an API, transform, load. The right first project if you've never written a DAG that runs on a schedule.",
+      "domain": "orchestration",
+      "level": "beginner",
+      "stack": ["Airflow", "Python", "S3"],
+      "topics": ["airflow", "aws"],
+      "sources": [
+        { "medium": "repo", "label": "darshilparmar/twitter-airflow-data-engineering-project", "url": "https://github.com/darshilparmar/twitter-airflow-data-engineering-project" }
+      ]
+    },
+    {
+      "id": "collection-ssp-open-source",
+      "title": "Open-source data engineering projects",
+      "summary": "A continuously updated index of open-source data engineering projects — worth mining when you want something less commonly built than the ones above.",
+      "domain": "collections",
+      "level": "intermediate",
+      "stack": [],
+      "topics": [],
+      "sources": [
+        { "medium": "article", "label": "ssp.sh — open-source DE projects", "url": "https://www.ssp.sh/brain/open-source-data-engineering-projects/" }
+      ]
+    },
+    {
+      "id": "collection-projectpro",
+      "title": "40+ data engineering projects with source code",
+      "summary": "A large catalogue spanning beginner to advanced, useful for finding a project in a domain the ones above don't cover.",
+      "domain": "collections",
+      "level": "beginner",
+      "stack": [],
+      "topics": [],
+      "sources": [
+        { "medium": "article", "label": "ProjectPro", "url": "https://www.projectpro.io/article/real-world-data-engineering-projects-/472" }
+      ]
+    }
+  ]
+}

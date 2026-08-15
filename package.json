@@ -34,7 +34,7 @@
     "build": "node scripts/crawl-docs.mjs && astro build",
     "dev": "node scripts/crawl-docs.mjs && astro dev",
     "deploy": "npm run build && wrangler deploy",
-    "check:links": "node scripts/check-video-links.mjs"
+    "check:links": "node scripts/check-links.mjs"
   },
   "type": "module"
 }

@@ -11,7 +11,7 @@ are the way they are, so settled questions don't get re-opened as if they were b
 
 ## You are here
 
-> **Current phase: Phase 6 — Video Catalog. 6a shipped; 6b and 6c to do.**
+> **Current phase: Phase 6 — Video Catalog. 6a and 6c shipped; only 6b remains.**
 > Phases 1–5 ✅ done, plus a roadmap quality pass. Last updated: 2026-08-13
 
 Site total: **3,895 questions** across 51 topic pages + 74 subtopic pages, and **50 roadmaps**.
@@ -42,7 +42,9 @@ Plus **50 roadmaps** (was 7) covering every topic page with 12+ questions, and t
 for the previously-empty categories: Git, Linux, Docker, CI/CD, IaC, Networking, Data Lifecycle,
 Ingestion Patterns, Reverse ETL, ML & MLOps.
 
-**Phase 6 (Video Catalog) is planned** — see [its section below](#phase-6--video-catalog-planned).
+**Phase 6 (Video Catalog):** [`/interview-experiences/`](src/pages/interview-experiences.astro) and
+[`/projects/`](src/pages/projects.astro) are live. **Only 6b remains** — concept videos as an
+optional `videos: []` on roadmap nodes, shown in the drawer.
 
 Other ideas, not queued, roughly by value:
 
@@ -72,7 +74,7 @@ passing `npx astro build`, and logged below.
 | 5 | **Wire the master roadmap** | Add `link:` to the unlinked DE roadmap nodes | 0 new | ✅ Done (2026-08-09) — 118/123 linked |
 | 6a | **Interview experiences** | Curated videos + articles, data layer, link checker | 1 page + data | ✅ Done (2026-08-13) — 33 resources |
 | 6b | **Concept videos in roadmaps** | Optional `videos: []` on roadmap nodes, shown in the drawer | script change | ⬜ Not started |
-| 6c | **Projects section** | Project walkthroughs tagged by the topics they exercise | 1 page + data | ⬜ Not started |
+| 6c | **Projects section** | Project walkthroughs tagged by the topics they exercise | 1 page + data | ✅ Done (2026-08-13) — 18 projects |
 
 Status values: `⬜ Not started` · `🟡 In progress` · `✅ Done (YYYY-MM-DD)` · `⏸️ Deferred (why)`
 
@@ -340,6 +342,35 @@ title drift. First run: **40/40 live, 0 dead.**
 **Not done, and it's the real value:** no company has a round-by-round loop breakdown yet. That
 needs someone to watch the sources and summarise — it cannot be extracted, and inventing it would
 be fabrication. The UI degrades gracefully and says so explicitly rather than hiding the gap.
+
+#### 6c — Projects ✅ Done 2026-08-13
+
+Shipped at [`/projects/`](src/pages/projects.astro), backed by
+[`src/data/projects.json`](src/data/projects.json) — **18 projects, 27 sources**, grouped into 8
+stack domains: streaming, AWS, Azure, GCP, Databricks/lakehouse, warehousing (Snowflake + dbt),
+orchestration, and curated collections.
+
+**Sourced by live web research**, not from a seed file — none existed for projects. Every URL was
+then verified by the link checker before shipping.
+
+Design decisions:
+
+- **A project is not a link, it's a thing you build.** Each carries a summary, its stack, and
+  *multiple* sources — repo, video walkthrough and written guide where all three exist. That's the
+  main structural difference from 6a, where one resource meant one URL.
+- **Grouped by stack domain**, because "which cloud am I targeting" is the first question someone
+  asks. Level sorts within a group.
+- **The left column carries level**, rendered as three dots — adapting 6a's "left column holds the
+  decision factor" pattern. For interview resources that was scale; for projects it's commitment.
+- **Every project links back into the site** via a "Revise" row — a Kafka project links to the
+  Kafka questions. Same routing principle as 6a: send people into the content, not just out to
+  GitHub.
+
+**Link checker generalised** — `scripts/check-video-links.mjs` became
+[`scripts/check-links.mjs`](scripts/check-links.mjs), now covering both data files, handling HEAD
+with GET fallback for non-YouTube hosts, and distinguishing **dead** from **inconclusive** (Medium
+bot-blocks automated checks with a 403, which is not proof of death). Run: **67/67 live, 0 dead,
+6 inconclusive.**
 
 #### Source data assessment
 
@@ -614,6 +645,7 @@ Newest first. One line per working session: what was done, and what's next.
 
 | Date | What happened | Next up |
 |---|---|---|
+| 2026-08-13 | **Phase 6c done — projects.** Researched projects live across the stacks (Spark, Databricks, AWS, Azure, GCP, Snowflake/dbt, streaming, orchestration), built `/projects/` with **18 projects and 27 sources** in 8 domains. Each project carries a repo *and* video *and* article where they exist, plus a "Revise" row linking into the site's own questions. Generalised the link checker to cover both data files and to tell dead apart from bot-blocked: **67/67 live, 0 dead**. | Phase 6b — concept videos on roadmap nodes |
 | 2026-08-13 | **Phase 6 planned — video catalog.** Wrote up the design: companion-not-catalog shape (concept videos on existing topic pages, new sections for interview experiences and projects), one shared data file + component + mandatory link-rot checker, tagged to topic slugs. Assessed the 45-record source JSON: it's a starting point, not a catalog — **company-first organisation doesn't work** (only 5 of 45 tagged, title-derivation gives false positives), the **playlists carry more value than the single videos**, and 7 channel links aren't really catalog entries. Four open questions logged. Not started. | Phase 6 — settle open questions, then build |
 | 2026-08-13 | **Roadmap quality pass + 4 new roadmaps.** Rewrote the description generator: descriptions now come from the first *complete* answer sentence when it scores well, and from the **question text** otherwise. Unusable descriptions went **37% → 0%** (was 179 truncated, 61 fallback, 17 fragments across 696). Regenerated all 33 generated roadmaps plus a stale Observability (page had grown 12→20 Q in Phase 4), and added 4 missing roadmaps for the Phase 4 pages per D9 — **50 roadmaps, 2,049 nodes**. All 694 link targets verified; **no node id changed**, so no roadmap progress was lost. Recorded as D10, including the finding that `data-warehousing.mdx` has weak *source* answers the roadmap now routes around but the page still shows. | Ask the user |
 | 2026-08-09 | **Phases 4 and 5 done — plan complete.** Phase 4: 4 new pages + Observability expanded 12→20, **65 questions**, closing the last empty master-roadmap categories; added to sidebar and progress since these are topic pages. Phase 5: master DE roadmap wired from 37 to **118 of 123** linked sub-nodes, all validated against built HTML, 5 left deliberately unlinked for lack of an honest target. **All five phases now done — nothing queued.** | Ask the user |

@@ -1,0 +1,214 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import data from "../data/projects.json";
+
+type Source = { medium: string; label: string; url: string };
+type Project = {
+  id: string; title: string; summary: string; domain: string; level: string;
+  stack: string[]; topics: string[]; sources: Source[];
+};
+
+const projects = data.projects as Project[];
+const domains = data.domains as { slug: string; name: string; blurb: string }[];
+
+const LEVEL_RANK: Record<string, number> = { beginner: 0, intermediate: 1, advanced: 2 };
+const byLevel = (a: Project, b: Project) =>
+  (LEVEL_RANK[a.level] ?? 9) - (LEVEL_RANK[b.level] ?? 9) || a.title.localeCompare(b.title);
+
+const grouped = domains
+  .map((d) => ({ ...d, items: projects.filter((p) => p.domain === d.slug).sort(byLevel) }))
+  .filter((d) => d.items.length > 0);
+
+// Video before written, repo first — the repo is the thing you actually clone.
+const MEDIUM_ORDER: Record<string, number> = { repo: 0, video: 1, article: 2 };
+const sortSources = (s: Source[]) => [...s].sort((a, b) => (MEDIUM_ORDER[a.medium] ?? 9) - (MEDIUM_ORDER[b.medium] ?? 9));
+
+const TOPIC_LINKS: Record<string, { label: string; href: string }> = {
+  sql: { label: "SQL", href: "/level-1-foundations/sql/theory/" },
+  spark: { label: "Spark", href: "/level-3-technologies/batch-processing/spark/" },
+  kafka: { label: "Kafka", href: "/level-3-technologies/streaming/kafka/" },
+  airflow: { label: "Airflow", href: "/level-3-technologies/orchestration/airflow/" },
+  dbt: { label: "dbt", href: "/level-3-technologies/transformation/dbt/" },
+  delta: { label: "Delta Lake", href: "/level-3-technologies/formats/delta/" },
+  aws: { label: "AWS", href: "/level-3-technologies/cloud/aws/" },
+  azure: { label: "Azure", href: "/level-3-technologies/cloud/azure/" },
+  gcp: { label: "GCP", href: "/level-3-technologies/cloud/gcp/" },
+};
+
+const levelCounts = {
+  beginner: projects.filter((p) => p.level === "beginner").length,
+  intermediate: projects.filter((p) => p.level === "intermediate").length,
+  advanced: projects.filter((p) => p.level === "advanced").length,
+};
+const checked = data._meta.checked as string;
+---
+
+<StarlightPage frontmatter={{ title: "Projects", description: "Curated end-to-end data engineering projects grouped by stack — Spark, Databricks, AWS, Azure, GCP, Snowflake and dbt — each with a repo, video walkthrough or written guide." }}>
+  <div class="pj">
+    <p class="pj-lede">
+      End-to-end projects worth building, grouped by the stack they run on. Every one links to
+      whatever exists for it — a repo to clone, a video to follow, a written guide to read.
+      The dots on the left are how much you're taking on.
+    </p>
+
+    <dl class="pj-stats">
+      <div><dt>Projects</dt><dd>{projects.length}</dd></div>
+      <div><dt>Beginner</dt><dd>{levelCounts.beginner}</dd></div>
+      <div><dt>Intermediate</dt><dd>{levelCounts.intermediate}</dd></div>
+      <div><dt>Advanced</dt><dd>{levelCounts.advanced}</dd></div>
+      <div><dt>Links checked</dt><dd class="pj-stat-sm">{checked}</dd></div>
+    </dl>
+
+    {grouped.map((d) => (
+      <section class="pj-section">
+        <div class="pj-head">
+          <h2 id={d.slug}>{d.name}</h2>
+          <span class="pj-head-count">{d.items.length} {d.items.length === 1 ? "project" : "projects"}</span>
+        </div>
+        <p class="pj-head-desc">{d.blurb}</p>
+
+        <ul class="pj-items">
+          {d.items.map((p) => (
+            <li class="pj-item">
+              <span class="pj-level" data-level={p.level} title={`${p.level} — ${data._meta.levels[p.level]}`}>
+                <span class="pj-dots" aria-hidden="true">
+                  <i data-on={LEVEL_RANK[p.level] >= 0}></i>
+                  <i data-on={LEVEL_RANK[p.level] >= 1}></i>
+                  <i data-on={LEVEL_RANK[p.level] >= 2}></i>
+                </span>
+                <span class="pj-level-label">{p.level}</span>
+              </span>
+
+              <div class="pj-body">
+                <h3 class="pj-title">{p.title}</h3>
+                <p class="pj-summary">{p.summary}</p>
+
+                {p.stack.length > 0 && (
+                  <p class="pj-stack">{p.stack.join(" · ")}</p>
+                )}
+
+                <div class="pj-foot">
+                  <span class="pj-sources">
+                    {sortSources(p.sources).map((s) => (
+                      <a class="pj-source" data-medium={s.medium} href={s.url} target="_blank" rel="noopener noreferrer">
+                        <span class="pj-source-kind">{s.medium}</span>
+                        <span class="pj-source-label">{s.label}</span>
+                      </a>
+                    ))}
+                  </span>
+
+                  {p.topics.filter((t) => TOPIC_LINKS[t]).length > 0 && (
+                    <span class="pj-tags">
+                      <span class="pj-tags-label">Revise</span>
+                      {p.topics.filter((t) => TOPIC_LINKS[t]).map((t) => (
+                        <a class="pj-tag" href={TOPIC_LINKS[t].href}>{TOPIC_LINKS[t].label}</a>
+                      ))}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+</StarlightPage>
+
+<style>
+  .pj {
+    --pj-gap-section: 3.25rem;
+    --pj-rule: var(--sl-color-hairline);
+  }
+
+  .pj-lede { font-size: 1.0625rem; line-height: 1.6; max-width: 62ch; margin: 0 0 1.75rem; }
+
+  .pj-stats {
+    display: flex; flex-wrap: wrap; gap: 0 2.25rem;
+    margin: 0 0 var(--pj-gap-section); padding: 0.9rem 0;
+    border-block: 1px solid var(--pj-rule);
+  }
+  .pj-stats div { display: flex; flex-direction: column-reverse; gap: 0.15rem; }
+  .pj-stats dt { font-size: 0.75rem; color: var(--sl-color-gray-3); margin: 0; }
+  .pj-stats dd {
+    margin: 0; font-size: 1.5rem; line-height: 1;
+    font-variant-numeric: tabular-nums; color: var(--sl-color-white);
+  }
+  .pj-stats .pj-stat-sm { font-size: 0.95rem; padding-top: 0.4rem; }
+
+  .pj-section { margin-bottom: var(--pj-gap-section); }
+  .pj-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; border-bottom: 1px solid var(--pj-rule);
+  }
+  .pj-head h2 { margin: 0; font-size: 1.375rem; line-height: 1.2; border: none; padding: 0; }
+  .pj-head-count {
+    font-size: 0.78rem; color: var(--sl-color-gray-3);
+    white-space: nowrap; font-variant-numeric: tabular-nums;
+  }
+  .pj-head-desc {
+    margin: 0.9rem 0 1.5rem; max-width: 62ch;
+    color: var(--sl-color-gray-2); font-size: 0.9375rem; line-height: 1.55;
+  }
+
+  .pj-items { list-style: none; padding: 0; margin: 0; }
+  .pj-item {
+    display: grid; grid-template-columns: 5.5rem 1fr; gap: 0 1.25rem;
+    padding: 1.15rem 0; border-top: 1px solid var(--pj-rule);
+  }
+  .pj-items > .pj-item:first-child { border-top: 1px solid var(--pj-rule); }
+
+  /* Signature: commitment, not decoration. Three dots say how much you're taking on,
+     which is the thing someone is actually deciding between projects in a stack. */
+  .pj-level { display: flex; flex-direction: column; gap: 0.3rem; padding-top: 0.2rem; }
+  .pj-dots { display: flex; gap: 0.2rem; }
+  .pj-dots i {
+    width: 0.45rem; height: 0.45rem; border-radius: 50%;
+    border: 1px solid var(--sl-color-gray-4); background: transparent;
+  }
+  .pj-dots i[data-on="true"] { background: var(--sl-color-text-accent); border-color: var(--sl-color-text-accent); }
+  .pj-level-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sl-color-gray-3); }
+
+  .pj-body { min-width: 0; }
+  .pj-title { margin: 0 0 0.3rem; font-size: 1.0625rem; line-height: 1.35; border: none; padding: 0; color: var(--sl-color-white); }
+  .pj-summary { margin: 0 0 0.5rem; font-size: 0.9375rem; line-height: 1.55; color: var(--sl-color-gray-2); max-width: 68ch; }
+  .pj-stack {
+    margin: 0 0 0.7rem; font-size: 0.8125rem; color: var(--sl-color-gray-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pj-foot { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; align-items: center; }
+  .pj-sources { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .pj-source {
+    display: inline-flex; align-items: baseline; gap: 0.4rem;
+    padding: 0.2rem 0.6rem; border-radius: 0.3rem;
+    border: 1px solid var(--pj-rule); text-decoration: none;
+    font-size: 0.8125rem; color: var(--sl-color-gray-2); max-width: 100%;
+  }
+  .pj-source:hover { border-color: var(--sl-color-text-accent); color: var(--sl-color-text-accent); }
+  .pj-source:focus-visible { outline: 2px solid var(--sl-color-text-accent); outline-offset: 2px; }
+  .pj-source-kind {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--sl-color-gray-3); flex: none;
+  }
+  .pj-source[data-medium="video"] .pj-source-kind,
+  .pj-source[data-medium="repo"] .pj-source-kind { color: var(--sl-color-text-accent); }
+  .pj-source-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .pj-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+  .pj-tags-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sl-color-gray-4); }
+  .pj-tag {
+    font-size: 0.72rem; padding: 0.1rem 0.5rem; border-radius: 999px;
+    border: 1px solid var(--pj-rule); color: var(--sl-color-gray-2);
+    text-decoration: none; white-space: nowrap;
+  }
+  .pj-tag:hover { border-color: var(--sl-color-text-accent); color: var(--sl-color-text-accent); }
+
+  @media (max-width: 50rem) {
+    .pj-item { grid-template-columns: 1fr; gap: 0.5rem; }
+    .pj-level { flex-direction: row; align-items: center; gap: 0.5rem; padding-top: 0; }
+    .pj-stats { gap: 0.9rem 1.75rem; }
+    .pj-stats dd { font-size: 1.25rem; }
+    .pj-source-label { max-width: 15rem; }
+  }
+</style>
