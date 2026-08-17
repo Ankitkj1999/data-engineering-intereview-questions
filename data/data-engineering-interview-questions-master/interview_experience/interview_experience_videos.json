@@ -42,6 +42,159 @@
     {"title": "Data Engineering Simplified — Channel Playlists (Snowflake/DE focus)", "channel": "Data Engineering Simplified", "type": "channel", "url": "https://www.youtube.com/@DataEngineering/playlists", "company": ""}
   ],
   "company_specific_and_compilation": [
+    {
+      "title": "Amazon Data Engineer 2 Interview Experience",
+      "channel": "Data talks by Aritra",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=_jwgTC0QLpA&t=17s",
+      "company": "Amazon",
+      "language": "English",
+      "kind": "Interview Experience"
+    },
+    {
+      "title": "Interview: Amazon Data Engineer (Majoring in Computer Science to working as Data Engineer)",
+      "channel": "Career School",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=e3LonY618P8&t=353s",
+      "company": "Amazon",
+      "language": "English",
+      "kind": "Interview Experience"
+    },
+    {
+      "title": "Amazon Data Engineer Interview Experience | Amazon Interview Questions | 200% Salary Hike Revealed",
+      "channel": "Data Engineering Insights with Nishchay",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=v3Plaw6r7HU&t=172s",
+      "company": "Amazon",
+      "language": "English",
+      "kind": "Interview Experience"
+    },
+    {
+      "title": "Guide to Amazon Data Engineer Phone Interview with Interview Questions and Tips",
+      "channel": "Prepfully",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=QeTOQO1B8tQ",
+      "company": "Amazon",
+      "language": "English",
+      "kind": "Roadmap & Interview Prep"
+    },
+    {
+      "title": "Interview with an Amazon BI Engineer",
+      "channel": "Data Interview",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=7vE0EPysjhc&t=41s",
+      "company": "Amazon",
+      "language": "English",
+      "kind": "Mock Interview"
+    },
+    {
+      "title": "Small Dreams to Job at Google | Data Engineer | In Just 3 Years",
+      "channel": "E-Learning Bridge",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=BB-bBDXihy4&t=56s",
+      "company": "Google",
+      "language": "English",
+      "kind": "Interview Experience"
+    },
+    {
+      "title": "Google Data Engineer Interview Experience",
+      "channel": "Dinesh Gudur",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=OXOMnP4kr0o",
+      "company": "Google",
+      "language": "English",
+      "kind": "Interview Experience"
+    },
+    {
+      "title": "Google Data Engineer Interview Experience (Bangalore) – 3 YOE",
+      "channel": "Data Depth",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=2atyplJK8I8",
+      "company": "Google",
+      "language": "English",
+      "kind": "Interview Experience"
+    },
+    {
+      "title": "Google Data Engineer Interview Experience",
+      "channel": "Jash Radia",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=ZNg6cFcBISw",
+      "company": "Google",
+      "language": "English",
+      "kind": "Interview Experience"
+    },
+    {
+      "title": "B.Sc & MCA to Google | Data Engineer | Roadmap",
+      "channel": "E-Learning Bridge",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=vPr_WCk5C9I&t=1s",
+      "company": "Google",
+      "language": "English",
+      "kind": "Interview Experience"
+    },
+    {
+      "title": "Data Engineer Roadmap 2025 | How to Become a Data Engineer?",
+      "channel": "Arsh Goyal",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=Y3Q1QfZ5DM0",
+      "company": "Microsoft",
+      "language": "English",
+      "kind": "Roadmap & Interview Prep"
+    },
+    {
+      "title": "My Google Interview Experience as Cloud Data Engineer",
+      "channel": "Swati Thakur",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=Fym3aPDyTDY&t=3s",
+      "company": "Google",
+      "language": "English",
+      "kind": "Interview Experience"
+    },
+    {
+      "title": "From Infosys to Google: Cloud Data Engineer | How to Crack It?",
+      "channel": "E-Learning Bridge",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=4jv0zhz_l1M",
+      "company": "Google",
+      "language": "English",
+      "kind": "Interview Experience"
+    },
+    {
+      "title": "Amazon Data Engineer Interview Experience Shared by Harsha | How to Get Placed in Amazon",
+      "channel": "PrepInsta Prime",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=q4yAaFBWz4g",
+      "company": "Amazon",
+      "language": "English",
+      "kind": "Interview Experience"
+    },
+    {
+      "title": "Google Data Engineer Interview — Watch It Before Your Preparation",
+      "channel": "E-Learning Bridge",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=rL2YASP04eQ",
+      "company": "Google",
+      "language": "English",
+      "kind": "Interview Experience"
+    },
+    {
+      "title": "Tier-3 to 5x Salary as Google Data Engineer | Level for 1CR+ Salary in MAANG",
+      "channel": "E-Learning Bridge",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=YrcTF7h2pE8",
+      "company": "Google",
+      "language": "English",
+      "kind": "Interview Experience"
+    },
+    {
+      "title": "How to Crack Data Engineer Interview at Google | Service Based to Product Based | Non-IT to IT",
+      "channel": "Sumit Mittal",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=-odqA7zZKx4",
+      "company": "Google",
+      "language": "English",
+      "kind": "Interview Experience"
+    },
     {"title": "Guide to Amazon Data Engineer Interview: Rounds, Questions, Prep", "channel": "Prepfully", "type": "video", "url": "https://www.youtube.com/watch?v=gXvmiroO-30", "company": "Amazon"},
     {"title": "Data Engineer-1 Interview Experience | In Covid Times | Bar Raiser", "channel": "(candidate account)", "type": "video", "url": "https://www.youtube.com/watch?v=iEdVOTGIRBI", "company": "Amazon"},
     {"title": "Deloitte Data Engineer Interview Question (PySpark)", "channel": "(data engineering channel)", "type": "video", "url": "https://www.youtube.com/watch?v=R-NY90whwOY", "company": "Deloitte"},

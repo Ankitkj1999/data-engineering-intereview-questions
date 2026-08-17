@@ -1,12 +1,12 @@
 {
   "_meta": {
-    "description": "Curated interview-preparation resources — videos, playlists and articles. Seeded from data/data-engineering-interview-questions-master/interview_experience/interview_experience_videos.json (45 records) on 2026-08-13.",
+    "description": "Curated interview-preparation resources — videos, playlists and articles. Seeded from data/data-engineering-interview-questions-master/interview_experience/interview_experience_videos.json on 2026-08-17.",
     "kinds": {
       "experience": "A first-hand account of interviewing at a named company.",
       "mock": "A recorded mock interview — full or partial loop, usually unbranded.",
       "guide": "Prep strategy, question compilations, round breakdowns."
     },
-    "checked": "2026-08-13",
+    "checked": "2026-08-17",
     "note": "company is set only where the source states it. Do not infer it from a creator's employer — 'Ankit Bansal (Data Engineer at Amazon)' describes the author, not the interview."
   },
   "companies": [
@@ -38,6 +38,20 @@
     {
       "slug": "jio",
       "name": "Jio",
+      "rounds": [],
+      "commonTopics": [],
+      "summaryStatus": "unwritten"
+    },
+    {
+      "slug": "google",
+      "name": "Google",
+      "rounds": [],
+      "commonTopics": [],
+      "summaryStatus": "unwritten"
+    },
+    {
+      "slug": "microsoft",
+      "name": "Microsoft",
       "rounds": [],
       "commonTopics": [],
       "summaryStatus": "unwritten"
@@ -96,6 +110,176 @@
       "author": "MANISH KUMAR",
       "url": "https://www.youtube.com/watch?v=ttie_kTA2lE",
       "company": "jio",
+      "topics": []
+    },
+    {
+      "id": "amazon-de2-aritra",
+      "kind": "experience",
+      "medium": "video",
+      "title": "Amazon Data Engineer 2 interview experience",
+      "author": "Data talks by Aritra",
+      "url": "https://www.youtube.com/watch?v=_jwgTC0QLpA&t=17s",
+      "company": "amazon",
+      "topics": []
+    },
+    {
+      "id": "amazon-de-cs-to-de",
+      "kind": "experience",
+      "medium": "video",
+      "title": "Amazon Data Engineer interview — from Computer Science major to Data Engineer",
+      "author": "Career School",
+      "url": "https://www.youtube.com/watch?v=e3LonY618P8&t=353s",
+      "company": "amazon",
+      "topics": []
+    },
+    {
+      "id": "amazon-de-nishchay-200pct",
+      "kind": "experience",
+      "medium": "video",
+      "title": "Amazon Data Engineer interview experience — 200% salary hike revealed",
+      "author": "Data Engineering Insights with Nishchay",
+      "url": "https://www.youtube.com/watch?v=v3Plaw6r7HU&t=172s",
+      "company": "amazon",
+      "topics": []
+    },
+    {
+      "id": "amazon-de-phone-prepfully",
+      "kind": "experience",
+      "medium": "video",
+      "title": "Amazon Data Engineer phone interview — questions and tips",
+      "author": "Prepfully",
+      "url": "https://www.youtube.com/watch?v=QeTOQO1B8tQ",
+      "company": "amazon",
+      "topics": []
+    },
+    {
+      "id": "amazon-bi-engineer-mock",
+      "kind": "mock",
+      "medium": "video",
+      "title": "Interview with an Amazon BI Engineer",
+      "author": "Data Interview",
+      "url": "https://www.youtube.com/watch?v=7vE0EPysjhc&t=41s",
+      "company": "amazon",
+      "topics": []
+    },
+    {
+      "id": "amazon-de-harsha-prepinsta",
+      "kind": "experience",
+      "medium": "video",
+      "title": "Amazon Data Engineer interview experience shared by Harsha",
+      "author": "PrepInsta Prime",
+      "url": "https://www.youtube.com/watch?v=q4yAaFBWz4g",
+      "company": "amazon",
+      "topics": []
+    },
+    {
+      "id": "google-de-small-dreams",
+      "kind": "experience",
+      "medium": "video",
+      "title": "From small dreams to Google — Data Engineer in just 3 years",
+      "author": "E-Learning Bridge",
+      "url": "https://www.youtube.com/watch?v=BB-bBDXihy4&t=56s",
+      "company": "google",
+      "topics": []
+    },
+    {
+      "id": "google-de-dinesh-gudur",
+      "kind": "experience",
+      "medium": "video",
+      "title": "Google Data Engineer interview experience",
+      "author": "Dinesh Gudur",
+      "url": "https://www.youtube.com/watch?v=OXOMnP4kr0o",
+      "company": "google",
+      "topics": []
+    },
+    {
+      "id": "google-de-bangalore-3yoe",
+      "kind": "experience",
+      "medium": "video",
+      "title": "Google Data Engineer interview experience (Bangalore) — 3 YOE",
+      "author": "Data Depth",
+      "url": "https://www.youtube.com/watch?v=2atyplJK8I8",
+      "company": "google",
+      "topics": []
+    },
+    {
+      "id": "google-de-jash-radia",
+      "kind": "experience",
+      "medium": "video",
+      "title": "Google Data Engineer interview experience",
+      "author": "Jash Radia",
+      "url": "https://www.youtube.com/watch?v=ZNg6cFcBISw",
+      "company": "google",
+      "topics": []
+    },
+    {
+      "id": "google-de-bsc-mca",
+      "kind": "experience",
+      "medium": "video",
+      "title": "B.Sc and MCA to Google — Data Engineer roadmap",
+      "author": "E-Learning Bridge",
+      "url": "https://www.youtube.com/watch?v=vPr_WCk5C9I&t=1s",
+      "company": "google",
+      "topics": []
+    },
+    {
+      "id": "google-de-swati-cloud",
+      "kind": "experience",
+      "medium": "video",
+      "title": "My Google interview experience as Cloud Data Engineer",
+      "author": "Swati Thakur",
+      "url": "https://www.youtube.com/watch?v=Fym3aPDyTDY&t=3s",
+      "company": "google",
+      "topics": []
+    },
+    {
+      "id": "google-de-infosys-to-google",
+      "kind": "experience",
+      "medium": "video",
+      "title": "From Infosys to Google — Cloud Data Engineer, how to crack it",
+      "author": "E-Learning Bridge",
+      "url": "https://www.youtube.com/watch?v=4jv0zhz_l1M",
+      "company": "google",
+      "topics": []
+    },
+    {
+      "id": "google-de-watch-before-prep",
+      "kind": "experience",
+      "medium": "video",
+      "title": "Google Data Engineer interview — watch this before you start preparing",
+      "author": "E-Learning Bridge",
+      "url": "https://www.youtube.com/watch?v=rL2YASP04eQ",
+      "company": "google",
+      "topics": []
+    },
+    {
+      "id": "google-de-tier3-5x-salary",
+      "kind": "experience",
+      "medium": "video",
+      "title": "Tier-3 college to 5× salary at Google as Data Engineer — what it takes",
+      "author": "E-Learning Bridge",
+      "url": "https://www.youtube.com/watch?v=YrcTF7h2pE8",
+      "company": "google",
+      "topics": []
+    },
+    {
+      "id": "google-de-sumit-how-to-crack",
+      "kind": "experience",
+      "medium": "video",
+      "title": "How to crack the Data Engineer interview at Google — service-based to product-based",
+      "author": "Sumit Mittal",
+      "url": "https://www.youtube.com/watch?v=-odqA7zZKx4",
+      "company": "google",
+      "topics": []
+    },
+    {
+      "id": "microsoft-de-roadmap-arsh",
+      "kind": "guide",
+      "medium": "video",
+      "title": "Data Engineer roadmap 2025 — how to become a Data Engineer",
+      "author": "Arsh Goyal",
+      "url": "https://www.youtube.com/watch?v=Y3Q1QfZ5DM0",
+      "company": "microsoft",
       "topics": []
     },
     {
