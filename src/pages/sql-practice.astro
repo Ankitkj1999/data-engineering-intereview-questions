@@ -113,18 +113,48 @@ import DATA from "../../data/sql-practice/exercises.json";
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
   // ── Inline PGlite engine (main-thread, no worker) ─────────────────────────
-  // Running PGlite directly on the main thread instead of via a Web Worker.
-  // Cloudflare's platformProxy interferes with module workers in dev mode, so
-  // the Worker approach silently hung at "Loading engine…". For a practice
-  // tool where queries are <50 ms this is perfectly fine.
+  // PGlite resolves pglite.wasm relative to import.meta.url which after Vite
+  // bundling becomes the page URL, not the module location. Fix: copy the WASM
+  // and data files into public/ and pre-fetch them to pass directly to PGlite
+  // so it never has to guess paths.
   type TableMeta = { name: string; columns: { name: string; type: string }[] };
 
   let db: PGlite | null = null;
   let currentSchema = "";
   let currentSeed = "";
 
+  // All three PGlite artifacts are fetched from /public so paths are predictable.
+  // PGlite internally does: new URL('./pglite.wasm', import.meta.url)
+  // After Vite bundling, import.meta.url = the page URL, not the module, so the
+  // fetch goes to /sql-practice/pglite.wasm → 404 → silent hang.
+  // Solution: pre-fetch all three from root-relative /pglite.* and pass them in.
+  let artifactsReady: Promise<{
+    pgliteWasmModule: WebAssembly.Module;
+    initdbWasmModule: WebAssembly.Module;
+    fsBundle: Blob;
+  }> | null = null;
+
+  function loadArtifacts() {
+    if (artifactsReady) return artifactsReady;
+    artifactsReady = Promise.all([
+      fetch("/pglite.wasm").then((r) => WebAssembly.compileStreaming(r)),
+      fetch("/initdb.wasm").then((r) => WebAssembly.compileStreaming(r)),
+      fetch("/pglite.data").then((r) => r.blob()),
+    ]).then(([pgliteWasmModule, initdbWasmModule, fsBundle]) => ({
+      pgliteWasmModule,
+      initdbWasmModule,
+      fsBundle,
+    }));
+    return artifactsReady;
+  }
+
   async function reseed(): Promise<PGlite> {
-    if (!db) db = new PGlite();
+    if (!db) {
+      const artifacts = await loadArtifacts();
+      // PGlite.create() is the recommended factory — it awaits waitReady
+      // automatically so the instance is guaranteed ready on return.
+      db = await PGlite.create(artifacts);
+    }
     await db.exec(`
       DROP SCHEMA IF EXISTS public CASCADE;
       CREATE SCHEMA public;
