@@ -21,6 +21,13 @@
         ]
       },
       {
+        "label": "SQL Practice",
+        "href": "/sql-practice/",
+        "match": [
+          "/sql-practice"
+        ]
+      },
+      {
         "label": "Projects",
         "href": "/projects/",
         "match": [

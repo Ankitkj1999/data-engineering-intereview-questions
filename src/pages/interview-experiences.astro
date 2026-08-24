@@ -57,10 +57,10 @@ const checked = data._meta.checked as string;
     </p>
 
     <dl class="ie-stats">
-      <div><dt>Resources</dt><dd>{counts.total}</dd></div>
-      <div><dt>Company experiences</dt><dd>{counts.experience}</dd></div>
-      <div><dt>Mock interviews</dt><dd>{counts.mock}</dd></div>
-      <div><dt>Guides</dt><dd>{counts.guide}</dd></div>
+      <div><dt>Resources</dt><dd><span data-stat="total-done">0</span><span class="ie-stat-slash">/</span><span class="ie-stat-total">{counts.total}</span></dd></div>
+      <div><dt>Company experiences</dt><dd><span data-stat="experience-done">0</span><span class="ie-stat-slash">/</span><span class="ie-stat-total">{counts.experience}</span></dd></div>
+      <div><dt>Mock interviews</dt><dd><span data-stat="mock-done">0</span><span class="ie-stat-slash">/</span><span class="ie-stat-total">{counts.mock}</span></dd></div>
+      <div><dt>Guides</dt><dd><span data-stat="guide-done">0</span><span class="ie-stat-slash">/</span><span class="ie-stat-total">{counts.guide}</span></dd></div>
       <div><dt>Links checked</dt><dd class="ie-stat-sm">{checked}</dd></div>
     </dl>
 
@@ -84,21 +84,28 @@ const checked = data._meta.checked as string;
             </header>
             <ul class="ie-items">
               {c.items.map((r) => (
-                <li class="ie-item">
-                  <a class="ie-link" href={r.url} target="_blank" rel="noopener noreferrer">
-                    <span class="ie-weight" data-medium={r.medium} data-size={r.count ? "known" : "unknown"}>
-                      {r.count
-                        ? r.count
-                        : <span class="ie-play" aria-hidden="true">{r.medium === "playlist" ? "≡" : "▶"}</span>}
-                    </span>
-                    <span class="ie-body">
-                      <span class="ie-title">{r.title}</span>
-                      <span class="ie-meta">
-                        {r.author && <span>{r.author}</span>}
-                        <span class="ie-medium">{r.medium}</span>
+                <li class="ie-item" data-resource-id={r.id} data-resource-kind={r.kind} data-resource-company={r.company ? "true" : "false"}>
+                  <div class="ie-item-row">
+                    <a class="ie-link" href={r.url} target="_blank" rel="noopener noreferrer">
+                      <span class="ie-weight" data-medium={r.medium} data-size={r.count ? "known" : "unknown"}>
+                        {r.count
+                          ? r.count
+                          : <span class="ie-play" aria-hidden="true">{r.medium === "playlist" ? "≡" : "▶"}</span>}
                       </span>
-                    </span>
-                  </a>
+                      <span class="ie-body">
+                        <span class="ie-title">{r.title}</span>
+                        <span class="ie-meta">
+                          {r.author && <span>{r.author}</span>}
+                          <span class="ie-medium">{r.medium}</span>
+                        </span>
+                      </span>
+                    </a>
+                    <button class="ie-done-btn" data-action="mark-done" aria-label="Mark as done" aria-pressed="false">
+                      <svg class="ie-done-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="3 8.5 6 11.5 13 4.5"/>
+                      </svg>
+                    </button>
+                  </div>
                   {r.topics.filter((t) => TOPIC_LINKS[t]).length > 0 && (
                     <span class="ie-tags">
                       {r.topics.filter((t) => TOPIC_LINKS[t]).map((t) => (
@@ -127,22 +134,29 @@ const checked = data._meta.checked as string;
 
       <ul class="ie-items ie-items-flush">
         {mocks.map((r) => (
-          <li class="ie-item">
-            <a class="ie-link" href={r.url} target="_blank" rel="noopener noreferrer">
-              <span class="ie-weight" data-medium={r.medium} data-size={r.count ? "known" : "unknown"}>
-                {r.count
-                  ? r.count
-                  : <span class="ie-play" aria-hidden="true">{r.medium === "playlist" ? "≡" : "▶"}</span>}
-              </span>
-              <span class="ie-body">
-                <span class="ie-title">{r.title}</span>
-                <span class="ie-meta">
-                  {r.author && <span>{r.author}</span>}
-                  <span class="ie-medium">{r.medium}</span>
+          <li class="ie-item" data-resource-id={r.id} data-resource-kind={r.kind} data-resource-company={r.company ? "true" : "false"}>
+            <div class="ie-item-row">
+              <a class="ie-link" href={r.url} target="_blank" rel="noopener noreferrer">
+                <span class="ie-weight" data-medium={r.medium} data-size={r.count ? "known" : "unknown"}>
+                  {r.count
+                    ? r.count
+                    : <span class="ie-play" aria-hidden="true">{r.medium === "playlist" ? "≡" : "▶"}</span>}
                 </span>
-                {r.note && <span class="ie-note">{r.note}</span>}
-              </span>
-            </a>
+                <span class="ie-body">
+                  <span class="ie-title">{r.title}</span>
+                  <span class="ie-meta">
+                    {r.author && <span>{r.author}</span>}
+                    <span class="ie-medium">{r.medium}</span>
+                  </span>
+                  {r.note && <span class="ie-note">{r.note}</span>}
+                </span>
+              </a>
+              <button class="ie-done-btn" data-action="mark-done" aria-label="Mark as done" aria-pressed="false">
+                <svg class="ie-done-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="3 8.5 6 11.5 13 4.5"/>
+                </svg>
+              </button>
+            </div>
             {r.topics.filter((t) => TOPIC_LINKS[t]).length > 0 && (
               <span class="ie-tags">
                 {r.topics.filter((t) => TOPIC_LINKS[t]).map((t) => (
@@ -165,22 +179,29 @@ const checked = data._meta.checked as string;
 
       <ul class="ie-items ie-items-flush">
         {guides.map((r) => (
-          <li class="ie-item">
-            <a class="ie-link" href={r.url} target="_blank" rel="noopener noreferrer">
-              <span class="ie-weight" data-medium={r.medium} data-size={r.count ? "known" : "unknown"}>
-                {r.count
-                  ? r.count
-                  : <span class="ie-play" aria-hidden="true">{r.medium === "playlist" ? "≡" : "▶"}</span>}
-              </span>
-              <span class="ie-body">
-                <span class="ie-title">{r.title}</span>
-                <span class="ie-meta">
-                  {r.author && <span>{r.author}</span>}
-                  <span class="ie-medium">{r.medium}</span>
+          <li class="ie-item" data-resource-id={r.id} data-resource-kind={r.kind} data-resource-company={r.company ? "true" : "false"}>
+            <div class="ie-item-row">
+              <a class="ie-link" href={r.url} target="_blank" rel="noopener noreferrer">
+                <span class="ie-weight" data-medium={r.medium} data-size={r.count ? "known" : "unknown"}>
+                  {r.count
+                    ? r.count
+                    : <span class="ie-play" aria-hidden="true">{r.medium === "playlist" ? "≡" : "▶"}</span>}
                 </span>
-                {r.note && <span class="ie-note">{r.note}</span>}
-              </span>
-            </a>
+                <span class="ie-body">
+                  <span class="ie-title">{r.title}</span>
+                  <span class="ie-meta">
+                    {r.author && <span>{r.author}</span>}
+                    <span class="ie-medium">{r.medium}</span>
+                  </span>
+                  {r.note && <span class="ie-note">{r.note}</span>}
+                </span>
+              </a>
+              <button class="ie-done-btn" data-action="mark-done" aria-label="Mark as done" aria-pressed="false">
+                <svg class="ie-done-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="3 8.5 6 11.5 13 4.5"/>
+                </svg>
+              </button>
+            </div>
             {r.topics.filter((t) => TOPIC_LINKS[t]).length > 0 && (
               <span class="ie-tags">
                 {r.topics.filter((t) => TOPIC_LINKS[t]).map((t) => (
@@ -285,9 +306,23 @@ const checked = data._meta.checked as string;
 
   /* --- item rows -------------------------------------------------------- */
   .ie-items { list-style: none; padding: 0; margin: 0; }
-  .ie-item { border-top: var(--ds-border-w) solid var(--ie-rule); }
+  .ie-item {
+    border-top: var(--ds-border-w) solid var(--ie-rule);
+    transition: opacity 0.2s ease;
+  }
   .ie-items > .ie-item:first-child { border-top: none; }
   .ie-items-flush > .ie-item:first-child { border-top: var(--ds-border-w) solid var(--ie-rule); }
+
+  .ie-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .ie-item-row .ie-link {
+    flex-grow: 1;
+    min-width: 0;
+  }
 
   .ie-link {
     display: grid;
@@ -300,6 +335,62 @@ const checked = data._meta.checked as string;
   }
   .ie-link:hover .ie-title { color: var(--sl-color-text-accent); }
   .ie-link:focus-visible { outline: 2px solid var(--sl-color-text-accent); outline-offset: 3px; border-radius: 2px; }
+
+  /* Done button & icon */
+  .ie-done-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    border: var(--ds-border-w) solid var(--sl-color-gray-4);
+    background: transparent;
+    color: transparent;
+    cursor: pointer;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+    flex-shrink: 0;
+    margin-right: 0.25rem;
+  }
+  .ie-done-btn:hover {
+    border-color: var(--brand-green);
+    color: color-mix(in srgb, var(--brand-green) 40%, transparent);
+    background: color-mix(in srgb, var(--brand-green) 8%, transparent);
+  }
+  .ie-done-btn.is-done {
+    border-color: var(--brand-green);
+    color: var(--sl-color-bg-nav);
+    background: var(--brand-green);
+  }
+  .ie-done-icon {
+    width: 10px;
+    height: 10px;
+  }
+
+  /* Done state styling */
+  .ie-item.is-done .ie-title {
+    color: var(--sl-color-gray-3);
+    text-decoration: line-through;
+    text-decoration-color: var(--sl-color-gray-4);
+  }
+  .ie-item.is-done .ie-weight {
+    color: var(--sl-color-gray-4);
+    opacity: 0.7;
+  }
+  .ie-item.is-done .ie-meta {
+    opacity: 0.8;
+  }
+
+  .ie-stat-slash {
+    color: var(--sl-color-gray-3);
+    margin-inline: 0.15rem;
+    font-size: 1.25rem;
+  }
+  .ie-stat-total {
+    color: var(--sl-color-gray-3);
+    font-size: 1.125rem;
+  }
 
   /* Signature: scale is the anchor. A 96-video playlist should not look like
      a 12-minute video, because that is the decision someone is actually making. */
@@ -386,3 +477,100 @@ const checked = data._meta.checked as string;
     .ie-tags { padding-left: 3.5rem; }
   }
 </style>
+
+<script>
+  const STORAGE_KEY = "de_interview_v1";
+
+  function getCompleted(): Set<string> {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]"));
+    } catch {
+      return new Set();
+    }
+  }
+
+  function saveCompleted(completed: Set<string>) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...completed]));
+    } catch (_) {}
+  }
+
+  function updateStats() {
+    const completed = getCompleted();
+    
+    // Group all items on page
+    const items = document.querySelectorAll<HTMLElement>(".ie-item");
+    let totalDone = 0;
+    let experienceDone = 0;
+    let mockDone = 0;
+    let guideDone = 0;
+
+    items.forEach((item) => {
+      const id = item.dataset.resourceId;
+      if (!id) return;
+      
+      const isDone = completed.has(id);
+      
+      // Update item visual class
+      item.classList.toggle("is-done", isDone);
+      
+      const btn = item.querySelector<HTMLButtonElement>('[data-action="mark-done"]');
+      if (btn) {
+        btn.setAttribute("aria-pressed", String(isDone));
+        btn.classList.toggle("is-done", isDone);
+        btn.setAttribute("aria-label", isDone ? "Mark as undone" : "Mark as done");
+      }
+
+      if (isDone) {
+        totalDone++;
+        const kind = item.dataset.resourceKind;
+        const isCompany = item.dataset.resourceCompany === "true";
+        if (kind === "experience" || isCompany) {
+          experienceDone++;
+        } else if (kind === "mock") {
+          mockDone++;
+        } else if (kind === "guide") {
+          guideDone++;
+        }
+      }
+    });
+
+    const totalDoneEl = document.querySelector('[data-stat="total-done"]');
+    const experienceDoneEl = document.querySelector('[data-stat="experience-done"]');
+    const mockDoneEl = document.querySelector('[data-stat="mock-done"]');
+    const guideDoneEl = document.querySelector('[data-stat="guide-done"]');
+
+    if (totalDoneEl) totalDoneEl.textContent = String(totalDone);
+    if (experienceDoneEl) experienceDoneEl.textContent = String(experienceDone);
+    if (mockDoneEl) mockDoneEl.textContent = String(mockDone);
+    if (guideDoneEl) guideDoneEl.textContent = String(guideDone);
+  }
+
+  function init() {
+    updateStats();
+
+    // Attach click listeners to all buttons
+    const btns = document.querySelectorAll<HTMLButtonElement>('[data-action="mark-done"]');
+    btns.forEach((btn) => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const item = btn.closest<HTMLElement>(".ie-item");
+        const id = item?.dataset.resourceId;
+        if (!id) return;
+
+        const completed = getCompleted();
+        if (completed.has(id)) {
+          completed.delete(id);
+        } else {
+          completed.add(id);
+        }
+        saveCompleted(completed);
+        updateStats();
+      };
+    });
+  }
+
+  // Astro page-load and regular load initialization
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>

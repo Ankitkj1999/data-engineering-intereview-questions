@@ -1,0 +1,68 @@
+{
+  "title": "Endless SQL",
+  "subtitle": "Drill the fundamentals until syntax stops being the problem. Real Postgres (PGlite WASM), running entirely in your browser.",
+  "datasets": {
+    "hr": {
+      "name": "Employee directory",
+      "schemaSql": "CREATE TABLE departments (\n  id   INTEGER PRIMARY KEY,\n  name TEXT NOT NULL UNIQUE\n);\n\nCREATE TABLE employees (\n  id            INTEGER PRIMARY KEY,\n  first_name    TEXT NOT NULL,\n  last_name     TEXT NOT NULL,\n  department_id INTEGER NOT NULL REFERENCES departments(id),\n  salary        INTEGER NOT NULL,\n  hired_at      DATE NOT NULL\n);",
+      "seedSql": "INSERT INTO departments (id, name) VALUES\n  (1, 'Engineering'),\n  (2, 'Sales'),\n  (3, 'Marketing');\n\nINSERT INTO employees (id, first_name, last_name, department_id, salary, hired_at) VALUES\n  (1,  'Ava',  'Chen',    1, 92000, '2021-03-15'),\n  (2,  'Liam', 'Patel',   1, 78500, '2022-07-01'),\n  (3,  'Noah', 'Kim',     1, 64000, '2023-01-10'),\n  (4,  'Mia',  'Ross',    2, 61000, '2021-11-20'),\n  (5,  'Ethan','Walsh',   2, 55000, '2020-05-30'),\n  (6,  'Zoe',  'Adams',   2, 48000, '2023-09-05'),\n  (7,  'Kai',  'Nguyen',  3, 67000, '2022-02-14'),\n  (8,  'Ivy',  'Brooks',  3, 52000, '2021-08-23'),\n  (9,  'Omar', 'Diaz',    1, 88000, '2020-10-02'),\n  (10, 'Lena', 'Fischer', 3, 71500, '2023-04-18');"
+    }
+  },
+  "exercises": [
+    {
+      "id": "sqlp-01",
+      "topic": "Filtering",
+      "difficulty": "easy",
+      "title": "High earners",
+      "question": "Return the **first name** and **salary** of every employee who earns more than 70,000, highest salary first.",
+      "dataset": "hr",
+      "orderMatters": true,
+      "hint": "WHERE filters rows before they come back; ORDER BY ... DESC sorts from highest to lowest.",
+      "solution": "SELECT first_name, salary\nFROM employees\nWHERE salary > 70000\nORDER BY salary DESC;"
+    },
+    {
+      "id": "sqlp-02",
+      "topic": "Joins",
+      "difficulty": "easy",
+      "title": "Who sits where",
+      "question": "Every employee's **first name**, **last name**, and **department name** — one row per employee, ordered alphabetically by last name.",
+      "dataset": "hr",
+      "orderMatters": true,
+      "hint": "employees has department_id, departments has the names. JOIN on it, and alias the department column so the header reads department.",
+      "solution": "SELECT e.first_name, e.last_name, d.name AS department\nFROM employees e\nJOIN departments d ON e.department_id = d.id\nORDER BY e.last_name;"
+    },
+    {
+      "id": "sqlp-03",
+      "topic": "Aggregation",
+      "difficulty": "medium",
+      "title": "Department headcount",
+      "question": "For each department, return its **name**, the **number of employees**, and the **average salary** rounded to 2 decimals. Order by department name.",
+      "dataset": "hr",
+      "orderMatters": true,
+      "hint": "GROUP BY collapses rows per group; COUNT(*) counts them and AVG() averages the salary. ROUND(avg, 2) cleans up the decimals.",
+      "solution": "SELECT d.name AS department,\n       COUNT(*) AS employee_count,\n       ROUND(AVG(e.salary), 2) AS avg_salary\nFROM employees e\nJOIN departments d ON e.department_id = d.id\nGROUP BY d.name\nORDER BY d.name;"
+    },
+    {
+      "id": "sqlp-04",
+      "topic": "Aggregation",
+      "difficulty": "medium",
+      "title": "Well-paid teams",
+      "question": "Which departments have an **average salary above 70,000**? Return the department **name** and its **average salary** rounded to 2 decimals, ordered by department name.",
+      "dataset": "hr",
+      "orderMatters": true,
+      "hint": "You can't filter an aggregate with WHERE — that's what HAVING is for. The aggregate has to be repeated in HAVING, not aliased.",
+      "solution": "SELECT d.name AS department,\n       ROUND(AVG(e.salary), 2) AS avg_salary\nFROM employees e\nJOIN departments d ON e.department_id = d.id\nGROUP BY d.name\nHAVING AVG(e.salary) > 70000\nORDER BY d.name;"
+    },
+    {
+      "id": "sqlp-05",
+      "topic": "Window functions",
+      "difficulty": "hard",
+      "title": "Top earners per team",
+      "question": "Return the **top 2 earners in each department**: department name, first name, last name, and salary. Order by department name, then salary descending.",
+      "dataset": "hr",
+      "orderMatters": true,
+      "hint": "DENSE_RANK() OVER (PARTITION BY department ORDER BY salary DESC) numbers rows within each department without eliminating them — rank in a CTE, then filter the rank in the outer query.",
+      "solution": "WITH ranked AS (\n  SELECT d.name AS department,\n         e.first_name,\n         e.last_name,\n         e.salary,\n         DENSE_RANK() OVER (PARTITION BY d.name ORDER BY e.salary DESC) AS rnk\n  FROM employees e\n  JOIN departments d ON e.department_id = d.id\n)\nSELECT department, first_name, last_name, salary\nFROM ranked\nWHERE rnk <= 2\nORDER BY department, salary DESC;"
+    }
+  ]
+}

@@ -102,4 +102,12 @@ export default defineConfig({
 		},
 		wasmModuleImportMeta: "true",
 	}),
+	// PGlite's worker (src/workers/pglite.worker.ts) code-splits its WASM
+	// engine, which requires ES module output — Vite's default IIFE worker
+	// format can't do code-splitting builds.
+	vite: {
+		worker: {
+			format: "es",
+		},
+	},
 });

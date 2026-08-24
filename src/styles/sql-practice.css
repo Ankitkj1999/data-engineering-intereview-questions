@@ -1,0 +1,531 @@
+/* ── Shared SQL-practice styles ───────────────────────────────────────────────
+   Used by src/pages/sql-practice.astro (Endless SQL POC). Same rules as
+   roadmap.css: all selectors plain so JS-generated DOM is styled; shares CSS
+   recipes with primitives.css (same custom properties, ds-pill / ds-progress
+   classes) but cannot render the Astro ui/ components. Keep the visual
+   language in sync by hand.
+──────────────────────────────────────────────────────────────────────────── */
+
+h1#_top {
+  display: none;
+}
+
+#sqlp-root {
+  --sqlp-radius: var(--page-radius-lg);
+  --sqlp-green: var(--brand-green);
+  --sqlp-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Syntax-highlight hues for the CodeMirror editor. Declared as vars so the
+     HighlightStyle (built in JS with var() color strings) follows the site
+     theme without a CM theme-swap compartment. */
+  --sqlp-hl-keyword: var(--sl-color-accent-high);
+  --sqlp-hl-string: #4ade80;
+  --sqlp-hl-number: #93c5fd;
+  --sqlp-hl-comment: var(--page-text-secondary);
+  max-width: 78rem;
+  margin: 0 auto;
+  padding-bottom: 4rem;
+}
+
+:root[data-theme="light"] #sqlp-root {
+  --sqlp-hl-string: #15803d;
+  --sqlp-hl-number: #1d4ed8;
+}
+
+/* Starlight's prose stack margin doesn't apply inside here (root is
+   .not-content), but be explicit anyway — this is app UI, not prose. */
+:where(#sqlp-root) * { margin: 0; }
+
+.sl-markdown-content { max-width: 100% !important; }
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.sqlp-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--page-space-4);
+  margin-bottom: var(--page-space-5);
+  flex-wrap: wrap;
+}
+
+.sqlp-header-left { display: flex; flex-direction: column; gap: 0.35rem; }
+
+.sqlp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  width: fit-content;
+  padding: 0.2em 0.75em;
+  border-radius: var(--page-radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--sl-color-accent) 14%, transparent);
+  color: var(--sl-color-accent-high);
+}
+
+.sqlp-title {
+  font-family: var(--sl-font--headings, var(--sl-font));
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--page-text);
+}
+
+.sqlp-subtitle {
+  font-size: 0.9rem;
+  color: var(--page-text-secondary);
+  max-width: 46rem;
+}
+
+.sqlp-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.45rem;
+}
+
+.sqlp-engine {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--page-text-secondary);
+  padding: 0.25em 0.75em;
+  border-radius: var(--page-radius-full);
+  border: var(--ds-border-w) solid var(--page-border);
+}
+
+.sqlp-engine .sqlp-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--page-radius-full);
+  background: var(--page-text-secondary);
+}
+
+.sqlp-engine.is-ready .sqlp-dot { background: var(--sqlp-green); }
+.sqlp-engine.is-error .sqlp-dot  { background: #b91c1c; }
+
+.sqlp-progress-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.sqlp-prog-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--page-text-secondary);
+  white-space: nowrap;
+}
+
+.sqlp-prog-bar-wrap { width: 140px; }
+.sqlp-prog-pct {
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--page-text);
+  min-width: 2.6em;
+  text-align: right;
+}
+
+/* ── 3-panel layout ───────────────────────────────────────────────────────── */
+.sqlp-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: var(--page-space-4);
+  align-items: start;
+}
+
+/* ── Left: exercise list ──────────────────────────────────────────────────── */
+.sqlp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  position: sticky;
+  top: calc(var(--page-header-height, 4rem) + var(--page-space-4));
+}
+
+.sqlp-list-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--page-text-secondary);
+  padding: 0 0.25rem 0.25rem;
+}
+
+.sqlp-ex {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--sqlp-radius);
+  border: var(--ds-border-w) solid var(--page-border);
+  background: transparent;
+  color: var(--page-text);
+  font-family: var(--sl-font);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s var(--sqlp-ease), background 0.15s var(--sqlp-ease);
+}
+
+.sqlp-ex:hover { border-color: var(--sl-color-accent); }
+
+.sqlp-ex.is-active {
+  border-color: var(--sl-color-accent);
+  background: color-mix(in srgb, var(--sl-color-accent) 8%, transparent);
+}
+
+.sqlp-ex-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: var(--page-radius-full);
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border: var(--ds-border-w) solid var(--page-border);
+  color: var(--page-text-secondary);
+}
+
+.sqlp-ex.is-done .sqlp-ex-num {
+  background: color-mix(in srgb, var(--sqlp-green) 18%, transparent);
+  border-color: transparent;
+  color: var(--sqlp-green);
+}
+
+.sqlp-ex-label {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.sqlp-ex-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sqlp-ex-topic {
+  font-size: 0.7rem;
+  color: var(--page-text-secondary);
+}
+
+/* ── Center: statement + editor ───────────────────────────────────────────── */
+.sqlp-center {
+  display: flex;
+  flex-direction: column;
+  gap: var(--page-space-3);
+  min-width: 0;
+}
+
+.sqlp-statement {
+  padding: var(--page-space-4);
+  border: var(--ds-border-w) solid var(--page-border);
+  border-radius: var(--sqlp-radius);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.sqlp-statement-top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sqlp-statement-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--page-text);
+  margin-right: auto;
+}
+
+.sqlp-question {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--page-text);
+}
+
+.sqlp-schema {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+}
+
+.sqlp-table-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0.2em 0.7em;
+  border-radius: var(--page-radius-full);
+  border: var(--ds-border-w) solid var(--page-border);
+  font-family: var(--sl-font-mono);
+  font-size: 0.72rem;
+  color: var(--page-text-secondary);
+  cursor: help;
+  position: relative;
+}
+
+.sqlp-table-chip:hover {
+  border-color: var(--sl-color-accent);
+  color: var(--page-text);
+}
+
+.sqlp-table-chip .sqlp-chip-cols {
+  display: none;
+}
+
+/* ── Editor block ─────────────────────────────────────────────────────────── */
+.sqlp-editor-card {
+  border: var(--ds-border-w) solid var(--page-border);
+  border-radius: var(--sqlp-radius);
+  overflow: hidden;
+}
+
+.sqlp-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  border-bottom: var(--ds-border-w) solid var(--page-border);
+  flex-wrap: wrap;
+}
+
+.sqlp-toolbar-hint {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--page-text-secondary);
+}
+
+.sqlp-toolbar-hint kbd {
+  font-family: var(--sl-font-mono);
+  font-size: 0.68rem;
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  border: var(--ds-border-w) solid var(--page-border);
+  color: var(--page-text);
+}
+
+.sqlp-editor { height: 220px; }
+
+.sqlp-editor .cm-editor { height: 100%; background: transparent; }
+.sqlp-editor .cm-editor.cm-focused { outline: none; }
+.sqlp-editor .cm-scroller {
+  font-family: var(--sl-font-mono);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.sqlp-editor .cm-gutters {
+  background: transparent;
+  border-right: var(--ds-border-w) solid var(--page-border);
+  color: var(--page-text-secondary);
+}
+.sqlp-editor .cm-activeLine {
+  background: color-mix(in srgb, var(--page-text) 4%, transparent);
+}
+.sqlp-editor .cm-activeLineGutter { background: transparent; color: var(--page-text); }
+.sqlp-editor .cm-content { caret-color: var(--sl-color-accent); }
+
+/* Autocompletion tooltip + selection — default CM styling is light-only, so
+   retheme it onto the page tokens. */
+.sqlp-editor .cm-tooltip {
+  background: var(--page-bg-elevated);
+  border: var(--ds-border-w) solid var(--page-border-strong);
+  border-radius: var(--sqlp-radius);
+  box-shadow: var(--page-shadow-lg);
+  overflow: hidden;
+}
+.sqlp-editor .cm-tooltip-autocomplete ul li[aria-selected] {
+  background: color-mix(in srgb, var(--sl-color-accent) 18%, transparent);
+  color: var(--page-text);
+}
+.sqlp-editor .cm-tooltip-autocomplete ul li { color: var(--page-text); }
+.sqlp-editor .cm-selectionBackground,
+.sqlp-editor .cm-editor .cm-selectionBackground {
+  background: color-mix(in srgb, var(--sl-color-accent) 25%, transparent) !important;
+}
+
+.sqlp-aux-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.sqlp-solution {
+  font-family: var(--sl-font-mono);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--page-text);
+  background: var(--page-bg-tertiary);
+  border: var(--ds-border-w) solid var(--page-border);
+  border-radius: var(--sqlp-radius);
+  padding: 0.8rem 1rem;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.sqlp-hint {
+  font-size: 0.82rem;
+  color: var(--page-text-secondary);
+  border-left: 3px solid var(--sl-color-accent);
+  padding: 0.4rem 0.75rem;
+}
+
+/* ── Right: results ───────────────────────────────────────────────────────── */
+.sqlp-results {
+  border: var(--ds-border-w) solid var(--page-border);
+  border-radius: var(--sqlp-radius);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: sticky;
+  top: calc(var(--page-header-height, 4rem) + var(--page-space-4));
+}
+
+.sqlp-results-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.9rem;
+  border-bottom: var(--ds-border-w) solid var(--page-border);
+}
+
+.sqlp-results-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--page-text-secondary);
+}
+
+.sqlp-results-meta {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--page-text-secondary);
+}
+
+.sqlp-verdict {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-bottom: var(--ds-border-w) solid var(--page-border);
+}
+
+.sqlp-verdict.is-pass {
+  background: color-mix(in srgb, var(--sqlp-green) 10%, transparent);
+  color: var(--sqlp-green);
+}
+
+.sqlp-verdict.is-fail {
+  background: color-mix(in srgb, #b91c1c 10%, transparent);
+  color: #fca5a5;
+}
+
+:root[data-theme="light"] .sqlp-verdict.is-fail { color: #b91c1c; }
+:root[data-theme="light"] .sqlp-verdict.is-pass { color: #15803d; }
+
+.sqlp-error {
+  font-family: var(--sl-font-mono);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  padding: 0.75rem 0.9rem;
+  background: color-mix(in srgb, #b91c1c 8%, transparent);
+  border-bottom: var(--ds-border-w) solid var(--page-border);
+  white-space: pre-wrap;
+  color: #fca5a5;
+}
+
+:root[data-theme="light"] .sqlp-error { color: #b91c1c; }
+
+.sqlp-table-wrap {
+  overflow: auto;
+  max-height: 46vh;
+}
+
+.sqlp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.sqlp-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: left;
+  font-family: var(--sl-font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--page-text-secondary);
+  background: var(--page-bg-tertiary);
+  padding: 0.5rem 0.8rem;
+  border-bottom: var(--ds-border-w) solid var(--page-border);
+  white-space: nowrap;
+}
+
+.sqlp-table td {
+  padding: 0.42rem 0.8rem;
+  border-bottom: var(--ds-border-w) solid color-mix(in srgb, var(--page-border) 45%, transparent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--page-text);
+}
+
+.sqlp-table tr:last-child td { border-bottom: none; }
+.sqlp-table td.is-null { color: var(--page-text-secondary); font-style: italic; }
+
+.sqlp-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--page-text-secondary);
+}
+
+.sqlp-expected { border-top: var(--ds-border-w) solid var(--page-border); }
+
+.sqlp-expected summary {
+  cursor: pointer;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--page-text-secondary);
+  user-select: none;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .sqlp-layout {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+  .sqlp-list {
+    grid-column: 1 / -1;
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .sqlp-list-title { width: 100%; }
+  .sqlp-ex { width: auto; }
+  .sqlp-results { position: static; }
+}
+
+@media (max-width: 720px) {
+  .sqlp-layout { grid-template-columns: minmax(0, 1fr); }
+  .sqlp-header-right { align-items: flex-start; }
+}
