@@ -90,13 +90,14 @@ import DATA from "../../data/sql-practice/exercises.json";
 </style>
 
 <script>
-  import { EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection } from "@codemirror/view";
+  import { EditorView, keymap, lineNumbers, drawSelection } from "@codemirror/view";
   import { Compartment } from "@codemirror/state";
   import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
   import { sql, PostgreSQL } from "@codemirror/lang-sql";
   import { HighlightStyle, syntaxHighlighting, bracketMatching } from "@codemirror/language";
   import { autocompletion, closeBrackets } from "@codemirror/autocomplete";
   import { tags as t } from "@lezer/highlight";
+  import { PGlite } from "@electric-sql/pglite";
 
   // ── Exercise data ─────────────────────────────────────────────────────────
   type Exercise = {
@@ -111,27 +112,84 @@ import DATA from "../../data/sql-practice/exercises.json";
 
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
-  // ── Engine client (worker owns the PGlite instance) ───────────────────────
-  type Req =
-    | { type: "load"; schemaSql: string; seedSql: string }
-    | { type: "exec"; sql: string }
-    | { type: "reset" }
-    | { type: "check"; userSql: string; solutionSql: string; orderMatters: boolean };
+  // ── Inline PGlite engine (main-thread, no worker) ─────────────────────────
+  // Running PGlite directly on the main thread instead of via a Web Worker.
+  // Cloudflare's platformProxy interferes with module workers in dev mode, so
+  // the Worker approach silently hung at "Loading engine…". For a practice
+  // tool where queries are <50 ms this is perfectly fine.
   type TableMeta = { name: string; columns: { name: string; type: string }[] };
 
-  const pending = new Map<number, (v: any) => void>();
-  let seq = 0;
-  const worker = new Worker(new URL("../workers/pglite.worker.ts", import.meta.url), { type: "module" });
-  worker.onmessage = (e: MessageEvent) => {
-    const cb = pending.get(e.data.id);
-    if (cb) { pending.delete(e.data.id); cb(e.data); }
-  };
-  function send(msg: Req): Promise<any> {
-    return new Promise((resolve) => {
-      const id = ++seq;
-      pending.set(id, resolve);
-      worker.postMessage({ ...msg, id });
-    });
+  let db: PGlite | null = null;
+  let currentSchema = "";
+  let currentSeed = "";
+
+  async function reseed(): Promise<PGlite> {
+    if (!db) db = new PGlite();
+    await db.exec(`
+      DROP SCHEMA IF EXISTS public CASCADE;
+      CREATE SCHEMA public;
+      GRANT ALL ON SCHEMA public TO public;
+      GRANT ALL ON SCHEMA public TO postgres;
+    `);
+    await db.exec(currentSchema);
+    await db.exec(currentSeed);
+    return db;
+  }
+
+  async function tableMeta(pg: PGlite): Promise<TableMeta[]> {
+    const res = await pg.query<{ table_name: string; column_name: string; data_type: string }>(
+      `SELECT table_name, column_name, data_type
+         FROM information_schema.columns
+        WHERE table_schema = 'public'
+        ORDER BY table_name, ordinal_position`,
+    );
+    const tables: TableMeta[] = [];
+    for (const row of res.rows) {
+      let tbl = tables.find((x) => x.name === row.table_name);
+      if (!tbl) { tbl = { name: row.table_name, columns: [] }; tables.push(tbl); }
+      tbl.columns.push({ name: row.column_name, type: row.data_type });
+    }
+    return tables;
+  }
+
+  async function runLast(pg: PGlite, sqlText: string) {
+    const results = await pg.exec(sqlText);
+    const last = results[results.length - 1];
+    return {
+      fields: (last?.fields ?? []).map((f) => ({ name: f.name })),
+      rows: (last?.rows ?? []) as Record<string, unknown>[],
+      rowCount: last?.rowCount ?? 0,
+      command: last?.command ?? "",
+    };
+  }
+
+  async function engineLoad(schemaSql: string, seedSql: string) {
+    currentSchema = schemaSql;
+    currentSeed = seedSql;
+    const pg = await reseed();
+    const [tables, versionRes] = await Promise.all([
+      tableMeta(pg),
+      pg.query<{ version: string }>("SELECT version()"),
+    ]);
+    return { tables, version: versionRes.rows[0]?.version ?? "PostgreSQL (PGlite)" };
+  }
+
+  async function engineExec(sqlText: string) {
+    if (!db) throw new Error("No exercise loaded yet.");
+    return runLast(db, sqlText);
+  }
+
+  async function engineCheck(userSql: string, solutionSql: string, orderMatters: boolean) {
+    let pg = await reseed();
+    const expected = (await pg.query(solutionSql)).rows as Record<string, unknown>[];
+    pg = await reseed();
+    const run = await runLast(pg, userSql);
+    const norm = (rows: Record<string, unknown>[]) =>
+      (orderMatters
+        ? rows
+        : [...rows].map((r) => JSON.stringify(r)).sort().map((s) => JSON.parse(s) as Record<string, unknown>)
+      ).map((r) => JSON.stringify(r));
+    return { pass: norm(expected).join("\n") === norm(run.rows).join("\n"), expected, actual: run.rows };
   }
 
   // ── Progress (same q_<id> localStorage scheme as QuestionCard) ────────────
@@ -153,8 +211,6 @@ import DATA from "../../data/sql-practice/exercises.json";
   }
 
   // ── Editor ────────────────────────────────────────────────────────────────
-  // Highlight colors resolve through CSS vars declared on #sqlp-root, so the
-  // same highlight style works in both themes without a CM theme swap.
   const hl = syntaxHighlighting(HighlightStyle.define([
     { tag: [t.keyword, t.control], color: "var(--sqlp-hl-keyword)" },
     { tag: [t.string, t.special(t.string)], color: "var(--sqlp-hl-string)" },
@@ -163,7 +219,7 @@ import DATA from "../../data/sql-practice/exercises.json";
     { tag: [t.operator, t.punctuation], color: "var(--page-text-secondary)" },
   ]));
   const langComp = new Compartment();
-  let view = new EditorView({
+  const view = new EditorView({
     parent: $("sqlp-editor"),
     extensions: [
       lineNumbers(),
@@ -185,7 +241,6 @@ import DATA from "../../data/sql-practice/exercises.json";
   // ── Exercise switching ────────────────────────────────────────────────────
   let currentIdx = 0;
   const drafts = new Map<string, string>();
-
   const DIFF_TONE = { easy: "success", medium: "neutral", hard: "danger" } as const;
 
   function mdBold(s: string): string {
@@ -227,27 +282,30 @@ import DATA from "../../data/sql-practice/exercises.json";
 
     view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: drafts.get(ex.id) ?? "" } });
 
-    const res = await send({ type: "load", schemaSql: ds.schemaSql, seedSql: ds.seedSql });
-    if (!res.ok) { setEngine("error", res.error); return; }
+    setEngine("loading", "Loading engine…");
+    try {
+      const res = await engineLoad(ds.schemaSql, ds.seedSql);
 
-    // Schema chips + editor completion fed from the live catalog
-    const schemaEl = $("sqlp-schema");
-    schemaEl.innerHTML = "";
-    const completion: Record<string, Record<string, string>> = {};
-    (res.tables as TableMeta[]).forEach((tbl) => {
-      completion[tbl.name] = Object.fromEntries(tbl.columns.map((c) => [c.name, c.type]));
-      const chip = document.createElement("span");
-      chip.className = "sqlp-table-chip";
-      chip.innerHTML = `<span class="sqlp-chip-table">${tbl.name}</span><span>·</span><span>${tbl.columns.length} cols</span>`;
-      chip.title = tbl.columns.map((c) => `${c.name}  ${c.type}`).join("\n");
-      schemaEl.appendChild(chip);
-    });
-    view.dispatch({ effects: langComp.reconfigure(sql({ dialect: PostgreSQL, schema: completion })) });
+      const schemaEl = $("sqlp-schema");
+      schemaEl.innerHTML = "";
+      const completion: Record<string, Record<string, string>> = {};
+      res.tables.forEach((tbl) => {
+        completion[tbl.name] = Object.fromEntries(tbl.columns.map((c) => [c.name, c.type]));
+        const chip = document.createElement("span");
+        chip.className = "sqlp-table-chip";
+        chip.innerHTML = `<span class="sqlp-chip-table">${tbl.name}</span><span>·</span><span>${tbl.columns.length} cols</span>`;
+        chip.title = tbl.columns.map((c) => `${c.name}  ${c.type}`).join("\n");
+        schemaEl.appendChild(chip);
+      });
+      view.dispatch({ effects: langComp.reconfigure(sql({ dialect: PostgreSQL, schema: completion })) });
 
-    $("sqlp-meta").textContent = "fresh instance seeded";
-    $("sqlp-table-wrap").innerHTML = `<div class="sqlp-empty">Run a query to see results here.</div>`;
-    setEngine("ready", `${res.version.split(" ").slice(0, 2).join(" ")} · PGlite WASM`);
-    buildList();
+      $("sqlp-meta").textContent = "fresh instance seeded";
+      $("sqlp-table-wrap").innerHTML = `<div class="sqlp-empty">Run a query to see results here.</div>`;
+      setEngine("ready", `${res.version.split(" ").slice(0, 2).join(" ")} · PGlite WASM`);
+      buildList();
+    } catch (err) {
+      setEngine("error", err instanceof Error ? err.message : "Engine error");
+    }
   }
 
   function setEngine(state: "loading" | "ready" | "error", label: string) {
@@ -256,7 +314,6 @@ import DATA from "../../data/sql-practice/exercises.json";
     $("sqlp-engine-label").textContent = label;
   }
 
-  // ── Result rendering ──────────────────────────────────────────────────────
   function renderTable(container: HTMLElement, fields: { name: string }[], rows: Record<string, unknown>[]) {
     if (!fields.length || !rows.length) {
       container.innerHTML = `<div class="sqlp-empty">No rows returned.</div>`;
@@ -279,24 +336,24 @@ import DATA from "../../data/sql-practice/exercises.json";
   function hideVerdict() { $("sqlp-verdict").hidden = true; }
   function hideError() { $("sqlp-error").hidden = true; $("sqlp-expected").hidden = true; }
 
-  // ── Actions ───────────────────────────────────────────────────────────────
   async function runQuery() {
     const sqlText = view.state.doc.toString().trim();
     if (!sqlText) return;
     hideVerdict(); hideError();
     $("sqlp-meta").textContent = "running…";
     const t0 = performance.now();
-    const res = await send({ type: "exec", sql: sqlText });
-    const ms = Math.max(1, Math.round(performance.now() - t0));
-    if (!res.ok) {
-      $("sqlp-error").textContent = res.error;
+    try {
+      const res = await engineExec(sqlText);
+      const ms = Math.max(1, Math.round(performance.now() - t0));
+      renderTable($("sqlp-table-wrap"), res.fields, res.rows);
+      const n = res.rows.length || res.rowCount || 0;
+      $("sqlp-meta").textContent = `${res.command || "OK"} · ${n} row${n === 1 ? "" : "s"} · ${ms} ms`;
+    } catch (err) {
+      const ms = Math.max(1, Math.round(performance.now() - t0));
+      $("sqlp-error").textContent = err instanceof Error ? err.message : String(err);
       $("sqlp-error").hidden = false;
       $("sqlp-meta").textContent = `error · ${ms} ms`;
-      return;
     }
-    renderTable($("sqlp-table-wrap"), res.fields, res.rows);
-    const n = res.rows.length || res.rowCount || 0;
-    $("sqlp-meta").textContent = `${res.command || "OK"} · ${n} row${n === 1 ? "" : "s"} · ${ms} ms`;
   }
 
   async function checkAnswer() {
@@ -305,40 +362,45 @@ import DATA from "../../data/sql-practice/exercises.json";
     if (!sqlText) return;
     hideVerdict(); hideError();
     $("sqlp-meta").textContent = "checking…";
-    const res = await send({ type: "check", userSql: sqlText, solutionSql: ex.solution, orderMatters: ex.orderMatters });
-    if (!res.ok) {
-      $("sqlp-error").textContent = res.error;
+    try {
+      const res = await engineCheck(sqlText, ex.solution, ex.orderMatters);
+      const verdict = $("sqlp-verdict");
+      if (res.pass) {
+        verdict.className = "sqlp-verdict is-pass";
+        verdict.textContent = `✓ Correct — ${ex.title} solved.`;
+        markDone(ex.id);
+        refreshProgress();
+        buildList();
+        if (currentIdx < DATA.exercises.length - 1) $("sqlp-next-btn").style.display = "";
+      } else {
+        verdict.className = "sqlp-verdict is-fail";
+        verdict.textContent = "✗ Not quite — your output doesn't match. Compare below.";
+        const exp = $("sqlp-expected");
+        exp.hidden = false;
+        (exp as HTMLDetailsElement).open = true;
+        renderTable($("sqlp-expected-wrap"), Object.keys(res.expected[0] ?? {}).map((name) => ({ name })), res.expected);
+      }
+      verdict.hidden = false;
+      $("sqlp-meta").textContent = res.pass ? "passed" : "failed";
+    } catch (err) {
+      $("sqlp-error").textContent = err instanceof Error ? err.message : String(err);
       $("sqlp-error").hidden = false;
       $("sqlp-meta").textContent = "error";
-      return;
     }
-    const verdict = $("sqlp-verdict");
-    if (res.pass) {
-      verdict.className = "sqlp-verdict is-pass";
-      verdict.textContent = `✓ Correct — ${ex.title} solved.`;
-      markDone(ex.id);
-      refreshProgress();
-      buildList();
-      if (currentIdx < DATA.exercises.length - 1) $("sqlp-next-btn").style.display = "";
-    } else {
-      verdict.className = "sqlp-verdict is-fail";
-      verdict.textContent = "✗ Not quite — your output doesn't match. Compare below.";
-      const exp = $("sqlp-expected");
-      exp.hidden = false;
-      exp.open = true;
-      renderTable($("sqlp-expected-wrap"), Object.keys(res.expected[0] ?? {}).map((name) => ({ name })), res.expected);
-    }
-    verdict.hidden = false;
-    $("sqlp-meta").textContent = res.pass ? "passed" : "failed";
   }
 
   async function resetData() {
     const ex = DATA.exercises[currentIdx];
     const ds = DATA.datasets[ex.dataset];
-    const res = await send({ type: "load", schemaSql: ds.schemaSql, seedSql: ds.seedSql });
-    if (res.ok) {
+    try {
+      currentSchema = ds.schemaSql;
+      currentSeed = ds.seedSql;
+      await reseed();
       $("sqlp-meta").textContent = "data reset";
       $("sqlp-table-wrap").innerHTML = `<div class="sqlp-empty">Run a query to see results here.</div>`;
+    } catch (err) {
+      $("sqlp-error").textContent = err instanceof Error ? err.message : String(err);
+      $("sqlp-error").hidden = false;
     }
   }
 
