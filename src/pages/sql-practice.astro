@@ -90,13 +90,11 @@ import DATA from "../../data/sql-practice/exercises.json";
 </style>
 
 <script>
-  import { EditorView, keymap, lineNumbers, drawSelection } from "@codemirror/view";
-  import { Compartment } from "@codemirror/state";
-  import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
-  import { sql, PostgreSQL } from "@codemirror/lang-sql";
-  import { HighlightStyle, syntaxHighlighting, bracketMatching } from "@codemirror/language";
-  import { autocompletion, closeBrackets } from "@codemirror/autocomplete";
-  import { tags as t } from "@lezer/highlight";
+  import { basicSetup } from "codemirror";
+  import { EditorView, keymap } from "@codemirror/view";
+  import { EditorState, Prec } from "@codemirror/state";
+  import { sql } from "@codemirror/lang-sql";
+  import { autocompletion, acceptCompletion } from "@codemirror/autocomplete";
   import { PGlite } from "@electric-sql/pglite";
 
   // ── Exercise data ─────────────────────────────────────────────────────────
@@ -119,33 +117,20 @@ import DATA from "../../data/sql-practice/exercises.json";
   // to itself. Just call PGlite.create() directly — no manual artifact fetching.
   type TableMeta = { name: string; columns: { name: string; type: string }[] };
 
-  let db: PGlite | null = null;
+  const db = new PGlite();
   let currentSchema = "";
   let currentSeed = "";
-  // Singleton init promise — only creates the DB once across all reseed() calls
-  let dbReady: Promise<PGlite> | null = null;
-
-  function getDb(): Promise<PGlite> {
-    if (!dbReady) {
-      dbReady = PGlite.create().catch((err) => {
-        dbReady = null; // Allow retry on next call
-        throw err;
-      });
-    }
-    return dbReady;
-  }
 
   async function reseed(): Promise<PGlite> {
-    const pg = await getDb();
-    await pg.exec(`
+    await db.exec(`
       DROP SCHEMA IF EXISTS public CASCADE;
       CREATE SCHEMA public;
       GRANT ALL ON SCHEMA public TO public;
       GRANT ALL ON SCHEMA public TO postgres;
     `);
-    await pg.exec(currentSchema);
-    await pg.exec(currentSeed);
-    return pg;
+    await db.exec(currentSchema);
+    await db.exec(currentSeed);
+    return db;
   }
 
 
@@ -179,17 +164,16 @@ import DATA from "../../data/sql-practice/exercises.json";
   async function engineLoad(schemaSql: string, seedSql: string) {
     currentSchema = schemaSql;
     currentSeed = seedSql;
-    const pg = await reseed();
+    await reseed();
     const [tables, versionRes] = await Promise.all([
-      tableMeta(pg),
-      pg.query<{ version: string }>("SELECT version()"),
+      tableMeta(db),
+      db.query<{ version: string }>("SELECT version()"),
     ]);
     return { tables, version: versionRes.rows[0]?.version ?? "PostgreSQL (PGlite)" };
   }
 
   async function engineExec(sqlText: string) {
-    const pg = await getDb();
-    return runLast(pg, sqlText);
+    return runLast(db, sqlText);
   }
 
   async function engineCheck(userSql: string, solutionSql: string, orderMatters: boolean) {
@@ -223,32 +207,71 @@ import DATA from "../../data/sql-practice/exercises.json";
     $("sqlp-prog-pct").textContent = `${done.size}/${DATA.exercises.length}`;
   }
 
+  // ── Schema-aware autocompleter ───────────────────────────────────────────
+  const PG_KEYWORDS = [
+    "SELECT", "FROM", "WHERE", "AND", "OR", "NOT", "IN", "IS", "NULL",
+    "AS", "ON", "JOIN", "LEFT", "RIGHT", "INNER", "OUTER", "FULL", "CROSS",
+    "GROUP BY", "ORDER BY", "HAVING", "LIMIT", "OFFSET",
+    "INSERT", "INTO", "VALUES", "UPDATE", "SET", "DELETE",
+    "CREATE", "TABLE", "DROP", "ALTER", "ADD", "COLUMN",
+    "DISTINCT", "BETWEEN", "LIKE", "ILIKE", "EXISTS",
+    "CASE", "WHEN", "THEN", "ELSE", "END",
+    "ASC", "DESC", "TRUE", "FALSE",
+    "COUNT", "SUM", "AVG", "MIN", "MAX",
+    "UNION", "ALL", "INTERSECT", "EXCEPT",
+    "WITH", "RECURSIVE", "OVER", "PARTITION BY", "ROW_NUMBER", "RANK",
+    "PRIMARY KEY", "FOREIGN KEY", "REFERENCES", "SERIAL",
+    "INT", "TEXT", "BOOLEAN", "NOT NULL",
+  ];
+
+  let schemaTables: string[] = [];
+  let schemaColumns: { table: string; column: string; type: string }[] = [];
+
+  function schemaCompleter(context: any) {
+    const word = context.matchBefore(/[\w.]+/);
+    if (!word || (word.from === word.to && !context.explicit)) return null;
+
+    const prefix = word.text.toLowerCase();
+    const options: any[] = [];
+
+    for (const kw of PG_KEYWORDS) {
+      if (kw.toLowerCase().startsWith(prefix)) {
+        options.push({ label: kw, type: "keyword" });
+      }
+    }
+    for (const t of schemaTables) {
+      if (t.toLowerCase().startsWith(prefix)) {
+        options.push({ label: t, type: "table" });
+      }
+    }
+    for (const c of schemaColumns) {
+      if (c.column.toLowerCase().startsWith(prefix)) {
+        options.push({ label: c.column, type: "column", detail: c.table });
+      }
+    }
+
+    if (!options.length) return null;
+    return { from: word.from, options };
+  }
+
   // ── Editor ────────────────────────────────────────────────────────────────
-  const hl = syntaxHighlighting(HighlightStyle.define([
-    { tag: [t.keyword, t.control], color: "var(--sqlp-hl-keyword)" },
-    { tag: [t.string, t.special(t.string)], color: "var(--sqlp-hl-string)" },
-    { tag: t.number, color: "var(--sqlp-hl-number)" },
-    { tag: t.comment, color: "var(--sqlp-hl-comment)", fontStyle: "italic" },
-    { tag: [t.operator, t.punctuation], color: "var(--page-text-secondary)" },
-  ]));
-  const langComp = new Compartment();
   const view = new EditorView({
+    state: EditorState.create({
+      doc: "",
+      extensions: [
+        basicSetup,
+        sql(),
+        autocompletion({ override: [schemaCompleter] }),
+        Prec.highest(
+          keymap.of([
+            { key: "Tab", run: acceptCompletion },
+            { key: "Mod-Enter", run: () => { void runQuery(); return true; } },
+          ]),
+        ),
+        EditorView.lineWrapping,
+      ],
+    }),
     parent: $("sqlp-editor"),
-    extensions: [
-      lineNumbers(),
-      history(),
-      drawSelection(),
-      bracketMatching(),
-      closeBrackets(),
-      autocompletion(),
-      EditorView.lineWrapping,
-      hl,
-      langComp.of([]),
-      keymap.of([
-        { key: "Mod-Enter", run: () => { void runQuery(); return true; } },
-        ...defaultKeymap, ...historyKeymap, indentWithTab,
-      ]),
-    ],
   });
 
   // ── Exercise switching ────────────────────────────────────────────────────

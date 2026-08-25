@@ -102,9 +102,6 @@ export default defineConfig({
 		},
 		wasmModuleImportMeta: "true",
 	}),
-	// PGlite bundler support: exclude from dep optimization so it keeps
-	// its own import.meta.url and can correctly resolve pglite.wasm/pglite.data.
-	// See: https://pglite.dev/docs/bundler-support
 	vite: {
 		worker: {
 			format: "es",
