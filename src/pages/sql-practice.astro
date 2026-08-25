@@ -324,16 +324,17 @@ import DATA from "../../data/sql-practice/exercises.json";
 
       const schemaEl = $("sqlp-schema");
       schemaEl.innerHTML = "";
-      const completion: Record<string, Record<string, string>> = {};
+      schemaTables = res.tables.map((tbl) => tbl.name);
+      schemaColumns = res.tables.flatMap((tbl) =>
+        tbl.columns.map((c) => ({ table: tbl.name, column: c.name, type: c.type }))
+      );
       res.tables.forEach((tbl) => {
-        completion[tbl.name] = Object.fromEntries(tbl.columns.map((c) => [c.name, c.type]));
         const chip = document.createElement("span");
         chip.className = "sqlp-table-chip";
         chip.innerHTML = `<span class="sqlp-chip-table">${tbl.name}</span><span>·</span><span>${tbl.columns.length} cols</span>`;
         chip.title = tbl.columns.map((c) => `${c.name}  ${c.type}`).join("\n");
         schemaEl.appendChild(chip);
       });
-      view.dispatch({ effects: langComp.reconfigure(sql({ dialect: PostgreSQL, schema: completion })) });
 
       $("sqlp-meta").textContent = "fresh instance seeded";
       $("sqlp-table-wrap").innerHTML = `<div class="sqlp-empty">Run a query to see results here.</div>`;
