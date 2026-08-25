@@ -113,58 +113,41 @@ import DATA from "../../data/sql-practice/exercises.json";
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
   // ── Inline PGlite engine (main-thread, no worker) ─────────────────────────
-  // PGlite resolves pglite.wasm relative to import.meta.url which after Vite
-  // bundling becomes the page URL, not the module location. Fix: copy the WASM
-  // and data files into public/ and pre-fetch them to pass directly to PGlite
-  // so it never has to guess paths.
+  // With optimizeDeps.exclude: ['@electric-sql/pglite'] in astro.config.mjs,
+  // Vite no longer pre-bundles PGlite, so import.meta.url inside the PGlite
+  // module stays correct and it can resolve pglite.wasm/pglite.data relative
+  // to itself. Just call PGlite.create() directly — no manual artifact fetching.
   type TableMeta = { name: string; columns: { name: string; type: string }[] };
 
   let db: PGlite | null = null;
   let currentSchema = "";
   let currentSeed = "";
+  // Singleton init promise — only creates the DB once across all reseed() calls
+  let dbReady: Promise<PGlite> | null = null;
 
-  // All three PGlite artifacts are fetched from /public so paths are predictable.
-  // PGlite internally does: new URL('./pglite.wasm', import.meta.url)
-  // After Vite bundling, import.meta.url = the page URL, not the module, so the
-  // fetch goes to /sql-practice/pglite.wasm → 404 → silent hang.
-  // Solution: pre-fetch all three from root-relative /pglite.* and pass them in.
-  let artifactsReady: Promise<{
-    pgliteWasmModule: WebAssembly.Module;
-    initdbWasmModule: WebAssembly.Module;
-    fsBundle: Blob;
-  }> | null = null;
-
-  function loadArtifacts() {
-    if (artifactsReady) return artifactsReady;
-    artifactsReady = Promise.all([
-      fetch("/pglite.wasm").then((r) => WebAssembly.compileStreaming(r)),
-      fetch("/initdb.wasm").then((r) => WebAssembly.compileStreaming(r)),
-      fetch("/pglite.data").then((r) => r.blob()),
-    ]).then(([pgliteWasmModule, initdbWasmModule, fsBundle]) => ({
-      pgliteWasmModule,
-      initdbWasmModule,
-      fsBundle,
-    }));
-    return artifactsReady;
+  function getDb(): Promise<PGlite> {
+    if (!dbReady) {
+      dbReady = PGlite.create().catch((err) => {
+        dbReady = null; // Allow retry on next call
+        throw err;
+      });
+    }
+    return dbReady;
   }
 
   async function reseed(): Promise<PGlite> {
-    if (!db) {
-      const artifacts = await loadArtifacts();
-      // PGlite.create() is the recommended factory — it awaits waitReady
-      // automatically so the instance is guaranteed ready on return.
-      db = await PGlite.create(artifacts);
-    }
-    await db.exec(`
+    const pg = await getDb();
+    await pg.exec(`
       DROP SCHEMA IF EXISTS public CASCADE;
       CREATE SCHEMA public;
       GRANT ALL ON SCHEMA public TO public;
       GRANT ALL ON SCHEMA public TO postgres;
     `);
-    await db.exec(currentSchema);
-    await db.exec(currentSeed);
-    return db;
+    await pg.exec(currentSchema);
+    await pg.exec(currentSeed);
+    return pg;
   }
+
 
   async function tableMeta(pg: PGlite): Promise<TableMeta[]> {
     const res = await pg.query<{ table_name: string; column_name: string; data_type: string }>(
@@ -205,8 +188,8 @@ import DATA from "../../data/sql-practice/exercises.json";
   }
 
   async function engineExec(sqlText: string) {
-    if (!db) throw new Error("No exercise loaded yet.");
-    return runLast(db, sqlText);
+    const pg = await getDb();
+    return runLast(pg, sqlText);
   }
 
   async function engineCheck(userSql: string, solutionSql: string, orderMatters: boolean) {

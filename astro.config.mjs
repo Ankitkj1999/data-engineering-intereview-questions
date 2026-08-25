@@ -102,12 +102,16 @@ export default defineConfig({
 		},
 		wasmModuleImportMeta: "true",
 	}),
-	// PGlite's worker (src/workers/pglite.worker.ts) code-splits its WASM
-	// engine, which requires ES module output — Vite's default IIFE worker
-	// format can't do code-splitting builds.
+	// PGlite bundler support: exclude from dep optimization so it keeps
+	// its own import.meta.url and can correctly resolve pglite.wasm/pglite.data.
+	// See: https://pglite.dev/docs/bundler-support
 	vite: {
 		worker: {
 			format: "es",
 		},
+		optimizeDeps: {
+			exclude: ["@electric-sql/pglite"],
+		},
+		assetsInclude: ["**/*.data"],
 	},
 });
