@@ -259,32 +259,63 @@ h1#_top {
 
 .sqlp-schema {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.2rem;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
 }
 
-.sqlp-table-chip {
+.sqlp-schema-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--page-radius-md, 8px);
+  border: var(--ds-border-w) solid var(--page-border);
+  background: color-mix(in srgb, var(--page-border) 12%, transparent);
+}
+
+.sqlp-schema-table-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sqlp-schema-table-name {
+  font-family: var(--sl-font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--sl-color-accent-high, var(--page-text));
+}
+
+.sqlp-schema-table-meta {
+  font-size: 0.7rem;
+  color: var(--page-text-secondary);
+}
+
+.sqlp-schema-cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.6rem;
+}
+
+.sqlp-col-item {
   display: inline-flex;
   align-items: center;
-  gap: 0.45em;
-  padding: 0.2em 0.7em;
-  border-radius: var(--page-radius-full);
-  border: var(--ds-border-w) solid var(--page-border);
-  font-family: var(--sl-font-mono);
-  font-size: 0.72rem;
-  color: var(--page-text-secondary);
-  cursor: help;
-  position: relative;
+  gap: 0.35em;
+  font-size: 0.78rem;
+  background: color-mix(in srgb, var(--page-border) 25%, transparent);
+  padding: 0.12em 0.5em;
+  border-radius: 4px;
 }
 
-.sqlp-table-chip:hover {
-  border-color: var(--sl-color-accent);
+.sqlp-col-name {
+  font-family: var(--sl-font-mono);
   color: var(--page-text);
 }
 
-.sqlp-table-chip .sqlp-chip-cols {
-  display: none;
+.sqlp-col-type {
+  font-size: 0.7rem;
+  color: var(--page-text-secondary);
 }
 
 /* ── Editor block ─────────────────────────────────────────────────────────── */

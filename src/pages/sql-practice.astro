@@ -329,11 +329,22 @@ import DATA from "../../data/sql-practice/exercises.json";
         tbl.columns.map((c) => ({ table: tbl.name, column: c.name, type: c.type }))
       );
       res.tables.forEach((tbl) => {
-        const chip = document.createElement("span");
-        chip.className = "sqlp-table-chip";
-        chip.innerHTML = `<span class="sqlp-chip-table">${tbl.name}</span><span>·</span><span>${tbl.columns.length} cols</span>`;
-        chip.title = tbl.columns.map((c) => `${c.name}  ${c.type}`).join("\n");
-        schemaEl.appendChild(chip);
+        const box = document.createElement("div");
+        box.className = "sqlp-schema-table";
+        const colsHtml = tbl.columns
+          .map(
+            (c) =>
+              `<span class="sqlp-col-item"><code class="sqlp-col-name">${c.name}</code><span class="sqlp-col-type">${c.type}</span></span>`
+          )
+          .join("");
+        box.innerHTML = `
+          <div class="sqlp-schema-table-head">
+            <span class="sqlp-schema-table-name">${tbl.name}</span>
+            <span class="sqlp-schema-table-meta">${tbl.columns.length} cols</span>
+          </div>
+          <div class="sqlp-schema-cols">${colsHtml}</div>
+        `;
+        schemaEl.appendChild(box);
       });
 
       $("sqlp-meta").textContent = "fresh instance seeded";
