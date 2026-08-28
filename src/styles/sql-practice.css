@@ -17,24 +17,23 @@ h1#_top {
   /* Syntax-highlight hues for the CodeMirror editor. Declared as vars so the
      HighlightStyle (built in JS with var() color strings) follows the site
      theme without a CM theme-swap compartment. */
-  --sqlp-hl-keyword: var(--sl-color-accent-high);
-  --sqlp-hl-string: #4ade80;
-  --sqlp-hl-number: #93c5fd;
-  --sqlp-hl-comment: var(--page-text-secondary);
+  --sqlp-hl-keyword: #fbbf24;  /* Bright amber keyword for high dark-mode contrast */
+  --sqlp-hl-string: #4ade80;   /* Bright green */
+  --sqlp-hl-number: #60a5fa;   /* Bright blue */
+  --sqlp-hl-operator: #f472b6; /* Vibrant pink/rose */
+  --sqlp-hl-comment: #94a3b8;  /* Readable slate */
   max-width: 78rem;
   margin: 0 auto;
   padding-bottom: 4rem;
 }
 
 :root[data-theme="light"] #sqlp-root {
-  --sqlp-hl-string: #15803d;
-  --sqlp-hl-number: #1d4ed8;
+  --sqlp-hl-keyword: #b45309;  /* Deep amber for light mode */
+  --sqlp-hl-string: #15803d;   /* Deep green */
+  --sqlp-hl-number: #1d4ed8;   /* Deep blue */
+  --sqlp-hl-operator: #be123c; /* Deep rose */
+  --sqlp-hl-comment: #64748b;  /* Deep slate */
 }
-
-/* Starlight's prose stack margin doesn't apply inside here (root is
-   .not-content), but be explicit anyway — this is app UI, not prose. */
-:where(#sqlp-root) * { margin: 0; }
-
 .sl-markdown-content { max-width: 100% !important; }
 
 /* ── Header ───────────────────────────────────────────────────────────────── */
@@ -319,19 +318,10 @@ h1#_top {
 }
 
 /* ── Editor block ─────────────────────────────────────────────────────────── */
-.sqlp-editor-card {
-  border: var(--ds-border-w) solid var(--page-border);
-  border-radius: var(--sqlp-radius);
-  overflow: hidden;
-}
-
 .sqlp-editor-toolbar {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.7rem;
-  border-bottom: var(--ds-border-w) solid var(--page-border);
-  flex-wrap: wrap;
 }
 
 .sqlp-toolbar-hint {
@@ -364,10 +354,14 @@ h1#_top {
   color: var(--page-text-secondary);
 }
 .sqlp-editor .cm-activeLine {
-  background: color-mix(in srgb, var(--page-text) 4%, transparent);
+  background: color-mix(in srgb, var(--page-text) 5%, transparent);
 }
-.sqlp-editor .cm-activeLineGutter { background: transparent; color: var(--page-text); }
-.sqlp-editor .cm-content { caret-color: var(--sl-color-accent); }
+.sqlp-editor .cm-activeLineGutter { background: transparent; color: var(--sl-color-accent); }
+.sqlp-editor .cm-content { caret-color: var(--sl-color-accent, #f59e0b) !important; }
+.sqlp-editor .cm-cursor,
+.sqlp-editor .cm-dropCursor {
+  border-left: 2.5px solid var(--sl-color-accent, #f59e0b) !important;
+}
 
 /* Autocompletion tooltip + selection — default CM styling is light-only, so
    retheme it onto the page tokens. */

@@ -94,6 +94,8 @@ import DATA from "../../data/sql-practice/exercises.json";
   import { EditorView, keymap } from "@codemirror/view";
   import { EditorState, Prec } from "@codemirror/state";
   import { sql } from "@codemirror/lang-sql";
+  import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
+  import { tags as t } from "@lezer/highlight";
   import { autocompletion, acceptCompletion } from "@codemirror/autocomplete";
   import { PGlite } from "@electric-sql/pglite";
 
@@ -255,12 +257,42 @@ import DATA from "../../data/sql-practice/exercises.json";
   }
 
   // ── Editor ────────────────────────────────────────────────────────────────
+  const editorTheme = EditorView.theme({
+    "&": {
+      fontSize: "0.92rem",
+    },
+    ".cm-content": {
+      caretColor: "var(--sl-color-accent, #fbbf24) !important",
+      fontFamily: "var(--sl-font-mono, monospace)",
+    },
+    "&.cm-focused .cm-cursor, .cm-cursor, .cm-dropCursor": {
+      borderLeftColor: "var(--sl-color-accent, #fbbf24) !important",
+      borderLeftWidth: "3px !important",
+    },
+  });
+
+  const hl = Prec.highest(
+    syntaxHighlighting(
+      HighlightStyle.define([
+        { tag: [t.keyword, t.controlKeyword, t.operatorKeyword, t.definitionKeyword], color: "var(--sqlp-hl-keyword, #fbbf24)", fontWeight: "700" },
+        { tag: [t.string, t.docString, t.character], color: "var(--sqlp-hl-string, #4ade80)" },
+        { tag: [t.number, t.integer, t.float], color: "var(--sqlp-hl-number, #60a5fa)" },
+        { tag: [t.comment, t.lineComment, t.blockComment], color: "var(--sqlp-hl-comment, #94a3b8)", fontStyle: "italic" },
+        { tag: [t.operator, t.compareOperator, t.logicOperator, t.punctuation, t.separator], color: "var(--sqlp-hl-operator, #f472b6)" },
+        { tag: [t.className, t.typeName], color: "var(--sl-color-accent-high)" },
+        { tag: [t.propertyName, t.name, t.variableName], color: "var(--page-text)" },
+      ])
+    )
+  );
+
   const view = new EditorView({
     state: EditorState.create({
       doc: "",
       extensions: [
         basicSetup,
         sql(),
+        editorTheme,
+        hl,
         autocompletion({ override: [schemaCompleter] }),
         Prec.highest(
           keymap.of([
