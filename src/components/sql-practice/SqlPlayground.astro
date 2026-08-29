@@ -1,0 +1,137 @@
+---
+import type { ExerciseData } from "../../lib/endless-sql/core/types";
+import Button from "../ui/Button.astro";
+
+interface Props {
+  data: ExerciseData;
+}
+
+const { data } = Astro.props;
+---
+
+<div id="sqlp-root" class="not-content">
+  <div class="sqlp-header">
+    <div class="sqlp-header-left">
+      <span class="sqlp-badge">Interactive Playground</span>
+      <h1 class="sqlp-title">{data.title}</h1>
+      <p class="sqlp-subtitle">{data.subtitle}</p>
+    </div>
+    <div class="sqlp-header-right">
+      <span class="sqlp-engine" id="sqlp-engine">
+        <span class="sqlp-dot"></span>
+        <span id="sqlp-engine-label">Loading engine…</span>
+      </span>
+      <div class="sqlp-progress-summary">
+        <span class="sqlp-prog-label">Solved</span>
+        <div class="sqlp-prog-bar-wrap ds-progress-track">
+          <div class="ds-progress-fill" id="sqlp-prog-fill" style="width:0%"></div>
+        </div>
+        <span class="sqlp-prog-pct" id="sqlp-prog-pct">0/0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sqlp-layout">
+    <aside class="sqlp-list" id="sqlp-list" aria-label="Exercises">
+      <span class="sqlp-list-title">Exercises</span>
+    </aside>
+
+    <section class="sqlp-center">
+      <div class="sqlp-statement">
+        <div class="sqlp-statement-top">
+          <span class="sqlp-statement-title" id="sqlp-title">…</span>
+          <span class="ds-pill ds-pill--neutral" id="sqlp-topic-pill">…</span>
+          <span class="ds-pill ds-pill--neutral" id="sqlp-diff-pill">…</span>
+        </div>
+        <p class="sqlp-question" id="sqlp-question">…</p>
+        <div class="sqlp-schema" id="sqlp-schema"></div>
+      </div>
+
+      <div class="sqlp-editor-card">
+        <div class="sqlp-editor-toolbar">
+          <Button id="sqlp-run" class="sqlp-run-btn">Run</Button>
+          <Button id="sqlp-check" variant="secondary">Check answer</Button>
+          <Button id="sqlp-reset" variant="ghost">Reset data</Button>
+          <span class="sqlp-toolbar-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> to run</span>
+        </div>
+        <div class="sqlp-editor" id="sqlp-editor"></div>
+      </div>
+
+      <div class="sqlp-aux-row">
+        <Button id="sqlp-hint-btn" variant="ghost">Hint</Button>
+        <Button id="sqlp-solution-btn" variant="ghost">Show solution</Button>
+        <Button id="sqlp-next-btn" variant="primary" style="display:none">Next exercise →</Button>
+      </div>
+
+      <p class="sqlp-hint" id="sqlp-hint" hidden></p>
+      <pre class="sqlp-solution" id="sqlp-solution" hidden></pre>
+    </section>
+
+    <section class="sqlp-results" aria-label="Query results">
+      <div class="sqlp-results-head">
+        <span class="sqlp-results-title">Results</span>
+        <span class="sqlp-results-meta" id="sqlp-meta"></span>
+      </div>
+      <div class="sqlp-verdict is-pass" id="sqlp-verdict" hidden></div>
+      <pre class="sqlp-error" id="sqlp-error" hidden></pre>
+      <div class="sqlp-table-wrap" id="sqlp-table-wrap">
+        <div class="sqlp-empty" id="sqlp-empty">Run a query to see results here.</div>
+      </div>
+      <details class="sqlp-expected" id="sqlp-expected" hidden>
+        <summary>Expected output</summary>
+        <div class="sqlp-table-wrap" id="sqlp-expected-wrap"></div>
+      </details>
+    </section>
+  </div>
+</div>
+
+<script type="application/json" id="sqlp-data-json" set:html={JSON.stringify(data)}></script>
+
+<style is:global>
+  @import "/src/styles/sql-practice.css";
+</style>
+
+<script>
+  import { SqlPlaygroundApp } from "../../lib/endless-sql";
+
+  const dataScript = document.getElementById("sqlp-data-json") as HTMLScriptElement;
+  if (dataScript) {
+    const data = JSON.parse(dataScript.textContent || "{}");
+    const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+
+    const app = new SqlPlaygroundApp(
+      {
+        root: $("sqlp-root"),
+        title: $("sqlp-title"),
+        topicPill: $("sqlp-topic-pill"),
+        diffPill: $("sqlp-diff-pill"),
+        question: $("sqlp-question"),
+        schema: $("sqlp-schema"),
+        editorContainer: $("sqlp-editor"),
+        hintBtn: $("sqlp-hint-btn"),
+        solutionBtn: $("sqlp-solution-btn"),
+        nextBtn: $("sqlp-next-btn"),
+        runBtn: $("sqlp-run"),
+        checkBtn: $("sqlp-check"),
+        resetBtn: $("sqlp-reset"),
+        hint: $("sqlp-hint"),
+        solution: $("sqlp-solution"),
+        resultsMeta: $("sqlp-meta"),
+        verdict: $("sqlp-verdict"),
+        error: $("sqlp-error"),
+        tableWrap: $("sqlp-table-wrap"),
+        expectedDetails: $("sqlp-expected") as HTMLDetailsElement,
+        expectedWrap: $("sqlp-expected-wrap"),
+        list: $("sqlp-list"),
+        engineBadge: $("sqlp-engine"),
+        engineLabel: $("sqlp-engine-label"),
+        progressFill: $("sqlp-prog-fill"),
+        progressPct: $("sqlp-prog-pct"),
+      },
+      data
+    );
+
+    void app.init();
+  }
+</script>
+
