@@ -1,6 +1,6 @@
 {
   "title": "Endless SQL",
-  "subtitle": "Drill SQL concepts from basic filtering to advanced window functions. Real Postgres (PGlite WASM), running entirely in your browser.",
+  "subtitle": "Drill SQL concepts from basic filtering and joins to aggregates, conditional logic, and window functions. Real Postgres (PGlite WASM), running entirely in your browser.",
   "datasets": {
     "hr": {
       "name": "Employee directory & projects",
@@ -24,6 +24,17 @@
       "id": "sqlp-02",
       "topic": "Filtering",
       "difficulty": "easy",
+      "title": "Salary range with BETWEEN",
+      "question": "Return the **first_name**, **last_name**, and **salary** of all employees whose salary is between **50,000 and 70,000** (inclusive). Order by salary ascending.",
+      "dataset": "hr",
+      "orderMatters": true,
+      "hint": "Use WHERE salary BETWEEN 50000 AND 70000 ORDER BY salary ASC.",
+      "solution": "SELECT first_name, last_name, salary\nFROM employees\nWHERE salary BETWEEN 50000 AND 70000\nORDER BY salary ASC;"
+    },
+    {
+      "id": "sqlp-03",
+      "topic": "Filtering",
+      "difficulty": "easy",
       "title": "Recent hires",
       "question": "Return the **first_name**, **last_name**, and **hired_at** date of all employees hired on or after **2022-01-01**, ordered by hire date ascending.",
       "dataset": "hr",
@@ -32,7 +43,7 @@
       "solution": "SELECT first_name, last_name, hired_at\nFROM employees\nWHERE hired_at >= '2022-01-01'\nORDER BY hired_at ASC;"
     },
     {
-      "id": "sqlp-03",
+      "id": "sqlp-04",
       "topic": "Filtering",
       "difficulty": "easy",
       "title": "Pattern matching with LIKE",
@@ -43,7 +54,40 @@
       "solution": "SELECT first_name, last_name\nFROM employees\nWHERE last_name LIKE 'K%' OR last_name LIKE 'W%'\nORDER BY last_name ASC;"
     },
     {
-      "id": "sqlp-04",
+      "id": "sqlp-05",
+      "topic": "String functions",
+      "difficulty": "easy",
+      "title": "Full employee names",
+      "question": "Return a single column **full_name** combining `first_name` and `last_name` separated by a space (e.g. 'Ava Chen'), along with their **salary**. Order by salary descending.",
+      "dataset": "hr",
+      "orderMatters": true,
+      "hint": "In SQL, concatenate strings using the || operator: first_name || ' ' || last_name AS full_name.",
+      "solution": "SELECT first_name || ' ' || last_name AS full_name, salary\nFROM employees\nORDER BY salary DESC;"
+    },
+    {
+      "id": "sqlp-06",
+      "topic": "Date functions",
+      "difficulty": "easy",
+      "title": "Hiring year extraction",
+      "question": "For each employee, extract the year they were hired as an integer column named **hire_year**. Return **first_name**, **last_name**, and **hire_year**, ordered by hire_year ascending, then first_name ascending.",
+      "dataset": "hr",
+      "orderMatters": true,
+      "hint": "Use EXTRACT(YEAR FROM hired_at)::INTEGER AS hire_year.",
+      "solution": "SELECT first_name, last_name,\n       EXTRACT(YEAR FROM hired_at)::INTEGER AS hire_year\nFROM employees\nORDER BY hire_year ASC, first_name ASC;"
+    },
+    {
+      "id": "sqlp-07",
+      "topic": "Calculations",
+      "difficulty": "easy",
+      "title": "Projected 10% raise",
+      "question": "Calculate a 10% salary raise for all Engineering employees (`department_id = 1`). Return **first_name**, current **salary**, and the projected salary rounded to an integer aliased as **new_salary**. Order by new_salary descending.",
+      "dataset": "hr",
+      "orderMatters": true,
+      "hint": "Multiply salary by 1.10 and wrap in ROUND(...)::INTEGER AS new_salary.",
+      "solution": "SELECT first_name, salary,\n       ROUND(salary * 1.10)::INTEGER AS new_salary\nFROM employees\nWHERE department_id = 1\nORDER BY new_salary DESC;"
+    },
+    {
+      "id": "sqlp-08",
       "topic": "Joins",
       "difficulty": "easy",
       "title": "Who sits where",
@@ -54,7 +98,18 @@
       "solution": "SELECT e.first_name, e.last_name, d.name AS department\nFROM employees e\nJOIN departments d ON e.department_id = d.id\nORDER BY e.last_name ASC;"
     },
     {
-      "id": "sqlp-05",
+      "id": "sqlp-09",
+      "topic": "Null handling",
+      "difficulty": "easy",
+      "title": "Department fallback with COALESCE",
+      "question": "Return each employee's **first_name**, **last_name**, and their department name aliased as **department**. If an employee has no department (`NULL`), display `'Unassigned'` instead. Order by first_name ascending.",
+      "dataset": "hr",
+      "orderMatters": true,
+      "hint": "Use a LEFT JOIN from employees to departments, and wrap d.name in COALESCE(d.name, 'Unassigned') AS department.",
+      "solution": "SELECT e.first_name, e.last_name,\n       COALESCE(d.name, 'Unassigned') AS department\nFROM employees e\nLEFT JOIN departments d ON e.department_id = d.id\nORDER BY e.first_name ASC;"
+    },
+    {
+      "id": "sqlp-10",
       "topic": "Joins",
       "difficulty": "easy",
       "title": "Unassigned employees (NULLs)",
@@ -65,7 +120,7 @@
       "solution": "SELECT first_name, last_name, salary\nFROM employees\nWHERE department_id IS NULL\nORDER BY salary DESC;"
     },
     {
-      "id": "sqlp-06",
+      "id": "sqlp-11",
       "topic": "Aggregation",
       "difficulty": "medium",
       "title": "Department headcount",
@@ -76,7 +131,7 @@
       "solution": "SELECT d.name AS department,\n       COUNT(*) AS employee_count,\n       ROUND(AVG(e.salary), 2) AS avg_salary\nFROM employees e\nJOIN departments d ON e.department_id = d.id\nGROUP BY d.name\nORDER BY d.name ASC;"
     },
     {
-      "id": "sqlp-07",
+      "id": "sqlp-12",
       "topic": "Aggregation",
       "difficulty": "medium",
       "title": "Well-paid teams",
@@ -87,7 +142,29 @@
       "solution": "SELECT d.name AS department,\n       ROUND(AVG(e.salary), 2) AS avg_salary\nFROM employees e\nJOIN departments d ON e.department_id = d.id\nGROUP BY d.name\nHAVING AVG(e.salary) > 70000\nORDER BY d.name ASC;"
     },
     {
-      "id": "sqlp-08",
+      "id": "sqlp-13",
+      "topic": "Joins",
+      "difficulty": "medium",
+      "title": "Departments with no employees",
+      "question": "Find any department that currently has **no employees assigned to it**. Return the department **name** (aliased as `department`). Order by department name ascending.",
+      "dataset": "hr",
+      "orderMatters": true,
+      "hint": "Use a LEFT JOIN from departments to employees and filter WHERE e.id IS NULL.",
+      "solution": "SELECT d.name AS department\nFROM departments d\nLEFT JOIN employees e ON d.id = e.department_id\nWHERE e.id IS NULL\nORDER BY d.name ASC;"
+    },
+    {
+      "id": "sqlp-14",
+      "topic": "Aggregation",
+      "difficulty": "medium",
+      "title": "High earner count per department",
+      "question": "For each department, return its **name** (aliased as `department`), the total number of employees (aliased as `total_employees`), and the count of employees earning **over 70,000** (aliased as `high_earners_count`). Order by department name ascending.",
+      "dataset": "hr",
+      "orderMatters": true,
+      "hint": "Use conditional aggregation: COUNT(CASE WHEN e.salary > 70000 THEN 1 END) AS high_earners_count.",
+      "solution": "SELECT d.name AS department,\n       COUNT(e.id) AS total_employees,\n       COUNT(CASE WHEN e.salary > 70000 THEN 1 END) AS high_earners_count\nFROM departments d\nLEFT JOIN employees e ON d.id = e.department_id\nGROUP BY d.name\nORDER BY d.name ASC;"
+    },
+    {
+      "id": "sqlp-15",
       "topic": "Conditional logic",
       "difficulty": "medium",
       "title": "Salary bands (CASE WHEN)",
@@ -98,7 +175,18 @@
       "solution": "SELECT first_name, salary,\n       CASE\n         WHEN salary >= 80000 THEN 'High'\n         WHEN salary >= 60000 THEN 'Medium'\n         ELSE 'Entry'\n       END AS salary_band\nFROM employees\nORDER BY salary DESC;"
     },
     {
-      "id": "sqlp-09",
+      "id": "sqlp-16",
+      "topic": "Aggregation",
+      "difficulty": "medium",
+      "title": "Multi-project contributors",
+      "question": "Find all employees assigned to **2 or more projects**. Return their **first_name**, **last_name**, and the count of assigned projects (aliased as `project_count`), ordered by project_count descending, then last_name ascending.",
+      "dataset": "hr",
+      "orderMatters": true,
+      "hint": "JOIN employees to employee_projects, GROUP BY employee columns, and filter using HAVING COUNT(ep.project_id) >= 2.",
+      "solution": "SELECT e.first_name, e.last_name,\n       COUNT(ep.project_id) AS project_count\nFROM employees e\nJOIN employee_projects ep ON e.id = ep.employee_id\nGROUP BY e.id, e.first_name, e.last_name\nHAVING COUNT(ep.project_id) >= 2\nORDER BY project_count DESC, e.last_name ASC;"
+    },
+    {
+      "id": "sqlp-17",
       "topic": "Subqueries",
       "difficulty": "medium",
       "title": "Above average earners",
@@ -109,7 +197,7 @@
       "solution": "SELECT first_name, last_name, salary\nFROM employees\nWHERE salary > (SELECT AVG(salary) FROM employees)\nORDER BY salary DESC;"
     },
     {
-      "id": "sqlp-10",
+      "id": "sqlp-18",
       "topic": "CTEs",
       "difficulty": "medium",
       "title": "Department payroll comparison",
@@ -120,7 +208,7 @@
       "solution": "WITH dept_payroll AS (\n  SELECT d.name AS department, SUM(e.salary) AS total_payroll\n  FROM employees e\n  JOIN departments d ON e.department_id = d.id\n  GROUP BY d.name\n)\nSELECT department, total_payroll\nFROM dept_payroll\nWHERE total_payroll > 120000\nORDER BY total_payroll DESC;"
     },
     {
-      "id": "sqlp-11",
+      "id": "sqlp-19",
       "topic": "Window functions",
       "difficulty": "hard",
       "title": "Top earners per team",
@@ -131,7 +219,7 @@
       "solution": "WITH ranked AS (\n  SELECT d.name AS department,\n         e.first_name,\n         e.last_name,\n         e.salary,\n         DENSE_RANK() OVER (PARTITION BY d.name ORDER BY e.salary DESC) AS rnk\n  FROM employees e\n  JOIN departments d ON e.department_id = d.id\n)\nSELECT department, first_name, last_name, salary\nFROM ranked\nWHERE rnk <= 2\nORDER BY department ASC, salary DESC;"
     },
     {
-      "id": "sqlp-12",
+      "id": "sqlp-20",
       "topic": "Window functions",
       "difficulty": "hard",
       "title": "Running total payroll",
@@ -142,7 +230,7 @@
       "solution": "SELECT first_name, hired_at, salary,\n       SUM(salary) OVER (ORDER BY hired_at ASC, id ASC) AS running_total\nFROM employees\nORDER BY hired_at ASC, id ASC;"
     },
     {
-      "id": "sqlp-13",
+      "id": "sqlp-21",
       "topic": "Window functions",
       "difficulty": "hard",
       "title": "Previous hire salary (LAG)",
@@ -153,7 +241,7 @@
       "solution": "SELECT first_name, hired_at, salary,\n       LAG(salary) OVER (ORDER BY hired_at ASC, id ASC) AS prev_salary\nFROM employees\nORDER BY hired_at ASC, id ASC;"
     },
     {
-      "id": "sqlp-14",
+      "id": "sqlp-22",
       "topic": "Joins",
       "difficulty": "hard",
       "title": "Project budget allocation",
